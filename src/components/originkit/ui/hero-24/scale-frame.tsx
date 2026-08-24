@@ -12,6 +12,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { useIsHydrated } from "@/hooks/use-is-hydrated";
+
 /** Sizing has to happen before the first paint, otherwise the frame shows at
  *  1× for a frame or two and then snaps to its real scale. React can't do that
  *  during SSR, so this runs inline right after the markup — the browser applies
@@ -49,6 +51,7 @@ export const ScaleFrame = ({
   const baseDprRef = useRef<number | null>(null);
   const id = useId();
   const [measured, setMeasured] = useState(false);
+  const hydrated = useIsHydrated();
 
   useIsomorphicLayoutEffect(() => {
     const outer = outerRef.current;
@@ -128,7 +131,12 @@ export const ScaleFrame = ({
           {children}
         </div>
       </div>
-      {!measured && (
+      {/* Only for the HTML the server sent, where the browser paints long
+          before React is loaded. A frame that mounts after hydration is sized
+          by the layout effect above, which already runs before its first
+          paint — and React never executes a script it creates on the client,
+          it warns about it. */}
+      {!measured && !hydrated && (
         <script dangerouslySetInnerHTML={{ __html: inlineScale(id, frameWidth) }} />
       )}
     </>

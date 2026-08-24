@@ -11,6 +11,7 @@ import {
 } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { useT } from "@/lib/i18n/I18nProvider";
+import { splitTextUnits } from "@/lib/i18n/graphemes";
 import SectionBackdrop, {
   ACCENT,
   PRIMARY,
@@ -362,7 +363,7 @@ export function FeatureHighlights() {
                   t(`lifecycle.acts.${act.id}.title2`) || act.title[1],
                 ].map((lineText, li) => (
                   <span key={li} className="block">
-                    {Array.from(lineText).map((char, ci) => (
+                    {splitTextUnits(lineText).map((char, ci) => (
                       <motion.span
                         key={ci}
                         className="inline-block"
