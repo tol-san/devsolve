@@ -10,7 +10,6 @@ const DESCRIPTION =
 
 /* The site name comes from the root layout's title template, so it is not
    repeated here — spelling it out produced `Leaderboard · DevSolve · DevSolve`. */
-<<<<<<< HEAD:src/app/[lang]/(public)/leaderboard/page.tsx
 export async function generateMetadata({
   params,
 }: {
@@ -25,13 +24,6 @@ export async function generateMetadata({
     locale: lang,
   });
 }
-=======
-export const metadata: Metadata = pageMetadata({
-  title: "Leaderboard",
-  description: DESCRIPTION,
-  path: "/leaderboard",
-});
->>>>>>> ec3d74f3ddc9e3cf7f3d54dad8377aa2aa8548f4:src/app/(public)/leaderboard/page.tsx
 
 export default function LeaderboardPage() {
   return (
