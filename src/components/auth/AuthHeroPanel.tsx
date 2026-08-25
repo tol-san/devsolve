@@ -41,7 +41,7 @@ export function AuthHeroPanel({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="bg-[#EFF4FF] border-b lg:border-b-0 lg:border-r border-slate-200/80 p-6 sm:p-10 xl:p-14 flex flex-col justify-between items-center relative overflow-hidden min-h-[480px] lg:min-h-[100dvh] text-center"
+      className="bg-blue-50/60 backdrop-blur-[2px] border-b lg:border-b-0 lg:border-r border-border p-6 sm:p-10 xl:p-14 flex flex-col justify-between items-center relative overflow-hidden min-h-[480px] lg:min-h-[100dvh] text-center dark:bg-blue-950/20"
     >
       {/* Ambient Glows */}
       <div className={`pointer-events-none absolute -top-24 -left-24 w-96 h-96 ${glowColor1} rounded-full blur-3xl -z-0`} />
@@ -52,7 +52,7 @@ export function AuthHeroPanel({
         <div className="w-full flex justify-start items-center mb-4">
           <Link
             href={backHref}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors group"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-foreground/80 hover:text-blue-600 transition-colors group dark:hover:text-blue-400"
           >
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1 text-blue-600" />
             <span>{backLabel}</span>
@@ -75,7 +75,7 @@ export function AuthHeroPanel({
               return (
                 <div
                   key={idx}
-                  className={`flex items-center gap-1.5 bg-white/90 backdrop-blur-xs border ${badge.borderColorClass} px-3 py-1.5 rounded-full shadow-2xs text-sm font-semibold text-slate-800`}
+                  className={`flex items-center gap-1.5 bg-card/90 backdrop-blur-xs border ${badge.borderColorClass} px-3 py-1.5 rounded-full shadow-2xs text-sm font-semibold text-foreground`}
                 >
                   <Icon className={`w-3.5 h-3.5 ${badge.iconColorClass}`} />
                   <span>{badge.label}</span>
@@ -91,7 +91,7 @@ export function AuthHeroPanel({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-2xl sm:text-3xl xl:text-4xl font-extrabold tracking-tight text-blue-600 mb-2"
+            className="text-2xl sm:text-3xl xl:text-4xl font-extrabold tracking-tight text-blue-600 mb-2 dark:text-blue-400"
           >
             {headline}
           </motion.h1>
@@ -99,7 +99,7 @@ export function AuthHeroPanel({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-slate-600 text-sm sm:text-base leading-relaxed font-normal"
+            className="text-muted-foreground text-sm sm:text-base leading-relaxed font-normal"
           >
             {description}
           </motion.p>

@@ -9,7 +9,7 @@ export default async function DiscussionPage({ params }: PageProps) {
   const { id } = await params;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen">
       <ProblemDetailPage />
     </div>
   );

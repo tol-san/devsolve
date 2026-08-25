@@ -325,7 +325,7 @@ function Loaded({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="min-h-screen bg-slate-50 pb-16 font-sans text-slate-800 dark:bg-neutral-950 dark:text-neutral-100"
+      className="min-h-screen pb-16 font-sans text-slate-800 dark:text-neutral-100"
     >
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <Link
@@ -1021,7 +1021,7 @@ function DetailSkeleton() {
     <div
       role="status"
       aria-label="Loading the problem"
-      className="min-h-screen animate-pulse bg-slate-50 pb-16 dark:bg-neutral-950"
+      className="min-h-screen animate-pulse pb-16"
     >
       <span className="sr-only">Loading the problem…</span>
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -1060,7 +1060,7 @@ function NotFound({
   onRetry?: () => void;
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 text-center text-slate-800 dark:bg-neutral-950 dark:text-neutral-100">
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 text-center text-slate-800 dark:text-neutral-100">
       <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
         <AlertCircle aria-hidden="true" className="size-7" />
       </div>

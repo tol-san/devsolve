@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import SectionBackdrop from "@/components/landing/SectionBackdrop";
 import LeaderboardClient from "@/components/Leaderboard/LeaderboardClient";
 import PointsLegend from "@/components/Leaderboard/PointsLegend";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
@@ -27,7 +26,7 @@ export async function generateMetadata({
 
 export default function LeaderboardPage() {
   return (
-    <div className="min-h-dvh bg-background text-foreground selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-500/30 dark:selection:text-blue-50">
+    <div className="min-h-dvh text-foreground selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-500/30 dark:selection:text-blue-50">
       {/* CollectionPage schema: marks this as a ranked list of community
           members so search engines can understand its purpose and link from
           it to the individual profile pages linked within. */}
@@ -42,8 +41,6 @@ export default function LeaderboardPage() {
       {/* Header band, not a fold — people come here for the ranking, so the
           podium should already be on screen. */}
       <section className="relative overflow-hidden border-b border-border">
-        <SectionBackdrop seed={4} gridSize={72} particles={false} />
-
         <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-8 lg:px-8">
           <div className="min-w-0">
             <div className="mb-1.5 flex items-center gap-2">

@@ -23,20 +23,20 @@ const COMPANY_HERO_BADGES: HeroBadge[] = [
   {
     icon: Building2,
     label: "Verified Organizations",
-    borderColorClass: "border-blue-200/80",
-    iconColorClass: "text-blue-600",
+    borderColorClass: "border-blue-200/80 dark:border-blue-400/30",
+    iconColorClass: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: ShieldCheck,
     label: "Enterprise Bug Bounty",
-    borderColorClass: "border-indigo-200/80",
-    iconColorClass: "text-indigo-600",
+    borderColorClass: "border-indigo-200/80 dark:border-indigo-400/30",
+    iconColorClass: "text-indigo-600 dark:text-indigo-400",
   },
   {
     icon: Sparkles,
     label: "Compliance Ready",
-    borderColorClass: "border-emerald-200/80",
-    iconColorClass: "text-emerald-600",
+    borderColorClass: "border-emerald-200/80 dark:border-emerald-400/30",
+    iconColorClass: "text-emerald-600 dark:text-emerald-400",
   },
 ];
 
@@ -131,7 +131,7 @@ export default function CompanyRegisterPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full grid grid-cols-1 lg:grid-cols-2 bg-white font-sans antialiased overflow-x-hidden">
+    <div className="min-h-[100dvh] w-full grid grid-cols-1 lg:grid-cols-2 font-sans antialiased overflow-x-hidden">
       {/* LEFT PANEL - Hero Section */}
       <AuthHeroPanel
         lottieSrc="/lottie/company.lottie"
@@ -143,7 +143,7 @@ export default function CompanyRegisterPage() {
       />
 
       {/* RIGHT PANEL - Multi-Step Form Container */}
-      <div className="bg-white p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center items-center overflow-y-auto">
+      <div className="p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center items-center overflow-y-auto">
         <div className="w-full max-w-xl lg:max-w-2xl mx-auto my-auto flex flex-col justify-center">
           {/* Stepper Header (only visible on steps 1 & 2) */}
           {currentStep < 3 && <CompanyRegisterStepper currentStep={currentStep} />}

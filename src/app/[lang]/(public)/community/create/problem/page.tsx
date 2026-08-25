@@ -6,21 +6,14 @@ import { MotionConfig, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { CreateProblemForm } from "@/components/discussions/create/CreateProblemForm";
-import SectionBackdrop, { useInk } from "@/components/landing/SectionBackdrop";
+import { useInk } from "@/components/landing/SectionBackdrop";
 
 export default function PublicCreateProblemPage() {
   const ink = useInk();
 
   return (
     <MotionConfig reducedMotion="user">
-      <section className="relative min-h-[calc(100dvh-var(--navbar-height))] bg-slate-50 py-10 sm:py-14 dark:bg-neutral-950">
-        <SectionBackdrop
-          seed={6}
-          gridSize={88}
-          particles={false}
-          beams={false}
-        />
-
+      <section className="relative min-h-[calc(100dvh-var(--navbar-height))] py-10 sm:py-14">
         <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
           <motion.header
             initial={{ opacity: 0, y: 16 }}
