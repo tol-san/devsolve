@@ -6,7 +6,6 @@ import { motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { CreateShowcaseForm } from "@/components/showcases/create/CreateShowcaseForm";
-import SectionBackdrop from "@/components/landing/SectionBackdrop";
 
 export default function PublicCreateShowcasePage() {
   return (
@@ -17,9 +16,7 @@ export default function PublicCreateShowcasePage() {
        Deliberately no `overflow-hidden`, unlike the landing sections: it would
        make this element the scroll container and the form's sticky sidebar
        would scroll away with the page. `SectionBackdrop` clips itself. */
-    <section className="relative min-h-[calc(100dvh-var(--navbar-height))] bg-background py-10 text-foreground sm:py-14">
-      <SectionBackdrop seed={5} gridSize={88} particles={false} beams={false} />
-
+    <section className="relative min-h-[calc(100dvh-var(--navbar-height))] py-10 text-foreground sm:py-14">
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
         <motion.header
           initial={{ opacity: 0, y: 16 }}

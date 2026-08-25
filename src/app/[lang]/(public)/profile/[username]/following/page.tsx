@@ -33,7 +33,7 @@ export default function PublicFollowingPage() {
   if (isError || !overview || !followingUsers) return notFound();
 
   return (
-    <div className="mx-auto max-w-7xl bg-background px-4 py-8 text-foreground sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 text-foreground sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

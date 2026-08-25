@@ -6,6 +6,7 @@ import { ProfileProvisioningGate } from "@/components/auth/ProfileProvisioningGa
 import { NotificationProvider } from "@/components/notifications/NotificationContext";
 import { NotificationTrigger } from "@/components/notifications/NotificationTrigger";
 import { ThemeToggle } from "@/components/motion/theme-toggle";
+import PageBackdrop from "@/components/layout/PageBackdrop";
 import { NO_INDEX } from "@/lib/seo/metadata";
 
 /**
@@ -27,7 +28,11 @@ export default function DashboardLayout({
 }) {
   return (
     <NotificationProvider>
-      <div className="flex flex-col lg:flex-row min-h-screen bg-background">
+      {/* Same surface as the landing hero — the dashboard is a continuation of
+          the site, not a separate application. The shell below is transparent
+          so it shows through; panels keep their own `bg-card`. */}
+      <PageBackdrop seed={3} />
+      <div className="flex flex-col lg:flex-row min-h-screen">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 w-full">
           {/* Dashboard Top Navigation Bar with Notification Bell Icon & Dark/Light Theme Toggle in top-right.

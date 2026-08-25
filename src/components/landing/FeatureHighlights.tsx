@@ -10,8 +10,8 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
-import { useLocale, useT } from "@/lib/i18n/I18nProvider";
-import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { splitTextUnits } from "@/lib/i18n/graphemes";
 import SectionBackdrop, {
   ACCENT,
   PRIMARY,
@@ -368,28 +368,41 @@ export function FeatureHighlights() {
                 {[
                   t(`lifecycle.acts.${act.id}.title1`) || act.title[0],
                   t(`lifecycle.acts.${act.id}.title2`) || act.title[1],
-                ].map((lineText, li, arr) => (
-                  <motion.span
-                    key={li}
-                    className="block"
-                    variants={{
-                      hidden: { y: 28, opacity: 0, filter: "blur(6px)" },
-                      visible: {
-                        y: 0,
-                        opacity: 1,
-                        filter: "blur(0px)",
-                        transition: {
-                          duration: 0.45,
-                          ease: [0.2, 0.8, 0.3, 1],
-                        },
-                      },
-                    }}
-                  >
-                    {lineText}
-                    {li === arr.length - 1 && (
-                      <span style={{ color: accent }}>.</span>
+                ].map((lineText, li) => (
+                  <span key={li} className="block">
+                    {splitTextUnits(lineText).map((char, ci) => (
+                      <motion.span
+                        key={ci}
+                        className="inline-block"
+                        variants={{
+                          hidden: { y: 48, opacity: 0, filter: "blur(10px)" },
+                          visible: {
+                            y: 0,
+                            opacity: 1,
+                            filter: "blur(0px)",
+                            transition: {
+                              duration: 0.5,
+                              ease: [0.2, 0.8, 0.3, 1],
+                            },
+                          },
+                        }}
+                      >
+                        {char === " " ? " " : char}
+                      </motion.span>
+                    ))}
+                    {li === act.title.length - 1 && (
+                      <motion.span
+                        className="inline-block"
+                        style={{ color: accent }}
+                        variants={{
+                          hidden: { y: 48, opacity: 0 },
+                          visible: { y: 0, opacity: 1 },
+                        }}
+                      >
+                        .
+                      </motion.span>
                     )}
-                  </motion.span>
+                  </span>
                 ))}
               </motion.h2>
             </AnimatePresence>

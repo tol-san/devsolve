@@ -10,7 +10,7 @@ const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
 export function AboutHero() {
   return (
-    <section className="relative -mt-(--navbar-height) overflow-hidden bg-background pt-(--navbar-height)">
+    <section className="relative -mt-(--navbar-height) overflow-hidden pt-(--navbar-height)">
       <div className="relative mx-auto max-w-7xl px-6 pt-12 sm:px-12 sm:pt-16 lg:px-16">
         {/* ─── Top Header: Editorial Split Layout ─── */}
         <div className="grid grid-cols-1 items-start justify-between gap-8 pb-8 sm:pb-12 lg:grid-cols-12 lg:gap-12">

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import PageBackdrop from "@/components/layout/PageBackdrop";
 import { NO_INDEX } from "@/lib/seo/metadata";
 import { SITE_NAME } from "@/lib/seo/site";
 
 /**
- * Pass-through layout that exists only to describe the routes under it.
+ * Carries the shared page backdrop and describes the routes under it.
  *
  * Sign-in, registration and account-type selection are forms, not documents:
  * there is nothing on them worth a search result, and a signed-out visitor
@@ -24,5 +25,12 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <>
+      {/* Sign-in and registration sit on the same surface the landing hero
+          opens on, so arriving from the marketing pages is continuous. */}
+      <PageBackdrop seed={6} />
+      {children}
+    </>
+  );
 }

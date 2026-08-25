@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="min-h-[100dvh] bg-background">
+    <main className="min-h-[100dvh]">
       <section className="flex min-h-[100dvh] items-center justify-center px-4">
         <div className="text-center">
           <p className="text-base text-muted-foreground">

@@ -7,7 +7,7 @@ import { ArrowLeft, ChevronRight, ShieldAlert } from "lucide-react";
 
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { CreateSolutionForm } from "@/components/discussions/create/CreateSolutionForm";
-import SectionBackdrop, { useInk } from "@/components/landing/SectionBackdrop";
+import { useInk } from "@/components/landing/SectionBackdrop";
 import { useGetProblemByIdQuery } from "@/lib/redux/services/problemsApi";
 import { useGetMyProfileQuery } from "@/lib/redux/services/solutionsApi";
 
@@ -38,9 +38,7 @@ export function SolutionCreateScreen({ problemId }: { problemId: string }) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <section className="relative min-h-[calc(100dvh-var(--navbar-height))] bg-slate-50 py-10 sm:py-14 dark:bg-neutral-950">
-        <SectionBackdrop seed={9} gridSize={88} particles={false} beams={false} />
-
+      <section className="relative min-h-[calc(100dvh-var(--navbar-height))] py-10 sm:py-14">
         <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
           <motion.header
             initial={{ opacity: 0, y: 16 }}

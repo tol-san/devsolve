@@ -36,20 +36,20 @@ const HERO_BADGES = [
   {
     icon: ShieldCheck,
     label: "Secure by default",
-    borderColorClass: "border-blue-200/80",
-    iconColorClass: "text-blue-600",
+    borderColorClass: "border-blue-200/80 dark:border-blue-400/30",
+    iconColorClass: "text-blue-600 dark:text-blue-400",
   },
   {
     icon: Zap,
     label: "Pick up where you left off",
-    borderColorClass: "border-emerald-200/80",
-    iconColorClass: "text-emerald-600",
+    borderColorClass: "border-emerald-200/80 dark:border-emerald-400/30",
+    iconColorClass: "text-emerald-600 dark:text-emerald-400",
   },
   {
     icon: Sparkles,
     label: "One account, everywhere",
-    borderColorClass: "border-indigo-200/80",
-    iconColorClass: "text-indigo-600",
+    borderColorClass: "border-indigo-200/80 dark:border-indigo-400/30",
+    iconColorClass: "text-indigo-600 dark:text-indigo-400",
   },
 ];
 
@@ -74,13 +74,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-dvh w-full grid-cols-1 overflow-x-hidden bg-white font-sans antialiased lg:grid-cols-2">
+    <div className="grid min-h-dvh w-full grid-cols-1 overflow-x-hidden font-sans antialiased lg:grid-cols-2">
       {/* ── Left: hero ── */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative flex min-h-[420px] flex-col items-center justify-between overflow-hidden border-b border-slate-200/80 bg-[#EFF4FF] p-6 text-center sm:p-10 lg:min-h-dvh lg:border-b-0 lg:border-r xl:p-14"
+        className="relative flex min-h-[420px] flex-col items-center justify-between overflow-hidden border-b border-border bg-blue-50/60 p-6 text-center backdrop-blur-[2px] sm:p-10 lg:min-h-dvh lg:border-b-0 lg:border-r xl:p-14 dark:bg-blue-950/20"
       >
         <div className="pointer-events-none absolute -left-24 -top-24 z-0 size-96 rounded-full bg-blue-400/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 -right-24 z-0 size-96 rounded-full bg-emerald-400/20 blur-3xl" />
@@ -89,7 +89,7 @@ export default function LoginPage() {
           <div className="mb-4 flex w-full items-center justify-start">
             <Link
               href="/"
-              className="group inline-flex items-center gap-2 text-xs font-semibold text-slate-700 transition-colors hover:text-blue-600 sm:text-sm"
+              className="group inline-flex items-center gap-2 text-xs font-semibold text-foreground/80 transition-colors hover:text-blue-600 sm:text-sm dark:hover:text-blue-400"
             >
               <ArrowLeft className="size-4 text-blue-600 transition-transform group-hover:-translate-x-1" />
               <span>Back to home</span>
@@ -110,7 +110,7 @@ export default function LoginPage() {
                 return (
                   <div
                     key={badge.label}
-                    className={`flex items-center gap-1.5 rounded-full border bg-white/90 px-3 py-1.5 text-sm font-semibold text-slate-800 shadow-2xs backdrop-blur-xs ${badge.borderColorClass}`}
+                    className={`flex items-center gap-1.5 rounded-full border bg-card/90 px-3 py-1.5 text-sm font-semibold text-foreground shadow-2xs backdrop-blur-xs ${badge.borderColorClass}`}
                   >
                     <Icon className={`size-3.5 ${badge.iconColorClass}`} />
                     <span>{badge.label}</span>
@@ -125,7 +125,7 @@ export default function LoginPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="mb-2 text-2xl font-extrabold tracking-tight text-blue-600 sm:text-3xl xl:text-4xl"
+              className="mb-2 text-2xl font-extrabold tracking-tight text-blue-600 sm:text-3xl xl:text-4xl dark:text-blue-400"
             >
               Welcome back
             </motion.h1>
@@ -133,7 +133,7 @@ export default function LoginPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-sm font-medium text-slate-600 sm:text-base"
+              className="text-sm font-medium text-muted-foreground sm:text-base"
             >
               Sign in to keep hunting, keep building, and keep your streak
               going.
@@ -143,13 +143,13 @@ export default function LoginPage() {
       </motion.div>
 
       {/* ── Right: form ── */}
-      <div className="flex flex-col items-center justify-center overflow-y-auto bg-white p-6 sm:p-10 lg:p-12 xl:p-16">
+      <div className="flex flex-col items-center justify-center overflow-y-auto p-6 sm:p-10 lg:p-12 xl:p-16">
         <div className="mx-auto my-auto flex w-full max-w-md flex-col justify-center">
           <div className="mb-6 text-center sm:text-left">
-            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+            <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
               Sign in
             </h2>
-            <p className="mt-1 text-sm font-medium text-slate-500 sm:text-base">
+            <p className="mt-1 text-sm font-medium text-muted-foreground sm:text-base">
               Welcome back — enter your details to continue.
             </p>
           </div>
@@ -161,7 +161,7 @@ export default function LoginPage() {
               variant="outline"
               disabled={isLoggingIn}
               onClick={() => handleSocialSignIn("google")}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-800 shadow-2xs transition-all hover:bg-slate-50 sm:h-12 sm:text-sm"
+              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-input bg-card text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-accent sm:h-12 sm:text-sm"
             >
               {pendingIdpHint === "google" ? (
                 <Loader2 className="size-4 animate-spin text-blue-600" />
@@ -193,13 +193,13 @@ export default function LoginPage() {
               variant="outline"
               disabled={isLoggingIn}
               onClick={() => handleSocialSignIn("github")}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-800 shadow-2xs transition-all hover:bg-slate-50 sm:h-12 sm:text-sm"
+              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-input bg-card text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-accent sm:h-12 sm:text-sm"
             >
               {pendingIdpHint === "github" ? (
-                <Loader2 className="size-4 animate-spin text-slate-900" />
+                <Loader2 className="size-4 animate-spin text-foreground" />
               ) : (
                 <svg
-                  className="size-4 fill-current text-slate-900"
+                  className="size-4 fill-current text-foreground"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -213,9 +213,9 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative mb-6 text-center">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200" />
+              <div className="w-full border-t border-border" />
             </div>
-            <span className="relative z-10 bg-white px-3.5 text-xs font-medium text-slate-400">
+            <span className="relative z-10 bg-background px-3.5 text-xs font-medium text-muted-foreground">
               or sign in with Keycloak
             </span>
           </div>
@@ -224,12 +224,12 @@ export default function LoginPage() {
             <div>
               <Label
                 htmlFor="identifier"
-                className="mb-1.5 block text-xs font-semibold text-slate-800 sm:text-sm"
+                className="mb-1.5 block text-xs font-semibold text-foreground sm:text-sm"
               >
                 Email or username
               </Label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
                   <User className="size-4" />
                 </div>
                 <Input
@@ -238,7 +238,7 @@ export default function LoginPage() {
                   type="text"
                   autoComplete="username"
                   placeholder="you@example.com or tada122"
-                  className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500"
+                  className="h-11 w-full rounded-xl border border-input bg-card pl-10 pr-4 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-blue-500"
                 />
               </div>
             </div>
@@ -247,19 +247,19 @@ export default function LoginPage() {
               <div className="mb-1.5 flex items-baseline justify-between gap-3">
                 <Label
                   htmlFor="password"
-                  className="block text-xs font-semibold text-slate-800 sm:text-sm"
+                  className="block text-xs font-semibold text-foreground sm:text-sm"
                 >
                   Password
                 </Label>
                 <Link
                   href="#"
-                  className="text-xs font-semibold text-blue-600 hover:underline"
+                  className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
                 >
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
                   <Key className="size-4" />
                 </div>
                 <Input
@@ -268,13 +268,13 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-11 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-blue-500"
+                  className="h-11 w-full rounded-xl border border-input bg-card pl-10 pr-11 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-blue-500"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3.5 text-slate-400 transition-colors hover:text-slate-600"
+                  className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3.5 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {showPassword ? (
                     <EyeOff className="size-4" />
@@ -289,9 +289,9 @@ export default function LoginPage() {
               <input
                 type="checkbox"
                 name="remember"
-                className="size-4 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="size-4 cursor-pointer rounded border-input text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm font-medium text-slate-600">
+              <span className="text-sm font-medium text-muted-foreground">
                 Keep me signed in
               </span>
             </label>
@@ -315,11 +315,11 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm font-medium text-slate-500">
+          <p className="mt-6 text-center text-sm font-medium text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link
               href="/account-type"
-              className="font-bold text-blue-600 hover:underline"
+              className="font-bold text-blue-600 hover:underline dark:text-blue-400"
             >
               Create one
             </Link>

@@ -4,6 +4,7 @@ import { ArrowLeft, Compass } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import PageBackdrop from "@/components/layout/PageBackdrop";
 import { cn } from "@/lib/utils";
 
 export const NOT_FOUND_DEFAULTS = {
@@ -36,9 +37,10 @@ export function NotFoundStage({
   className?: string;
 }) {
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden bg-slate-50 dark:bg-slate-950">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.10),transparent_24%)] dark:bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.20),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.14),transparent_22%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(37,99,235,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(37,99,235,0.03)_1px,transparent_1px)] bg-[size:32px_32px] opacity-40 dark:bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.06)_1px,transparent_1px)] dark:opacity-20" />
+    <main className="relative min-h-[100dvh] overflow-hidden">
+      {/* 404 renders outside the route-group layouts, so it carries the shared
+          surface itself rather than inheriting one. */}
+      <PageBackdrop seed={11} />
 
       <div className="relative mx-auto flex min-h-[100dvh] max-w-[1280px] items-center px-4 py-12 sm:px-6 lg:px-8">
         <section

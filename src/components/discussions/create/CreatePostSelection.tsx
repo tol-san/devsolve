@@ -6,7 +6,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { ArrowUpRight, Bug, Rocket, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AuthGatedLink } from "@/components/auth/AuthGatedLink";
-import SectionBackdrop, {
+import {
   ACCENT,
   PRIMARY,
   SECONDARY,
@@ -443,12 +443,10 @@ export function CreatePostSelection({
   return (
     <div
       className={cn(
-        "relative flex min-h-dvh w-full overflow-hidden bg-[#F7F8FB] dark:bg-neutral-950",
+        "relative flex min-h-dvh w-full overflow-hidden",
         className,
       )}
     >
-      <SectionBackdrop seed={7} gridSize={72} particles={false} />
-
       <Link
         href={backHref}
         aria-label={backLabel}

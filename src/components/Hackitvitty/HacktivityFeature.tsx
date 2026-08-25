@@ -55,7 +55,7 @@ export default function HacktivityFeature() {
   ];
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4 sm:py-12 sm:px-6 md:px-8 lg:px-12">
+    <div className="min-h-screen py-8 px-4 sm:py-12 sm:px-6 md:px-8 lg:px-12">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
