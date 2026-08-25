@@ -10,7 +10,8 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
-import { useT } from "@/lib/i18n/I18nProvider";
+import { useLocale, useT } from "@/lib/i18n/I18nProvider";
+import { cn } from "@/lib/utils";
 import SectionBackdrop, {
   ACCENT,
   PRIMARY,
@@ -197,6 +198,7 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 /* ─── Component ────────────────────────────────────────────────────── */
 export function FeatureHighlights() {
   const t = useT();
+  const locale = useLocale();
   const sectionRef = useRef<HTMLElement>(null);
   const sweepRef = useRef<SVGGElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
@@ -336,7 +338,10 @@ export function FeatureHighlights() {
             <div className="mb-4 flex items-center gap-2.5">
               <span className="h-px w-8" style={{ backgroundColor: accent }} />
               <span
-                className="text-xs font-bold uppercase tracking-[0.22em]"
+                className={cn(
+                  "text-xs font-bold uppercase",
+                  locale === "km" ? "tracking-normal font-medium" : "tracking-[0.22em]"
+                )}
                 style={{ color: accent }}
               >
                 {t("lifecycle.kicker") || act.kicker}
@@ -351,50 +356,40 @@ export function FeatureHighlights() {
                 exit="out"
                 variants={{
                   hidden: {},
-                  visible: { transition: { staggerChildren: 0.028 } },
+                  visible: { transition: { staggerChildren: 0.09 } },
                   out: { opacity: 0, transition: { duration: 0.18 } },
                 }}
-                className="font-bold leading-[1.02] tracking-[-0.045em] text-[#1E293B] dark:text-neutral-100"
+                className={cn(
+                  "font-bold leading-[1.08] text-[#1E293B] dark:text-neutral-100",
+                  locale === "km" ? "tracking-normal" : "tracking-[-0.045em]"
+                )}
                 style={{ fontSize: "clamp(34px, 4.2vw, 60px)" }}
               >
                 {[
                   t(`lifecycle.acts.${act.id}.title1`) || act.title[0],
                   t(`lifecycle.acts.${act.id}.title2`) || act.title[1],
-                ].map((lineText, li) => (
-                  <span key={li} className="block">
-                    {Array.from(lineText).map((char, ci) => (
-                      <motion.span
-                        key={ci}
-                        className="inline-block"
-                        variants={{
-                          hidden: { y: 48, opacity: 0, filter: "blur(10px)" },
-                          visible: {
-                            y: 0,
-                            opacity: 1,
-                            filter: "blur(0px)",
-                            transition: {
-                              duration: 0.5,
-                              ease: [0.2, 0.8, 0.3, 1],
-                            },
-                          },
-                        }}
-                      >
-                        {char === " " ? " " : char}
-                      </motion.span>
-                    ))}
-                    {li === act.title.length - 1 && (
-                      <motion.span
-                        className="inline-block"
-                        style={{ color: accent }}
-                        variants={{
-                          hidden: { y: 48, opacity: 0 },
-                          visible: { y: 0, opacity: 1 },
-                        }}
-                      >
-                        .
-                      </motion.span>
+                ].map((lineText, li, arr) => (
+                  <motion.span
+                    key={li}
+                    className="block"
+                    variants={{
+                      hidden: { y: 28, opacity: 0, filter: "blur(6px)" },
+                      visible: {
+                        y: 0,
+                        opacity: 1,
+                        filter: "blur(0px)",
+                        transition: {
+                          duration: 0.45,
+                          ease: [0.2, 0.8, 0.3, 1],
+                        },
+                      },
+                    }}
+                  >
+                    {lineText}
+                    {li === arr.length - 1 && (
+                      <span style={{ color: accent }}>.</span>
                     )}
-                  </span>
+                  </motion.span>
                 ))}
               </motion.h2>
             </AnimatePresence>
