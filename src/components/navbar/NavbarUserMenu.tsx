@@ -92,11 +92,11 @@ export function NavbarUserMenu({
           variant="outline"
           onClick={onLogin}
           disabled={isLoggingIn}
-          className="hidden h-10 rounded-lg border-border bg-card px-4 text-sm font-semibold text-foreground shadow-xs transition-all hover:border-blue-400 hover:bg-muted disabled:cursor-not-allowed md:inline-flex xl:px-5"
+          className="hidden h-9 xl:h-10 rounded-lg border-border bg-card px-3 xl:px-4 text-xs xl:text-sm font-semibold text-foreground shadow-xs transition-all hover:border-blue-400 hover:bg-muted disabled:cursor-not-allowed md:inline-flex"
         >
           {isLoggingIn ? (
             <>
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-3.5 xl:size-4 animate-spin" />
               {t("nav.connecting")}
             </>
           ) : (
@@ -108,7 +108,7 @@ export function NavbarUserMenu({
           <Button
             nativeButton={false}
             render={<Link href="/account-type" />}
-            className="group h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-xs transition-all hover:bg-blue-700 xl:px-5"
+            className="group h-9 xl:h-10 rounded-lg bg-primary px-3 xl:px-4 text-xs xl:text-sm font-semibold text-primary-foreground shadow-xs transition-all hover:bg-blue-700"
           >
             {t("nav.getStarted")}
             <ArrowRight className="hidden size-4 transition-transform duration-200 group-hover:translate-x-1 xl:block" />
