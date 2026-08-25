@@ -479,6 +479,72 @@ html .wmde-markdown pre > code::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* ─── GPU-Accelerated Landing Backdrop Animations ─── */
+@keyframes dsAuroraA {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(80px, -50px, 0) scale(1.12); }
+  66% { transform: translate3d(-40px, 40px, 0) scale(0.94); }
+}
+
+@keyframes dsAuroraB {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(-60px, 60px, 0) scale(0.92); }
+  66% { transform: translate3d(36px, -26px, 0) scale(1.14); }
+}
+
+@keyframes dsAuroraC {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(54px, -34px, 0) scale(1.08); }
+  66% { transform: translate3d(-54px, 18px, 0) scale(0.96); }
+}
+
+@keyframes dsBeamV {
+  0%, 100% { transform: translate3d(8vw, 0, 0); opacity: 0; }
+  10%, 40% { opacity: 0.35; }
+  50% { transform: translate3d(85vw, 0, 0); opacity: 0; }
+}
+
+@keyframes dsBeamH {
+  0%, 100% { transform: translate3d(0, 15vh, 0); opacity: 0; }
+  10%, 40% { opacity: 0.3; }
+  50% { transform: translate3d(0, 75vh, 0); opacity: 0; }
+}
+
+.animate-ds-aurora-a {
+  animation: dsAuroraA 28s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-ds-aurora-b {
+  animation: dsAuroraB 34s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-ds-aurora-c {
+  animation: dsAuroraC 40s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-ds-beam-v {
+  animation: dsBeamV 16s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-ds-beam-h {
+  animation: dsBeamH 20s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ds-aurora-a,
+  .animate-ds-aurora-b,
+  .animate-ds-aurora-c,
+  .animate-ds-beam-v,
+  .animate-ds-beam-h {
+    animation: none !important;
+  }
+}
+
 /* Khmer script is Brahmic and does not support arbitrary letter-spacing (tracking).
    CSS letter-spacing pulls combining vowel signs and diacritics away from their base
    consonants, creating dotted circle placeholders (◌). We reset letter-spacing for Khmer. */
