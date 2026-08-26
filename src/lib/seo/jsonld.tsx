@@ -76,6 +76,12 @@ export function organizationSchema(): JsonLdNode {
       "@type": "ImageObject",
       url: absoluteUrl("/devsolve-logo.png"),
     },
+    /** Links Google's Knowledge Graph to the DevSolve brand entity across
+     *  the web. Each URL should be a verified, publicly visible profile.
+     *  Add LinkedIn, X, Product Hunt, etc. here as the accounts are created. */
+    sameAs: [
+      "https://github.com/ITE-GEN03-BASIC-COURSE/devsolve-frontend",
+    ],
   };
 }
 

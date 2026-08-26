@@ -37,11 +37,18 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   const { user } = useSidebarAuth();
   const isAdmin = user?.roles?.includes("ADMIN") ?? false;
 
-  const { data, isLoading, isError, refetch } = useGetNotificationsQuery({
-    pageNumber,
-    pageSize: 20,
-    unreadOnly,
-  });
+  const shouldFetch = (isOpen || isEmbedded) && Boolean(user);
+
+  const { data, isLoading, isError, refetch } = useGetNotificationsQuery(
+    {
+      pageNumber,
+      pageSize: 20,
+      unreadOnly,
+    },
+    {
+      skip: !shouldFetch,
+    }
+  );
 
   const [markSingleRead] = useMarkAsReadMutation();
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllAsReadMutation();

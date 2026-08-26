@@ -177,6 +177,7 @@ export default function Footer() {
                           landing's list links do. */}
                       <Link
                         href={lp(link.href)}
+                        prefetch={false}
                         className="inline-block text-sm font-medium tracking-[-0.01em] text-slate-600 transition-all duration-200 hover:translate-x-0.5 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
                       >
                         {t(link.tKey) || link.name}

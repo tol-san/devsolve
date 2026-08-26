@@ -11,7 +11,6 @@ import {
 } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { useLocale, useT } from "@/lib/i18n/I18nProvider";
-import { splitTextUnits } from "@/lib/i18n/graphemes";
 import { cn } from "@/lib/utils";
 import SectionBackdrop, {
   ACCENT,
@@ -317,13 +316,19 @@ export function FeatureHighlights() {
                   className={`flex min-w-26 flex-col justify-center px-3 py-2.5 text-center transition-colors duration-200 sm:min-w-37.5 sm:px-4 ${
                     on
                       ? "bg-[#1E293B] text-white dark:bg-neutral-200 dark:text-neutral-900"
-                      : "bg-white text-slate-400 hover:text-slate-600 dark:bg-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-300"
+                      : "bg-white text-slate-700 hover:text-slate-900 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:text-white"
                   }`}
                 >
                   <span className="text-sm font-semibold tracking-tight">
                     {t(`lifecycle.acts.${a.id}.tab`) || a.tab}
                   </span>
-                  <span className="mt-0.5 hidden text-[11px] font-medium opacity-70 sm:block">
+                  <span
+                    className={`mt-0.5 hidden text-[11px] font-medium sm:block ${
+                      on
+                        ? "text-slate-300 dark:text-neutral-700"
+                        : "text-slate-600 dark:text-neutral-400"
+                    }`}
+                  >
                     {t(`lifecycle.acts.${a.id}.tabSub`) || a.tabSub}
                   </span>
                 </button>
@@ -341,7 +346,9 @@ export function FeatureHighlights() {
               <span
                 className={cn(
                   "text-xs font-bold uppercase",
-                  locale === "km" ? "tracking-normal font-medium" : "tracking-[0.22em]"
+                  locale === "km"
+                    ? "tracking-normal font-medium"
+                    : "tracking-[0.22em]",
                 )}
                 style={{ color: accent }}
               >
@@ -362,48 +369,34 @@ export function FeatureHighlights() {
                 }}
                 className={cn(
                   "font-bold leading-[1.08] text-[#1E293B] dark:text-neutral-100",
-                  locale === "km" ? "tracking-normal" : "tracking-[-0.045em]"
+                  locale === "km" ? "tracking-normal" : "tracking-[-0.045em]",
                 )}
                 style={{ fontSize: "clamp(34px, 4.2vw, 60px)" }}
               >
                 {[
                   t(`lifecycle.acts.${act.id}.title1`) || act.title[0],
                   t(`lifecycle.acts.${act.id}.title2`) || act.title[1],
-                ].map((lineText, li) => (
-                  <span key={li} className="block">
-                    {splitTextUnits(lineText).map((char, ci) => (
-                      <motion.span
-                        key={ci}
-                        className="inline-block"
-                        variants={{
-                          hidden: { y: 48, opacity: 0, filter: "blur(10px)" },
-                          visible: {
-                            y: 0,
-                            opacity: 1,
-                            filter: "blur(0px)",
-                            transition: {
-                              duration: 0.5,
-                              ease: [0.2, 0.8, 0.3, 1],
-                            },
-                          },
-                        }}
-                      >
-                        {char === " " ? " " : char}
-                      </motion.span>
-                    ))}
-                    {li === act.title.length - 1 && (
-                      <motion.span
-                        className="inline-block"
-                        style={{ color: accent }}
-                        variants={{
-                          hidden: { y: 48, opacity: 0 },
-                          visible: { y: 0, opacity: 1 },
-                        }}
-                      >
-                        .
-                      </motion.span>
+                ].map((lineText, li, arr) => (
+                  <motion.span
+                    key={li}
+                    className="block"
+                    variants={{
+                      hidden: { y: 24, opacity: 0 },
+                      visible: {
+                        y: 0,
+                        opacity: 1,
+                        transition: {
+                          duration: 0.4,
+                          ease: [0.2, 0.8, 0.3, 1],
+                        },
+                      },
+                    }}
+                  >
+                    {lineText}
+                    {li === arr.length - 1 && (
+                      <span style={{ color: accent }}>.</span>
                     )}
-                  </span>
+                  </motion.span>
                 ))}
               </motion.h2>
             </AnimatePresence>
@@ -413,10 +406,10 @@ export function FeatureHighlights() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${act.id}-${step.n}`}
-                  initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
-                  transition={{ duration: 0.32, ease: "easeOut" }}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.28, ease: "easeOut" }}
                   className="grid grid-cols-[auto_1fr] items-start gap-5 sm:gap-8"
                 >
                   <span
@@ -432,15 +425,18 @@ export function FeatureHighlights() {
                   <div className="pt-1">
                     <div className="mb-2 flex flex-wrap items-baseline gap-3">
                       <h3 className="text-2xl font-bold tracking-tight text-[#1E293B] sm:text-3xl dark:text-neutral-100">
-                        {t(`lifecycle.acts.${act.id}.steps.${step.n}.title`) || step.title}
+                        {t(`lifecycle.acts.${act.id}.steps.${step.n}.title`) ||
+                          step.title}
                         <span style={{ color: accent }}>.</span>
                       </h3>
                       <span className="rounded-lg border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 dark:border-neutral-700 dark:text-neutral-500">
-                        {t(`lifecycle.acts.${act.id}.steps.${step.n}.role`) || step.role}
+                        {t(`lifecycle.acts.${act.id}.steps.${step.n}.role`) ||
+                          step.role}
                       </span>
                     </div>
                     <p className="max-w-xl text-sm leading-[1.8] text-slate-500 sm:text-[15px] dark:text-neutral-400">
-                      {t(`lifecycle.acts.${act.id}.steps.${step.n}.body`) || step.body}
+                      {t(`lifecycle.acts.${act.id}.steps.${step.n}.body`) ||
+                        step.body}
                     </p>
                   </div>
                 </motion.div>
@@ -476,7 +472,8 @@ export function FeatureHighlights() {
                           : "text-slate-400 dark:text-neutral-500"
                       }`}
                     >
-                      {t(`lifecycle.acts.${act.id}.steps.${s.n}.title`) || s.title}
+                      {t(`lifecycle.acts.${act.id}.steps.${s.n}.title`) ||
+                        s.title}
                     </span>
                     {on && (
                       <span
@@ -522,7 +519,9 @@ export function FeatureHighlights() {
           <div className="relative mx-auto w-full max-w-136">
             <div className="pointer-events-none absolute inset-x-0 -top-1 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-600">
               <span>[ {t("common.scanning")} ]</span>
-              <span>{pad2(steps.length)} {t("common.nodes")}</span>
+              <span>
+                {pad2(steps.length)} {t("common.nodes")}
+              </span>
             </div>
 
             <svg
@@ -674,7 +673,8 @@ export function FeatureHighlights() {
                       letterSpacing="1.4"
                       className="hidden uppercase sm:block"
                     >
-                      {t(`lifecycle.acts.${act.id}.steps.${s.n}.title`) || s.title}
+                      {t(`lifecycle.acts.${act.id}.steps.${s.n}.title`) ||
+                        s.title}
                     </text>
                   </g>
                 );
@@ -721,7 +721,8 @@ export function FeatureHighlights() {
                 style={{ backgroundColor: accent }}
               />
             </span>
-            {t("lifecycle.scroll")} · {t(`lifecycle.acts.${act.id}.tab`) || act.tab}
+            {t("lifecycle.scroll")} ·{" "}
+            {t(`lifecycle.acts.${act.id}.tab`) || act.tab}
           </span>
           <span className="font-mono text-xs font-medium tracking-[0.2em] text-slate-300 dark:text-neutral-600">
             {pad2(actIndex + 1)} — {pad2(ACTS.length)}
