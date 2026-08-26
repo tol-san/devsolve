@@ -2,22 +2,140 @@ import * as z from "zod";
 import { isCleanText, profanityMessage } from "@/lib/moderation/profanity";
 import { isReadableText, readabilityMessage } from "@/lib/moderation/readability";
 
-export const VULNERABILITY_CATEGORIES = [
-  "SQL Injection (SQLi)",
-  "Remote Code Execution (RCE)",
-  "Cross-Site Scripting (XSS - Stored)",
-  "Cross-Site Scripting (XSS - Reflected)",
-  "Server-Side Request Forgery (SSRF)",
-  "Insecure Direct Object Reference (IDOR)",
-  "Authentication Bypass / Broken Auth",
-  "Privilege Escalation",
-  "CSRF / Cross-Site Request Forgery",
-  "Business Logic Flaw",
-  "Information Disclosure / Sensitive Data Leak",
-  "Broken Access Control",
-  "Cryptographic Flaw",
-  "Other Security Issue",
+/**
+ * The weakness taxonomy a reporter picks from, grouped the way a triager
+ * thinks about them.
+ *
+ * Deliberately long. `category` reaches the API as prose inside the report's
+ * Classification block — nothing validates it against this list — so the list
+ * is a vocabulary, not a constraint. A short one does not make reports
+ * cleaner, it just pushes everything that does not fit into "Other", which is
+ * the one answer a triager cannot act on. The field pairs this with free
+ * entry, so a weakness nobody anticipated is still named precisely.
+ */
+export const VULNERABILITY_CATEGORY_GROUPS = [
+  {
+    label: "Injection",
+    options: [
+      "SQL Injection (SQLi)",
+      "NoSQL Injection",
+      "OS Command Injection",
+      "Code Injection",
+      "Server-Side Template Injection (SSTI)",
+      "LDAP Injection",
+      "XPath Injection",
+      "CRLF / HTTP Header Injection",
+      "HTTP Request Smuggling",
+      "XML External Entity (XXE)",
+      "Insecure Deserialization",
+    ],
+  },
+  {
+    label: "Cross-Site Scripting",
+    options: [
+      "Cross-Site Scripting (XSS - Stored)",
+      "Cross-Site Scripting (XSS - Reflected)",
+      "Cross-Site Scripting (XSS - DOM-based)",
+      "Cross-Site Scripting (XSS - Self)",
+    ],
+  },
+  {
+    label: "Authentication & session",
+    options: [
+      "Authentication Bypass",
+      "Broken Authentication / Session Management",
+      "Session Fixation",
+      "Weak Password Policy",
+      "Missing or Bypassable MFA",
+      "OAuth / SSO Misconfiguration",
+      "JWT Flaw (algorithm confusion, weak signature)",
+      "Improper Certificate Validation",
+    ],
+  },
+  {
+    label: "Authorization",
+    options: [
+      "Broken Access Control",
+      "Insecure Direct Object Reference (IDOR)",
+      "Privilege Escalation (Vertical)",
+      "Privilege Escalation (Horizontal)",
+      "Missing Function-Level Access Control",
+    ],
+  },
+  {
+    label: "Request forgery & client-side",
+    options: [
+      "Server-Side Request Forgery (SSRF)",
+      "Cross-Site Request Forgery (CSRF)",
+      "Cross-Site WebSocket Hijacking (CSWSH)",
+      "CORS Misconfiguration",
+      "Clickjacking / UI Redressing",
+      "Open Redirect",
+      "Prototype Pollution",
+    ],
+  },
+  {
+    label: "Data exposure",
+    options: [
+      "Information Disclosure / Sensitive Data Leak",
+      "Path Traversal / Directory Listing",
+      "Local File Inclusion (LFI)",
+      "Remote File Inclusion (RFI)",
+      "Source Code Disclosure",
+      "Exposed Backup or Configuration File",
+      "Exposed Secret / Hardcoded Credential",
+      "PII Exposure",
+    ],
+  },
+  {
+    label: "Cryptography",
+    options: [
+      "Cryptographic Flaw",
+      "Missing or Weak Encryption in Transit",
+      "Insecure Randomness",
+      "Padding Oracle",
+    ],
+  },
+  {
+    label: "Infrastructure & supply chain",
+    options: [
+      "Remote Code Execution (RCE)",
+      "Subdomain Takeover",
+      "Security Misconfiguration",
+      "Default or Weak Credentials",
+      "Vulnerable or Outdated Dependency",
+      "Cloud or Container Misconfiguration",
+      "Unrestricted File Upload",
+    ],
+  },
+  {
+    label: "Business logic & abuse",
+    options: [
+      "Business Logic Flaw",
+      "Race Condition / TOCTOU",
+      "Missing Rate Limiting / Brute Force",
+      "Denial of Service (DoS)",
+      "Payment or Pricing Manipulation",
+    ],
+  },
+  {
+    label: "Mobile & client applications",
+    options: [
+      "Insecure Data Storage (Mobile)",
+      "Insecure Deep Link / Intent Handling",
+      "Certificate Pinning Bypass",
+    ],
+  },
+  {
+    label: "Other",
+    options: ["Other Security Issue"],
+  },
 ] as const;
+
+/** The same vocabulary flattened, for anything that just needs the values. */
+export const VULNERABILITY_CATEGORIES = VULNERABILITY_CATEGORY_GROUPS.flatMap(
+  (group) => group.options,
+) as readonly string[];
 
 export const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"] as const;
 
@@ -125,6 +243,10 @@ export const submitReportSchema = z.object({
     .refine(isCleanText, profanityMessage("Title"))
     .refine(isReadableText, readabilityMessage("Title")),
   category: z.string().min(1, "Please select a vulnerability type/category."),
+  /* Set only when `category` came from the catalogue. Free-text entries leave
+     it empty, which is what tells the submit step to send prose instead of a
+     foreign key the backend would reject. */
+  weaknessId: z.string().optional(),
   severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]),
   cweIdentifier: z.string().optional(),
   /* Text rather than a number because the input is free-form; the range is the

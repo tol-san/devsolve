@@ -76,6 +76,8 @@ export interface ReportDetail extends ReportItem {
 }
 
 export interface SubmitReportPayload {
+  /** Catalogue id for `category`, when it came from the catalogue. */
+  weaknessId?: string;
   programId: string;
   programName: string;
   assetId?: string;

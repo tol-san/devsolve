@@ -520,7 +520,8 @@
       "program review": "ពិនិត្យ Program",
       "users": "អ្នកប្រើប្រាស់ (Users)",
       "content management": "គ្រប់គ្រងមាតិកា",
-      "categories": "ជំពូក / ប្រភេទ"
+      "categories": "ជំពូក / ប្រភេទ",
+      "weaknesses": "ចំណុចខ្សោយ (CWE)"
     },
     "settings": "ការកំណត់",
     "orgSettings": "ការកំណត់ក្រុមហ៊ុន",

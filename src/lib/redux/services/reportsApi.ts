@@ -555,6 +555,11 @@ export const reportsApi = baseApi.injectEndpoints({
               : undefined,
             cvssScore: scoreAgreesWithSeverity ? parsedScore ?? undefined : undefined,
             assetId: isUuid(payload.assetId) ? payload.assetId : undefined,
+            /* Present only when the reporter picked a catalogue entry. A
+               free-text category has no id, and anything else here would be
+               rejected as a bad foreign key. The category is still written
+               into the write-up either way — that is what a triager reads. */
+            weaknessId: isUuid(payload.weaknessId) ? payload.weaknessId : undefined,
           },
         });
         if (result.error) return { error: result.error };

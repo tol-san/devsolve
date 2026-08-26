@@ -5,12 +5,12 @@ import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from "rea
 import { Target, CheckCircle2, Building2 } from "lucide-react";
 import {
   SubmitReportFormValues,
-  VULNERABILITY_CATEGORIES,
   ENVIRONMENTS,
   SEVERITY_LABELS,
   parseCvssScore,
   severityForCvss,
 } from "@/lib/validations/report";
+import { VulnerabilityCategoryCombobox } from "@/components/reports/VulnerabilityCategoryCombobox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -321,29 +321,34 @@ export function SubmitReportStep1Basics({
         <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Vulnerability Category / Weakness <span className="text-red-500">*</span>
         </label>
-        {/* Undefined rather than the first category when nothing is chosen, so
-            the trigger shows its placeholder and the reader picks a class
-            deliberately — falling back to the top of the list quietly filed
-            every unattended report as SQL injection. */}
-        <Select
-          value={watch("category") || undefined}
-          onValueChange={(val) => {
-            if (val) setValue("category", val, { shouldValidate: true });
+        {/* Searchable rather than a closed list, and free entry when nothing
+            fits. Nothing downstream validates this against the catalogue, so a
+            fixed list only ever filed the unusual findings — the ones worth
+            reading — under "Other Security Issue". */}
+        <VulnerabilityCategoryCombobox
+          id="category"
+          value={watch("category") || ""}
+          weaknessId={watch("weaknessId") || ""}
+          onChange={({ category, weaknessId }) => {
+            setValue("category", category, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+            /* Cleared, not left behind: a free-text category that kept the
+               previous pick's id would file the report under the wrong CWE. */
+            setValue("weaknessId", weaknessId ?? "", { shouldDirty: true });
           }}
-        >
-          <SelectTrigger className="h-12 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100">
-            <SelectValue placeholder="Select vulnerability category..." />
-          </SelectTrigger>
-          <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 max-h-64">
-            {VULNERABILITY_CATEGORIES.map((cat) => (
-              <SelectItem key={cat} value={cat} className="cursor-pointer py-2.5">
-                {cat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.category && (
-          <p className="text-xs text-red-500 font-medium">{errors.category.message}</p>
+          invalid={Boolean(errors.category)}
+          aria-describedby={errors.category ? "category-error" : "category-hint"}
+        />
+        {errors.category ? (
+          <p id="category-error" className="text-xs text-red-500 font-medium">
+            {errors.category.message}
+          </p>
+        ) : (
+          <p id="category-hint" className="text-xs text-muted-foreground">
+            Search the CWE catalogue, or type your own if none of it fits.
+          </p>
         )}
       </div>
 

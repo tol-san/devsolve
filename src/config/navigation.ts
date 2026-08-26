@@ -18,6 +18,7 @@ import {
   FilePen,
   PenSquare,
   Tags,
+  Bug,
   LucideIcon,
 } from "lucide-react";
 
@@ -64,4 +65,5 @@ export const NAV_ITEMS: NavItem[] = [
   { name: "Users", href: "/dashboard/users", icon: UserCheck, roles: ["ADMIN"], category: "Administration" },
   { name: "Content Management", href: "/dashboard/content-moderation", icon: PanelsTopLeft, roles: ["ADMIN"], category: "Administration" },
   { name: "Categories", href: "/dashboard/categories", icon: Tags, roles: ["ADMIN"], category: "Administration" },
+  { name: "Weaknesses", href: "/dashboard/weaknesses", icon: Bug, roles: ["ADMIN"], category: "Administration" },
 ];
