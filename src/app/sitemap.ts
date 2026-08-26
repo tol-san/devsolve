@@ -80,6 +80,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
+  /* Static pages do not change on every crawl — `lastModified` is omitted so
+     Google relies on its own change-detection rather than being told these
+     pages were just modified at every sitemap fetch. */
   const singleLocale: MetadataRoute.Sitemap = [
     ...STATIC_ROUTES.map((route) => ({
       url: absoluteUrl(route.path),

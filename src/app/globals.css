@@ -478,3 +478,15 @@ html .wmde-markdown pre > code::-webkit-scrollbar-thumb:hover {
     transform: translateY(0);
   }
 }
+
+/* Khmer script is Brahmic and does not support arbitrary letter-spacing (tracking).
+   CSS letter-spacing pulls combining vowel signs and diacritics away from their base
+   consonants, creating dotted circle placeholders (◌). We reset letter-spacing for Khmer. */
+:lang(km),
+:lang(km-KH),
+[lang="km"],
+[lang="km-KH"],
+[lang^="km"] {
+  letter-spacing: normal !important;
+}
+

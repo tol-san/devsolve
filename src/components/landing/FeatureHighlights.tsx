@@ -198,6 +198,7 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 /* ─── Component ────────────────────────────────────────────────────── */
 export function FeatureHighlights() {
   const t = useT();
+  const locale = useLocale();
   const sectionRef = useRef<HTMLElement>(null);
   const sweepRef = useRef<SVGGElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
@@ -337,7 +338,10 @@ export function FeatureHighlights() {
             <div className="mb-4 flex items-center gap-2.5">
               <span className="h-px w-8" style={{ backgroundColor: accent }} />
               <span
-                className="text-xs font-bold uppercase tracking-[0.22em]"
+                className={cn(
+                  "text-xs font-bold uppercase",
+                  locale === "km" ? "tracking-normal font-medium" : "tracking-[0.22em]"
+                )}
                 style={{ color: accent }}
               >
                 {t("lifecycle.kicker") || act.kicker}
@@ -352,10 +356,13 @@ export function FeatureHighlights() {
                 exit="out"
                 variants={{
                   hidden: {},
-                  visible: { transition: { staggerChildren: 0.028 } },
+                  visible: { transition: { staggerChildren: 0.09 } },
                   out: { opacity: 0, transition: { duration: 0.18 } },
                 }}
-                className="font-bold leading-[1.02] tracking-[-0.045em] text-[#1E293B] dark:text-neutral-100"
+                className={cn(
+                  "font-bold leading-[1.08] text-[#1E293B] dark:text-neutral-100",
+                  locale === "km" ? "tracking-normal" : "tracking-[-0.045em]"
+                )}
                 style={{ fontSize: "clamp(34px, 4.2vw, 60px)" }}
               >
                 {[

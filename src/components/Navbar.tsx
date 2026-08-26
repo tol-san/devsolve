@@ -617,7 +617,7 @@ const Navbar = () => {
                         >
                           <div
                             className={cn(
-                              "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold transition-all duration-200",
+                              "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg text-xs xl:text-sm font-semibold transition-all duration-200",
                               isActive
                                 ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
                                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
@@ -633,7 +633,7 @@ const Navbar = () => {
                                 setCommunityMenuOpen(false);
                                 setMobileMenuOpen(false);
                               }}
-                              className="inline-flex h-9 items-center rounded-l-lg pl-3 pr-1 xl:pl-4 xl:pr-1.5"
+                              className="inline-flex h-9 items-center rounded-l-lg pl-2 pr-0.5 xl:pl-3.5 xl:pr-1.5"
                             >
                               {t(link.tKey ?? "") || link.name}
                             </Link>
@@ -649,11 +649,11 @@ const Navbar = () => {
                                   openCommunityMenu();
                                 }
                               }}
-                              className="inline-flex h-9 items-center rounded-r-lg pl-1 pr-3 xl:pl-1.5 xl:pr-4"
+                              className="inline-flex h-9 items-center rounded-r-lg pl-0.5 pr-2 xl:pl-1.5 xl:pr-3.5"
                             >
                               <ChevronDown
                                 className={cn(
-                                  "size-4 transition-transform duration-200",
+                                  "size-3.5 xl:size-4 transition-transform duration-200",
                                   communityMenuOpen && "rotate-180",
                                 )}
                               />
@@ -793,7 +793,8 @@ const Navbar = () => {
                         aria-current={isActive ? "page" : undefined}
                         onClick={() => setMobileMenuOpen(false)}
                         className={cn(
-                          "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg px-3 text-sm font-semibold transition-all duration-200 xl:px-4",
+                          "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg px-2 xl:px-3 text-xs xl:text-sm font-semibold transition-all duration-200",
+                          link.guestOnly && "hidden xl:inline-flex",
                           isActive
                             ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
                             : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
@@ -804,7 +805,7 @@ const Navbar = () => {
                         {isActive ? (
                           <motion.span
                             layoutId="navbar-active-indicator"
-                            className="absolute -bottom-[8px] left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-blue-600 dark:bg-blue-400"
+                            className="absolute -bottom-2 left-1/2 h-0.75 w-6 -translate-x-1/2 rounded-full bg-blue-600 dark:bg-blue-400"
                             transition={{
                               type: "spring",
                               stiffness: 380,
@@ -840,8 +841,8 @@ const Navbar = () => {
                      at. Deferring it to `xl` left the 1024–1279px band with
                      the mobile panel already gone and the toggle not yet
                      arrived, so there was no way to change the theme at all. */
-                  className="hidden size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-100 dark:hover:border-blue-500/40 dark:hover:bg-neutral-800 dark:hover:text-blue-300 dark:focus-visible:ring-blue-500/30 lg:inline-flex"
-                  iconClassName="size-[18px]"
+                  className="hidden size-9 xl:size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-100 dark:hover:border-blue-500/40 dark:hover:bg-neutral-800 dark:hover:text-blue-300 dark:focus-visible:ring-blue-500/30 lg:inline-flex"
+                  iconClassName="size-4 xl:size-[18px]"
                 />
 
                 {/* Signed out: Log in + Get Started. Signed in: the account
