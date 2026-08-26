@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import Link from "next/link";
 import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { Target, CheckCircle2, Building2 } from "lucide-react";
+import { Target, CheckCircle2, Building2, ArrowUpRight } from "lucide-react";
 import {
   SubmitReportFormValues,
   ENVIRONMENTS,
@@ -13,6 +14,7 @@ import {
   type Severity,
 } from "@/components/reports/SeverityCvssField";
 import { Input } from "@/components/ui/input";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import {
   Select,
   SelectContent,
@@ -40,8 +42,7 @@ export function SubmitReportStep1Basics({
   isLoading,
   selectedProgram,
 }: SubmitReportStep1BasicsProps) {
-  const [isChangingProgram, setIsChangingProgram] = useState(false);
-  const selectedProgramId = watch("programId");
+  const lp = useLocalePath();
   const selectedEnvironment = watch("environment") || "PRODUCTION";
 
   const programTitle =
@@ -72,68 +73,70 @@ export function SubmitReportStep1Basics({
         </div>
       </div>
 
-      {/* Target Program Display / Selector */}
+      {/* Target Security Program
+
+          A report is filed against one program, and which one decides the
+          scope, the reward bands and the triage queue — so it is chosen by
+          browsing the programs, not guessed from a list of names in a
+          dropdown. A name alone cannot tell you whether your finding is in
+          scope. "Change" therefore leads back to the browser, and the chosen
+          programme returns here through its own "Submit report" button. */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-foreground">
             Target Security Program <span className="text-red-500">*</span>
           </label>
-          {selectedProgram && !isChangingProgram && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+          {selectedProgram && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400">
+              <CheckCircle2 className="h-3.5 w-3.5" />
               Target Program Selected
             </span>
           )}
         </div>
 
-        {selectedProgram && !isChangingProgram ? (
-          <div className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center justify-between gap-4 shadow-2xs">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
-                <Building2 className="w-5 h-5" />
+        {selectedProgram ? (
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-muted/40 p-4 shadow-2xs">
+            <div className="flex min-w-0 items-center gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-xs">
+                <Building2 className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-bold text-foreground truncate">
+                <div className="truncate text-sm font-bold text-foreground">
                   {programTitle}
                 </div>
-                <div className="text-xs text-muted-foreground truncate">
+                <div className="truncate text-xs text-muted-foreground">
                   {companySubtext}
                 </div>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setIsChangingProgram(true)}
-              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline shrink-0 cursor-pointer"
+            <Link
+              href={lp("/dashboard/programs")}
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
             >
-              Change Program
-            </button>
+              Change
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         ) : (
-          <Select
-            value={selectedProgramId || undefined}
-            onValueChange={(val) => {
-              if (val) {
-                setValue("programId", val, { shouldValidate: true });
-                setIsChangingProgram(false);
-              }
-            }}
-          >
-            <SelectTrigger className="w-full h-12 bg-card border-border text-foreground">
-              <SelectValue placeholder="Select a program..." />
-            </SelectTrigger>
-            <SelectContent className="bg-card border-border">
-              {programs.map((prog: any) => {
-                const label = prog.name || prog.title || prog.companyName || `Program #${prog.id.slice(0, 8)}`;
-                return (
-                  <SelectItem key={prog.id} value={prog.id} className="cursor-pointer py-2.5">
-                    {label}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col items-start gap-3 rounded-2xl border border-dashed border-border bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                No program selected
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Reports are filed against a specific program. Pick the one whose
+                scope covers what you found.
+              </p>
+            </div>
+            <Link
+              href={lp("/dashboard/programs")}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-2xs transition-colors hover:bg-primary/90"
+            >
+              <Building2 className="h-4 w-4" />
+              Browse programs
+            </Link>
+          </div>
         )}
         {errors.programId && (
           <p className="text-xs text-red-500 font-medium">{errors.programId.message}</p>

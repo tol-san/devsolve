@@ -8,6 +8,7 @@ import { Program, ProgramDetail } from "@/lib/types/programs/types";
 import { isPublished } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth/auth-client";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 
 interface ProgramDetailSidebarProps {
@@ -18,11 +19,15 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
   program,
 }) => {
   const router = useRouter();
+  const lp = useLocalePath();
   const { data: session } = authClient.useSession();
   const { handleLogin, isLoggingIn } = useKeycloakLogin();
 
   const handleSubmitReport = () => {
-    const targetUrl = `/dashboard/submit-report?programId=${program.id}`;
+    /* Locale-prefixed: this is the return leg of "Change program" on the
+       report form, and a bare path would bounce a Khmer reporter through a
+       redirect back into English. */
+    const targetUrl = lp(`/dashboard/submit-report?programId=${program.id}`);
     if (session?.user) {
       router.push(targetUrl);
     } else {
