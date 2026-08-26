@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { TopicCount, TopicName } from "@/lib/types/dicussion/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface DiscussionMobileFiltersProps {
   topics: TopicCount[];
@@ -41,6 +42,7 @@ export function DiscussionMobileFilters({
   isLoadingTopics,
   isLoadingTags,
 }: DiscussionMobileFiltersProps) {
+  const t = useT();
   const activeCount =
     Number(Boolean(selectedTopic)) + Number(Boolean(selectedTag));
 
@@ -64,15 +66,15 @@ export function DiscussionMobileFilters({
           >
             <span className="flex items-center gap-2">
               <SlidersHorizontal data-icon="inline-start" aria-hidden="true" />
-              Topics &amp; tags
+              {t("community.mobileFilters.trigger")}
             </span>
             {activeCount > 0 ? (
               <Badge variant="secondary" className="tabular-nums">
-                {activeCount} active
+                {activeCount} {t("community.mobileFilters.active")}
               </Badge>
             ) : (
               <span className="text-sm font-medium text-muted-foreground">
-                Optional
+                {t("community.mobileFilters.optional")}
               </span>
             )}
           </DialogTrigger>
@@ -84,11 +86,10 @@ export function DiscussionMobileFilters({
         >
           <DialogHeader className="border-b border-border px-5 pt-5 pr-14 pb-4">
             <DialogTitle className="text-lg font-bold">
-              Filter discussions
+              {t("community.mobileFilters.title")}
             </DialogTitle>
             <DialogDescription>
-              Choose a topic or tag. Results update while you make your
-              selection.
+              {t("community.mobileFilters.description")}
             </DialogDescription>
           </DialogHeader>
           <DialogClose
@@ -102,7 +103,7 @@ export function DiscussionMobileFilters({
             }
           >
             <X aria-hidden="true" />
-            <span className="sr-only">Close filters</span>
+            <span className="sr-only">{t("community.mobileFilters.close")}</span>
           </DialogClose>
 
           <div className="overflow-y-auto p-4">
@@ -129,14 +130,16 @@ export function DiscussionMobileFilters({
                 onClick={clearExploreFilters}
                 className="rounded-xl"
               >
-                Clear topic &amp; tag
+                {t("community.mobileFilters.clear")}
               </Button>
             )}
             <DialogClose
               render={<Button type="button" className="rounded-xl" />}
             >
-              Show {totalCount.toLocaleString()}{" "}
-              {totalCount === 1 ? "result" : "results"}
+              {t("community.mobileFilters.show")} {totalCount.toLocaleString()}{" "}
+              {totalCount === 1
+                ? t("community.result")
+                : t("community.results")}
             </DialogClose>
           </DialogFooter>
         </DialogContent>

@@ -3,33 +3,44 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import MarketplacePage from "@/components/programs/details/PublicProgramBrowsePage";
 import React from "react";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
 
-const DESCRIPTION =
-  "Every bug bounty and vulnerability disclosure program running on DevSolve — their scope, their reward ranges, and what each organization is asking researchers to look at.";
-
+/* Title and description come from the same catalogue the page renders from, so
+   a Khmer URL is described in Khmer in the tab, the share card and the search
+   result — not just in the body copy. */
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
+  const dict = await getDictionary(isLocale(lang) ? lang : DEFAULT_LOCALE);
+
   return pageMetadata({
-    title: "Bug bounty programs",
-    description: DESCRIPTION,
+    title: dict.programs.metaTitle,
+    description: dict.programs.metaDescription,
     path: "/programs",
     locale: lang,
   });
 }
 
-export default function PublicProgramBrowse() {
+export default async function PublicProgramBrowse({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const dict = await getDictionary(isLocale(lang) ? lang : DEFAULT_LOCALE);
+
   return (
     <>
       <JsonLd
         data={collectionSchema({
-          name: "Bug bounty programs",
-          description: DESCRIPTION,
+          name: dict.programs.metaTitle,
+          description: dict.programs.metaDescription,
           path: "/programs",
         })}
       />

@@ -22,6 +22,7 @@ import type {
   ProgramIndustryFilter,
   ProgramSeverityFilter,
 } from "@/hooks/useProgramFilters";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface ProgramMobileFiltersProps {
   selectedAsset: ProgramAssetFilter;
@@ -44,6 +45,8 @@ interface ProgramMobileFiltersProps {
 }
 
 export function ProgramMobileFilters(props: ProgramMobileFiltersProps) {
+  const t = useT();
+
   return (
     <div className="lg:hidden">
       <Dialog>
@@ -59,15 +62,15 @@ export function ProgramMobileFilters(props: ProgramMobileFiltersProps) {
           >
             <span className="flex items-center gap-2">
               <SlidersHorizontal data-icon="inline-start" aria-hidden="true" />
-              Explore filters
+              {t("programs.mobileFilters.trigger")}
             </span>
             {props.activeCount > 0 ? (
               <Badge variant="secondary" className="tabular-nums">
-                {props.activeCount} active
+                {props.activeCount} {t("programs.filters.active")}
               </Badge>
             ) : (
               <span className="text-sm font-medium text-muted-foreground">
-                Optional
+                {t("programs.mobileFilters.optional")}
               </span>
             )}
           </DialogTrigger>
@@ -79,10 +82,10 @@ export function ProgramMobileFilters(props: ProgramMobileFiltersProps) {
         >
           <DialogHeader className="border-b border-border px-5 pt-5 pr-14 pb-4">
             <DialogTitle className="text-lg font-bold">
-              Filter programs
+              {t("programs.mobileFilters.title")}
             </DialogTitle>
             <DialogDescription>
-              Narrow results by asset, severity, industry, country, or reward.
+              {t("programs.mobileFilters.description")}
             </DialogDescription>
           </DialogHeader>
           <DialogClose
@@ -96,7 +99,7 @@ export function ProgramMobileFilters(props: ProgramMobileFiltersProps) {
             }
           >
             <X aria-hidden="true" />
-            <span className="sr-only">Close filters</span>
+            <span className="sr-only">{t("programs.mobileFilters.close")}</span>
           </DialogClose>
 
           <div className="overflow-y-auto p-4">
@@ -116,14 +119,17 @@ export function ProgramMobileFilters(props: ProgramMobileFiltersProps) {
                 onClick={props.onResetFilters}
                 className="rounded-xl"
               >
-                Clear explore filters
+                {t("programs.filters.clear")}
               </Button>
             ) : null}
             <DialogClose
               render={<Button type="button" className="rounded-xl" />}
             >
-              Show {props.totalCount.toLocaleString()}{" "}
-              {props.totalCount === 1 ? "result" : "results"}
+              {t("programs.mobileFilters.show")}{" "}
+              {props.totalCount.toLocaleString()}{" "}
+              {props.totalCount === 1
+                ? t("programs.result")
+                : t("programs.results")}
             </DialogClose>
           </DialogFooter>
         </DialogContent>

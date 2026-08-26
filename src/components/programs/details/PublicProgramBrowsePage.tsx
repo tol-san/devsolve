@@ -17,6 +17,7 @@ import { ProgramTypeTabs } from "@/components/programs/ProgramTypeTabs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProgramFilters } from "@/hooks/useProgramFilters";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { useGetCountriesQuery } from "@/lib/redux/services/geoApi";
 import {
   useGetProgramCountryValuesQuery,
@@ -26,6 +27,7 @@ import type { GetProgramsParams } from "@/lib/types/programs/types";
 import { cn } from "@/lib/utils";
 
 export default function MarketplacePage() {
+  const t = useT();
   const {
     searchTerm,
     selectedType,
@@ -197,7 +199,7 @@ export default function MarketplacePage() {
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
           <section
-            aria-label="Search and sort programs"
+            aria-label={t("programs.searchRegion")}
             className="flex min-w-0 flex-col gap-3 lg:col-start-1"
           >
             <ProgramSearch
@@ -250,28 +252,32 @@ export default function MarketplacePage() {
 
           <section
             ref={feedRef}
-            aria-label="Program marketplace results"
+            aria-label={t("programs.resultsRegion")}
             className="flex min-w-0 scroll-mt-6 flex-col gap-5 lg:col-start-1 lg:row-start-2"
           >
             {isInitialLoading ? (
               <ProgramSkeleton />
             ) : isError ? (
               <ProgramMessage
-                title="Programs could not load"
-                body="The marketplace is temporarily unavailable. Please try again."
-                actionLabel="Try again"
+                title={t("programs.states.errorTitle")}
+                body={t("programs.states.errorBody")}
+                actionLabel={t("common.retry")}
                 onAction={() => void refetch()}
                 isAlert
               />
             ) : programs.length === 0 ? (
               <ProgramMessage
-                title={rangeInvalid ? "Reward range is invalid" : "No programs found"}
-                body={
+                title={t(
                   rangeInvalid
-                    ? "The maximum reward must be greater than or equal to the minimum."
-                    : "Try a broader search or adjust the explore filters."
-                }
-                actionLabel="Reset filters"
+                    ? "programs.states.rangeTitle"
+                    : "programs.states.emptyTitle",
+                )}
+                body={t(
+                  rangeInvalid
+                    ? "programs.states.rangeBody"
+                    : "programs.states.emptyBody",
+                )}
+                actionLabel={t("programs.states.resetFilters")}
                 onAction={handleResetFilters}
               />
             ) : (

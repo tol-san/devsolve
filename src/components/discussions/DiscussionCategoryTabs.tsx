@@ -15,16 +15,23 @@ import type {
   DiscussionCategory,
   DiscussionSort,
 } from "@/lib/types/dicussion/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
-const CATEGORIES: DiscussionCategory[] = ["All", "Problems", "Showcase"];
+/* `value` is the API vocabulary the query is built from; `key` is the
+   catalogue branch the visible label comes from. */
+const CATEGORIES: { value: DiscussionCategory; key: string }[] = [
+  { value: "All", key: "all" },
+  { value: "Problems", key: "problems" },
+  { value: "Showcase", key: "showcase" },
+];
 
-const SORT_OPTIONS: { value: DiscussionSort; label: string }[] = [
-  { value: "newest", label: "Newest" },
-  { value: "oldest", label: "Oldest" },
-  { value: "top", label: "Most voted" },
-  { value: "discussed", label: "Most answered" },
-  { value: "viewed", label: "Most viewed" },
+const SORT_OPTIONS: { value: DiscussionSort; key: string }[] = [
+  { value: "newest", key: "newest" },
+  { value: "oldest", key: "oldest" },
+  { value: "top", key: "top" },
+  { value: "discussed", key: "discussed" },
+  { value: "viewed", key: "viewed" },
 ];
 
 interface DiscussionCategoryTabsProps {
@@ -42,24 +49,26 @@ export function DiscussionCategoryTabs({
   onSortChange,
   totalCount,
 }: DiscussionCategoryTabsProps) {
+  const t = useT();
+
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-card p-2 shadow-xs ring-1 ring-foreground/5 sm:flex-row sm:items-center sm:justify-between">
       <div
         role="tablist"
-        aria-label="Discussion category"
+        aria-label={t("community.tabs.label")}
         className="grid grid-cols-3 gap-1 rounded-xl bg-muted/60 p-1"
       >
-        {CATEGORIES.map((category) => {
-          const isActive = selected === category;
+        {CATEGORIES.map(({ value, key }) => {
+          const isActive = selected === value;
 
           return (
             <button
-              key={category}
-              id={`discussion-tab-${category.toLowerCase()}`}
+              key={value}
+              id={`discussion-tab-${value.toLowerCase()}`}
               role="tab"
               type="button"
               aria-selected={isActive}
-              onClick={() => onSelect(category)}
+              onClick={() => onSelect(value)}
               className="relative rounded-lg px-3 py-2 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-5 sm:text-base"
             >
               {isActive && (
@@ -77,7 +86,7 @@ export function DiscussionCategoryTabs({
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {category}
+                {t(`community.tabs.${key}`)}
               </span>
             </button>
           );
@@ -98,7 +107,9 @@ export function DiscussionCategoryTabs({
             <span className="font-bold tabular-nums text-foreground">
               {totalCount}
             </span>{" "}
-            {totalCount === 1 ? "result" : "results"}
+            {totalCount === 1
+              ? t("community.result")
+              : t("community.results")}
           </motion.p>
         </AnimatePresence>
 
@@ -110,7 +121,7 @@ export function DiscussionCategoryTabs({
         >
           <SelectTrigger
             id="discussions-sort"
-            aria-label="Sort discussions"
+            aria-label={t("community.sort.label")}
             className="h-10 min-w-36 rounded-xl bg-muted/60 text-base font-semibold"
           >
             <SelectValue />
@@ -123,7 +134,7 @@ export function DiscussionCategoryTabs({
                   value={option.value}
                   className="text-base"
                 >
-                  {option.label}
+                  {t(`community.sort.${option.key}`)}
                 </SelectItem>
               ))}
             </SelectGroup>

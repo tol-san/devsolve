@@ -34,6 +34,7 @@ import {
   useRemoveVoteMutation,
   useSetVoteMutation,
 } from "@/lib/redux/services/votesApi";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -395,20 +396,11 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
 
             <div className={`${CARD} p-5 text-sm`}>
               <h3 className={`${SIDEBAR_HEADING} mb-3`}>Posted By</h3>
-              <div className="flex items-center space-x-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-sm font-bold text-slate-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-                  {initialsOf(showcase.authorName)}
-                </span>
-                <div className="min-w-0">
-                  <p className="text-base font-bold text-slate-900 dark:text-neutral-100 truncate">
-                    {showcase.authorName}
-                  </p>
-                  <p className="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-neutral-400">
-                    <Eye className="h-3 w-3" />
-                    {showcase.viewCount.toLocaleString()} views on this project
-                  </p>
-                </div>
-              </div>
+              <PostedBy
+                authorId={showcase.authorId}
+                authorName={showcase.authorName}
+                viewCount={showcase.viewCount}
+              />
             </div>
           </div>
         </div>
@@ -422,6 +414,57 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
         onOpenChange={setReporting}
       />
     </motion.div>
+  );
+}
+
+/**
+ * The author of the showcase, linked to their public profile.
+ *
+ * `/profile/[username]` takes a user id rather than a name — the backend has
+ * no lookup by name — which is exactly what a showcase carries. A record
+ * without an `authorId` still renders, just not as a link, so a malformed row
+ * degrades to plain text instead of a dead route.
+ */
+function PostedBy({
+  authorId,
+  authorName,
+  viewCount,
+}: {
+  authorId?: string;
+  authorName: string;
+  viewCount: number;
+}) {
+  const lp = useLocalePath();
+
+  const identity = (
+    <>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-sm font-bold text-slate-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+        {initialsOf(authorName)}
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-base font-bold text-slate-900 group-hover:text-blue-600 dark:text-neutral-100 dark:group-hover:text-blue-400">
+          {authorName}
+        </p>
+        <p className="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-neutral-400">
+          <Eye className="h-3 w-3" />
+          {viewCount.toLocaleString()} views on this project
+        </p>
+      </div>
+    </>
+  );
+
+  if (!authorId) {
+    return <div className="flex items-center space-x-3">{identity}</div>;
+  }
+
+  return (
+    <Link
+      href={lp(`/profile/${authorId}`)}
+      className="group flex items-center space-x-3 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+    >
+      {identity}
+      <span className="sr-only">View profile</span>
+    </Link>
   );
 }
 

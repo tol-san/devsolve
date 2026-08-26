@@ -6,6 +6,7 @@ import { MessageSquareDashed, Plus } from "lucide-react";
 
 import { AuthGatedLink } from "@/components/auth/AuthGatedLink";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 interface DiscussionEmptyStateProps {
@@ -19,8 +20,10 @@ export function DiscussionEmptyState({
   onReset,
   hasFilters,
   createHref,
-  emptyLabel = "No discussions found",
+  emptyLabel,
 }: DiscussionEmptyStateProps) {
+  const t = useT();
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.97 }}
@@ -33,12 +36,14 @@ export function DiscussionEmptyState({
       </div>
       <div className="flex max-w-sm flex-col gap-1.5">
         <h3 className="text-2xl font-bold tracking-tight text-foreground">
-          {emptyLabel}
+          {emptyLabel ?? t("community.pages.community.empty")}
         </h3>
         <p className="text-base leading-relaxed text-muted-foreground">
-          {hasFilters
-            ? "Try adjusting your search, category, or tag filters."
-            : "Be the first to start a discussion."}
+          {t(
+            hasFilters
+              ? "community.empty.withFilters"
+              : "community.empty.withoutFilters",
+          )}
         </p>
       </div>
       {hasFilters ? (
@@ -49,7 +54,7 @@ export function DiscussionEmptyState({
           onClick={onReset}
           className="rounded-xl"
         >
-          Clear all filters
+          {t("community.empty.clearFilters")}
         </Button>
       ) : (
         <AuthGatedLink
@@ -57,7 +62,7 @@ export function DiscussionEmptyState({
           className={cn(buttonVariants({ size: "lg" }), "rounded-xl")}
         >
           <Plus data-icon="inline-start" aria-hidden="true" />
-          Start a post
+          {t("community.empty.startPost")}
         </AuthGatedLink>
       )}
     </motion.div>

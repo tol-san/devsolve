@@ -7,6 +7,8 @@ import { Bookmark, ArrowRight, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Program } from "@/lib/types/programs/types";
 import { usePathname } from "next/navigation";
+import { splitLocale } from "@/lib/i18n/config";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import {
   useGetBookmarkStatusQuery,
   useAddBookmarkMutation,
@@ -18,9 +20,14 @@ interface ProgramCardProps {
 }
 
 export function ProgramCard({ program }: ProgramCardProps) {
+  const t = useT();
+  const lp = useLocalePath();
   const [imageError, setImageError] = React.useState(false);
   const logoUrl = !imageError ? (program.organization?.logoUrl || program.logoUrl) : null;
-  const orgName = program.organizationName || program.organization?.name || "Organization";
+  const orgName =
+    program.organizationName ||
+    program.organization?.name ||
+    t("programs.card.organization");
   const initials =
     orgName
       .split(" ")
@@ -31,7 +38,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
       .toUpperCase() || "OR";
 
   const orgId = program.organizationId || program.organization?.id;
-  const companyHref = orgId ? `/company?id=${orgId}` : "/company";
+  const companyHref = lp(orgId ? `/company?id=${orgId}` : "/company");
 
   const { data: isBookmarked } = useGetBookmarkStatusQuery({ type: "PROGRAM", targetId: program.id });
   const [addBookmark, { isLoading: isSaving }] = useAddBookmarkMutation();
@@ -48,7 +55,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
         await addBookmark({ type: "PROGRAM", targetId: program.id }).unwrap();
       }
     } catch {
-      toast.error("Failed to update bookmark. Please try again.");
+      toast.error(t("programs.card.bookmarkError"));
     }
   };
 
@@ -81,14 +88,17 @@ export function ProgramCard({ program }: ProgramCardProps) {
     const maxPts = program.rewards?.[program.rewards.length - 1]?.points ?? 80;
     return (
       <p className="text-[15px] font-extrabold text-blue-600 dark:text-blue-400">
-        {minPts} - {maxPts} pts
+        {minPts} - {maxPts} {t("programs.card.points")}
       </p>
     );
   };
 
+  /* `usePathname` returns the locale-prefixed path (`/km/dashboard/...`), so
+     the locale comes off before the segment is matched. */
   const pathname = usePathname();
-  const isDashboard = pathname.startsWith("/dashboard/programs");
-  const basePath = isDashboard ? "/dashboard/programs" : "/programs";
+  const { rest } = splitLocale(pathname);
+  const isDashboard = rest.startsWith("/dashboard/programs");
+  const basePath = lp(isDashboard ? "/dashboard/programs" : "/programs");
 
   return (
     <div className="group relative bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1.5 hover:ring-blue-500/40 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/40">
@@ -99,7 +109,11 @@ export function ProgramCard({ program }: ProgramCardProps) {
         type="button"
         disabled={isToggling}
         aria-pressed={!!isBookmarked}
-        aria-label={isBookmarked ? "Remove bookmark" : "Bookmark program"}
+        aria-label={
+          isBookmarked
+            ? t("programs.card.removeBookmark")
+            : t("programs.card.bookmark")
+        }
         className="absolute top-5 right-5 p-2 rounded-xl text-muted-foreground hover:text-blue-600 hover:bg-blue-50/80 active:scale-95 transition-all duration-200 z-10 disabled:opacity-60 dark:hover:text-blue-400 dark:hover:bg-blue-500/10"
       >
         <Bookmark
@@ -141,11 +155,11 @@ export function ProgramCard({ program }: ProgramCardProps) {
               </h4>
               <div className="flex items-center gap-1.5 mt-1">
                 <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border transition-colors ${badgeStyle}`}>
-                  {isBounty ? "Bounty" : "Response"}
+                  {isBounty ? t("programs.card.bounty") : t("programs.card.response")}
                 </span>
                 <span className="text-xs text-muted-foreground">•</span>
                 <span className="text-[13px] text-muted-foreground capitalize">
-                  {program.state?.toLowerCase() || "Open"}
+                  {program.state?.toLowerCase() || t("programs.card.open")}
                 </span>
               </div>
             </div>
@@ -165,7 +179,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
         {/* IN-SCOPE ASSETS SECTION */}
         <div className="space-y-2 pt-1">
           <p className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
-            In-Scope Assets
+            {t("programs.card.inScope")}
           </p>
           <div className="flex flex-wrap items-center gap-1.5">
             {program.inScopeAssets && program.inScopeAssets.length > 0 ? (
@@ -185,12 +199,14 @@ export function ProgramCard({ program }: ProgramCardProps) {
 
                 {program.inScopeAssets.length > 2 && (
                   <span className="bg-muted/70 text-muted-foreground text-xs font-semibold px-2 py-1 rounded-md ring-1 ring-foreground/5 dark:ring-foreground/10">
-                    +{program.inScopeAssets.length - 2} more
+                    +{program.inScopeAssets.length - 2} {t("programs.card.more")}
                   </span>
                 )}
               </>
             ) : (
-              <span className="text-[13px] text-muted-foreground italic">No assets listed</span>
+              <span className="text-[13px] text-muted-foreground italic">
+                {t("programs.card.noAssets")}
+              </span>
             )}
           </div>
         </div>
@@ -199,7 +215,9 @@ export function ProgramCard({ program }: ProgramCardProps) {
       {/* FOOTER: REWARDS & HOVERABLE SEE DETAILS BUTTON */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
         <div>
-          <p className="text-xs text-muted-foreground font-medium">Rewards</p>
+          <p className="text-xs text-muted-foreground font-medium">
+            {t("programs.card.rewards")}
+          </p>
           {renderRewards()}
         </div>
 
@@ -207,7 +225,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
           href={`${basePath}/${program.id}`}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground bg-muted ring-1 ring-foreground/5 dark:ring-foreground/10 px-4 py-2 rounded-xl group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-md active:scale-95 transition-all duration-200"
         >
-          <span>See Details</span>
+          <span>{t("programs.card.seeDetails")}</span>
           <ArrowRight className="w-3.5 h-3.5  -translate-x-1 group-hover group-hover:translate-x-0 transition-all duration-200" />
         </Link>
       </div>

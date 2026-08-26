@@ -21,6 +21,7 @@ import { AuthGatedLink } from "@/components/auth/AuthGatedLink";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 interface DiscussionSearchProps {
@@ -45,8 +46,11 @@ export function DiscussionHeader({
   badgeLabel,
   description,
   createHref,
-  createLabel = "Start a discussion",
+  createLabel,
 }: DiscussionHeaderProps) {
+  const t = useT();
+  const lp = useLocalePath();
+
   return (
     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-neutral-800">
       <div className="flex max-w-3xl flex-col gap-2.5">
@@ -54,8 +58,11 @@ export function DiscussionHeader({
           aria-label="Breadcrumb"
           className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
         >
-          <Link href="/" className="transition-colors hover:text-foreground">
-            Home
+          <Link
+            href={lp("/")}
+            className="transition-colors hover:text-foreground"
+          >
+            {t("nav.home")}
           </Link>
           <ChevronRight aria-hidden="true" className="size-4" />
           <span aria-current="page" className="font-semibold text-foreground">
@@ -93,7 +100,7 @@ export function DiscussionHeader({
           )}
         >
           <Plus data-icon="inline-start" aria-hidden="true" />
-          {createLabel}
+          {createLabel ?? t("community.pages.community.createLabel")}
         </AuthGatedLink>
       </motion.div>
     </header>
@@ -106,6 +113,7 @@ export function DiscussionSearch({
   onClearSearch,
   isSearching,
 }: DiscussionSearchProps) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isMac = useSyncExternalStore(
@@ -157,7 +165,7 @@ export function DiscussionSearch({
     <div className="flex items-center gap-2 rounded-2xl bg-card p-2 shadow-xs ring-1 ring-foreground/5">
       <div className="relative min-w-0 flex-1">
         <label htmlFor="discussions-search" className="sr-only">
-          Search discussions
+          {t("community.search.label")}
         </label>
         <Search
           aria-hidden="true"
@@ -169,7 +177,7 @@ export function DiscussionSearch({
           id="discussions-search"
           value={searchQuery}
           onChange={(event) => onSearch(event.target.value)}
-          placeholder="Search problems, tags, keywords..."
+          placeholder={t("community.search.placeholder")}
           className="h-11 rounded-xl bg-muted/50 pr-4 pl-11 text-base shadow-none [&::-webkit-search-cancel-button]:hidden"
         />
       </div>
@@ -180,7 +188,7 @@ export function DiscussionSearch({
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.7 }}
-            aria-label="Updating results"
+            aria-label={t("community.search.updating")}
             className="size-2 shrink-0 rounded-full bg-primary"
           />
         )}
@@ -195,7 +203,7 @@ export function DiscussionSearch({
             onClearSearch();
             inputRef.current?.focus();
           }}
-          aria-label="Clear search"
+          aria-label={t("community.search.clear")}
           className="rounded-xl"
         >
           <X aria-hidden="true" />
