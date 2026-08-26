@@ -122,7 +122,9 @@ export function useSubmitReportForm() {
         "programId",
         "targetAsset",
         "title",
-        "category",
+        /* `category` is deliberately absent: the weakness catalogue is a
+           closed vocabulary and "I'm not sure" is a valid answer, so the
+           step cannot require one. */
         "severity",
       ];
     } else if (currentStep === 2) {

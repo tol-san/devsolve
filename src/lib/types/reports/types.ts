@@ -76,7 +76,7 @@ export interface ReportDetail extends ReportItem {
 }
 
 export interface SubmitReportPayload {
-  /** Catalogue id for `category`, when it came from the catalogue. */
+  /** Catalogue id for `category`. Both are absent on an unclassified report. */
   weaknessId?: string;
   programId: string;
   programName: string;
@@ -88,7 +88,8 @@ export interface SubmitReportPayload {
   environment?: string;
   /** `YYYY-MM-DD` from the form; sent as an ISO instant. */
   discoveredAt?: string;
-  category: string;
+  /** Absent when the reporter answered "I'm not sure". */
+  category?: string;
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
   cweIdentifier?: string;
   cvssScore?: string;

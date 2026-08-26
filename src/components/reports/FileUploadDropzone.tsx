@@ -62,10 +62,10 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
   return (
     <div className="space-y-3 font-sans">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-          Attachments & Evidence <span className="text-slate-400 font-normal">(Optional)</span>
+        <label className="text-sm font-semibold text-foreground">
+          Attachments & Evidence <span className="text-muted-foreground font-normal">(Optional)</span>
         </label>
-        <span className="text-xs text-slate-500 font-medium">PNG, JPG, LOG, TXT, PDF (Max 25MB)</span>
+        <span className="text-xs text-muted-foreground font-medium">PNG, JPG, LOG, TXT, PDF (Max 25MB)</span>
       </div>
 
       {/* Hidden File Input */}
@@ -83,16 +83,16 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-600 bg-slate-50/70 dark:bg-slate-900/50 rounded-2xl p-6 text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-2 group"
+        className="border-2 border-dashed border-border hover:border-blue-500 dark:hover:border-blue-600 bg-muted/40 rounded-2xl p-6 text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-2 group"
       >
         <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform shadow-2xs">
           <UploadCloud className="w-6 h-6" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          <p className="text-sm font-semibold text-foreground">
             Click to upload or drag & drop evidence
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+          <p className="text-xs text-muted-foreground font-medium">
             Attach screenshots, HTTP raw request logs, or PoC code files
           </p>
         </div>
@@ -101,14 +101,14 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
       {/* Uploaded File List */}
       {activeFiles.length > 0 && (
         <div className="space-y-2 mt-3">
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
             Attached Files ({activeFiles.length})
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {activeFiles.map((file) => (
               <div
                 key={file.id}
-                className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-medium text-slate-800 dark:text-slate-200"
+                className="flex items-center justify-between p-3 rounded-xl border border-border bg-card text-sm font-medium text-foreground"
               >
                 <div className="flex items-center gap-2.5 min-w-0 pr-2">
                   {file.name.match(/\.(png|jpg|jpeg|gif)$/i) ? (
@@ -117,7 +117,7 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
                     <FileText className="w-4 h-4 text-blue-500 shrink-0" />
                   )}
                   <span className="truncate font-semibold">{file.name}</span>
-                  <span className="text-slate-400 text-xs shrink-0">({file.size})</span>
+                  <span className="text-muted-foreground text-xs shrink-0">({file.size})</span>
                 </div>
                 <Button
                   type="button"
@@ -127,7 +127,7 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
                     e.stopPropagation();
                     onRemoveFile(file.id);
                   }}
-                  className="text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg shrink-0 cursor-pointer"
+                  className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg shrink-0 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </Button>

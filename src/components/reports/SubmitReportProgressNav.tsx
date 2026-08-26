@@ -29,19 +29,19 @@ export const SubmitReportProgressNav: React.FC<SubmitReportProgressNavProps> = (
   const progressPercentage = Math.round((currentStep / STEPS.length) * 100);
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-3.5 font-sans shadow-xs">
+    <div className="bg-card rounded-2xl border border-border p-4 space-y-3.5 font-sans shadow-xs">
       {/* Header & Monochromatic Micro Progress Bar */}
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+        <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
           <span>Express Submission Progress</span>
-          <span className="font-mono text-slate-900 dark:text-slate-100 font-bold">
+          <span className="font-mono text-foreground font-bold">
             Step {currentStep} of {STEPS.length} ({progressPercentage}%)
           </span>
         </div>
 
-        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-slate-900 dark:bg-slate-100 rounded-full"
+            className="h-full bg-primary rounded-full"
             initial={{ width: "20%" }}
             animate={{ width: `${progressPercentage}%` }}
             transition={{ duration: 0.25, ease: "easeOut" }}
@@ -65,20 +65,20 @@ export const SubmitReportProgressNav: React.FC<SubmitReportProgressNavProps> = (
               onClick={() => isClickable && onSelectStep(step.id)}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
                 isActive
-                  ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold shadow-xs"
+                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                   : isCompleted
-                  ? "text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 cursor-pointer"
-                  : "text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-50"
+                  ? "text-foreground hover:bg-muted cursor-pointer"
+                  : "text-muted-foreground cursor-not-allowed opacity-50"
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <div
                   className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${
                     isActive
-                      ? "bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-900"
+                      ? "bg-primary-foreground/20 text-primary-foreground"
                       : isCompleted
-                      ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                      : "text-slate-400 dark:text-slate-600"
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {isCompleted && !isActive ? (

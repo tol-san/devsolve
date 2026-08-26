@@ -58,21 +58,21 @@ function SubmitReportContent() {
         <nav aria-label="Back Navigation">
           <Link
             href="/dashboard/programs"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Programs</span>
           </Link>
         </nav>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 Submit Vulnerability Report
               </h1>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl font-medium">
+            <p className="text-sm text-muted-foreground max-w-2xl font-medium">
               Submit structured findings, technical evidence, and reproduction steps directly to the security triage team.
             </p>
           </div>
@@ -93,7 +93,7 @@ function SubmitReportContent() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -12 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xs"
+                className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-xs"
               >
                 {/* STEP 1: TARGET & CLASSIFICATION */}
                 {currentStep === 1 && (
@@ -109,11 +109,11 @@ function SubmitReportContent() {
                     />
 
                     {/* Step 1 Footer Navigation */}
-                    <div className="pt-4 border-t border-slate-200/80 dark:border-slate-800 flex justify-end">
+                    <div className="pt-4 border-t border-border flex justify-end">
                       <button
                         type="button"
                         onClick={nextStep}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold text-sm hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors shadow-xs cursor-pointer"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 dark:hover:bg-muted transition-colors shadow-xs cursor-pointer"
                       >
                         <span>Next: PoC & Submit</span>
                       </button>
@@ -184,7 +184,7 @@ export default function SubmitReportPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-12 text-center text-slate-500 animate-pulse font-medium">
+        <div className="p-12 text-center text-muted-foreground animate-pulse font-medium">
           Loading vulnerability submission wizard...
         </div>
       }

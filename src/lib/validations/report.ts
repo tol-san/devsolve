@@ -242,10 +242,13 @@ export const submitReportSchema = z.object({
     .max(MAX_TITLE, `Title cannot exceed ${MAX_TITLE} characters.`)
     .refine(isCleanText, profanityMessage("Title"))
     .refine(isReadableText, readabilityMessage("Title")),
-  category: z.string().min(1, "Please select a vulnerability type/category."),
-  /* Set only when `category` came from the catalogue. Free-text entries leave
-     it empty, which is what tells the submit step to send prose instead of a
-     foreign key the backend would reject. */
+  /* Optional, because the weakness catalogue is a closed vocabulary curated
+     by admins and "I am not sure" is a legitimate answer — triage classifies
+     what the reporter could not. The API requires only title, write-up and
+     severity, so demanding a class here would have been the form inventing a
+     rule the platform does not have. */
+  category: z.string().optional(),
+  /** The catalogue id behind `category`. Both are unset together. */
   weaknessId: z.string().optional(),
   severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]),
   cweIdentifier: z.string().optional(),

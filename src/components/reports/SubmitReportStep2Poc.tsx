@@ -46,15 +46,15 @@ export function SubmitReportStep2Poc({
   return (
     <div className="space-y-8 font-sans">
       {/* Section Header */}
-      <div className="flex items-center gap-3.5 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+      <div className="flex items-center gap-3.5 pb-2 border-b border-border">
         <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
           <FileText className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+          <h2 className="text-xl font-bold text-foreground tracking-tight">
             Step 2: Proof of Concept & Evidence
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-muted-foreground">
             Provide the complete technical write-up, reproduction steps, and attachments.
           </p>
         </div>
@@ -63,10 +63,10 @@ export function SubmitReportStep2Poc({
       {/* Description & Summary Markdown Editor */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
-          <label htmlFor="summaryPoC" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          <label htmlFor="summaryPoC" className="text-sm font-semibold text-foreground">
             Vulnerability Write-up & Proof of Concept <span className="text-red-500">*</span>
           </label>
-          <span className="text-xs text-slate-500">Supports GitHub Markdown</span>
+          <span className="text-xs text-muted-foreground">Supports GitHub Markdown</span>
         </div>
 
         {/* Quick Insert Template Chips */}
@@ -91,10 +91,10 @@ export function SubmitReportStep2Poc({
       {/* File & Screenshot Attachments */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+          <label className="text-sm font-semibold text-foreground">
             Attachments & Screenshots
           </label>
-          <span className="text-xs text-slate-500">PNG, JPG, HTTP logs, or videos</span>
+          <span className="text-xs text-muted-foreground">PNG, JPG, HTTP logs, or videos</span>
         </div>
 
         <FileUploadDropzone
@@ -105,14 +105,14 @@ export function SubmitReportStep2Poc({
       </div>
 
       {/* Submission Compliance Checkbox */}
-      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-3">
+      <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
         <label className="flex items-start gap-3 cursor-pointer select-none">
           <input
             type="checkbox"
             {...register("checklistAgreeTerms")}
-            className="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 mt-0.5"
+            className="w-5 h-5 rounded border-border text-blue-600 focus:ring-blue-500 mt-0.5"
           />
-          <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+          <div className="text-sm text-foreground leading-relaxed font-medium">
             I confirm that this report is in-scope, reproducible, and does not contain exfiltrated user PII or destructive payloads.
           </div>
         </label>
@@ -126,11 +126,11 @@ export function SubmitReportStep2Poc({
       )}
 
       {/* Footer Navigation & Submit Actions */}
-      <div className="pt-4 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-4">
+      <div className="pt-4 border-t border-border flex items-center justify-between gap-4">
         <button
           type="button"
           onClick={onPrevStep}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border text-foreground font-semibold text-sm hover:bg-muted hover:bg-muted transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Step 1</span>
@@ -140,7 +140,7 @@ export function SubmitReportStep2Poc({
           <button
             type="button"
             onClick={onSaveDraft}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border dark:border-border text-muted-foreground font-semibold text-sm hover:bg-muted hover:bg-muted transition-colors cursor-pointer"
           >
             <Bookmark className="w-4 h-4" />
             <span>{isDraftSaved ? "Draft Saved!" : "Save Draft"}</span>
@@ -150,7 +150,7 @@ export function SubmitReportStep2Poc({
             type="button"
             disabled={isSubmitting}
             onClick={onSubmitReport}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold text-sm hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 dark:hover:bg-muted transition-all shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>

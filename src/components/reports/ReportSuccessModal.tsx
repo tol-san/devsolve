@@ -54,31 +54,31 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
           </div>
 
           <div className="space-y-1">
-            <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
               Report Submitted Successfully
             </DialogTitle>
 
-            <DialogDescription className="text-sm text-slate-500 dark:text-slate-400 font-medium max-w-sm mx-auto">
+            <DialogDescription className="text-sm text-muted-foreground font-medium max-w-sm mx-auto">
               Your vulnerability report has been logged and queued for triaging by the security team.
             </DialogDescription>
           </div>
         </DialogHeader>
 
         {/* Clean Info Summary Card */}
-        <div className="bg-slate-50 dark:bg-slate-950/60 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800/80 text-left space-y-3">
+        <div className="bg-muted/40 rounded-xl p-4 border border-border/80 text-left space-y-3">
           {/* Report ID */}
           <div className="grid grid-cols-3 gap-2 items-center">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-semibold text-muted-foreground">
               Report ID
             </span>
             <div className="col-span-2 flex items-center gap-1.5">
-              <span className="font-mono text-sm font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+              <span className="font-mono text-sm font-semibold text-foreground tracking-tight">
                 {reportId || "RPT-2026-88192"}
               </span>
               <button
                 type="button"
                 onClick={handleCopyReportId}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1 rounded-md cursor-pointer"
+                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md cursor-pointer"
                 title="Copy Report ID"
               >
                 {copied ? (
@@ -91,21 +91,21 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
           </div>
 
           {/* Program */}
-          <div className="grid grid-cols-3 gap-2 items-center pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <div className="grid grid-cols-3 gap-2 items-center pt-2 border-t border-border/60">
+            <span className="text-xs font-semibold text-muted-foreground">
               Program
             </span>
-            <span className="col-span-2 text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+            <span className="col-span-2 text-sm font-semibold text-foreground truncate">
               {programName || "Security Program"}
             </span>
           </div>
 
           {/* Title */}
-          <div className="grid grid-cols-3 gap-2 items-start pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 pt-0.5">
+          <div className="grid grid-cols-3 gap-2 items-start pt-2 border-t border-border/60">
+            <span className="text-xs font-semibold text-muted-foreground pt-0.5">
               Title
             </span>
-            <span className="col-span-2 text-sm font-semibold text-slate-900 dark:text-slate-100 line-clamp-2 leading-snug">
+            <span className="col-span-2 text-sm font-semibold text-foreground line-clamp-2 leading-snug">
               {title || "Vulnerability Report"}
             </span>
           </div>
@@ -117,9 +117,9 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
             type="button"
             variant="outline"
             onClick={onReset}
-            className="w-full sm:w-1/2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-sm h-10 rounded-xl cursor-pointer"
+            className="w-full sm:w-1/2 border-border hover:bg-muted text-foreground font-semibold text-sm h-10 rounded-xl cursor-pointer"
           >
-            <PlusCircle className="size-4 mr-1.5 text-slate-500" />
+            <PlusCircle className="size-4 mr-1.5 text-muted-foreground" />
             <span>Submit Another</span>
           </Button>
 

@@ -224,11 +224,16 @@ function composeVulnerabilityInformation(payload: SubmitReportPayload): string {
   ].filter((line): line is string => Boolean(line));
   if (targetLines.length) sections.push(`## Request\n${targetLines.join("\n")}`);
 
+  /* Dropped entirely when the reporter answered "I'm not sure": a
+     Classification heading over the word "undefined" is worse than no heading,
+     and triage classifies it from the write-up anyway. */
   const classificationLines = [
-    `Category: ${payload.category}`,
+    payload.category ? `Category: ${payload.category}` : null,
     payload.cweIdentifier ? `CWE: ${payload.cweIdentifier}` : null,
   ].filter((line): line is string => Boolean(line));
-  sections.push(`## Classification\n${classificationLines.join("\n")}`);
+  if (classificationLines.length) {
+    sections.push(`## Classification\n${classificationLines.join("\n")}`);
+  }
 
   /* Attachment bytes need `POST /reports/{id}/attachments`, which happens
      after the report exists and is not wired yet — so what the reader picked

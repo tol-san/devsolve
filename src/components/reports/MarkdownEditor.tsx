@@ -10,7 +10,7 @@ import "@uiw/react-markdown-preview/markdown.css";
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-96 w-full animate-pulse items-center justify-center rounded-xl border border-slate-300 bg-slate-100 text-base font-medium text-slate-400 motion-reduce:animate-none dark:border-neutral-700 dark:bg-neutral-900">
+    <div className="flex h-96 w-full animate-pulse items-center justify-center rounded-xl border border-border bg-muted text-base font-medium text-muted-foreground motion-reduce:animate-none dark:border-neutral-700 dark:bg-neutral-900">
       Loading Markdown Editor...
     </div>
   ),
@@ -61,7 +61,7 @@ export function MarkdownEditor({
       className={`w-full rounded-xl border transition-colors overflow-hidden ${
         error
           ? "border-red-500 ring-1 ring-red-500"
-          : "border-slate-300 dark:border-neutral-700 focus-within:ring-2 focus-within:ring-blue-600"
+          : "border-border dark:border-neutral-700 focus-within:ring-2 focus-within:ring-blue-600"
       }`}
     >
       <MDEditor

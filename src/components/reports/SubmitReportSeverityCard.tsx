@@ -48,8 +48,8 @@ const SEVERITY_CONFIG = {
     scoreRange: "CVSS 0.0",
     description: "Informational submission or best practice recommendation without direct risk",
     typicalBounty: "Swag / Reputation Only",
-    colorClass: "text-slate-700 dark:text-slate-300",
-    bgClass: "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-800",
+    colorClass: "text-foreground",
+    bgClass: "bg-muted/40 border-border",
   },
 };
 
@@ -88,13 +88,13 @@ export const SubmitReportSeverityCard: React.FC<SubmitReportSeverityCardProps> =
           </span>
         </div>
 
-        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+        <p className="text-sm text-foreground leading-relaxed font-medium">
           {config.description}
         </p>
 
-        <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
+        <div className="mt-4 pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-muted-foreground">
           <span>Estimated Reward</span>
-          <span className="text-slate-900 dark:text-slate-100 font-bold">
+          <span className="text-foreground font-bold">
             {displayBounty}
           </span>
         </div>
