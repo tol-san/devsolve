@@ -10,8 +10,8 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
-import { useT } from "@/lib/i18n/I18nProvider";
-import { splitTextUnits } from "@/lib/i18n/graphemes";
+import { useLocale, useT } from "@/lib/i18n/I18nProvider";
+import { cn } from "@/lib/utils";
 import SectionBackdrop, {
   ACCENT,
   PRIMARY,
