@@ -15,6 +15,10 @@ import { SubmitReportFooterNav } from "@/components/reports/SubmitReportFooterNa
 import { SubmitReportStep1Basics } from "@/components/reports/SubmitReportStep1Basics";
 import { SubmitReportStep2Poc } from "@/components/reports/SubmitReportStep2Poc";
 import { ReportSuccessModal } from "@/components/reports/ReportSuccessModal";
+import {
+  DraftStatus,
+  ResumeDraftBanner,
+} from "@/components/reports/ResumeDraftBanner";
 
 function SubmitReportContent() {
   const {
@@ -34,6 +38,8 @@ function SubmitReportContent() {
     attachedFiles,
     submitError,
     isDraftSaved,
+    draft,
+    restoreDraft,
     successModalData,
     nextStep,
     prevStep,
@@ -53,6 +59,16 @@ function SubmitReportContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-8 w-full pb-12 font-sans"
     >
+      {/* Offered before the form, because resuming after typing would mean
+          throwing away whichever of the two the reporter did not pick. */}
+      {draft.available ? (
+        <ResumeDraftBanner
+          draft={draft.available}
+          onResume={restoreDraft}
+          onDiscard={() => void draft.discard()}
+        />
+      ) : null}
+
       {/* Back Navigation & Page Header */}
       <div className="space-y-4">
         <nav aria-label="Back Navigation">
@@ -132,6 +148,13 @@ function SubmitReportContent() {
                     isSubmitting={isSubmitting}
                     submitError={submitError}
                     isDraftSaved={isDraftSaved}
+                    draftStatus={
+                      <DraftStatus
+                        isSaving={draft.isSaving}
+                        savedAt={draft.savedAt}
+                        error={draft.error}
+                      />
+                    }
                     onAddFiles={handleAddFiles}
                     onRemoveFile={handleRemoveFile}
                     onInsertTemplate={handleInsertTemplate}

@@ -20,6 +20,7 @@ export const proxyApi = createApi({
     "OrganizationMembers",
     "OrganizationInvitations",
     "Weakness",
+    "ReportDraft",
   ],
   endpoints: () => ({}),
 });

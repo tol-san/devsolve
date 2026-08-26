@@ -17,6 +17,8 @@ interface SubmitReportStep2PocProps {
   isSubmitting: boolean;
   submitError: string | null;
   isDraftSaved: boolean;
+  /** Live autosave state, rendered beside the manual save. */
+  draftStatus?: React.ReactNode;
   onAddFiles: (files: AttachedFile[]) => void;
   onRemoveFile: (fileId: string) => void;
   onInsertTemplate: (template: string) => void;
@@ -34,6 +36,7 @@ export function SubmitReportStep2Poc({
   isSubmitting,
   submitError,
   isDraftSaved,
+  draftStatus,
   onAddFiles,
   onRemoveFile,
   onInsertTemplate,
@@ -130,17 +133,19 @@ export function SubmitReportStep2Poc({
         <button
           type="button"
           onClick={onPrevStep}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border text-foreground font-semibold text-sm hover:bg-muted hover:bg-muted transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border text-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Step 1</span>
         </button>
 
         <div className="flex items-center gap-3">
+          {draftStatus}
+
           <button
             type="button"
             onClick={onSaveDraft}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border dark:border-border text-muted-foreground font-semibold text-sm hover:bg-muted hover:bg-muted transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border dark:border-border text-muted-foreground font-semibold text-sm hover:bg-muted transition-colors cursor-pointer"
           >
             <Bookmark className="w-4 h-4" />
             <span>{isDraftSaved ? "Draft Saved!" : "Save Draft"}</span>
