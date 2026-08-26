@@ -33,6 +33,7 @@ import type {
   ProgramIndustryFilter,
   ProgramSeverityFilter,
 } from "@/hooks/useProgramFilters";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 interface ProgramFiltersBarProps {
@@ -63,45 +64,47 @@ export interface CountryFilterOption {
   code?: string;
 }
 
+/* `value` is what the API is queried with and never changes; `key` is the
+   dotted catalogue path the visible label is resolved from. */
 const ASSET_OPTIONS: Array<{
   value: ProgramAssetFilter;
-  label: string;
+  key: string;
 }> = [
-  { value: "All", label: "All asset types" },
-  { value: "URL", label: "Websites" },
-  { value: "WILDCARD", label: "Wildcard domains" },
-  { value: "API", label: "APIs" },
-  { value: "MOBILE_APP", label: "Mobile apps" },
-  { value: "SOURCE_CODE", label: "Source code" },
-  { value: "IP_RANGE", label: "IP ranges" },
-  { value: "HARDWARE", label: "Hardware" },
-  { value: "OTHER", label: "Other" },
+  { value: "All", key: "programs.assets.all" },
+  { value: "URL", key: "programs.assets.url" },
+  { value: "WILDCARD", key: "programs.assets.wildcard" },
+  { value: "API", key: "programs.assets.api" },
+  { value: "MOBILE_APP", key: "programs.assets.mobile" },
+  { value: "SOURCE_CODE", key: "programs.assets.source" },
+  { value: "IP_RANGE", key: "programs.assets.ipRange" },
+  { value: "HARDWARE", key: "programs.assets.hardware" },
+  { value: "OTHER", key: "programs.assets.other" },
 ];
 
 const SEVERITY_OPTIONS: Array<{
   value: ProgramSeverityFilter;
-  label: string;
+  key: string;
 }> = [
-  { value: "All", label: "Any severity" },
-  { value: "CRITICAL", label: "Critical" },
-  { value: "HIGH", label: "High" },
-  { value: "MEDIUM", label: "Medium" },
-  { value: "LOW", label: "Low" },
-  { value: "NONE", label: "None" },
+  { value: "All", key: "programs.severities.all" },
+  { value: "CRITICAL", key: "programs.severities.critical" },
+  { value: "HIGH", key: "programs.severities.high" },
+  { value: "MEDIUM", key: "programs.severities.medium" },
+  { value: "LOW", key: "programs.severities.low" },
+  { value: "NONE", key: "programs.severities.none" },
 ];
 
 const INDUSTRY_OPTIONS: Array<{
   value: ProgramIndustryFilter;
-  label: string;
+  key: string;
 }> = [
-  { value: "All", label: "All industries" },
-  { value: "TECHNOLOGY", label: "Technology" },
-  { value: "FINANCE", label: "Finance" },
-  { value: "HEALTHCARE", label: "Healthcare" },
-  { value: "ECOMMERCE", label: "E-commerce" },
-  { value: "GOVERNMENT", label: "Government" },
-  { value: "EDUCATION", label: "Education" },
-  { value: "OTHER", label: "Other" },
+  { value: "All", key: "programs.industries.all" },
+  { value: "TECHNOLOGY", key: "programs.industries.technology" },
+  { value: "FINANCE", key: "programs.industries.finance" },
+  { value: "HEALTHCARE", key: "programs.industries.healthcare" },
+  { value: "ECOMMERCE", key: "programs.industries.ecommerce" },
+  { value: "GOVERNMENT", key: "programs.industries.government" },
+  { value: "EDUCATION", key: "programs.industries.education" },
+  { value: "OTHER", key: "programs.industries.other" },
 ];
 
 export function ProgramFiltersBar({
@@ -125,6 +128,7 @@ export function ProgramFiltersBar({
   showHeader = true,
   idPrefix = "desktop-program",
 }: ProgramFiltersBarProps) {
+  const t = useT();
   const minimum = minReward === "" ? null : Number(minReward);
   const maximum = maxReward === "" ? null : Number(maxReward);
   const rangeInvalid =
@@ -141,7 +145,7 @@ export function ProgramFiltersBar({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: "easeOut", delay: 0.08 }}
-      aria-label="Program filters"
+      aria-label={t("programs.filters.region")}
       className={cn(
         "lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start",
         className,
@@ -155,23 +159,25 @@ export function ProgramFiltersBar({
                 <span className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                   <SlidersHorizontal aria-hidden="true" className="size-4" />
                 </span>
-                <CardTitle className="text-base font-bold">Explore</CardTitle>
+                <CardTitle className="text-base font-bold">
+                  {t("programs.filters.title")}
+                </CardTitle>
               </div>
               {activeCount > 0 ? (
                 <Badge variant="secondary" className="tabular-nums">
-                  {activeCount} active
+                  {activeCount} {t("programs.filters.active")}
                 </Badge>
               ) : null}
             </div>
             <CardDescription className="mt-1 text-sm">
-              Narrow programs by scope, organization, and reward.
+              {t("programs.filters.description")}
             </CardDescription>
           </CardHeader>
         ) : (
           <CardHeader className="sr-only">
-            <CardTitle>Explore programs</CardTitle>
+            <CardTitle>{t("programs.filters.srTitle")}</CardTitle>
             <CardDescription>
-              Narrow programs by scope, organization, and reward.
+              {t("programs.filters.description")}
             </CardDescription>
           </CardHeader>
         )}
@@ -180,14 +186,14 @@ export function ProgramFiltersBar({
           <FieldGroup className="gap-4">
             <FilterSelect
               id={assetId}
-              label="Asset type"
+              label={t("programs.filters.assetType")}
               value={selectedAsset}
               options={ASSET_OPTIONS}
               onChange={(value) => onAssetChange(value as ProgramAssetFilter)}
             />
             <FilterSelect
               id={severityId}
-              label="Maximum severity"
+              label={t("programs.filters.maxSeverity")}
               value={selectedSeverity}
               options={SEVERITY_OPTIONS}
               onChange={(value) =>
@@ -196,7 +202,7 @@ export function ProgramFiltersBar({
             />
             <FilterSelect
               id={industryId}
-              label="Organization industry"
+              label={t("programs.filters.industry")}
               value={selectedIndustry}
               options={INDUSTRY_OPTIONS}
               onChange={(value) =>
@@ -205,7 +211,9 @@ export function ProgramFiltersBar({
             />
 
             <Field>
-              <FieldLabel htmlFor={countryId}>Country</FieldLabel>
+              <FieldLabel htmlFor={countryId}>
+                {t("programs.filters.country")}
+              </FieldLabel>
               <Select
                 value={country || "All"}
                 onValueChange={(value) =>
@@ -219,8 +227,10 @@ export function ProgramFiltersBar({
                 >
                   <SelectValue>
                     {(value: string) => {
-                      if (isLoadingCountries) return "Loading countries...";
-                      if (value === "All") return "All countries";
+                      if (isLoadingCountries)
+                        return t("programs.filters.loadingCountries");
+                      if (value === "All")
+                        return t("programs.filters.allCountries");
                       return (
                         countryOptions.find((option) => option.value === value)
                           ?.label ?? value
@@ -231,7 +241,7 @@ export function ProgramFiltersBar({
                 <SelectContent alignItemWithTrigger={false}>
                   <SelectGroup>
                     <SelectItem value="All" className="text-base">
-                      All countries
+                      {t("programs.filters.allCountries")}
                     </SelectItem>
                     {countryOptions.map((option) => (
                       <SelectItem
@@ -249,7 +259,9 @@ export function ProgramFiltersBar({
 
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={rangeInvalid}>
-                <FieldLabel htmlFor={minimumId}>Min reward</FieldLabel>
+                <FieldLabel htmlFor={minimumId}>
+                  {t("programs.filters.minReward")}
+                </FieldLabel>
                 <Input
                   id={minimumId}
                   type="number"
@@ -257,13 +269,15 @@ export function ProgramFiltersBar({
                   inputMode="numeric"
                   value={minReward}
                   onChange={(event) => onMinRewardChange(event.target.value)}
-                  placeholder="Any"
+                  placeholder={t("programs.filters.anyAmount")}
                   aria-invalid={rangeInvalid}
                   className="h-10 rounded-xl border-border bg-background text-base"
                 />
               </Field>
               <Field data-invalid={rangeInvalid}>
-                <FieldLabel htmlFor={maximumId}>Max reward</FieldLabel>
+                <FieldLabel htmlFor={maximumId}>
+                  {t("programs.filters.maxReward")}
+                </FieldLabel>
                 <Input
                   id={maximumId}
                   type="number"
@@ -271,14 +285,14 @@ export function ProgramFiltersBar({
                   inputMode="numeric"
                   value={maxReward}
                   onChange={(event) => onMaxRewardChange(event.target.value)}
-                  placeholder="Any"
+                  placeholder={t("programs.filters.anyAmount")}
                   aria-invalid={rangeInvalid}
                   className="h-10 rounded-xl border-border bg-background text-base"
                 />
               </Field>
             </div>
             {rangeInvalid ? (
-              <FieldError>Maximum must be at least the minimum.</FieldError>
+              <FieldError>{t("programs.filters.rangeError")}</FieldError>
             ) : null}
           </FieldGroup>
         </CardContent>
@@ -292,7 +306,7 @@ export function ProgramFiltersBar({
               className="w-full rounded-xl"
             >
               <RotateCcw data-icon="inline-start" aria-hidden="true" />
-              Clear explore filters
+              {t("programs.filters.clear")}
             </Button>
           </CardFooter>
         ) : null}
@@ -311,9 +325,11 @@ function FilterSelect({
   id: string;
   label: string;
   value: string;
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; key: string }>;
   onChange: (value: string) => void;
 }) {
+  const t = useT();
+
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
@@ -335,7 +351,7 @@ function FilterSelect({
                 value={option.value}
                 className="text-base"
               >
-                {option.label}
+                {t(option.key)}
               </SelectItem>
             ))}
           </SelectGroup>

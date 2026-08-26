@@ -223,5 +223,274 @@
       "weighted": "Rankings are weighted by severity and by how often an answer gets reused, not by raw volume.",
       "leaderboard": "See the full leaderboard"
     }
+  },
+  "programs": {
+    "breadcrumb": "Programs",
+    "title": "Program Marketplace",
+    "badge": "Security programs",
+    "subtitle": "Discover bug bounty programs and responsible disclosure opportunities worldwide.",
+    "metaTitle": "Bug bounty programs",
+    "metaDescription": "Every bug bounty and vulnerability disclosure program running on DevSolve — their scope, their reward ranges, and what each organization is asking researchers to look at.",
+    "searchRegion": "Search and sort programs",
+    "resultsRegion": "Program marketplace results",
+    "search": {
+      "label": "Search programs",
+      "placeholder": "Search programs, companies, or assets...",
+      "updating": "Updating results",
+      "clear": "Clear program search"
+    },
+    "tabs": {
+      "label": "Program type",
+      "all": "All",
+      "bounty": "Bounty",
+      "response": "Response"
+    },
+    "sort": {
+      "label": "Sort programs",
+      "newest": "Newest",
+      "rewardHigh": "Highest reward",
+      "name": "Program name"
+    },
+    "result": "result",
+    "results": "results",
+    "filters": {
+      "region": "Program filters",
+      "title": "Explore",
+      "srTitle": "Explore programs",
+      "description": "Narrow programs by scope, organization, and reward.",
+      "active": "active",
+      "assetType": "Asset type",
+      "maxSeverity": "Maximum severity",
+      "industry": "Organization industry",
+      "country": "Country",
+      "allCountries": "All countries",
+      "loadingCountries": "Loading countries...",
+      "minReward": "Min reward",
+      "maxReward": "Max reward",
+      "anyAmount": "Any",
+      "rangeError": "Maximum must be at least the minimum.",
+      "clear": "Clear explore filters"
+    },
+    "assets": {
+      "all": "All asset types",
+      "url": "Websites",
+      "wildcard": "Wildcard domains",
+      "api": "APIs",
+      "mobile": "Mobile apps",
+      "source": "Source code",
+      "ipRange": "IP ranges",
+      "hardware": "Hardware",
+      "other": "Other"
+    },
+    "severities": {
+      "all": "Any severity",
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "none": "None"
+    },
+    "industries": {
+      "all": "All industries",
+      "technology": "Technology",
+      "finance": "Finance",
+      "healthcare": "Healthcare",
+      "ecommerce": "E-commerce",
+      "government": "Government",
+      "education": "Education",
+      "other": "Other"
+    },
+    "mobileFilters": {
+      "trigger": "Explore filters",
+      "optional": "Optional",
+      "title": "Filter programs",
+      "description": "Narrow results by asset, severity, industry, country, or reward.",
+      "close": "Close filters",
+      "show": "Show"
+    },
+    "activeFilters": {
+      "label": "Active filters",
+      "search": "Search",
+      "type": "Type",
+      "asset": "Asset",
+      "severity": "Severity",
+      "industry": "Industry",
+      "country": "Country",
+      "reward": "Reward",
+      "sort": "Sort",
+      "anyAmount": "Any",
+      "remove": "Remove filter",
+      "clearAll": "Clear all"
+    },
+    "card": {
+      "organization": "Organization",
+      "bounty": "Bounty",
+      "response": "Response",
+      "open": "Open",
+      "inScope": "In-Scope Assets",
+      "more": "more",
+      "noAssets": "No assets listed",
+      "rewards": "Rewards",
+      "points": "pts",
+      "seeDetails": "See Details",
+      "bookmark": "Bookmark program",
+      "removeBookmark": "Remove bookmark",
+      "bookmarkError": "Failed to update bookmark. Please try again."
+    },
+    "pagination": {
+      "region": "Program pagination",
+      "rowsPerPage": "Rows per page",
+      "showing": "Showing",
+      "of": "of",
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "Page"
+    },
+    "states": {
+      "errorTitle": "Programs could not load",
+      "errorBody": "The marketplace is temporarily unavailable. Please try again.",
+      "emptyTitle": "No programs found",
+      "emptyBody": "Try a broader search or adjust the explore filters.",
+      "rangeTitle": "Reward range is invalid",
+      "rangeBody": "The maximum reward must be greater than or equal to the minimum.",
+      "resetFilters": "Reset filters"
+    }
+  },
+  "community": {
+    "pages": {
+      "community": {
+        "breadcrumb": "Community",
+        "title": "Community",
+        "badge": "Problems · Solutions · Showcases",
+        "description": "Ask focused questions, share practical solutions, and showcase what you are building with other developers.",
+        "createLabel": "Start a discussion",
+        "empty": "No discussions found",
+        "metaTitle": "Community",
+        "metaDescription": "Browse everything the DevSolve community is working on: problems people are stuck on, the solutions that fixed them, and the projects members have shipped.",
+        "schemaName": "DevSolve Community"
+      },
+      "problems": {
+        "breadcrumb": "Problems",
+        "title": "Problems",
+        "badge": "Ask · Answer · Accept",
+        "description": "Post the bug, blocker, or question you are stuck on and get answers from people who have shipped in that stack.",
+        "createLabel": "Post a problem",
+        "empty": "No problems found",
+        "metaTitle": "Problems",
+        "metaDescription": "Real bugs, blockers and architecture questions posted by developers — each with the stack it happened on, the steps to reproduce it, and the solutions that worked.",
+        "schemaName": "Developer problems"
+      },
+      "showcases": {
+        "breadcrumb": "Showcases",
+        "title": "Showcases",
+        "badge": "Ship · Share · Inspire",
+        "description": "Share what you built, the stack behind it, and the decisions that made it work.",
+        "createLabel": "Post a showcase",
+        "empty": "No showcases found",
+        "metaTitle": "Showcases",
+        "metaDescription": "Projects built by DevSolve members, written up step by step: the stack behind each one, the decisions that made it work, and links to the running thing.",
+        "schemaName": "Project showcases"
+      }
+    },
+    "searchRegion": "Search and sort discussions",
+    "feedRegion": "Discussion feed",
+    "search": {
+      "label": "Search discussions",
+      "placeholder": "Search problems, tags, keywords...",
+      "updating": "Updating results",
+      "clear": "Clear search"
+    },
+    "tabs": {
+      "label": "Discussion category",
+      "all": "All",
+      "problems": "Problems",
+      "showcase": "Showcase"
+    },
+    "sort": {
+      "label": "Sort discussions",
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "top": "Most voted",
+      "discussed": "Most answered",
+      "viewed": "Most viewed"
+    },
+    "result": "result",
+    "results": "results",
+    "explore": {
+      "region": "Discussion filters",
+      "regionWithStats": "Discussion filters and stats",
+      "title": "Explore",
+      "description": "Narrow the feed by topic or trending tag.",
+      "topics": "Topics",
+      "trendingTags": "Trending tags"
+    },
+    "stats": {
+      "title": "Community",
+      "subtitle": "Platform activity",
+      "problems": "Problems",
+      "showcases": "Showcases"
+    },
+    "mobileFilters": {
+      "trigger": "Topics & tags",
+      "optional": "Optional",
+      "active": "active",
+      "title": "Filter discussions",
+      "description": "Choose a topic or tag. Results update while you make your selection.",
+      "close": "Close filters",
+      "clear": "Clear topic & tag",
+      "show": "Show"
+    },
+    "activeFilters": {
+      "label": "Active filters",
+      "category": "Category",
+      "topic": "Topic",
+      "tag": "Tag",
+      "search": "Search",
+      "remove": "Remove filter",
+      "clearAll": "Clear all"
+    },
+    "card": {
+      "open": "Open discussion",
+      "problem": "Problem",
+      "showcase": "Showcase",
+      "statusSolved": "Solved",
+      "statusOpen": "Open",
+      "answerInReview": "Your answer is in review",
+      "answerRejected": "Your answer was rejected",
+      "preview": "preview",
+      "avatarOf": "avatar",
+      "tags": "Discussion tags",
+      "answers": "answers",
+      "comments": "comments",
+      "views": "views",
+      "upvote": "Upvote this post",
+      "downvote": "Downvote this post",
+      "bookmark": "Bookmark",
+      "removeBookmark": "Remove bookmark"
+    },
+    "empty": {
+      "withFilters": "Try adjusting your search, category, or tag filters.",
+      "withoutFilters": "Be the first to start a discussion.",
+      "clearFilters": "Clear all filters",
+      "startPost": "Start a post"
+    },
+    "pagination": {
+      "region": "Discussion pagination",
+      "of": "of",
+      "show": "Show",
+      "previous": "Previous",
+      "next": "Next",
+      "gotoPrevious": "Go to previous page",
+      "gotoNext": "Go to next page",
+      "gotoPage": "Go to page"
+    },
+    "time": {
+      "unknown": "—",
+      "justNow": "Just now",
+      "hourAgo": "hour ago",
+      "hoursAgo": "hours ago",
+      "dayAgo": "day ago",
+      "daysAgo": "days ago"
+    }
   }
 }

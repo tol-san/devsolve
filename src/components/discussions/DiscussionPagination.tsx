@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface DiscussionPaginationProps {
   page: number;
@@ -31,6 +32,8 @@ export function DiscussionPagination({
   onPageChange,
   onLimitChange,
 }: DiscussionPaginationProps) {
+  const t = useT();
+
   const getPages = (): (number | "...")[] => {
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, index) => index + 1);
@@ -56,7 +59,7 @@ export function DiscussionPagination({
 
   return (
     <nav
-      aria-label="Discussion pagination"
+      aria-label={t("community.pagination.region")}
       className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-card p-3 shadow-xs ring-1 ring-foreground/5 sm:flex-row"
     >
       <div className="flex flex-wrap items-center gap-3 px-1 text-sm font-medium text-muted-foreground">
@@ -64,11 +67,14 @@ export function DiscussionPagination({
           <span className="font-semibold tabular-nums text-foreground">
             {firstItem}–{lastItem}
           </span>{" "}
-          of <span className="tabular-nums">{totalCount}</span>
+          {t("community.pagination.of")}{" "}
+          <span className="tabular-nums">{totalCount}</span>
         </p>
 
         <div className="flex items-center gap-2">
-          <span id="discussions-rows-label">Show</span>
+          <span id="discussions-rows-label">
+            {t("community.pagination.show")}
+          </span>
           <Select
             value={String(limit)}
             onValueChange={(value) => value && onLimitChange(Number(value))}
@@ -104,11 +110,13 @@ export function DiscussionPagination({
             size="sm"
             disabled={page === 1}
             onClick={() => onPageChange(page - 1)}
-            aria-label="Go to previous page"
+            aria-label={t("community.pagination.gotoPrevious")}
             className="rounded-xl"
           >
             <ChevronLeft data-icon="inline-start" aria-hidden="true" />
-            <span className="hidden sm:inline">Previous</span>
+            <span className="hidden sm:inline">
+              {t("community.pagination.previous")}
+            </span>
           </Button>
         </motion.div>
 
@@ -129,7 +137,7 @@ export function DiscussionPagination({
                 size="icon-sm"
                 variant={page === pageItem ? "default" : "ghost"}
                 onClick={() => onPageChange(pageItem)}
-                aria-label={`Go to page ${pageItem}`}
+                aria-label={`${t("community.pagination.gotoPage")} ${pageItem}`}
                 aria-current={page === pageItem ? "page" : undefined}
                 className="rounded-xl tabular-nums"
               >
@@ -150,10 +158,12 @@ export function DiscussionPagination({
             size="sm"
             disabled={page >= totalPages}
             onClick={() => onPageChange(page + 1)}
-            aria-label="Go to next page"
+            aria-label={t("community.pagination.gotoNext")}
             className="rounded-xl"
           >
-            <span className="hidden sm:inline">Next</span>
+            <span className="hidden sm:inline">
+              {t("community.pagination.next")}
+            </span>
             <ChevronRight data-icon="inline-end" aria-hidden="true" />
           </Button>
         </motion.div>

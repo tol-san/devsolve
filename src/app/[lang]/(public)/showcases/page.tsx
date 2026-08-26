@@ -1,45 +1,53 @@
 import type { Metadata } from "next";
 import { DiscussionsFeed } from "@/components/discussions/DiscussionsFeed";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
 
-const DESCRIPTION =
-  "Projects built by DevSolve members, written up step by step: the stack behind each one, the decisions that made it work, and links to the running thing.";
-
+/* Title, description and schema name come from the same catalogue the feed
+   renders from, so a Khmer URL is described in Khmer everywhere a crawler or a
+   share card looks — not only in the body copy. */
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
+  const dict = await getDictionary(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  const copy = dict.community.pages.showcases;
+
   return pageMetadata({
-    title: "Showcases",
-    description: DESCRIPTION,
+    title: copy.metaTitle,
+    description: copy.metaDescription,
     path: "/showcases",
     locale: lang,
   });
 }
 
-export default function ShowcasesPage() {
+export default async function ShowcasesPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const dict = await getDictionary(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  const copy = dict.community.pages.showcases;
+
   return (
     <>
       <JsonLd
         data={collectionSchema({
-          name: "Project showcases",
-          description: DESCRIPTION,
+          name: copy.schemaName,
+          description: copy.metaDescription,
           path: "/showcases",
         })}
       />
 
       <DiscussionsFeed
         defaultCategory="Showcase"
-        breadcrumbLabel="Showcases"
-        title="Showcases"
-        badgeLabel="Ship · Share · Inspire"
-        description="Share what you built, the stack behind it, and the decisions that made it work."
+        feed="showcases"
         createHref="/community/create/showcase"
-        createLabel="Post a showcase"
-        emptyLabel="No showcases found"
       />
     </>
   );

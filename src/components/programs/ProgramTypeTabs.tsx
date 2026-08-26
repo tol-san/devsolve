@@ -11,15 +11,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ProgramSort } from "@/hooks/useProgramFilters";
+import { useT } from "@/lib/i18n/I18nProvider";
 import type { ProgramType } from "@/lib/types/programs/types";
 import { cn } from "@/lib/utils";
 
-const PROGRAM_TYPES: ProgramType[] = ["All", "Bounty", "Response"];
+/* The value is what the query is built from and stays English; only the
+   catalogue key travels with it. */
+const PROGRAM_TYPES: Array<{ value: ProgramType; key: string }> = [
+  { value: "All", key: "all" },
+  { value: "Bounty", key: "bounty" },
+  { value: "Response", key: "response" },
+];
 
-const SORT_OPTIONS: Array<{ value: ProgramSort; label: string }> = [
-  { value: "newest", label: "Newest" },
-  { value: "reward-high", label: "Highest reward" },
-  { value: "name", label: "Program name" },
+const SORT_OPTIONS: Array<{ value: ProgramSort; key: string }> = [
+  { value: "newest", key: "newest" },
+  { value: "reward-high", key: "rewardHigh" },
+  { value: "name", key: "name" },
 ];
 
 export function ProgramTypeTabs({
@@ -35,23 +42,25 @@ export function ProgramTypeTabs({
   onSortChange: (sort: ProgramSort) => void;
   totalCount: number;
 }) {
+  const t = useT();
+
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-card p-2 shadow-xs ring-1 ring-foreground/5 sm:flex-row sm:items-center sm:justify-between">
       <div
         role="tablist"
-        aria-label="Program type"
+        aria-label={t("programs.tabs.label")}
         className="grid grid-cols-3 gap-1 rounded-xl bg-muted/60 p-1"
       >
-        {PROGRAM_TYPES.map((type) => {
-          const isActive = selected === type;
+        {PROGRAM_TYPES.map(({ value, key }) => {
+          const isActive = selected === value;
 
           return (
             <button
-              key={type}
+              key={value}
               role="tab"
               type="button"
               aria-selected={isActive}
-              onClick={() => onSelect(type)}
+              onClick={() => onSelect(value)}
               className="relative rounded-lg px-3 py-2 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-5 sm:text-base"
             >
               {isActive ? (
@@ -69,7 +78,7 @@ export function ProgramTypeTabs({
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {type}
+                {t(`programs.tabs.${key}`)}
               </span>
             </button>
           );
@@ -90,7 +99,7 @@ export function ProgramTypeTabs({
             <span className="font-bold tabular-nums text-foreground">
               {totalCount.toLocaleString()}
             </span>{" "}
-            {totalCount === 1 ? "result" : "results"}
+            {totalCount === 1 ? t("programs.result") : t("programs.results")}
           </motion.p>
         </AnimatePresence>
 
@@ -101,7 +110,7 @@ export function ProgramTypeTabs({
           }
         >
           <SelectTrigger
-            aria-label="Sort programs"
+            aria-label={t("programs.sort.label")}
             className="h-10 min-w-36 rounded-xl bg-muted/60 text-base font-semibold"
           >
             <SelectValue />
@@ -114,7 +123,7 @@ export function ProgramTypeTabs({
                   value={option.value}
                   className="text-base"
                 >
-                  {option.label}
+                  {t(`programs.sort.${option.key}`)}
                 </SelectItem>
               ))}
             </SelectGroup>

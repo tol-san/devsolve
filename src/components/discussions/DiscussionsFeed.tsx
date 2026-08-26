@@ -17,6 +17,7 @@ import { DiscussionSidebar } from "@/components/discussions/DiscussionSidebar";
 import { DiscussionSkeleton } from "@/components/discussions/DiscussionSkeleton";
 import { useDiscussionFilters } from "@/hooks/useDiscussionFilters";
 import { useMySolutionStatus } from "@/hooks/useMySolutionStatus";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { useGetMyProfileQuery } from "@/lib/redux/services/solutionsApi";
 import type {
   DiscussionCategory,
@@ -25,25 +26,23 @@ import { cn } from "@/lib/utils";
 
 interface DiscussionsFeedProps {
   defaultCategory: DiscussionCategory;
-  breadcrumbLabel: string;
-  title: string;
-  badgeLabel: string;
-  description: string;
+  /**
+   * Which branch of `community.pages` names this feed. The three public feeds
+   * share every control on the page and differ only in their masthead, so the
+   * wording travels as one catalogue key rather than six translated props —
+   * a page cannot pass Khmer copy anyway, being a server component.
+   */
+  feed: "community" | "problems" | "showcases";
   createHref: string;
-  createLabel: string;
-  emptyLabel: string;
 }
 
 export function DiscussionsFeed({
   defaultCategory,
-  breadcrumbLabel,
-  title,
-  badgeLabel,
-  description,
+  feed,
   createHref,
-  createLabel,
-  emptyLabel,
 }: DiscussionsFeedProps) {
+  const t = useT();
+  const copy = (field: string) => t(`community.pages.${feed}.${field}`);
   const {
     category,
     topic,
@@ -106,17 +105,17 @@ export function DiscussionsFeed({
     >
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <DiscussionHeader
-          breadcrumbLabel={breadcrumbLabel}
-          title={title}
-          badgeLabel={badgeLabel}
-          description={description}
+          breadcrumbLabel={copy("breadcrumb")}
+          title={copy("title")}
+          badgeLabel={copy("badge")}
+          description={copy("description")}
           createHref={createHref}
-          createLabel={createLabel}
+          createLabel={copy("createLabel")}
         />
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
           <section
-            aria-label="Search and sort discussions"
+            aria-label={t("community.searchRegion")}
             className="flex min-w-0 flex-col gap-3 lg:col-start-1"
           >
             <DiscussionSearch
@@ -173,7 +172,7 @@ export function DiscussionsFeed({
 
           <section
             ref={feedRef}
-            aria-label="Discussion feed"
+            aria-label={t("community.feedRegion")}
             className="flex min-w-0 scroll-mt-6 flex-col gap-5 lg:col-start-1 lg:row-start-2"
           >
             {isInitialLoading ? (
@@ -220,7 +219,7 @@ export function DiscussionsFeed({
                           onReset={resetFilters}
                           hasFilters={hasActiveFilters}
                           createHref={createHref}
-                          emptyLabel={emptyLabel}
+                          emptyLabel={copy("empty")}
                         />
                       </motion.div>
                     )}

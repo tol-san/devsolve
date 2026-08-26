@@ -37,6 +37,8 @@ import {
   useSetVoteMutation,
 } from "@/lib/redux/services/votesApi";
 import type { DiscussionPost } from "@/lib/types/dicussion/types";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
+import { useRelativeTime } from "@/lib/i18n/relative-time";
 import {
   MY_COMMUNITY_HREF,
   type MySolutionStatus,
@@ -65,6 +67,9 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   index = 0,
   myAnswer,
 }) => {
+  const t = useT();
+  const lp = useLocalePath();
+  const relativeTime = useRelativeTime();
   const bookmarkableType =
     post.category === "Showcase" ? "SHOWCASE" : "PROBLEM";
 
@@ -122,6 +127,9 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   };
 
   const isShowcase = post.category === "Showcase";
+  const answerNoun = t(
+    isShowcase ? "community.card.comments" : "community.card.answers",
+  );
   const tags = isShowcase && post.techStack ? post.techStack : post.tags;
   const titleId = `discussion-title-${post.id}`;
 
@@ -140,16 +148,20 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
         {/* A showcase is a real record with its own page; a problem is still
             served by the mock detail route under /community. */}
         <Link
-          href={isShowcase ? `/showcases/${post.id}` : `/community/${post.id}`}
+          href={lp(
+            isShowcase ? `/showcases/${post.id}` : `/community/${post.id}`,
+          )}
           className="absolute inset-0 rounded-2xl outline-none"
         >
-          <span className="sr-only">Open discussion: {post.title}</span>
+          <span className="sr-only">
+            {t("community.card.open")}: {post.title}
+          </span>
         </Link>
 
         <CardHeader className="pointer-events-none relative px-5 pt-5 pb-0 sm:px-6 sm:pt-6">
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
             <Badge variant="ghost" className="rounded-lg text-sm">
-              {isShowcase ? "Showcase" : "Problem"}
+              {t(isShowcase ? "community.card.showcase" : "community.card.problem")}
             </Badge>
             <Badge variant="secondary" className="rounded-lg text-sm">
               {post.topic}
@@ -164,7 +176,11 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 ) : (
                   <CircleDot data-icon="inline-start" aria-hidden="true" />
                 )}
-                {post.status}
+                {t(
+                  post.status === "Solved"
+                    ? "community.card.statusSolved"
+                    : "community.card.statusOpen",
+                )}
               </Badge>
             )}
 
@@ -186,9 +202,11 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 ) : (
                   <Clock aria-hidden="true" className="size-3.5" />
                 )}
-                {myAnswer.review === "REJECTED"
-                  ? "Your answer was rejected"
-                  : "Your answer is in review"}
+                {t(
+                  myAnswer.review === "REJECTED"
+                    ? "community.card.answerRejected"
+                    : "community.card.answerInReview",
+                )}
               </Link>
             )}
           </div>
@@ -211,7 +229,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
             <div className="relative h-64 w-full overflow-hidden">
               <Image
                 src={post.thumbnailUrl}
-                alt={`${post.title} preview`}
+                alt={`${post.title} ${t("community.card.preview")}`}
                 fill
                 quality={90}
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.015]"
@@ -219,7 +237,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2" aria-label="Discussion tags">
+          <div className="flex flex-wrap gap-2" aria-label={t("community.card.tags")}>
             {tags.map((tag) => (
               <Badge
                 key={tag}
@@ -237,7 +255,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
             <Avatar size="sm">
               <AvatarImage
                 src={post.author.avatarUrl}
-                alt={`${post.author.name}'s avatar`}
+                alt={`${post.author.name} — ${t("community.card.avatarOf")}`}
               />
               <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
             </Avatar>
@@ -246,7 +264,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 {post.author.name}
               </span>
               <span className="shrink-0 text-sm text-muted-foreground">
-                {post.createdAt}
+                {relativeTime(post.sortTimestamp)}
               </span>
             </div>
           </div>
@@ -255,21 +273,21 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
             <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
               <span
                 className="flex items-center gap-1.5"
-                aria-label={`${post.answersCount} ${isShowcase ? "comments" : "answers"}`}
+                aria-label={`${post.answersCount} ${answerNoun}`}
               >
                 <MessageSquare aria-hidden="true" className="size-4" />
                 <span>{post.answersCount}</span>
-                <span className="hidden md:inline">
-                  {isShowcase ? "comments" : "answers"}
-                </span>
+                <span className="hidden md:inline">{answerNoun}</span>
               </span>
               <span
                 className="flex items-center gap-1.5"
-                aria-label={`${post.viewsCount.toLocaleString()} views`}
+                aria-label={`${post.viewsCount.toLocaleString()} ${t("community.card.views")}`}
               >
                 <Eye aria-hidden="true" className="size-4" />
                 <span>{post.viewsCount.toLocaleString()}</span>
-                <span className="hidden md:inline">views</span>
+                <span className="hidden md:inline">
+                  {t("community.card.views")}
+                </span>
               </span>
             </div>
 
@@ -279,8 +297,8 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 currentVote={currentUserVote}
                 onVote={handleVote}
                 isLoading={isVoting}
-                upvoteLabel="Upvote this post"
-                downvoteLabel="Downvote this post"
+                upvoteLabel={t("community.card.upvote")}
+                downvoteLabel={t("community.card.downvote")}
                 className="pointer-events-auto"
               />
               <Button
@@ -290,7 +308,11 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 onClick={handleBookmark}
                 disabled={isBookmarking}
                 aria-pressed={localBookmarked}
-                aria-label={localBookmarked ? "Remove bookmark" : "Bookmark"}
+                aria-label={t(
+                  localBookmarked
+                    ? "community.card.removeBookmark"
+                    : "community.card.bookmark",
+                )}
                 className={cn(
                   "pointer-events-auto rounded-xl",
                   localBookmarked && "text-primary",

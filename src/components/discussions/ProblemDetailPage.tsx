@@ -58,6 +58,7 @@ import {
   useRemoveBookmarkMutation,
 } from "@/lib/redux/services/bookmarksApi";
 import { CommentsSection } from "@/components/comments/CommentsSection";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import {
   PROBLEM_TYPE_LABELS,
   SDLC_LABELS,
@@ -918,6 +919,7 @@ function MyAnswerNotice({
  * without one would land on a page that cannot resolve.
  */
 function PostedBy({ author }: { author?: AuthorSummary }) {
+  const lp = useLocalePath();
   const name = authorNameOf(author);
   const reputation = (author?.reputation ?? 0).toLocaleString();
 
@@ -952,7 +954,7 @@ function PostedBy({ author }: { author?: AuthorSummary }) {
 
   return (
     <Link
-      href={`/profile/${author.id}`}
+      href={lp(`/profile/${author.id}`)}
       className="group flex items-center gap-3 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
     >
       {identity}

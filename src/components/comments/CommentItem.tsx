@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "motion/react";
 import {
   ChevronDown,
@@ -30,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { CommentResponse } from "@/lib/redux/services/commentsApi";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 import { CommentComposer } from "./CommentComposer";
 import { ReportCommentDialog } from "./ReportCommentDialog";
@@ -107,6 +109,36 @@ export function CommentItem({
   const [pending, setPending] = useState(false);
 
   const { handleLogin } = useKeycloakLogin();
+  const lp = useLocalePath();
+
+  /* Both the avatar and the name open the commenter's public profile, which
+     takes a user id rather than a name. A comment whose author id did not
+     survive the API still renders — just not as a link. */
+  const profileHref = comment.authorId
+    ? lp(`/profile/${comment.authorId}`)
+    : null;
+  const viewProfileLabel = `View ${comment.authorName || "this member"}'s profile`;
+
+  const avatar = comment.authorAvatarUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={comment.authorAvatarUrl}
+      alt=""
+      className={cn(
+        "shrink-0 rounded-full bg-muted object-cover",
+        isReply ? "size-7" : "size-9",
+      )}
+    />
+  ) : (
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full bg-blue-500/10 font-bold text-blue-700 dark:text-blue-300",
+        isReply ? "size-7 text-xs" : "size-9 text-sm",
+      )}
+    >
+      {initialsOf(comment.authorName || "?")}
+    </span>
+  );
 
   const startEditing = () => {
     setDraft(comment.content);
@@ -178,25 +210,16 @@ export function CommentItem({
       transition={{ duration: 0.2 }}
       className="flex scroll-mt-24 gap-3 rounded-2xl target:bg-primary/5 target:ring-2 target:ring-primary/30"
     >
-      {comment.authorAvatarUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={comment.authorAvatarUrl}
-          alt=""
-          className={cn(
-            "shrink-0 rounded-full bg-muted object-cover",
-            isReply ? "size-7" : "size-9",
-          )}
-        />
-      ) : (
-        <span
-          className={cn(
-            "flex shrink-0 items-center justify-center rounded-full bg-blue-500/10 font-bold text-blue-700 dark:text-blue-300",
-            isReply ? "size-7 text-xs" : "size-9 text-sm",
-          )}
+      {profileHref ? (
+        <Link
+          href={profileHref}
+          aria-label={viewProfileLabel}
+          className="shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
         >
-          {initialsOf(comment.authorName || "?")}
-        </span>
+          {avatar}
+        </Link>
+      ) : (
+        avatar
       )}
 
       <div className="min-w-0 flex-1">
@@ -205,9 +228,18 @@ export function CommentItem({
         <div className="group/comment rounded-2xl bg-muted/50 px-4 py-3">
           <div className="mb-1 flex items-start justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <span className="text-sm font-bold text-foreground">
-                {comment.authorName || "Unknown"}
-              </span>
+              {profileHref ? (
+                <Link
+                  href={profileHref}
+                  className="text-sm font-bold text-foreground transition-colors hover:text-blue-600 hover:underline dark:hover:text-blue-400"
+                >
+                  {comment.authorName || "Unknown"}
+                </Link>
+              ) : (
+                <span className="text-sm font-bold text-foreground">
+                  {comment.authorName || "Unknown"}
+                </span>
+              )}
               <span className="text-sm text-muted-foreground">
                 {timeAgo(comment.createdAt)}
               </span>

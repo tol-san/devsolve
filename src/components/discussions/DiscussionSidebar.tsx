@@ -16,6 +16,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import type { DiscussionStats } from "@/lib/redux/services/discussionsApi";
 import type { TopicCount, TopicName } from "@/lib/types/dicussion/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 interface DiscussionSidebarProps {
@@ -49,12 +50,13 @@ export function DiscussionSidebar({
   showExploreHeader = true,
   showStats = true,
 }: DiscussionSidebarProps) {
+  const t = useT();
   const totalTopics = topics.reduce((sum, topic) => sum + topic.count, 0);
   /* Only what a list endpoint can answer. There is no platform-wide count of
      solutions or of researchers, so neither is shown rather than shown wrong. */
   const metrics = [
-    { label: "Problems", value: stats?.problems ?? 0 },
-    { label: "Showcases", value: stats?.showcases ?? 0 },
+    { key: "problems", label: t("community.stats.problems"), value: stats?.problems ?? 0 },
+    { key: "showcases", label: t("community.stats.showcases"), value: stats?.showcases ?? 0 },
   ];
 
   return (
@@ -62,7 +64,9 @@ export function DiscussionSidebar({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: "easeOut", delay: 0.08 }}
-      aria-label={showStats ? "Discussion filters and stats" : "Discussion filters"}
+      aria-label={t(
+        showStats ? "community.explore.regionWithStats" : "community.explore.region",
+      )}
       className={cn(
         "flex flex-col gap-5 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start",
         className,
@@ -76,22 +80,24 @@ export function DiscussionSidebar({
                 <span className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground">
                   <SlidersHorizontal aria-hidden="true" className="size-4" />
                 </span>
-                <CardTitle className="text-base font-bold">Explore</CardTitle>
+                <CardTitle className="text-base font-bold">
+                  {t("community.explore.title")}
+                </CardTitle>
               </div>
               <Badge variant="secondary" className="tabular-nums">
                 {totalTopics.toLocaleString()}
               </Badge>
             </div>
             <CardDescription className="mt-1 text-sm">
-              Narrow the feed by topic or trending tag.
+              {t("community.explore.description")}
             </CardDescription>
           </CardHeader>
         )}
         {!showExploreHeader && (
           <CardHeader className="sr-only">
-            <CardTitle>Explore</CardTitle>
+            <CardTitle>{t("community.explore.title")}</CardTitle>
             <CardDescription>
-              Narrow the feed by topic or trending tag.
+              {t("community.explore.description")}
             </CardDescription>
           </CardHeader>
         )}
@@ -99,7 +105,7 @@ export function DiscussionSidebar({
         <CardContent
           className={cn("px-3 pb-4", !showExploreHeader && "pt-3")}
         >
-          <div className="flex flex-col gap-1" aria-label="Topics">
+          <div className="flex flex-col gap-1" aria-label={t("community.explore.topics")}>
             {isLoadingTopics
               ? Array.from({ length: 6 }).map((_, index) => (
                   <div
@@ -149,7 +155,7 @@ export function DiscussionSidebar({
 
           <div className="mb-3 flex items-center gap-2 px-2 text-sm font-semibold text-muted-foreground">
             <TrendingUp aria-hidden="true" className="size-4" />
-            Trending tags
+            {t("community.explore.trendingTags")}
           </div>
           {isLoadingTags ? (
             <div className="flex flex-wrap gap-2 px-2">
@@ -193,16 +199,20 @@ export function DiscussionSidebar({
                   <BarChart3 aria-hidden="true" className="size-4" />
                 </span>
                 <div>
-                  <CardTitle className="text-base font-bold">Community</CardTitle>
-                  <CardDescription>Platform activity</CardDescription>
+                  <CardTitle className="text-base font-bold">
+                    {t("community.stats.title")}
+                  </CardTitle>
+                  <CardDescription>
+                    {t("community.stats.subtitle")}
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 px-5 pb-5">
               <dl className="flex flex-col gap-3">
-                {metrics.map(({ label, value }) => (
+                {metrics.map(({ key, label, value }) => (
                   <div
-                    key={label}
+                    key={key}
                     className="flex items-center justify-between gap-3"
                   >
                     <dt className="text-sm font-medium text-muted-foreground">

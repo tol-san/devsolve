@@ -9,6 +9,15 @@ import type {
   DiscussionCategory,
   TopicName,
 } from "@/lib/types/dicussion/types";
+import { useT } from "@/lib/i18n/I18nProvider";
+
+/* The feed stores the API's own category vocabulary, so a chip needs the same
+   value-to-key mapping the tabs use. */
+const CATEGORY_KEYS: Record<string, string> = {
+  All: "all",
+  Problems: "problems",
+  Showcase: "showcase",
+};
 
 interface DiscussionActiveFiltersProps {
   category: DiscussionCategory;
@@ -42,26 +51,37 @@ export function DiscussionActiveFilters({
   onClearSearch,
   onResetAll,
 }: DiscussionActiveFiltersProps) {
+  const t = useT();
   const chips: FilterChip[] = [];
 
   if (category !== defaultCategory) {
     chips.push({
       key: "category",
-      label: "Category",
-      value: category,
+      label: t("community.activeFilters.category"),
+      value: t(`community.tabs.${CATEGORY_KEYS[category] ?? "all"}`),
       onRemove: onClearCategory,
     });
   }
   if (topic) {
-    chips.push({ key: "topic", label: "Topic", value: topic, onRemove: onClearTopic });
+    chips.push({
+      key: "topic",
+      label: t("community.activeFilters.topic"),
+      value: topic,
+      onRemove: onClearTopic,
+    });
   }
   if (tag) {
-    chips.push({ key: "tag", label: "Tag", value: tag, onRemove: onClearTag });
+    chips.push({
+      key: "tag",
+      label: t("community.activeFilters.tag"),
+      value: tag,
+      onRemove: onClearTag,
+    });
   }
   if (searchQuery) {
     chips.push({
       key: "search",
-      label: "Search",
+      label: t("community.activeFilters.search"),
       value: `“${searchQuery}”`,
       onRemove: onClearSearch,
     });
@@ -80,7 +100,7 @@ export function DiscussionActiveFilters({
           <div className="flex flex-wrap items-center gap-2 px-1 pt-1">
             <span className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground">
               <SlidersHorizontal aria-hidden="true" className="size-4" />
-              Active filters
+              {t("community.activeFilters.label")}
             </span>
 
             <AnimatePresence initial={false} mode="popLayout">
@@ -98,7 +118,7 @@ export function DiscussionActiveFilters({
                     size="sm"
                     variant="secondary"
                     onClick={chip.onRemove}
-                    aria-label={`Remove ${chip.label.toLowerCase()} filter ${chip.value}`}
+                    aria-label={`${t("community.activeFilters.remove")}: ${chip.label} ${chip.value}`}
                     className="max-w-64 rounded-lg"
                   >
                     <span className="truncate">
@@ -120,7 +140,7 @@ export function DiscussionActiveFilters({
               onClick={onResetAll}
               className="ml-auto rounded-lg"
             >
-              Clear all
+              {t("community.activeFilters.clearAll")}
             </Button>
           </div>
         </motion.div>

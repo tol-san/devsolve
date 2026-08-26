@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface ProgramPaginationProps {
   currentPage: number;
@@ -31,6 +32,7 @@ export const ProgramPagination: React.FC<ProgramPaginationProps> = ({
   onRowsPerPageChange,
   onPageChange,
 }) => {
+  const t = useT();
   const pageNumbers = Array.from(
     new Set(
       [1, currentPage - 1, currentPage, currentPage + 1, totalPages].filter(
@@ -46,7 +48,7 @@ export const ProgramPagination: React.FC<ProgramPaginationProps> = ({
     <footer className="flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">
       <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground sm:justify-start">
         <label htmlFor="rows-per-page" className="font-medium text-foreground">
-          Rows per page
+          {t("programs.pagination.rowsPerPage")}
         </label>
         <Select
           value={String(rowsPerPage)}
@@ -70,20 +72,21 @@ export const ProgramPagination: React.FC<ProgramPaginationProps> = ({
         </Select>
 
         <span className="font-medium text-muted-foreground">
-          Showing {firstVisible}–{lastVisible} of {totalCount}
+          {t("programs.pagination.showing")} {firstVisible}–{lastVisible}{" "}
+          {t("programs.pagination.of")} {totalCount}
         </span>
       </div>
 
       <nav
         className="flex max-w-full items-center gap-1.5"
-        aria-label="Program pagination"
+        aria-label={t("programs.pagination.region")}
       >
         <Button
           variant="outline"
           size="icon-sm"
           disabled={currentPage <= 1}
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-          aria-label="Previous page"
+          aria-label={t("programs.pagination.previous")}
           className="rounded-xl"
         >
           <ChevronLeft />
@@ -105,7 +108,7 @@ export const ProgramPagination: React.FC<ProgramPaginationProps> = ({
                 variant={currentPage === pageNum ? "default" : "outline"}
                 size="icon-sm"
                 onClick={() => onPageChange(pageNum)}
-                aria-label={`Page ${pageNum}`}
+                aria-label={`${t("programs.pagination.page")} ${pageNum}`}
                 aria-current={currentPage === pageNum ? "page" : undefined}
                 className="rounded-xl"
               >
@@ -120,7 +123,7 @@ export const ProgramPagination: React.FC<ProgramPaginationProps> = ({
           size="icon-sm"
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-          aria-label="Next page"
+          aria-label={t("programs.pagination.next")}
           className="rounded-xl"
         >
           <ChevronRight />
