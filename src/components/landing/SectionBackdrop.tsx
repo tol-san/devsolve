@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useId, useMemo, useSyncExternalStore } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import React, { useId, useMemo, useRef, useSyncExternalStore } from "react";
+import { motion, useInView, useReducedMotion } from "motion/react";
 import { useTheme } from "next-themes";
 
 /* ─── Brand palette (design.md) ────────────────────────────────────── */
@@ -109,32 +109,29 @@ export type SectionBackdropProps = {
 const CELL_COUNT = 10;
 const PARTICLE_COUNT = 14;
 
-/* Static now that the colours are tokens — nothing here varies by theme. */
+/* Static now that the colours are tokens — GPU-accelerated through CSS keyframes. */
 const BLOBS = [
   {
     color: "var(--ds-blob-a)",
     className: "left-[-14%] top-[4%] h-[30rem] w-[30rem]",
-    path: { x: [0, 80, -40, 0], y: [0, -50, 40, 0], scale: [1, 1.12, 0.94, 1] },
-    duration: 28,
+    animClass: "animate-ds-aurora-a",
   },
   {
     color: "var(--ds-blob-b)",
     className: "right-[-10%] top-[30%] h-[26rem] w-[26rem]",
-    path: { x: [0, -60, 36, 0], y: [0, 60, -26, 0], scale: [1, 0.92, 1.14, 1] },
-    duration: 34,
+    animClass: "animate-ds-aurora-b",
   },
   {
     color: "var(--ds-blob-c)",
     className: "bottom-[-12%] left-1/3 h-[22rem] w-[34rem]",
-    path: { x: [0, 54, -54, 0], y: [0, -34, 18, 0], scale: [1, 1.08, 0.96, 1] },
-    duration: 40,
+    animClass: "animate-ds-aurora-c",
   },
 ];
 
 /**
  * The animated layer shared by every landing section — grid paper, drifting
- * aurora, pulsing cells, scan beams and rising motes. Only transform and
- * opacity animate, and every infinite loop is gated behind reduced motion.
+ * aurora, pulsing cells, scan beams and rising motes. GPU composited for
+ * high performance and 60fps rendering without main-thread blocking.
  */
 export function SectionBackdrop({
   tone,
@@ -149,6 +146,8 @@ export function SectionBackdrop({
   const reduce = useReducedMotion();
   const rawId = useId();
   const uid = rawId.replace(/[^a-zA-Z0-9]/g, "");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(containerRef, { margin: "200px 0px" });
 
   const cellSpecs = useMemo(() => {
     const rand = mulberry32(seed * 977 + 7);
@@ -175,6 +174,7 @@ export function SectionBackdrop({
 
   return (
     <div
+      ref={containerRef}
       /* `tone` pins this layer to one palette regardless of theme. A class,
          not a JS branch, so it costs nothing at hydration. */
       className={`pointer-events-none absolute inset-0 overflow-hidden ${
@@ -182,17 +182,13 @@ export function SectionBackdrop({
       } ${className}`}
       aria-hidden
     >
-      {/* Drifting colour fields. The alpha lives in the token rather than on
-          an `opacity` property — Motion owns opacity here and cannot tween a
-          var(), so the two would fight. */}
+      {/* Drifting colour fields — pure CSS keyframes on the compositor thread */}
       {aurora &&
         BLOBS.map((blob, i) => (
-          <motion.div
+          <div
             key={i}
-            className={`absolute rounded-full blur-[110px] ${blob.className}`}
+            className={`absolute rounded-full blur-[110px] ${blob.className} ${blob.animClass}`}
             style={{ backgroundColor: blob.color }}
-            animate={reduce ? undefined : blob.path}
-            transition={{ duration: blob.duration, repeat: Infinity, ease: "easeInOut" }}
           />
         ))}
 
@@ -216,6 +212,7 @@ export function SectionBackdrop({
         <rect width="100%" height="100%" fill={`url(#bg-grid-${uid})`} />
 
         {cells &&
+          inView &&
           cellSpecs.map((cell, i) => (
             <motion.rect
               key={i}
@@ -239,26 +236,20 @@ export function SectionBackdrop({
           ))}
       </svg>
 
-      {/* Scan beams */}
+      {/* Scan beams — GPU composited transform keyframes, avoiding layout reflows */}
       {beams && (
         <>
-          <motion.div
-            className="absolute inset-y-0 w-px"
+          <div
+            className="absolute inset-y-0 w-px animate-ds-beam-v"
             style={{
               background: `linear-gradient(to bottom, transparent, ${PRIMARY}, transparent)`,
             }}
-            initial={{ opacity: 0 }}
-            animate={reduce ? undefined : { left: ["8%", "92%"], opacity: [0, 0.35, 0] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", repeatDelay: 6 }}
           />
-          <motion.div
-            className="absolute inset-x-0 h-px"
+          <div
+            className="absolute inset-x-0 h-px animate-ds-beam-h"
             style={{
               background: `linear-gradient(to right, transparent, ${ACCENT}, transparent)`,
             }}
-            initial={{ opacity: 0 }}
-            animate={reduce ? undefined : { top: ["18%", "86%"], opacity: [0, 0.3, 0] }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", repeatDelay: 8 }}
           />
         </>
       )}
@@ -266,6 +257,7 @@ export function SectionBackdrop({
       {/* Rising motes */}
       {particles &&
         !reduce &&
+        inView &&
         particleSpecs.map((p, i) => (
           <motion.span
             key={i}

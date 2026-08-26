@@ -627,7 +627,7 @@ const Navbar = () => {
                                 the chevron is the only thing that toggles
                                 the flyout, so a click never fights a nav. */}
                             <Link
-                              href={link.href ?? "/community"}
+                              href={lp(link.href ?? "/community")}
                               aria-current={isActive ? "page" : undefined}
                               onClick={() => {
                                 setCommunityMenuOpen(false);

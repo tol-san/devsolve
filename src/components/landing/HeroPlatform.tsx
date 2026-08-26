@@ -224,10 +224,10 @@ export function HeroPlatform() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={pillar.n}
-                  initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
-                  transition={{ duration: 0.32, ease: "easeOut" }}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.28, ease: "easeOut" }}
                   className="grid grid-cols-[auto_1fr] items-start gap-5 sm:gap-7"
                 >
                   <span

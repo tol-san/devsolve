@@ -316,13 +316,19 @@ export function FeatureHighlights() {
                   className={`flex min-w-26 flex-col justify-center px-3 py-2.5 text-center transition-colors duration-200 sm:min-w-37.5 sm:px-4 ${
                     on
                       ? "bg-[#1E293B] text-white dark:bg-neutral-200 dark:text-neutral-900"
-                      : "bg-white text-slate-400 hover:text-slate-600 dark:bg-neutral-900 dark:text-neutral-500 dark:hover:text-neutral-300"
+                      : "bg-white text-slate-700 hover:text-slate-900 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:text-white"
                   }`}
                 >
                   <span className="text-sm font-semibold tracking-tight">
                     {t(`lifecycle.acts.${a.id}.tab`) || a.tab}
                   </span>
-                  <span className="mt-0.5 hidden text-[11px] font-medium opacity-70 sm:block">
+                  <span
+                    className={`mt-0.5 hidden text-[11px] font-medium sm:block ${
+                      on
+                        ? "text-slate-300 dark:text-neutral-700"
+                        : "text-slate-600 dark:text-neutral-400"
+                    }`}
+                  >
                     {t(`lifecycle.acts.${a.id}.tabSub`) || a.tabSub}
                   </span>
                 </button>
@@ -368,41 +374,27 @@ export function FeatureHighlights() {
                 {[
                   t(`lifecycle.acts.${act.id}.title1`) || act.title[0],
                   t(`lifecycle.acts.${act.id}.title2`) || act.title[1],
-                ].map((lineText, li) => (
-                  <span key={li} className="block">
-                    {splitTextUnits(lineText).map((char, ci) => (
-                      <motion.span
-                        key={ci}
-                        className="inline-block"
-                        variants={{
-                          hidden: { y: 48, opacity: 0, filter: "blur(10px)" },
-                          visible: {
-                            y: 0,
-                            opacity: 1,
-                            filter: "blur(0px)",
-                            transition: {
-                              duration: 0.5,
-                              ease: [0.2, 0.8, 0.3, 1],
-                            },
-                          },
-                        }}
-                      >
-                        {char === " " ? " " : char}
-                      </motion.span>
-                    ))}
-                    {li === act.title.length - 1 && (
-                      <motion.span
-                        className="inline-block"
-                        style={{ color: accent }}
-                        variants={{
-                          hidden: { y: 48, opacity: 0 },
-                          visible: { y: 0, opacity: 1 },
-                        }}
-                      >
-                        .
-                      </motion.span>
+                ].map((lineText, li, arr) => (
+                  <motion.span
+                    key={li}
+                    className="block"
+                    variants={{
+                      hidden: { y: 24, opacity: 0 },
+                      visible: {
+                        y: 0,
+                        opacity: 1,
+                        transition: {
+                          duration: 0.4,
+                          ease: [0.2, 0.8, 0.3, 1],
+                        },
+                      },
+                    }}
+                  >
+                    {lineText}
+                    {li === arr.length - 1 && (
+                      <span style={{ color: accent }}>.</span>
                     )}
-                  </span>
+                  </motion.span>
                 ))}
               </motion.h2>
             </AnimatePresence>
@@ -412,10 +404,10 @@ export function FeatureHighlights() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={`${act.id}-${step.n}`}
-                  initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
-                  transition={{ duration: 0.32, ease: "easeOut" }}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.28, ease: "easeOut" }}
                   className="grid grid-cols-[auto_1fr] items-start gap-5 sm:gap-8"
                 >
                   <span

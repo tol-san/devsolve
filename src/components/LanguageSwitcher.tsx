@@ -97,9 +97,8 @@ export function LanguageSwitcher({ className }: { className?: string }) {
     <button
       type="button"
       onClick={toggle}
-      /* Names the destination, not the current state — a screen reader user
-         needs to know what pressing it does. */
-      aria-label={`Switch to ${LOCALE_NAMES[next]}`}
+      /* Accessible name begins with the visible label text to satisfy WCAG 2.5.3 (Label in Name) */
+      aria-label={`${LOCALE_SHORT[locale]} - Switch to ${LOCALE_NAMES[next]}`}
       title={LOCALE_NAMES[next]}
       className={cn(
         "inline-flex h-9 xl:h-10 cursor-pointer items-center gap-1.5 xl:gap-2 rounded-full border border-slate-200/80 bg-white px-2 xl:px-2.5 text-xs xl:text-sm font-semibold text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-100 dark:hover:border-blue-500/40 dark:hover:bg-neutral-800 dark:hover:text-blue-300 dark:focus-visible:ring-blue-500/30",
