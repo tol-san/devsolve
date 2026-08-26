@@ -2,19 +2,21 @@
 
 import React from "react";
 import { ReportStatusDistribution } from "@/lib/types/dashboard/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface DashboardReportStatusProps {
   distribution: ReportStatusDistribution;
 }
 
 export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ distribution }) => {
+  const t = useT();
   const { resolved, accepted, pending, other, total } = distribution;
 
   const items = [
-    { label: "Resolved", count: resolved, color: "#10B981", bgClass: "bg-emerald-500" },
-    { label: "Accepted", count: accepted, color: "#2563EB", bgClass: "bg-blue-600" },
-    { label: "Pending", count: pending, color: "#F59E0B", bgClass: "bg-amber-500" },
-    { label: "Other", count: other, color: "#94A3B8", bgClass: "bg-slate-400" },
+    { label: t("dashboard.reportStatus.resolved"), count: resolved, color: "#10B981", bgClass: "bg-emerald-500" },
+    { label: t("dashboard.reportStatus.accepted"), count: accepted, color: "#2563EB", bgClass: "bg-blue-600" },
+    { label: t("dashboard.reportStatus.pending"), count: pending, color: "#F59E0B", bgClass: "bg-amber-500" },
+    { label: t("dashboard.reportStatus.other"), count: other, color: "#94A3B8", bgClass: "bg-slate-400" },
   ];
 
   // Calculate SVG Donut chart stroke dashes
@@ -35,7 +37,7 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
     <div className="bg-white dark:bg-neutral-900 rounded-xl border border-slate-200 dark:border-neutral-800 shadow-xs p-5 flex flex-col justify-between h-full">
       <div>
         <h2 className="text-base font-semibold text-slate-900 dark:text-neutral-100 pb-4 border-b border-slate-100 dark:border-neutral-800">
-          Reports by Status
+          {t("dashboard.reportStatus.title")}
         </h2>
 
         <div className="flex flex-col sm:flex-row items-center gap-6 mt-4">
@@ -70,7 +72,7 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
               <span className="text-xl font-bold text-slate-900 dark:text-neutral-100">
                 {total.toLocaleString()}
               </span>
-              <span className="text-xs text-slate-400 font-medium">Total</span>
+              <span className="text-xs text-slate-400 font-medium">{t("dashboard.reportStatus.total")}</span>
             </div>
           </div>
 

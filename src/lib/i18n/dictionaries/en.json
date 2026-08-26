@@ -492,5 +492,118 @@
       "dayAgo": "day ago",
       "daysAgo": "days ago"
     }
+  },
+  "sidebar": {
+    "category": {
+      "overview": "Overview",
+      "researcher": "Researcher",
+      "organization": "Organization",
+      "administration": "Administration"
+    },
+    "nav": {
+      "home": "Home",
+      "dashboard": "Dashboard",
+      "programs": "Programs",
+      "community": "Community",
+      "my community": "My Community",
+      "leaderboard": "Leaderboard",
+      "reports": "Reports",
+      "rewards": "Rewards",
+      "bookmarks": "Bookmarks",
+      "saved drafts": "Saved Drafts",
+      "analytics": "Analytics",
+      "program management": "Program Management",
+      "create program": "Create Program",
+      "report management": "Report Management",
+      "team management": "Team Management",
+      "organization verification": "Organization Verification",
+      "program review": "Program Review",
+      "users": "Users",
+      "content management": "Content Management",
+      "categories": "Categories"
+    },
+    "settings": "Settings",
+    "orgSettings": "Organization settings",
+    "logout": "Log out",
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu",
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "status": {
+      "active": "Verified company",
+      "pending": "Under review",
+      "rejected": "Verification rejected",
+      "suspended": "Company suspended",
+      "default": "Company workspace"
+    }
+  },
+  "dashboard": {
+    "header": {
+      "companyTitle": "{name} Dashboard",
+      "companyDefault": "Company Dashboard",
+      "userTitle": "Researcher Dashboard",
+      "companyDesc": "Monitor your security programs, incoming reports, and bounty activity.",
+      "userDesc": "Track your submitted reports, validation progress, and rewards.",
+      "refresh": "Refresh",
+      "managePrograms": "Manage Programs",
+      "explorePrograms": "Explore Programs",
+      "createProgram": "Create Program",
+      "submitReport": "Submit Report"
+    },
+    "stats": {
+      "active_programs": "Active Programs",
+      "total_reports": "Total Reports",
+      "total_bounties": "Total Bounties Paid",
+      "valid_reports": "Valid Bug Reports"
+    },
+    "actionQueue": {
+      "title": "Action Queue",
+      "triage": "Reports awaiting triage",
+      "review": "Program updates in review",
+      "retest": "Pending retests",
+      "invite": "Pending researcher invitations"
+    },
+    "myPrograms": {
+      "companyTitle": "Organization Programs",
+      "userTitle": "Recently Reported Programs",
+      "viewAll": "View All",
+      "colProgram": "Program Name",
+      "colStatus": "Status",
+      "colReports": "Reports",
+      "emptyCompanyTitle": "No programs yet",
+      "emptyUserTitle": "No reported programs yet",
+      "emptyCompanyDesc": "Create a program to begin receiving security reports.",
+      "emptyUserDesc": "Programs connected to your submitted reports will appear here.",
+      "statusOpen": "Open",
+      "statusClosed": "Closed",
+      "statusPrivate": "Private",
+      "statusReviewing": "Reviewing"
+    },
+    "reportStatus": {
+      "title": "Reports by Status",
+      "resolved": "Resolved",
+      "accepted": "Accepted",
+      "pending": "Pending",
+      "other": "Other",
+      "total": "Total"
+    },
+    "reportSeverity": {
+      "title": "Reports by Severity",
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "error": {
+      "title": "Dashboard unavailable",
+      "description": "Your account is connected, but the latest overview could not be retrieved from the API.",
+      "retry": "Try again"
+    },
+    "admin": {
+      "title": "Platform Operations",
+      "subtitle": "Live platform totals and moderation workload",
+      "updated": "Updated",
+      "errorTitle": "Admin overview unavailable"
+    }
   }
 }

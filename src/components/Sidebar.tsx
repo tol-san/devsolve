@@ -29,6 +29,8 @@ import {
   useGetMyOrganizationQuery,
 } from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 function getInitials(text: string): string {
   return text
@@ -87,11 +89,27 @@ function SidebarContent({
   onSignOut,
   collapsed = false,
 }: SidebarContentProps) {
+  const t = useT();
   const { openNotification } = useNotification();
   const { data: bookmarksResponse } = useGetBookmarksQuery(undefined, {
     skip: !user,
   });
   const bookmarkCount = bookmarksResponse?.totalCount;
+
+  const getOrgStatusLabel = (status?: string): string => {
+    switch (status) {
+      case "ACTIVE":
+        return t("sidebar.status.active");
+      case "PENDING":
+        return t("sidebar.status.pending");
+      case "REJECTED":
+        return t("sidebar.status.rejected");
+      case "SUSPENDED":
+        return t("sidebar.status.suspended");
+      default:
+        return t("sidebar.status.default");
+    }
+  };
 
   const userRoles = (
     user?.roles || (user?.role ? user.role.split(",") : ["USER"])
@@ -115,23 +133,23 @@ function SidebarContent({
   );
 
   const identityName = isCompany
-    ? organization?.name || "Company workspace"
+    ? organization?.name || t("sidebar.status.default")
     : displayName;
   const identityImage = isCompany ? organization?.logoUrl : user?.image;
   const identityDetail = isCompany
     ? organization?.slug
       ? `@${organization.slug}`
-      : organization?.domain || organizationStatusLabel(organization?.status)
+      : organization?.domain || getOrgStatusLabel(organization?.status)
     : user?.email;
   const identityStatus = isCompany
-    ? organizationStatusLabel(organization?.status)
+    ? getOrgStatusLabel(organization?.status)
     : undefined;
   const identityIsLoading =
     isPending || (isCompany && isOrganizationLoading);
   const settingsHref = isCompany
     ? "/dashboard/organizations"
     : "/dashboard/profile/settings";
-  const settingsLabel = isCompany ? "Organization settings" : "Settings";
+  const settingsLabel = isCompany ? t("sidebar.orgSettings") : t("sidebar.settings");
 
   return (
     /* `data-scroll-host` makes the whole sidebar the hover target for the
@@ -146,7 +164,7 @@ function SidebarContent({
             size="icon"
             variant="ghost"
             onClick={onNavItemClick}
-            aria-label="Close menu"
+            aria-label={t("sidebar.closeMenu")}
             className="size-9 rounded-lg text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-100"
           >
             <X className="size-5" />
@@ -222,6 +240,7 @@ function SidebarContent({
           const categoryItems = filteredNavItems.filter(
             (item) => (item.category || "Overview") === category,
           );
+          const categoryLabel = t(`sidebar.category.${category.toLowerCase()}`);
 
           return (
             <div key={category} className="space-y-1">
@@ -233,7 +252,7 @@ function SidebarContent({
                 <div className="py-1" aria-hidden />
               ) : (
                 <div className="select-none px-3 pb-1 pt-1 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                  {category}
+                  {categoryLabel}
                 </div>
               )}
 
@@ -242,12 +261,13 @@ function SidebarContent({
                 const isActive = item.href === activeHref;
                 const badgeCount =
                   item.name === "Bookmarks" ? bookmarkCount : item.badge;
+                const itemLabel = t(`sidebar.nav.${item.name.toLowerCase()}`);
 
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    title={collapsed ? item.name : undefined}
+                    title={collapsed ? itemLabel : undefined}
                     aria-current={isActive ? "page" : undefined}
                     onClick={(e) => {
                       if (item.name === "Notification") {
@@ -288,7 +308,7 @@ function SidebarContent({
                             : "text-slate-400 dark:text-neutral-500",
                         )}
                       />
-                      {!collapsed && <span className="truncate">{item.name}</span>}
+                      {!collapsed && <span className="truncate">{itemLabel}</span>}
                     </span>
 
                     {badgeCount !== undefined && badgeCount > 0 && !collapsed && (
@@ -325,14 +345,14 @@ function SidebarContent({
             onNavItemClick?.();
             onSignOut();
           }}
-          title={collapsed ? "Log out" : undefined}
+          title={collapsed ? t("sidebar.logout") : undefined}
           className={cn(
             "flex h-10 w-full cursor-pointer items-center rounded-xl text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40",
             collapsed ? "justify-center px-0" : "justify-start gap-3 px-3",
           )}
         >
           <LogOut className="size-4 shrink-0" />
-          {!collapsed && <span>Log out</span>}
+          {!collapsed && <span>{t("sidebar.logout")}</span>}
         </Button>
       </div>
     </div>
@@ -409,6 +429,7 @@ const Sidebar = () => {
         </Link>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <NotificationTrigger />
           <ThemeToggle
             variant="rectangle"

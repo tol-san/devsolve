@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { Shield, FileText, CircleDollarSign, CheckCircle2 } from "lucide-react";
 import { StatMetric } from "@/lib/types/dashboard/types";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface DashboardStatCardsProps {
   stats: StatMetric[];
@@ -45,11 +46,15 @@ const getStatConfig = (type: StatMetric["type"]) => {
 };
 
 export const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({ stats }) => {
+  const t = useT();
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, idx) => {
         const config = getStatConfig(stat.type);
         const Icon = config.icon;
+        const translatedTitle = t(`dashboard.stats.${stat.type}`);
+        const title = translatedTitle !== `dashboard.stats.${stat.type}` ? translatedTitle : stat.title;
 
         return (
           <motion.div
@@ -61,7 +66,7 @@ export const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({ stats })
           >
             <div className="flex items-start justify-between">
               <span className="text-sm font-medium text-slate-600 dark:text-neutral-400">
-                {stat.title}
+                {title}
               </span>
               <div className={`p-2 rounded-lg ${config.iconBg}`}>
                 <Icon className="w-5 h-5" />

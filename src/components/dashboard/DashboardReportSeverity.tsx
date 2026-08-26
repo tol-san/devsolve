@@ -3,6 +3,7 @@
 import React from "react";
 import { ReportSeverityDistribution } from "@/lib/types/dashboard/types";
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface DashboardReportSeverityProps {
   distribution: ReportSeverityDistribution;
@@ -11,29 +12,34 @@ interface DashboardReportSeverityProps {
 export const DashboardReportSeverity: React.FC<DashboardReportSeverityProps> = ({
   distribution,
 }) => {
+  const t = useT();
   const { critical, high, medium, low, total } = distribution;
 
   const severities = [
     {
-      level: "Critical",
+      level: t("dashboard.reportSeverity.critical"),
+      rawLevel: "Critical",
       count: critical,
       barClass: "bg-red-500",
       badgeClass: "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400 border-red-200 dark:border-red-800/60",
     },
     {
-      level: "High",
+      level: t("dashboard.reportSeverity.high"),
+      rawLevel: "High",
       count: high,
       barClass: "bg-orange-500",
       badgeClass: "bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400 border-orange-200 dark:border-orange-800/60",
     },
     {
-      level: "Medium",
+      level: t("dashboard.reportSeverity.medium"),
+      rawLevel: "Medium",
       count: medium,
       barClass: "bg-amber-500",
       badgeClass: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-800/60",
     },
     {
-      level: "Low",
+      level: t("dashboard.reportSeverity.low"),
+      rawLevel: "Low",
       count: low,
       barClass: "bg-emerald-500",
       badgeClass: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60",
@@ -44,7 +50,7 @@ export const DashboardReportSeverity: React.FC<DashboardReportSeverityProps> = (
     <div className="bg-white dark:bg-neutral-900 rounded-xl border border-slate-200 dark:border-neutral-800 shadow-xs p-5 flex flex-col justify-between h-full">
       <div>
         <h2 className="text-base font-semibold text-slate-900 dark:text-neutral-100 pb-4 border-b border-slate-100 dark:border-neutral-800">
-          Reports by Severity
+          {t("dashboard.reportSeverity.title")}
         </h2>
 
         <div className="space-y-4 mt-4">
@@ -52,7 +58,7 @@ export const DashboardReportSeverity: React.FC<DashboardReportSeverityProps> = (
             const percentage = total > 0 ? Math.round((item.count / total) * 100) : 0;
 
             return (
-              <div key={item.level} className="space-y-1.5">
+              <div key={item.rawLevel} className="space-y-1.5">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className={`text-xs font-semibold px-2 py-0.5 shadow-none ${item.badgeClass}`}>

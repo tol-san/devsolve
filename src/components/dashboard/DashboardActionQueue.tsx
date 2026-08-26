@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { AlertCircle, Clock, RefreshCw, UserPlus, ChevronRight } from "lucide-react";
 import { ActionQueueItem } from "@/lib/types/dashboard/types";
 import { Badge } from "@/components/ui/badge";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface DashboardActionQueueProps {
   items: ActionQueueItem[];
@@ -41,13 +42,15 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
   items,
   totalCount,
 }) => {
+  const t = useT();
+
   return (
     <div className="bg-white dark:bg-neutral-900 rounded-xl border border-slate-200 dark:border-neutral-800 shadow-xs p-5 flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-neutral-800">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-slate-900 dark:text-neutral-100">
-              Action Queue
+              {t("dashboard.actionQueue.title")}
             </h2>
             <Badge
               variant="destructive"
@@ -62,6 +65,8 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
           {items.map((item, idx) => {
             const config = getActionIcon(item.type);
             const Icon = config.icon;
+            const translatedTitle = t(`dashboard.actionQueue.${item.type}`);
+            const itemTitle = translatedTitle !== `dashboard.actionQueue.${item.type}` ? translatedTitle : item.title;
 
             return (
               <motion.div
@@ -80,7 +85,7 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900 dark:text-neutral-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {item.title}
+                        {itemTitle}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-neutral-400">
                         {item.subtitle}

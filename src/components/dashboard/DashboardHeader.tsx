@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PlusCircle, Globe, RefreshCw, Settings2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/I18nProvider";
 
 interface DashboardHeaderProps {
   onRefresh?: () => void;
@@ -19,20 +20,25 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   audience,
   organizationName,
 }) => {
+  const t = useT();
   const isCompany = audience === "COMPANY";
+
+  const headerTitle = isCompany
+    ? organizationName
+      ? t("dashboard.header.companyTitle").replace("{name}", organizationName)
+      : t("dashboard.header.companyDefault")
+    : t("dashboard.header.userTitle");
 
   return (
     <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-neutral-800">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
-          {isCompany
-            ? `${organizationName || "Company"} Dashboard`
-            : "Researcher Dashboard"}
+          {headerTitle}
         </h1>
         <p className="text-sm font-normal text-slate-500 dark:text-neutral-400">
           {isCompany
-            ? "Monitor your security programs, incoming reports, and bounty activity."
-            : "Track your submitted reports, validation progress, and rewards."}
+            ? t("dashboard.header.companyDesc")
+            : t("dashboard.header.userDesc")}
         </p>
       </div>
 
@@ -49,7 +55,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               data-icon="inline-start"
               className={cn(isRefreshing && "animate-spin")}
             />
-            <span>Refresh</span>
+            <span>{t("dashboard.header.refresh")}</span>
           </Button>
         )}
 
@@ -65,7 +71,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           ) : (
             <Globe data-icon="inline-start" />
           )}
-          {isCompany ? "Manage Programs" : "Explore Programs"}
+          {isCompany
+            ? t("dashboard.header.managePrograms")
+            : t("dashboard.header.explorePrograms")}
         </Link>
 
         <Link
@@ -76,7 +84,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           )}
         >
           <PlusCircle data-icon="inline-start" />
-          {isCompany ? "Create Program" : "Submit Report"}
+          {isCompany
+            ? t("dashboard.header.createProgram")
+            : t("dashboard.header.submitReport")}
         </Link>
       </div>
     </header>

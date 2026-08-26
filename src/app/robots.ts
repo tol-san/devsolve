@@ -23,6 +23,8 @@ const PRIVATE_PREFIXES = [
   "/register/",
   "/account-type",
   "/test-login",
+  // Single-use invitation links: the token in the path is a credential.
+  "/invitations/",
   "/community/create",
   "/community/*/edit",
   "/community/*/solutions/",

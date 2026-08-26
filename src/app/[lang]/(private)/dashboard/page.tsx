@@ -24,6 +24,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { useT } from "@/lib/i18n/I18nProvider";
+
 function DashboardSkeleton() {
   return (
     <motion.div
@@ -58,6 +60,7 @@ function DashboardSkeleton() {
 }
 
 export default function DashboardPage() {
+  const t = useT();
   const { user, areRolesResolved } = useSidebarAuth();
   const isAdminUser =
     user?.roles?.includes("ADMIN") || user?.role?.includes("ADMIN");
@@ -91,7 +94,7 @@ export default function DashboardPage() {
   if (isError || !dashboardData) {
     const message =
       (error as { data?: { message?: string } } | undefined)?.data?.message ??
-      "We could not load your dashboard data.";
+      t("dashboard.error.description");
 
     return (
       <motion.div
@@ -106,19 +109,18 @@ export default function DashboardPage() {
               <AlertTriangle className="size-7" aria-hidden="true" />
             </span>
             <CardTitle className="text-xl font-bold">
-              Dashboard unavailable
+              {t("dashboard.error.title")}
             </CardTitle>
             <CardDescription className="text-base">{message}</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Your account is connected, but the latest overview could not be
-              retrieved from the API.
+              {t("dashboard.error.description")}
             </p>
           </CardContent>
           <CardFooter className="justify-center">
             <Button type="button" variant="outline" onClick={() => refetch()}>
-              Try again
+              {t("dashboard.error.retry")}
             </Button>
           </CardFooter>
         </Card>

@@ -18,7 +18,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { useT } from "@/lib/i18n/I18nProvider";
+
 export function AdminDashboardOverview() {
+  const t = useT();
   const {
     overview,
     adminData,
@@ -66,13 +69,13 @@ export function AdminDashboardOverview() {
               <AlertTriangle className="size-7" aria-hidden="true" />
             </span>
             <CardTitle className="text-xl font-bold">
-              Admin overview unavailable
+              {t("dashboard.admin.errorTitle")}
             </CardTitle>
             <CardDescription className="text-base">{message}</CardDescription>
           </CardHeader>
           <CardFooter className="justify-center">
             <Button type="button" variant="outline" onClick={() => refetch()}>
-              Try again
+              {t("dashboard.error.retry")}
             </Button>
           </CardFooter>
         </Card>
@@ -91,12 +94,12 @@ export function AdminDashboardOverview() {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Platform Operations
+            {t("dashboard.admin.title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Live platform totals and moderation workload
+            {t("dashboard.admin.subtitle")}
             {overview.generatedAt
-              ? ` · Updated ${new Date(overview.generatedAt).toLocaleString()}`
+              ? ` · ${t("dashboard.admin.updated")} ${new Date(overview.generatedAt).toLocaleString()}`
               : ""}
           </p>
         </div>
@@ -112,7 +115,7 @@ export function AdminDashboardOverview() {
               data-icon="inline-start"
               className={isFetching ? "animate-spin" : undefined}
             />
-            Refresh
+            {t("dashboard.header.refresh")}
           </Button>
         </div>
       </header>

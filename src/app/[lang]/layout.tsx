@@ -145,7 +145,13 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={cn("h-full", "antialiased", inter.variable, khmer.variable)}
     >
-      <body className={cn("h-full font-sans antialiased")}>
+      {/* Browser extensions stamp their own attributes onto <body> before
+          React gets there — Grammarly, Dark Reader, unit converters — and each
+          one reads as a hydration mismatch we did not cause and cannot
+          prevent. The flag covers this element's own attributes and text only,
+          one level deep, so a genuine mismatch anywhere inside the app still
+          reports normally. */}
+      <body suppressHydrationWarning className={cn("h-full font-sans antialiased")}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

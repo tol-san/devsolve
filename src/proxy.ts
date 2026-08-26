@@ -77,6 +77,11 @@ export function proxy(request: NextRequest) {
     return redirect;
   }
 
+  /* Presence only. `getSessionCookie` reads the cookie jar — it does not
+     verify a signature or look the session up, so a stale or forged value
+     satisfies it. Everything below is therefore routing, not authorization:
+     the real check runs in the dashboard layout, which validates the session
+     against better-auth's store before rendering anything private. */
   const sessionCookie = getSessionCookie(request);
 
   if (rest === "/" || rest === "") {
@@ -92,8 +97,11 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  // If NOT authenticated and visiting a private route
+  /* No cookie at all and heading somewhere private: turn the request around
+     here rather than paying for a render the layout would only discard. */
   if (!sessionCookie && rest.startsWith("/dashboard")) {
+    /* A dashboard profile URL has a public twin. Someone signed out following
+       a shared link wants the person's profile, not a login form. */
     if (rest.startsWith("/dashboard/profile/")) {
       const tail = rest.slice("/dashboard/profile/".length);
       if (tail && !tail.startsWith("settings")) {
@@ -102,6 +110,7 @@ export function proxy(request: NextRequest) {
         );
       }
     }
+
     return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
 

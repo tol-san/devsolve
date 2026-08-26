@@ -51,6 +51,7 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { toast } from "@/hooks/use-toast";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { useInviteOrganizationMemberMutation } from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 
@@ -169,6 +170,7 @@ function getErrorMessage(error: unknown): string {
 
 export function InviteMemberForm() {
   const router = useRouter();
+  const lp = useLocalePath();
 
   const [
     inviteOrganizationMember,
@@ -247,7 +249,7 @@ export function InviteMemberForm() {
           : `The invitation was sent to ${values.email}.`,
       });
 
-      router.push("/dashboard/team-management");
+      router.push(lp("/dashboard/team-management"));
       router.refresh();
     } catch (error) {
       const message = getErrorMessage(error);
