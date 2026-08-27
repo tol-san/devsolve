@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +13,11 @@ import {
 } from "@/lib/validations/report";
 import { AttachedFile } from "@/components/reports/FileUploadDropzone";
 import { useServerReportDraft } from "@/components/reports/hooks/useServerReportDraft";
-import type { SaveReportDraftValues } from "@/lib/validations/report-draft";
+import { useGetReportDraftQuery } from "@/lib/redux/services/reportDraftsApi";
+import type {
+  ReportDraftResponse,
+  SaveReportDraftValues,
+} from "@/lib/validations/report-draft";
 
 /* The draft columns are typed `uuid`; sending the empty string the form
    holds before anything is chosen would be a 400. */
@@ -30,7 +34,17 @@ export interface ReportSuccessModalData {
 
 export function useSubmitReportForm() {
   const searchParams = useSearchParams();
-  const preselectedProgramId = searchParams.get("programId") || "";
+  const requestedProgramId = searchParams.get("programId") || "";
+
+  /* `?id=` opens one specific saved draft — the link on a card in the
+     saved-drafts list. The draft names its own program, so the form does not
+     need `programId` alongside it. */
+  const resumeDraftId = searchParams.get("id") || "";
+  const { data: linkedDraft } = useGetReportDraftQuery(resumeDraftId, {
+    skip: !isUuid(resumeDraftId),
+  });
+
+  const preselectedProgramId = requestedProgramId || linkedDraft?.programId || "";
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -158,15 +172,15 @@ export function useSubmitReportForm() {
     values: draftBody,
     isDirty: form.formState.isDirty,
     enabled: !isSubmitting && !successModalData.isOpen,
+    /* Saves go back into the draft the link named, rather than forking a
+       second copy of the same report. */
+    resumeId: isUuid(resumeDraftId) ? resumeDraftId : undefined,
   });
 
   /* Puts a stored draft back on screen. The inverse of the mapping above —
      replacing rather than merging, since the arrays are positional and
      interleaving them would produce steps in an order nobody wrote. */
-  const restoreDraft = () => {
-    const stored = draft.take();
-    if (!stored) return;
-
+  const applyDraft = (stored: ReportDraftResponse) => {
     setValue("title", stored.title ?? "");
     setValue("summaryPoC", stored.vulnerabilityInformation ?? "");
     setValue("impact", stored.impact ?? "");
@@ -192,6 +206,23 @@ export function useSubmitReportForm() {
       stored.referenceLinks?.length ? stored.referenceLinks : [""],
     );
   };
+
+  /** Accepting the banner: the draft found for this program. */
+  const restoreDraft = () => {
+    const stored = draft.take();
+    if (stored) applyDraft(stored);
+  };
+
+  /* Arriving from a saved-drafts card. Applied once, when the draft lands —
+     the form is empty at that point, so there is nothing of the reporter to
+     overwrite, and re-applying on every render would fight their typing. */
+  const applied = useRef<string | null>(null);
+  useEffect(() => {
+    if (!linkedDraft || applied.current === linkedDraft.id) return;
+    applied.current = linkedDraft.id;
+    applyDraft(linkedDraft);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedDraft]);
 
   const selectedProgramId = watch("programId");
   const selectedSeverity = watch("severity");
@@ -348,8 +379,15 @@ export function useSubmitReportForm() {
      than trust that it was. Autosave has usually written it already, so this
      mostly acknowledges — but it also flushes immediately instead of waiting
      out the debounce. */
-  const handleSaveDraft = () => {
-    void draft.saveNow();
+  const handleSaveDraft = async () => {
+    /* Awaited, because the button used to say "Draft Saved!" the instant it
+       was pressed — before the write had been attempted, let alone accepted.
+       A refused save then looked exactly like a successful one, which is the
+       worst thing a save button can do. The failure is left to `DraftStatus`,
+       which renders the reason the upstream gave. */
+    const saved = await draft.saveNow();
+    if (!saved) return;
+
     setIsDraftSaved(true);
     setTimeout(() => setIsDraftSaved(false), 3000);
   };

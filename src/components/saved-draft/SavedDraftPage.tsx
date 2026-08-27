@@ -17,7 +17,17 @@ import {
 } from "@/components/ui/page-enter-motion";
 import type { DraftCategory, SavedDraftItem } from "@/components/saved-draft/types";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
-import { useGetMyCompanyProgramsQuery, useDeleteProgramMutation } from "@/lib/redux/services/program/programsApi";
+import {
+  useGetMyCompanyProgramsQuery,
+  useDeleteProgramMutation,
+  useGetProgramsQuery,
+} from "@/lib/redux/services/program/programsApi";
+import {
+  useDeleteReportDraftMutation,
+  useGetReportDraftsQuery,
+} from "@/lib/redux/services/reportDraftsApi";
+import { toDate } from "@/lib/format/datetime";
+import { describe } from "@/lib/seo/text";
 import { isEditableDraft, isUnderReview } from "@/lib/programs/draft-status";
 import { useGetMyOrganizationQuery } from "@/lib/redux/services/organizationsApi";
 import { toast } from "sonner";
@@ -31,7 +41,16 @@ const SEARCH_PLACEHOLDERS: Record<DraftCategory, string> = {
   report: "Search report drafts...",
 };
 
-function getUpdatedRank(updatedAt: string) {
+function getUpdatedRank(item: SavedDraftItem) {
+  /* A formatted date cannot be ordered, so the instant is used when the item
+     carries one — which is what makes "Recently updated" mean anything on a
+     list mixing program drafts with report drafts. */
+  if (item.updatedAtIso) {
+    const parsed = toDate(item.updatedAtIso);
+    if (parsed) return (Date.now() - parsed.getTime()) / 86_400_000;
+  }
+
+  const updatedAt = item.updatedAt;
   if (updatedAt === "Today" || updatedAt === "Recently") return 0;
   if (updatedAt === "Yesterday") return 1;
 
@@ -74,10 +93,46 @@ export function SavedDraftPage() {
   const { data: companyOrg } = useGetMyOrganizationQuery(undefined, { skip: !isCompany });
 
   // Fetch real company programs (filter by state: DRAFT)
-  const { data: companyProgramsData, isLoading } =
+  const { data: companyProgramsData, isLoading: isCompanyProgramsLoading } =
     useGetMyCompanyProgramsQuery({ size: 100 }, { skip: !isCompany });
 
+  /* The reporter side of the same screen. Report drafts are saved by the
+     submit form as it is typed into, and this is the only place they can be
+     found again from outside that form. */
+  const { data: reportDrafts, isLoading: isReportDraftsLoading } =
+    useGetReportDraftsQuery(
+      {},
+      {
+        skip: !isUser,
+        /* Re-read on every visit. Autosave deliberately does not invalidate
+           this list — it would refetch mid-sentence — so landing here is the
+           moment to find out what the drafts actually say now. */
+        refetchOnMountOrArgChange: true,
+      },
+    );
+
+  /* Read for the program a draft belongs to — its name and its logo. The
+     draft itself stores only `programId`, which names nothing on a card. */
+  const { data: programsData } = useGetProgramsQuery(
+    { size: 100 },
+    { skip: !isUser },
+  );
+
+  const isLoading = isCompanyProgramsLoading || isReportDraftsLoading;
+
   const [deleteProgram] = useDeleteProgramMutation();
+  const [deleteReportDraft] = useDeleteReportDraftMutation();
+
+  const programsById = useMemo(() => {
+    const byId = new Map<string, { name: string; logoUrl: string }>();
+    (programsData?.content ?? []).forEach((program) => {
+      byId.set(program.id, {
+        name: program.name,
+        logoUrl: program.organization?.logoUrl || program.logoUrl || "",
+      });
+    });
+    return byId;
+  }, [programsData]);
 
   // Convert real backend DRAFT items to SavedDraftItem format
   const draftItems = useMemo<SavedDraftItem[]>(() => {
@@ -112,6 +167,7 @@ export function SavedDraftPage() {
                   year: "numeric",
                 })
               : "Recently",
+            updatedAtIso: p.updatedAt,
             tags: inScopeTags,
             initials: (p.name || "PR").slice(0, 2).toUpperCase(),
             logoSrc: realLogo,
@@ -120,8 +176,49 @@ export function SavedDraftPage() {
         });
     }
 
+    /* One card per saved report draft. A draft may be untitled and almost
+       empty — it is saved from the first keystroke — so every field falls
+       back to something a reader can still act on rather than being hidden. */
+    (reportDrafts ?? []).forEach((draft) => {
+      const program = draft.programId
+        ? programsById.get(draft.programId)
+        : undefined;
+      const title = draft.title?.trim() || "Untitled report draft";
+
+      items.push({
+        id: draft.id,
+        title,
+        /* The write-up is Markdown; `describe` strips it without mangling
+           identifiers like `invalid_grant`. */
+        description: describe(
+          draft.vulnerabilityInformation,
+          "No write-up yet. Pick this up where you left off.",
+          160,
+        ),
+        category: "report",
+        updatedAt: draft.updatedAt
+          ? new Date(draft.updatedAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "Recently",
+        updatedAtIso: draft.updatedAt,
+        tags: [
+          program?.name,
+          /* `NONE` is the draft schema saying "undecided", not a severity. */
+          draft.reportedSeverity && draft.reportedSeverity !== "NONE"
+            ? draft.reportedSeverity
+            : null,
+        ].filter((tag): tag is string => Boolean(tag)),
+        initials: title.slice(0, 2).toUpperCase(),
+        logoSrc: program?.logoUrl ?? "",
+        logoAlt: program?.name || "Program logo",
+      });
+    });
+
     return items;
-  }, [companyProgramsData, companyOrg]);
+  }, [companyProgramsData, companyOrg, reportDrafts, programsById]);
 
   /**
    * Programs the reviewers are holding.
@@ -186,7 +283,7 @@ export function SavedDraftPage() {
           return a.title.localeCompare(b.title);
         }
 
-        const diff = getUpdatedRank(a.updatedAt) - getUpdatedRank(b.updatedAt);
+        const diff = getUpdatedRank(a) - getUpdatedRank(b);
         return sortBy === "recent" ? diff : -diff;
       });
   }, [activeTab, draftItems, searchTerm, sortBy]);
@@ -200,8 +297,17 @@ export function SavedDraftPage() {
   );
 
   const handleDeleteItem = async (itemId: string) => {
+    /* Two kinds of draft share this list and they live at different
+       endpoints — deleting a report draft through the program endpoint would
+       404 and leave the card in place. */
+    const item = draftItems.find((draft) => draft.id === itemId);
+
     try {
-      await deleteProgram(itemId).unwrap();
+      if (item?.category === "report") {
+        await deleteReportDraft(itemId).unwrap();
+      } else {
+        await deleteProgram(itemId).unwrap();
+      }
       toast.success("Draft deleted successfully");
     } catch {
       toast.error("Failed to delete draft");

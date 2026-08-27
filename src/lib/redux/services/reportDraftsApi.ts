@@ -21,6 +21,12 @@ interface DraftPage {
  * refetch the list on each one, which in turn re-renders the form that is
  * being typed into. The id is held by the caller instead, and the list is
  * only refreshed where it is actually read.
+ *
+ * They do, however, write what the server returned back into the cached copy
+ * of that one draft. Not invalidating is not a licence to hold something the
+ * server has since replaced: without this, saving an edit and then reopening
+ * the draft served the version from before the edit, and the save looked like
+ * it had been thrown away.
  */
 export const reportDraftsApi = proxyApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -55,6 +61,9 @@ export const reportDraftsApi = proxyApi.injectEndpoints({
         method: "POST",
         body,
       }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        await cacheWhatWasStored(dispatch, queryFulfilled);
+      },
     }),
 
     /** Every save after the first. */
@@ -67,6 +76,9 @@ export const reportDraftsApi = proxyApi.injectEndpoints({
         method: "PUT",
         body,
       }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        await cacheWhatWasStored(dispatch, queryFulfilled);
+      },
     }),
 
     deleteReportDraft: builder.mutation<void, string>({
@@ -81,6 +93,35 @@ export const reportDraftsApi = proxyApi.injectEndpoints({
     }),
   }),
 });
+
+/**
+ * Replaces the cached copy of one draft with what the server just stored.
+ *
+ * A patch rather than an invalidation: an invalidation would refetch on every
+ * autosave and re-render the form being typed into. This costs no request and
+ * leaves the cache telling the truth — what is written back is the server's
+ * own answer, so a save the server altered or ignored shows as what it did,
+ * not as what was sent.
+ *
+ * A rejected save is swallowed: the mutation already reports its own failure
+ * to the caller, and there is nothing to cache. An empty 2xx is skipped for
+ * the same reason — there is no draft in it to hold.
+ */
+async function cacheWhatWasStored(
+  dispatch: (action: unknown) => unknown,
+  queryFulfilled: PromiseLike<{ data: ReportDraftResponse }>,
+) {
+  try {
+    const { data: saved } = await queryFulfilled;
+    if (saved?.id) {
+      dispatch(
+        reportDraftsApi.util.upsertQueryData("getReportDraft", saved.id, saved),
+      );
+    }
+  } catch {
+    /* Reported through the mutation itself. */
+  }
+}
 
 export const {
   useGetReportDraftsQuery,

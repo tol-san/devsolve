@@ -14,6 +14,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 
 import type { SavedDraftItem } from "@/components/saved-draft/types";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -51,8 +52,11 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
   const [imageError, setImageError] = useState(false);
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const lp = useLocalePath();
   const meta = getDraftMeta(item);
-  const href = getDraftHref(item);
+  /* Locale-prefixed: a bare path leaves the reader's language behind on the
+     redirect, so opening a draft from the Khmer list landed in English. */
+  const href = lp(getDraftHref(item));
 
   const logoSrc = !imageError ? item.logoSrc : null;
   const initials = (item.title || "Draft")
@@ -91,7 +95,13 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
                 Continue editing
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => router.push(`/dashboard/programs/${encodeURIComponent(item.id)}?from=saved-draft`)}
+                onClick={() =>
+                  router.push(
+                    lp(
+                      `/dashboard/programs/${encodeURIComponent(item.id)}?from=saved-draft`,
+                    ),
+                  )
+                }
                 className="rounded-[10px] px-3 py-2 text-foreground focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:text-blue-600 dark:focus:text-blue-400 cursor-pointer"
               >
                 <Eye className="w-4 h-4 mr-2" />

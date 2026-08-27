@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { FileSearch, Plus } from "lucide-react";
 
 import type { DraftCategory } from "@/components/saved-draft/types";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +26,8 @@ export function SavedDraftEmptyState({
   searchTerm,
   onClear,
 }: SavedDraftEmptyStateProps) {
-  const createHref = getCreateHref(activeTab);
+  const lp = useLocalePath();
+  const createHref = lp(getCreateHref(activeTab));
 
   return (
     <div className="flex min-h-[300px] flex-col items-center justify-center rounded-[14px] border border-dashed border-border bg-card px-6 text-center shadow-[0_1px_4px_rgba(15,23,42,0.04)]">
