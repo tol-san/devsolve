@@ -16,31 +16,38 @@ import { cn } from "@/lib/utils";
  *
  * The initials stand in until it lands, and stay if there is no logo to load,
  * which keeps the row from shifting under the reader.
+ *
+ * A caller whose data already carries the logo passes `logoUrl` instead, and
+ * no request is made at all.
  */
 export function CompanyLogo({
   organizationId,
   name,
+  logoUrl,
   className,
 }: {
   organizationId: string;
   /** The name already on screen — the fallback is drawn from it. */
   name?: string | null;
+  /** Skips the lookup entirely. Pass it when the payload already has one. */
+  logoUrl?: string | null;
   className?: string;
 }) {
   const { data: organization } = useGetOrganizationByIdQuery(organizationId, {
-    skip: !organizationId,
+    skip: !organizationId || logoUrl !== undefined,
   });
 
   const label = organization?.name?.trim() || name?.trim() || "";
+  const src = logoUrl !== undefined ? logoUrl : organization?.logoUrl;
 
   return (
     <Avatar
       className={cn("size-10 shrink-0 rounded-xl", className)}
       aria-label={label || undefined}
     >
-      {organization?.logoUrl && (
+      {src && (
         <AvatarImage
-          src={organization.logoUrl}
+          src={src}
           alt={label ? `${label} logo` : ""}
           className="rounded-[inherit] object-cover"
         />
