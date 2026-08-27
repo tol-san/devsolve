@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { Building2, ShieldQuestion } from "lucide-react";
+import { ChevronRight, ShieldQuestion } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CompanyLogo } from "@/components/researchers/CompanyLogo";
 import { RequestAccessDialog } from "@/components/researchers/RequestAccessDialog";
 import { ResearcherAccessBadge } from "@/components/researchers/ResearcherAccessBadge";
 import { formatDateTime } from "@/lib/format/datetime";
@@ -76,17 +77,28 @@ export function MyAccessList({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, ease: "easeOut", delay: index * 0.03 }}
-              className="rounded-2xl border border-border bg-card p-5"
+              className="group relative rounded-2xl border border-border bg-card p-5 transition-colors hover:border-blue-200 focus-within:border-blue-200 dark:hover:border-blue-500/30 dark:focus-within:border-blue-500/30"
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="flex min-w-0 items-start gap-3">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                    <Building2 className="size-5" />
-                  </span>
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <CompanyLogo
+                    organizationId={record.organizationId}
+                    name={record.organizationName}
+                  />
                   <div className="min-w-0 space-y-1">
-                    <p className="truncate text-base font-bold tracking-tight text-foreground">
+                    {/* Stretched over the card, so the whole row opens the
+                        company rather than one word of it. The action beside
+                        it is lifted back above the overlay. */}
+                    <Link
+                      href={lp(`/dashboard/my-access/${record.organizationId}`)}
+                      className="flex items-center gap-1 truncate text-base font-bold tracking-tight text-foreground outline-none transition-colors group-hover:text-blue-600 after:absolute after:inset-0 after:rounded-2xl dark:group-hover:text-blue-400"
+                    >
                       {record.organizationName?.trim() || "Unnamed organization"}
-                    </p>
+                      <ChevronRight
+                        aria-hidden
+                        className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                      />
+                    </Link>
                     <p className="text-sm text-muted-foreground">
                       Requested {formatDateTime(record.requestedAt)}
                       {record.reviewedAt
@@ -96,7 +108,7 @@ export function MyAccessList({
                   </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-3">
+                <div className="relative z-10 flex shrink-0 items-center gap-3">
                   <ResearcherAccessBadge status={record.status} />
                   {actionLabel && canRequestAccess(record.status) && (
                     <Button

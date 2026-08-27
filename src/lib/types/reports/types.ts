@@ -3,6 +3,14 @@ export interface ReportItem {
   reportId: string;
   title: string;
   program: string;
+  /** The program filed against, and the company behind it.
+
+      Carried so a report can be grouped by who received it — the display name
+      alone cannot do that, since two companies may run programs by the same
+      name. Both are absent on a record that never came from the API, and
+      `organizationId` also when the program itself could not be read. */
+  programId?: string;
+  organizationId?: string;
   avatarLetter: string;
   type: "Bounty" | "Response";
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";

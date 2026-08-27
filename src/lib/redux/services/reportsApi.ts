@@ -97,6 +97,7 @@ interface ReportApiResponse {
 interface ProgramApiResponse {
   id: string;
   name: string;
+  organizationId?: string;
   engagementType?: string;
   assets?: Array<{
     id?: string;
@@ -281,13 +282,19 @@ const blankToUndefined = (value?: string) => {
   return trimmed ? trimmed : undefined;
 };
 
-function toReportItem(report: ReportApiResponse, programName: string): ReportItem {
+function toReportItem(
+  report: ReportApiResponse,
+  programName: string,
+  organizationId?: string,
+): ReportItem {
   const status = toStatus(report.state);
   return {
     id: report.id,
     reportId: toReportId(report.id),
     title: report.title,
     program: programName,
+    programId: report.programId,
+    organizationId,
     avatarLetter: programName.slice(0, 1).toUpperCase(),
     type: "Bounty",
     severity: toSeverity(report),
@@ -298,8 +305,12 @@ function toReportItem(report: ReportApiResponse, programName: string): ReportIte
   };
 }
 
-function toReportDetail(report: ReportApiResponse, programName: string): ReportDetail {
-  const item = toReportItem(report, programName);
+function toReportDetail(
+  report: ReportApiResponse,
+  programName: string,
+  organizationId?: string,
+): ReportDetail {
+  const item = toReportItem(report, programName, organizationId);
 
   /* Parsed through `toDate` so a timestamp without a zone marker is read as
      the UTC it is; `new Date` alone treated it as local time, which moved the
@@ -430,12 +441,25 @@ export const reportsApi = baseApi.injectEndpoints({
         const programIds = Array.from(new Set(raw.map((report) => report.programId).filter(Boolean)));
         const programResults = await Promise.all(programIds.map((id) => fetchWithBQ(`/programs/${id}`)));
         const programNames = new Map<string, string>();
+        /* The company behind each program, so a caller can ask "what have I
+           filed with them?" — reporting access is granted per organization,
+           and the program name alone cannot answer that. */
+        const programOrgs = new Map<string, string>();
         programIds.forEach((id, index) => {
           const result = programResults[index];
-          if (!result.error) programNames.set(id, (result.data as ProgramApiResponse).name);
+          if (result.error) return;
+          const program = result.data as ProgramApiResponse;
+          programNames.set(id, program.name);
+          if (program.organizationId) programOrgs.set(id, program.organizationId);
         });
 
-        let results = raw.map((report) => toReportItem(report, programNames.get(report.programId) ?? "Unknown Program"));
+        let results = raw.map((report) =>
+          toReportItem(
+            report,
+            programNames.get(report.programId) ?? "Unknown Program",
+            programOrgs.get(report.programId),
+          ),
+        );
 
         if (params?.search) {
           const q = params.search.toLowerCase();
@@ -488,14 +512,19 @@ export const reportsApi = baseApi.injectEndpoints({
 
         const reportData = reportResult.data as ReportApiResponse;
         let programName = reportData.programName || "Security Program";
-        if (reportData.programId && !reportData.programName) {
+        let organizationId: string | undefined;
+        /* Fetched whenever the program is not already named on the report, and
+           now also for the organization id, which the report never carries. */
+        if (reportData.programId) {
           const progResult = await fetchWithBQ(`/programs/${reportData.programId}`);
           if (!progResult.error && progResult.data) {
-            programName = (progResult.data as ProgramApiResponse).name || programName;
+            const program = progResult.data as ProgramApiResponse;
+            programName = program.name || programName;
+            organizationId = program.organizationId;
           }
         }
 
-        return { data: toReportDetail(reportData, programName) };
+        return { data: toReportDetail(reportData, programName, organizationId) };
       },
       providesTags: (_result, _error, id) => [{ type: "Report", id }],
     }),

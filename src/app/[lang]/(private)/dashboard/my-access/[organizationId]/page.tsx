@@ -2,14 +2,22 @@
 
 export const dynamic = "force-dynamic";
 
+import { use } from "react";
+
 import { RequireRole } from "@/components/auth/RequireRole";
-import { MyAccessView } from "@/components/researchers/MyAccessView";
+import { CompanyAccessDetail } from "@/components/researchers/CompanyAccessDetail";
 
 /**
- * Researcher-only. A company account has no access records of its own to
- * read here — the queue it cares about is the other side of the same gate.
+ * One company on the researcher access list: who they are, where the
+ * researcher stands with them, and what has already been filed.
  */
-export default function MyAccessPage() {
+export default function CompanyAccessPage({
+  params,
+}: {
+  params: Promise<{ organizationId: string }>;
+}) {
+  const { organizationId } = use(params);
+
   return (
     <RequireRole
       roles={["USER"]}
@@ -17,7 +25,7 @@ export default function MyAccessPage() {
       description="Your account signs in as a company, so there is no access of your own to show. What you are probably after is the queue of researchers asking to report to your programs."
       action={{ href: "/dashboard/researcher-access", label: "Researcher access" }}
     >
-      <MyAccessView />
+      <CompanyAccessDetail organizationId={organizationId} />
     </RequireRole>
   );
 }
