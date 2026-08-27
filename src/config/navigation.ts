@@ -19,6 +19,8 @@ import {
   PenSquare,
   Tags,
   Bug,
+  ShieldQuestion,
+  UserRoundCheck,
   LucideIcon,
 } from "lucide-react";
 
@@ -50,6 +52,10 @@ export const NAV_ITEMS: NavItem[] = [
   { name: "Rewards", href: "/dashboard/rewards", icon: CircleDollarSign, roles: ["USER"], category: "Researcher" },
   { name: "Bookmarks", href: "/dashboard/bookmarks", icon: Bookmark, roles: ["USER"], category: "Researcher" },
   { name: "Saved Drafts", href: "/dashboard/saved-draft", icon: FilePen, roles: ["USER"], category: "Researcher" },
+  // Where a researcher stands with each company. Reporting is gated on the
+  // company approving them, so this is the screen that answers "can I file
+  // this?" before the report form does.
+  { name: "My Access", href: "/dashboard/my-access", icon: ShieldQuestion, roles: ["USER"], category: "Researcher" },
 
   // COMPANY Role items
   { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["COMPANY"], category: "Organization" },
@@ -58,6 +64,9 @@ export const NAV_ITEMS: NavItem[] = [
   { name: "Saved Drafts", href: "/dashboard/saved-draft", icon: FilePen, roles: ["COMPANY"], category: "Organization" },
   { name: "Report Management", href: "/dashboard/report-management", icon: ClipboardList, roles: ["COMPANY"], category: "Organization" },
   { name: "Team Management", href: "/dashboard/team-management", icon: Users, roles: ["COMPANY"], category: "Organization" },
+  // The other side of the same gate: who outside the organization may report
+  // to it. One decision covers every program the company runs.
+  { name: "Researcher Access", href: "/dashboard/researcher-access", icon: UserRoundCheck, roles: ["COMPANY"], category: "Organization" },
 
   // ADMIN Role items
   { name: "Organization Verification", href: "/dashboard/company-verification", icon: ShieldCheck, roles: ["ADMIN"], category: "Administration" },

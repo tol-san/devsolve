@@ -19,6 +19,7 @@ import {
   DraftStatus,
   ResumeDraftBanner,
 } from "@/components/reports/ResumeDraftBanner";
+import { ReportingAccessNotice } from "@/components/researchers/ReportingAccessNotice";
 
 function SubmitReportContent() {
   const {
@@ -37,6 +38,10 @@ function SubmitReportContent() {
     isSubmitting,
     attachedFiles,
     submitError,
+    reportingAccess,
+    isAccessLoading,
+    canSubmitReport,
+    accessBlockedMessage,
     isDraftSaved,
     draft,
     restoreDraft,
@@ -101,6 +106,14 @@ function SubmitReportContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Left Column (2/3 width - Step Content Area) */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Above the steps, not inside one: a reporter who is not cleared
+              should read that before writing the report, not after. */}
+          <ReportingAccessNotice
+            access={reportingAccess}
+            isLoading={isAccessLoading}
+            blockedMessage={accessBlockedMessage}
+          />
+
           <form onSubmit={handleSubmit(onSubmit)}>
             <AnimatePresence mode="wait">
               <motion.div
@@ -148,6 +161,7 @@ function SubmitReportContent() {
                     isSubmitting={isSubmitting}
                     submitError={submitError}
                     isDraftSaved={isDraftSaved}
+                    canSubmitReport={canSubmitReport}
                     draftStatus={
                       <DraftStatus
                         isSaving={draft.isSaving}

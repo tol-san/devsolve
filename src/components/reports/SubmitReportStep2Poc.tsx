@@ -17,6 +17,12 @@ interface SubmitReportStep2PocProps {
   isSubmitting: boolean;
   submitError: string | null;
   isDraftSaved: boolean;
+  /**
+   * Whether the company behind the chosen program has cleared this reporter.
+   * Only submission is gated — writing and saving are not — so this disables
+   * the one button and leaves the rest of the step alone.
+   */
+  canSubmitReport?: boolean;
   /** Live autosave state, rendered beside the manual save. */
   draftStatus?: React.ReactNode;
   onAddFiles: (files: AttachedFile[]) => void;
@@ -36,6 +42,7 @@ export function SubmitReportStep2Poc({
   isSubmitting,
   submitError,
   isDraftSaved,
+  canSubmitReport = true,
   draftStatus,
   onAddFiles,
   onRemoveFile,
@@ -153,8 +160,16 @@ export function SubmitReportStep2Poc({
 
           <button
             type="button"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canSubmitReport}
             onClick={onSubmitReport}
+            /* The notice above carries the reason and the way out; this just
+               says why the button itself is dead for a pointer that hovers
+               it. */
+            title={
+              canSubmitReport
+                ? undefined
+                : "This organization has not approved you to report to its programs yet."
+            }
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 dark:hover:bg-muted transition-all shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (

@@ -4,6 +4,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useGetProgramsQuery, useGetProgramByIdQuery } from "@/lib/redux/services/program/programsApi";
 import { useSubmitReportMutation } from "@/lib/redux/services/reportsApi";
+import { useGetReportingAccessQuery } from "@/lib/redux/services/researcherAccessApi";
+import type { ResearcherAccessStatus } from "@/lib/validations/researcher-access";
+import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
 import {
   submitReportSchema,
   SubmitReportFormValues,
@@ -39,6 +42,21 @@ export function useSubmitReportForm() {
      hand — the examples belong in placeholders, not in the payload. */
   const [reproduceStepsList, setReproduceStepsList] = useState<string[]>([""]);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  /* The upstream's own words when it refuses a submission for want of
+     approval, tagged with the state it was describing.
+
+     Kept apart from `submitError` because it is not a mistake in the report —
+     nothing in the form can be corrected to fix it — and because it names the
+     company and the next step, which is more than anything written here could
+     say. The program and the access status travel with it so a refusal that no
+     longer describes anything is simply not read: pick another program, send
+     the request it asked for, get approved, and it falls away on the next
+     render rather than needing an effect to clear it. */
+  const [accessRefusal, setAccessRefusal] = useState<{
+    programId: string;
+    status: ResearcherAccessStatus | null;
+    message: string;
+  } | null>(null);
   const [isDraftSaved, setIsDraftSaved] = useState<boolean>(false);
   const [successModalData, setSuccessModalData] =
     useState<ReportSuccessModalData>({
@@ -184,6 +202,36 @@ export function useSubmitReportForm() {
     programs[0] ||
     null;
 
+  /* Asked up front rather than discovered on the way out.
+
+     Reporting is gated on the *company* approving the researcher, so a
+     submission from someone uncleared is refused with a 403 no matter how
+     complete the report is. Asking before the form is filled in is the
+     difference between a warning and a wasted afternoon — and since approval
+     is per organization, the answer holds for every program that company
+     runs. Drafts are untouched by it: writing and saving never needed
+     approval, and the notice says so. */
+  const accessProgramId = selectedProgram?.id || selectedProgramId || "";
+  const {
+    data: reportingAccess,
+    isLoading: isAccessLoading,
+  } = useGetReportingAccessQuery(accessProgramId, {
+    skip: !isUuid(accessProgramId),
+  });
+
+  /* Undefined while the pre-check is loading or unavailable — treated as
+     allowed, because blocking on a check that never answered would stop a
+     reporter who is in fact approved. The upstream still has the final say. */
+  const canSubmitReport = reportingAccess?.canSubmitReports !== false;
+
+  const accessStatus = reportingAccess?.status ?? null;
+  const accessBlockedMessage =
+    accessRefusal &&
+    accessRefusal.programId === accessProgramId &&
+    accessRefusal.status === accessStatus
+      ? accessRefusal.message
+      : null;
+
   // Synchronize preselected program ID when programs arrive asynchronously.
   useEffect(() => {
     if (preselectedProgramId) {
@@ -313,6 +361,7 @@ export function useSubmitReportForm() {
     setAttachedFiles([]);
     setExternalLinks([""]);
     setSubmitError(null);
+    setAccessRefusal(null);
     setSuccessModalData({
       isOpen: false,
       reportId: "",
@@ -323,6 +372,7 @@ export function useSubmitReportForm() {
 
   const onSubmit = async (values: SubmitReportFormValues) => {
     setSubmitError(null);
+    setAccessRefusal(null);
     const selectedProg = programs.find((p: any) => p.id === values.programId);
     const programName = selectedProg
       ? selectedProg.organizationName
@@ -374,6 +424,24 @@ export function useSubmitReportForm() {
       }
     } catch (err: unknown) {
       console.error("Failed to submit report:", err);
+
+      /* 403 is the company refusing the reporter, not the report. Its message
+         names the company and says how to get cleared, so it is shown exactly
+         as written and routed to the access notice — which is the thing that
+         carries the button to act on it. Nothing in the form is at fault, so
+         no field error is raised. */
+      if (apiErrorStatus(err) === 403) {
+        setAccessRefusal({
+          programId: values.programId,
+          status: accessStatus,
+          message: apiErrorMessage(
+            err,
+            "This organization has not approved you to report to its programs yet.",
+          ),
+        });
+        return;
+      }
+
       setSubmitError(
         "Failed to submit vulnerability report. Please verify inputs and try again.",
       );
@@ -394,6 +462,10 @@ export function useSubmitReportForm() {
     externalLinks,
     reproduceStepsList,
     submitError,
+    reportingAccess,
+    isAccessLoading,
+    canSubmitReport,
+    accessBlockedMessage,
     isDraftSaved,
     draft,
     restoreDraft,
