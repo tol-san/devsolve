@@ -60,11 +60,15 @@ export interface ProgramReportingAccess {
   organizationName?: string | null;
   status: ResearcherAccessStatus | null;
   canSubmitReports: boolean;
-  /** The upstream's own wording, when it sends any. Rendered verbatim. */
-  message?: string | null;
-  reviewNote?: string | null;
-  requestedAt?: string | null;
-  reviewedAt?: string | null;
+  /**
+   * The upstream's own wording, rendered verbatim. Named `reason` because
+   * that is what `ReportingEligibilityResponse` calls it.
+   *
+   * This response carries no review note — it is the eligibility answer, not
+   * the access record. A rejection note has to be read from the record
+   * itself, via `GET /organizations/{id}/researchers/me`.
+   */
+  reason?: string | null;
 }
 
 export const MOTIVATION_MIN_LENGTH = 20;

@@ -20,7 +20,11 @@ import { CompanyLogo } from "@/components/researchers/CompanyLogo";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/format/datetime";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
-import { canRequestAccess, requestActionLabel } from "@/lib/researchers/access";
+import {
+  canRequestAccess,
+  requestActionLabel,
+  wasInvited,
+} from "@/lib/researchers/access";
 import {
   useGetOrganizationByIdQuery,
   useGetOrganizationProgramsByIdQuery,
@@ -81,6 +85,8 @@ export function CompanyAccessDetail({
 
   const status = access?.status ?? null;
   const approved = access?.canSubmitReports === true;
+  /* Cleared without ever applying — the company came to them. */
+  const invited = access ? wasInvited(access) && status === "APPROVED" : false;
   const actionLabel = requestActionLabel(status);
   const name = organization?.name?.trim() || access?.organizationName?.trim() || "";
   const reviewNote =
@@ -175,7 +181,9 @@ export function CompanyAccessDetail({
               Your access
             </h2>
             <p className="text-sm text-muted-foreground">
-              {approved
+              {invited
+                ? "This company approved you without a request. You can file reports against every program below."
+                : approved
                 ? "You can file reports against every program below."
                 : status === "PENDING"
                   ? "Waiting on their review. You can keep writing and saving drafts."
@@ -199,7 +207,7 @@ export function CompanyAccessDetail({
         <dl className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <dt className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-              Requested
+              {invited ? "Invited" : "Requested"}
             </dt>
             <dd className="mt-1 text-sm font-medium text-foreground">
               {formatDateTime(access?.requestedAt ?? access?.createdAt)}

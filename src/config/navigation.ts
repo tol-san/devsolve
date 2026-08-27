@@ -19,6 +19,7 @@ import {
   PenSquare,
   Tags,
   Bug,
+  MailOpen,
   ShieldQuestion,
   UserRoundCheck,
   LucideIcon,
@@ -46,6 +47,9 @@ export const NAV_ITEMS: NavItem[] = [
   // their review status, including the ones not public yet.
   { name: "My Community", href: "/dashboard/my-community", icon: PenSquare, roles: ["USER", "COMPANY", "ADMIN"], category: "Overview" },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy, roles: ["USER", "COMPANY", "ADMIN"], category: "Overview" },
+  // Team invitations addressed to this account. Not role-scoped: a company
+  // owner can be invited onto someone else's team just as a researcher can.
+  { name: "Invitations", href: "/dashboard/invitations", icon: MailOpen, roles: ["USER", "COMPANY", "ADMIN"], category: "Overview" },
 
   // USER Role items
   { name: "Reports", href: "/dashboard/my-reports", icon: FileText, roles: ["USER"], category: "Researcher" },

@@ -10,6 +10,7 @@ import {
   canRequestAccess,
   requestActionLabel,
 } from "@/lib/researchers/access";
+import { useGetMyOrganizationAccessQuery } from "@/lib/redux/services/researcherAccessApi";
 import type { ProgramReportingAccess } from "@/lib/validations/researcher-access";
 
 /**
@@ -36,6 +37,15 @@ export function ReportingAccessNotice({
   const [session, setSession] = useState(0);
   const panel = useRef<HTMLElement | null>(null);
 
+  /* The eligibility answer says whether and why, but carries no review note —
+     that lives on the access record. Read only when there is a decision to
+     explain, so an approved reporter never pays for the request. */
+  const decided = access?.status === "REJECTED" || access?.status === "REVOKED";
+  const { data: record } = useGetMyOrganizationAccessQuery(
+    access?.organizationId ?? "",
+    { skip: !decided || !access?.organizationId },
+  );
+
   /* A 403 arrives from a button at the bottom of a long form, and this panel
      sits at the top of it — so the refusal would land off screen with nothing
      to show for the click. Announced by `aria-live` either way; this is for
@@ -60,11 +70,8 @@ export function ReportingAccessNotice({
   const status = access?.status ?? null;
   if (access?.canSubmitReports && !blockedMessage) return null;
 
-  const explanation = blockedMessage?.trim() || access?.message?.trim() || null;
-  const reviewNote =
-    status === "REJECTED" || status === "REVOKED"
-      ? access?.reviewNote?.trim() || null
-      : null;
+  const explanation = blockedMessage?.trim() || access?.reason?.trim() || null;
+  const reviewNote = decided ? record?.reviewNote?.trim() || null : null;
 
   /* Without the pre-check there is no organization to address a request to,
      so the refusal is shown on its own rather than under a button that has

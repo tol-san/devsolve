@@ -85,6 +85,12 @@ export const INVITE_PERMISSION_OPTIONS: InvitePermissionOption[] = [
     description:
       "Allows the member to assign bounty payouts or other rewards to valid submissions.",
   },
+  {
+    value: "MANAGE_RESEARCHERS",
+    title: "Manage researchers",
+    description:
+      "Allows the member to decide which researchers may report to the organization — approving, rejecting, and revoking access.",
+  },
 ];
 
 export const DEFAULT_PERMISSIONS_BY_ROLE: Record<
@@ -100,6 +106,7 @@ export const DEFAULT_PERMISSIONS_BY_ROLE: Record<
     "TRIAGE_REPORTS",
     "MANAGE_DISCLOSURE",
     "AWARD_REWARDS",
+    "MANAGE_RESEARCHERS",
   ],
   MEMBER: [
     "VIEW_PROGRAMS",

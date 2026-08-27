@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   CalendarDays,
@@ -38,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 const CURRENT_TEAM_ACTOR = {
@@ -127,6 +129,8 @@ export function TeamsMembersSection({
   statusFilter,
   setStatusFilter,
 }: TeamsMembersSectionProps) {
+  const router = useRouter();
+  const lp = useLocalePath();
   const [openMenuMemberId, setOpenMenuMemberId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmActionState | null>(null);
 
@@ -163,8 +167,16 @@ export function TeamsMembersSection({
 
   function handleMenuAction(action: "view-profile" | "edit-role", member: TeamMember) {
     setOpenMenuMemberId(null);
-    // Intentionally no-op until real profile and role workflows are connected.
-    void action;
+
+    if (action === "view-profile") {
+      /* `member.id` is the backend `userId`. The profile route takes either a
+         username or a user id and tells the two apart itself, so the id goes
+         straight in — there is no username on a member record to look up. */
+      router.push(lp(`/dashboard/profile/${member.id}`));
+      return;
+    }
+
+    // Editing a role from here is still to be connected.
     void member;
   }
 

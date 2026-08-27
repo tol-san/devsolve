@@ -81,6 +81,25 @@ export const DECISION_DONE: Record<ReviewDecision, string> = {
   REVOKE: "revoked",
 };
 
+/**
+ * Whether the company reached out rather than the researcher asking.
+ *
+ * A request carries a motivation of at least twenty characters — the endpoint
+ * refuses anything shorter — so a record without one was never a request. It
+ * came from `POST /organizations/{id}/researchers/invite`, which is a company
+ * clearing someone who never applied.
+ *
+ * Worth telling apart on the researcher side: being approved for something you
+ * asked for and being approached by a company you have never contacted are
+ * different pieces of news.
+ */
+export function wasInvited(record: {
+  motivation?: string | null;
+  status?: ResearcherAccessStatus;
+}): boolean {
+  return !record.motivation?.trim();
+}
+
 /** Human wording for a state, used on badges and empty states. */
 export const STATUS_LABEL: Record<ResearcherAccessStatus, string> = {
   PENDING: "Pending",

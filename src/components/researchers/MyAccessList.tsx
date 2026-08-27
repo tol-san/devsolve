@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ChevronRight, ShieldQuestion } from "lucide-react";
+import { ChevronRight, MailCheck, ShieldQuestion } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,11 @@ import { RequestAccessDialog } from "@/components/researchers/RequestAccessDialo
 import { ResearcherAccessBadge } from "@/components/researchers/ResearcherAccessBadge";
 import { formatDateTime } from "@/lib/format/datetime";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
-import { canRequestAccess, requestActionLabel } from "@/lib/researchers/access";
+import {
+  canRequestAccess,
+  requestActionLabel,
+  wasInvited,
+} from "@/lib/researchers/access";
 import type { ResearcherAccessRecord } from "@/lib/validations/researcher-access";
 
 /**
@@ -67,6 +71,9 @@ export function MyAccessList({
       <ul className="grid grid-cols-1 gap-3">
         {records.map((record, index) => {
           const actionLabel = requestActionLabel(record.status);
+          /* They came to you. Only worth saying while the approval stands —
+             on a rejected or revoked record the state is the news. */
+          const invited = wasInvited(record) && record.status === "APPROVED";
           const showNote =
             record.status === "REJECTED" || record.status === "REVOKED";
           const note = showNote ? record.reviewNote?.trim() : "";
@@ -100,10 +107,13 @@ export function MyAccessList({
                       />
                     </Link>
                     <p className="text-sm text-muted-foreground">
-                      Requested {formatDateTime(record.requestedAt)}
-                      {record.reviewedAt
-                        ? ` · Reviewed ${formatDateTime(record.reviewedAt)}`
-                        : ""}
+                      {invited
+                        ? `Approved ${formatDateTime(record.reviewedAt ?? record.createdAt)}`
+                        : `Requested ${formatDateTime(record.requestedAt)}${
+                            record.reviewedAt
+                              ? ` · Reviewed ${formatDateTime(record.reviewedAt)}`
+                              : ""
+                          }`}
                     </p>
                   </div>
                 </div>
@@ -135,6 +145,13 @@ export function MyAccessList({
                     {note}
                   </p>
                 </div>
+              )}
+
+              {invited && (
+                <p className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                  <MailCheck aria-hidden className="size-4 shrink-0" />
+                  They invited you — you never had to ask.
+                </p>
               )}
 
               {record.canSubmitReports && (

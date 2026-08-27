@@ -100,7 +100,10 @@ function getNotificationLink(
     case "SOLUTION":
       return `/dashboard/my-community`;
     case "INVITATION":
-      return `/dashboard/team-management`;
+      /* Not `/dashboard/team-management`: that reads the *reader's own*
+         organization members, which for someone who has not accepted yet is
+         the one page certain to show them nothing. */
+      return `/dashboard/invitations`;
     case "KYC":
       // Verification state and its next action live on the org page.
       return `/dashboard/organizations`;

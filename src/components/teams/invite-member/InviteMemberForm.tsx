@@ -64,6 +64,7 @@ const permissionValues = [
   "TRIAGE_REPORTS",
   "MANAGE_DISCLOSURE",
   "AWARD_REWARDS",
+  "MANAGE_RESEARCHERS",
 ] as const;
 
 const inviteMemberSchema = z.object({
@@ -79,8 +80,10 @@ const inviteMemberSchema = z.object({
 
   permissions: z
     .array(z.enum(permissionValues))
+    /* The upstream validates `@Size(max = 10)` on this list and there are
+       exactly ten permissions, so the ceiling is the whole set. */
     .min(1, "Select at least one permission.")
-    .max(8, "You can select up to eight permissions."),
+    .max(10, "You can select up to ten permissions."),
 });
 
 type InviteMemberFormValues = z.infer<
@@ -92,6 +95,7 @@ type PermissionCategory =
   | "Reports"
   | "Disclosure"
   | "Rewards"
+  | "Researchers"
   | "General";
 
 const roleIcons = {
@@ -134,20 +138,25 @@ function getErrorMessage(error: unknown): string {
     apiError.data?.details ??
     "";
 
-  const normalizedMessage = rawMessage.toLowerCase();
-
-  if (
-    normalizedMessage.includes("already") &&
-    normalizedMessage.includes("invitation")
-  ) {
-    return "An invitation has already been sent to this email address.";
+  /**
+   * A team invitation only reaches someone who already has a DevSolve
+   * account — the upstream links an existing user rather than creating one,
+   * and answers 404 when there is nobody behind the address. That is the most
+   * common way this fails and the one the inviter can actually act on, so it
+   * is spelled out rather than folded into a generic failure.
+   */
+  if (apiError.status === 404) {
+    return "No DevSolve account uses that email address. They need to register first, then you can invite them.";
   }
 
-  if (
-    normalizedMessage.includes("already") &&
-    normalizedMessage.includes("member")
-  ) {
-    return "This user is already a member of your organization.";
+  /* Three different situations upstream — already a member, an invitation
+     still outstanding, or an organization not approved yet — and the upstream
+     is the only one that knows which. Its sentence is kept whole. */
+  if (apiError.status === 409) {
+    return (
+      rawMessage.trim() ||
+      "That invitation cannot be sent right now. They may already be on the team, or an invitation may still be outstanding."
+    );
   }
 
   if (
@@ -155,10 +164,6 @@ function getErrorMessage(error: unknown): string {
     apiError.status === 403
   ) {
     return "You do not have permission to invite organization members.";
-  }
-
-  if (apiError.status === 404) {
-    return "Your organization could not be found.";
   }
 
   if (rawMessage.trim()) {
@@ -363,8 +368,9 @@ export function InviteMemberForm() {
                   </div>
 
                   <FieldDescription className="text-sm leading-relaxed text-muted-foreground">
-                    The invitation will be sent directly to
-                    this email address.
+                    The invitation goes to this address, and it has to belong to
+                    an existing DevSolve account — invitations link a person who
+                    has already registered rather than creating one for them.
                   </FieldDescription>
 
                   <FieldError
@@ -890,6 +896,9 @@ function PermissionCategoryBadge({
     Rewards:
       "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
 
+    Researchers:
+      "border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-300",
+
     General:
       "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
   };
@@ -986,6 +995,10 @@ function getPermissionCategory(
 
   if (permission.includes("REWARD")) {
     return "Rewards";
+  }
+
+  if (permission.includes("RESEARCHER")) {
+    return "Researchers";
   }
 
   return "General";

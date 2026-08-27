@@ -57,3 +57,56 @@ export function formatDateTime(
     second: "2-digit",
   });
 }
+
+/**
+ * `in 2 days`, `tomorrow`, `in 5 hours`, `3 minutes ago` — the distance
+ * between a timestamp and `now`, in the largest unit that still says
+ * something.
+ *
+ * For deadlines, which is the only reason a raw timestamp is not enough: an
+ * invitation that expires on `Sep 3, 2026, 4:40:00 PM` tells the reader
+ * nothing until they work out what today is.
+ *
+ * `now` is a parameter rather than a `Date.now()` inside, so the function is
+ * pure and a component cannot read the clock while rendering. Take it from
+ * `useNow`, which also keeps it moving.
+ */
+export function formatTimeDistance(
+  value: string | null | undefined,
+  now: number,
+  fallback = "",
+): string {
+  const date = toDate(value);
+  if (!date) return fallback;
+
+  const seconds = Math.round((date.getTime() - now) / 1000);
+  const magnitude = Math.abs(seconds);
+  const sign = seconds < 0 ? -1 : 1;
+
+  const [amount, unit]: [number, Intl.RelativeTimeFormatUnit] =
+    magnitude < 60
+      ? [magnitude, "second"]
+      : magnitude < 3600
+        ? [Math.round(magnitude / 60), "minute"]
+        : magnitude < 86400
+          ? [Math.round(magnitude / 3600), "hour"]
+          : magnitude < 2592000
+            ? [Math.round(magnitude / 86400), "day"]
+            : [Math.round(magnitude / 2592000), "month"];
+
+  /* `numeric: "auto"` is what turns one day into "tomorrow" and zero days into
+     "today", which is the wording a deadline that close deserves. */
+  return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
+    sign * amount,
+    unit,
+  );
+}
+
+/** Whether a timestamp is behind `now`. Unusable values are not. */
+export function hasPassed(
+  value: string | null | undefined,
+  now: number,
+): boolean {
+  const date = toDate(value);
+  return date ? date.getTime() <= now : false;
+}

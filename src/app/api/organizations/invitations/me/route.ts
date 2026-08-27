@@ -28,31 +28,30 @@ const unreachable = () =>
     { status: 502 }
   );
 
-export async function POST(request: NextRequest) {
+/**
+ * The invitations addressed to the signed-in account.
+ *
+ * Upstream only returns invitations that would actually succeed if accepted
+ * right now — pending, unexpired, into an organization that is still active —
+ * sorted soonest-to-expire first. Nothing is filtered or reordered here.
+ *
+ * Note the shape of the empty answer: `200` with `[]`, never a 404. Anything
+ * that is not ok really is a failure and is relayed as one, so the screen can
+ * tell "you have no invitations" apart from "we could not ask".
+ */
+export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();
 
-  let payload: unknown;
-  try {
-    payload = await request.json();
-  } catch {
-    return NextResponse.json(
-      { message: "Request body must be valid JSON" },
-      { status: 400 }
-    );
-  }
-
   try {
     const upstream = await fetch(
-      `${BACKEND_API_URL}/organizations/me/members/invitations`,
+      `${BACKEND_API_URL}/organizations/invitations/me`,
       {
-        method: "POST",
+        method: "GET",
         headers: {
-          "Content-Type": "application/json",
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
         cache: "no-store",
       }
     );
@@ -68,22 +67,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (!upstream.ok) {
-      /* Statuses are relayed as they arrive. A 404 here does not mean the
-         organization is missing — it means the invited address has no
-         DevSolve account yet, which is the whole reason a team invitation can
-         only reach someone who has already registered. Rewriting it to a 400
-         with a message about registering an organization pointed the inviter
-         at their own account instead of at the person they were inviting. */
       const message =
         (body as { message?: string } | null)?.message ??
-        "Failed to invite organization member.";
+        "Failed to load your invitations.";
       return NextResponse.json(
         { message, details: body },
         { status: upstream.status }
       );
     }
 
-    return NextResponse.json(body, { status: 201 });
+    return NextResponse.json(body ?? [], { status: 200 });
   } catch {
     return unreachable();
   }

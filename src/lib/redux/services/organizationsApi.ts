@@ -87,7 +87,8 @@ export type OrganizationInvitationPermission =
   | "VIEW_REPORTS"
   | "TRIAGE_REPORTS"
   | "MANAGE_DISCLOSURE"
-  | "AWARD_REWARDS";
+  | "AWARD_REWARDS"
+  | "MANAGE_RESEARCHERS";
 
 export type OrganizationMemberInvitationStatus =
   | "ACTIVE"
@@ -134,6 +135,34 @@ export type InviteOrganizationMemberResponse = {
 
 export type AcceptOrganizationInvitationRequest = {
   token: string;
+};
+
+/**
+ * An invitation as the *invitee* sees it, from
+ * `GET /organizations/invitations/me`.
+ *
+ * A different shape from `OrganizationInvitationMember`, which is the company
+ * looking at its own roster. This one carries the `invitationToken` — the only
+ * place in the API a signed-in invitee can get it, since the token reaches
+ * them otherwise only by email. The INVITATION notification does not have it:
+ * its `notifiableId` is the organization's id.
+ */
+export type MyOrganizationInvitation = {
+  invitationToken: string;
+  organizationId: string;
+  organizationName: string;
+  organizationSlug?: string | null;
+  organizationLogoUrl?: string | null;
+  role: OrganizationInvitationRole;
+  invitedByName?: string | null;
+  invitedAt: string;
+  expiresAt: string;
+};
+
+type MyInvitationsEnvelope = {
+  invitations?: MyOrganizationInvitation[];
+  data?: MyOrganizationInvitation[];
+  items?: MyOrganizationInvitation[];
 };
 
 type OrganizationMembersEnvelope = {
@@ -322,6 +351,34 @@ export const organizationsApi = proxyApi.injectEndpoints({
         "OrganizationInvitations",
       ],
     }),
+    /**
+     * Invitations waiting for the signed-in account.
+     *
+     * Server-side this is already filtered to invitations that would succeed
+     * if accepted right now and ordered soonest-to-expire first, so the rows
+     * are rendered in the order they arrive — no client-side pruning, and no
+     * bookkeeping after an accept either: `acceptOrganizationInvitation`
+     * invalidates this tag and the accepted row leaves on the refetch.
+     */
+    getMyInvitations: builder.query<MyOrganizationInvitation[], void>({
+      query: () => ({
+        url: "/organizations/invitations/me",
+        method: "GET",
+      }),
+      transformResponse: (
+        response: MyOrganizationInvitation[] | MyInvitationsEnvelope | null,
+      ) => {
+        if (Array.isArray(response)) return response;
+        if (!response) return [];
+        return (
+          response.invitations ??
+          response.data ??
+          response.items ??
+          []
+        );
+      },
+      providesTags: ["OrganizationInvitations"],
+    }),
     acceptOrganizationInvitation: builder.mutation<
       OrganizationInvitationMember,
       AcceptOrganizationInvitationRequest
@@ -383,6 +440,7 @@ export const {
   useGetOrganizationProgramsByIdQuery,
   useGetOrganizationMembersQuery,
   useInviteOrganizationMemberMutation,
+  useGetMyInvitationsQuery,
   useAcceptOrganizationInvitationMutation,
   useUpdateMemberRoleMutation,
   useUpdateMemberPermissionsMutation,
