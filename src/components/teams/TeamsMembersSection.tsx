@@ -70,7 +70,6 @@ import { cn } from "@/lib/utils";
 
 /** The signed-in account, as far as this roster is concerned. */
 type TeamActor = {
-  userId?: string;
   role?: OrganizationInvitationRole;
   isOwner: boolean;
 };
@@ -148,7 +147,10 @@ function getRoleBadgeClass(role: MemberRole) {
 }
 
 function getMemberPermissions(member: TeamMember, actor: TeamActor) {
-  const isCurrentUser = Boolean(actor.userId) && member.id === actor.userId;
+  /* The roster marks its own row, which is the only reliable way to know:
+     the membership record describes the account's place in the organization
+     and carries no user id to compare against. */
+  const isCurrentUser = member.isSelf;
 
   /* An owner may act on anyone but themselves. A manager may act on the ranks
      below them and never on another manager. Everyone else is here to read.
@@ -179,6 +181,22 @@ type TeamsMembersSectionProps = {
   setStatusFilter: (filter: StatusFilter) => void;
 };
 
+/**
+ * Which menu is open, not merely whose.
+ *
+ * Every member is rendered twice — as a card below `lg`, as a table row above
+ * it — and the switch between the two is `display`, so both copies are always
+ * in the DOM. Keying the open menu on the member id alone opened both at once,
+ * and since the menu content is portalled to the body it escaped its hidden
+ * ancestor and surfaced as a second dropdown anchored to a trigger with no
+ * layout box.
+ */
+type MemberMenuView = "card" | "row";
+
+function memberMenuKey(view: MemberMenuView, memberId: string) {
+  return `${view}:${memberId}`;
+}
+
 export function TeamsMembersSection({
   counts,
   filteredMembers,
@@ -194,7 +212,7 @@ export function TeamsMembersSection({
 }: TeamsMembersSectionProps) {
   const router = useRouter();
   const lp = useLocalePath();
-  const [openMenuMemberId, setOpenMenuMemberId] = useState<string | null>(null);
+  const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
   const [removalError, setRemovalError] = useState<string | null>(null);
 
@@ -205,12 +223,7 @@ export function TeamsMembersSection({
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
   const [updateMemberRole] = useUpdateMemberRoleMutation();
 
-  /* The roster does not mark the owner and neither does the membership row,
-     which carries no user id — so no row is flagged as the owner's here. */
-  const ownerId: string | undefined = undefined;
-
   const actor: TeamActor = {
-    userId: undefined,
     role: membership?.role ?? undefined,
     isOwner,
   };
@@ -249,7 +262,7 @@ export function TeamsMembersSection({
   }
 
   function openProfile(member: TeamMember) {
-    setOpenMenuMemberId(null);
+    setOpenMenuKey(null);
 
     /* `member.id` is the backend `userId`. The profile route takes either a
        username or a user id and tells the two apart itself, so the id goes
@@ -261,7 +274,7 @@ export function TeamsMembersSection({
     member: TeamMember,
     nextRole: OrganizationInvitationRole,
   ) {
-    setOpenMenuMemberId(null);
+    setOpenMenuKey(null);
     if (nextRole === API_ROLE[member.role]) return;
 
     const label =
@@ -287,7 +300,7 @@ export function TeamsMembersSection({
   }
 
   function askToRemove(member: TeamMember) {
-    setOpenMenuMemberId(null);
+    setOpenMenuKey(null);
     setRemovalError(null);
     setMemberToRemove(member);
   }
@@ -435,11 +448,13 @@ export function TeamsMembersSection({
                   index={index}
                   tone={getAvatarTone(member.id)}
                   permissions={getMemberPermissions(member, actor)}
-                  isSelf={member.id === actor.userId}
-                  isOwner={member.id === ownerId}
-                  menuOpen={openMenuMemberId === member.id}
+                  isSelf={member.isSelf}
+                  isOwner={member.isOwner}
+                  menuOpen={openMenuKey === memberMenuKey("card", member.id)}
                   onMenuOpenChange={(open) =>
-                    setOpenMenuMemberId(open ? member.id : null)
+                    setOpenMenuKey(
+                      open ? memberMenuKey("card", member.id) : null,
+                    )
                   }
                   onViewProfile={() => openProfile(member)}
                   onRoleChange={(role) => void handleRoleChange(member, role)}
@@ -514,8 +529,8 @@ export function TeamsMembersSection({
                               <span className="truncate text-base font-semibold tracking-[-0.01em] text-foreground">
                                 {member.name}
                               </span>
-                              {member.id === actor.userId ? <YouTag /> : null}
-                              {member.id === ownerId ? <OwnerTag /> : null}
+                              {member.isSelf ? <YouTag /> : null}
+                              {member.isOwner ? <OwnerTag /> : null}
                             </div>
                             <p className="truncate text-sm text-muted-foreground">
                               {member.email}
@@ -547,9 +562,11 @@ export function TeamsMembersSection({
                         <MemberActions
                           member={member}
                           permissions={getMemberPermissions(member, actor)}
-                          open={openMenuMemberId === member.id}
+                          open={openMenuKey === memberMenuKey("row", member.id)}
                           onOpenChange={(open) =>
-                            setOpenMenuMemberId(open ? member.id : null)
+                            setOpenMenuKey(
+                              open ? memberMenuKey("row", member.id) : null,
+                            )
                           }
                           onViewProfile={() => openProfile(member)}
                           onRoleChange={(role) =>

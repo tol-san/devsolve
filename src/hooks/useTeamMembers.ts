@@ -112,6 +112,7 @@ export function useTeamMembers() {
     () =>
       organizationMembers.map((member) => ({
         id: member.userId,
+        username: member.username ?? undefined,
         name: formatMemberName(member.name, member.email),
         email: member.email,
         role: formatRole(member.role),
@@ -123,6 +124,8 @@ export function useTeamMembers() {
         permissions: member.permissions ?? [],
         isPending:
           Boolean(member.invitationPending) || member.status === "PENDING",
+        isSelf: member.self === true,
+        isOwner: member.owner === true,
       })),
     [organizationMembers],
   );

@@ -77,7 +77,11 @@ function ProgramDetailPageContent({
 
   const { user } = useSidebarAuth();
   const isAdmin = user?.roles?.includes("ADMIN") ?? false;
-  const { hasCompanyAccess: isCompanyUser, can } = useCompanyAccess();
+  const {
+    hasCompanyAccess: isCompanyUser,
+    can,
+    isLoading: isAccessLoading,
+  } = useCompanyAccess();
   const isAdminScope = searchParams.get("scope") === "admin" && isAdmin;
 
   const [activeTab, setActiveTab] = useState<ProgramDetailTabId>("overview");
@@ -96,6 +100,7 @@ function ProgramDetailPageContent({
   const {
     data: publicDetail,
     isLoading: isPublicLoading,
+    error: publicError,
     refetch: refetchPublic,
   } = useGetProgramByIdQuery(id);
 
@@ -103,8 +108,11 @@ function ProgramDetailPageContent({
   const {
     data: companyDetail,
     isLoading: isCompanyLoading,
+    error: companyError,
     refetch: refetchCompany,
-  } = useGetMyCompanyProgramByIdQuery(id, { skip: !isCompanyUser || Boolean(publicDetail) });
+  } = useGetMyCompanyProgramByIdQuery(id, {
+    skip: !isCompanyUser || Boolean(publicDetail),
+  });
 
   const refetch = () => {
     if (isAdminScope) refetchAdmin();
@@ -114,8 +122,19 @@ function ProgramDetailPageContent({
 
   const program = adminDetail ?? publicDetail ?? companyDetail;
 
-  const isLoading = isAdminScope ? isAdminDetailLoading : ((isPublicLoading || isCompanyLoading) && !program);
+  /* `isCompanyUser` is false until the memberships land, which skips the company
+     query — so without waiting for access the page concluded "not found" from the
+     public 404 alone, before it had tried the endpoint that would have answered. */
+  const isLoading = isAdminScope
+    ? isAdminDetailLoading
+    : (isAccessLoading || isPublicLoading || isCompanyLoading) && !program;
   const isError = !isLoading && !program;
+
+  /* The company query is the last thing tried, so its status is the one that
+     explains the failure; the public 404 only means "not published". */
+  const failure = describeProgramFailure(
+    statusOf(companyError) ?? statusOf(publicError),
+  );
 
   const [approveProgram] = useApproveProgramMutation();
   const [rejectProgram] = useRejectProgramMutation();
@@ -262,10 +281,10 @@ function ProgramDetailPageContent({
           </div>
           <div>
             <h2 className="text-xl font-bold text-foreground">
-              Program Not Found
+              {failure.title}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Unable to load program details or the program ID is invalid.
+              {failure.body}
             </p>
           </div>
           <Link href={backHref}>
@@ -729,6 +748,45 @@ function ProgramDetailPageFallback() {
       </div>
     </div>
   );
+}
+
+/** The transport status of a failed RTK Query call, when it carries one. */
+function statusOf(error: unknown): number | undefined {
+  if (typeof error === "object" && error !== null && "status" in error) {
+    const status = (error as { status?: unknown }).status;
+    if (typeof status === "number") return status;
+  }
+  return undefined;
+}
+
+/**
+ * Why the program would not load, in the reader's terms.
+ *
+ * All three failures used to read "Program Not Found", which sent people looking
+ * for a program that was there all along. The `/organizations/me/*` endpoints
+ * take no organization, so they refuse an account that belongs to more than one
+ * rather than guess between them, and they refuse a member who was never granted
+ * `VIEW_PROGRAMS`. Neither is a missing program.
+ */
+function describeProgramFailure(status: number | undefined) {
+  if (status === 409) {
+    return {
+      title: "This account is on more than one organization",
+      body: "The program endpoint takes no organization, so it will not guess which of yours you mean. Until it accepts one, program details are only reachable for accounts on a single organization.",
+    };
+  }
+
+  if (status === 403) {
+    return {
+      title: "You cannot view this organization's programs",
+      body: "This needs the View programs permission. An owner or a manager can grant it from Team management.",
+    };
+  }
+
+  return {
+    title: "Program not found",
+    body: "Unable to load program details, or the program ID is invalid.",
+  };
 }
 
 export default function ProgramDetailPage({

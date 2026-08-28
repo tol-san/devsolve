@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Program, ProgramDetail } from "@/lib/types/programs/types";
-import { isPublished } from "@/lib/programs/draft-status";
+import { isPublished, isUnderReview } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
 import {
   useGetBookmarkStatusQuery,
@@ -40,8 +40,13 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
   /* Saving is for programs a researcher can come back to. A draft has no
      public page to return to — this hero is also what the owner previews from
      Saved drafts — so the control is left out rather than shown against
-     something nobody else can open. The status request goes with it. */
-  const canBookmark = isPublished(program);
+     something nobody else can open. The status request goes with it.
+
+     One under review is excluded on top of that, and needs saying separately:
+     `state` and `submissionState` move independently, so a program that was
+     published and then resubmitted sits at `ACTIVE` with `PENDING_REVIEW`, and
+     the published check alone let Save through on it. */
+  const canBookmark = isPublished(program) && !isUnderReview(program);
 
   const { data: isSaved } = useGetBookmarkStatusQuery(
     { type: "PROGRAM", targetId: program.id },

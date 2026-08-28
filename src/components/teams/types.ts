@@ -5,6 +5,8 @@ export type MemberStatus = "Active" | "Pending";
 
 export type TeamMember = {
   id: string;
+  /** Present once the account has claimed a handle; profile links prefer it. */
+  username?: string;
   name: string;
   email: string;
   avatar?: string;
@@ -15,6 +17,10 @@ export type TeamMember = {
   permissions: OrganizationInvitationPermission[];
   /** An invitation nobody has accepted yet, rather than a colleague. */
   isPending: boolean;
+  /** This row is the signed-in account, as the roster reports it. */
+  isSelf: boolean;
+  /** Registered the company, rather than being invited into it. */
+  isOwner: boolean;
 };
 
 export type RoleFilter = "All" | MemberRole;

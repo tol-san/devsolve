@@ -118,12 +118,22 @@ export type RemoveMemberRequest = {
 
 export type OrganizationInvitationMember = {
   userId: string;
+  /** Stable handle, for profile links that read as a name rather than a UUID. */
+  username?: string | null;
   name: string;
   email: string;
   role: OrganizationInvitationRole;
   permissions: OrganizationInvitationPermission[];
   status: OrganizationMemberInvitationStatus;
   invitationPending: boolean;
+  /**
+   * This row is the caller. The roster is the only place that can say so —
+   * `GET /organizations/me/memberships` describes the account's relationship to
+   * the organization and carries no user id to match a row against.
+   */
+  self?: boolean;
+  /** Registered the company, rather than being invited into it. */
+  owner?: boolean;
   joinedAt: string;
 };
 
