@@ -62,6 +62,12 @@ export const INVITE_PERMISSION_OPTIONS: InvitePermissionOption[] = [
       "Allows opening, pausing, or closing programs when program status needs to change.",
   },
   {
+    value: "DELETE_PROGRAM",
+    title: "Delete programs",
+    description:
+      "Allows the member to take a program down. Destructive, and not part of any role's defaults — grant it deliberately.",
+  },
+  {
     value: "VIEW_REPORTS",
     title: "View reports",
     description:

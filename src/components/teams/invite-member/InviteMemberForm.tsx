@@ -4,7 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import {
   AlertCircle,
+  ArrowRight,
   Check,
+  Copy,
+  CheckCircle2,
   Eye,
   Loader2,
   Mail,
@@ -15,7 +18,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { motion } from "motion/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -29,7 +34,7 @@ import type {
   InviteRoleOption,
 } from "@/components/teams/invite-member/types";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -51,7 +56,9 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { toast } from "@/hooks/use-toast";
+import { formatDateTime } from "@/lib/format/datetime";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
+import { absoluteUrl } from "@/lib/seo/site";
 import { useInviteOrganizationMemberMutation } from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +67,7 @@ const permissionValues = [
   "CREATE_PROGRAM",
   "EDIT_PROGRAM",
   "MANAGE_PROGRAM_STATE",
+  "DELETE_PROGRAM",
   "VIEW_REPORTS",
   "TRIAGE_REPORTS",
   "MANAGE_DISCLOSURE",
@@ -182,9 +190,20 @@ export function InviteMemberForm() {
     { isLoading },
   ] = useInviteOrganizationMemberMutation();
 
+  /* What the 201 came back with. The token is the whole reason this screen
+     stops at a confirmation instead of navigating away: it exists nowhere else
+     the inviter can reach, and an email that never arrives would otherwise
+     leave the invitation unreachable by anyone. */
+  const [sent, setSent] = useState<{
+    email: string;
+    token?: string;
+    expiresAt?: string;
+  } | null>(null);
+
   const {
     register,
     handleSubmit,
+    reset,
     setValue,
     setError,
     control,
@@ -234,28 +253,26 @@ export function InviteMemberForm() {
       const response =
         await inviteOrganizationMember(values).unwrap();
 
-      const expiration =
+      const expiresAt =
         typeof response.expiresAt === "string"
-          ? new Date(
-              response.expiresAt,
-            ).toLocaleString("en-US", {
-              month: "short",
-              day: "2-digit",
-              year: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })
-          : null;
+          ? response.expiresAt
+          : undefined;
 
       toast.success({
-        title: "Invitation sent",
-        description: expiration
-          ? `The invitation was sent to ${values.email}. It expires on ${expiration}.`
-          : `The invitation was sent to ${values.email}.`,
+        title: "Invitation created",
+        description: expiresAt
+          ? `${values.email} can join until ${formatDateTime(expiresAt)}.`
+          : `${values.email} can now join the team.`,
       });
 
-      router.push(lp("/dashboard/team-management"));
-      router.refresh();
+      setSent({
+        email: values.email,
+        token:
+          typeof response.invitationToken === "string"
+            ? response.invitationToken
+            : undefined,
+        expiresAt,
+      });
     } catch (error) {
       const message = getErrorMessage(error);
 
@@ -314,7 +331,23 @@ export function InviteMemberForm() {
   }
 
   function handleCancel() {
-    router.push("/dashboard/team-management");
+    router.push(lp("/dashboard/team-management"));
+  }
+
+  if (sent) {
+    return (
+      <InvitationSent
+        sent={sent}
+        onInviteAnother={() => {
+          setSent(null);
+          reset({
+            email: "",
+            role: "MEMBER",
+            permissions: [...DEFAULT_PERMISSIONS_BY_ROLE.MEMBER],
+          });
+        }}
+      />
+    );
   }
 
   return (
@@ -975,6 +1008,144 @@ function Step({
         {text}
       </p>
     </li>
+  );
+}
+
+/**
+ * What happens after a successful invite.
+ *
+ * The screen used to bounce straight to team management on a 201, which threw
+ * away the one copy of the invitation token anybody would ever see. The email
+ * the backend sends is not something this app can confirm arrived — it depends
+ * on the recipient's own `INVITATION` email preference and on mail config well
+ * outside it — so the link is put in the inviter's hands as well. Belt and
+ * braces, and it costs one screen.
+ */
+function InvitationSent({
+  sent,
+  onInviteAnother,
+}: {
+  sent: { email: string; token?: string; expiresAt?: string };
+  onInviteAnother: () => void;
+}) {
+  const lp = useLocalePath();
+  const [copied, setCopied] = useState(false);
+
+  /* Built from `NEXT_PUBLIC_SITE_URL`, the same origin canonical URLs use, so
+     it is a link that works from any machine — not the inviter's `localhost`. */
+  const link = sent.token
+    ? absoluteUrl(lp(`/invitations/${sent.token}`))
+    : null;
+
+  async function copyLink() {
+    if (!link) return;
+
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.destructive({
+        title: "Could not copy the link",
+        description: "Select it in the field and copy it by hand.",
+      });
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="mx-auto w-full max-w-2xl"
+    >
+      <Card className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10">
+        <CardContent className="space-y-6 px-6 py-7 sm:px-7">
+          <div className="flex items-start gap-3">
+            <span
+              aria-hidden
+              className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
+            >
+              <CheckCircle2 className="size-6" />
+            </span>
+            <div className="min-w-0 space-y-1.5">
+              <h2 className="text-xl font-bold tracking-tight text-foreground">
+                Invitation created
+              </h2>
+              <p className="text-base leading-relaxed text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {sent.email}
+                </span>{" "}
+                can now join your team. It is waiting on their invitations
+                screen, and the invitation email is on its way.
+                {sent.expiresAt
+                  ? ` Either way it stops working on ${formatDateTime(sent.expiresAt)}.`
+                  : ""}
+              </p>
+            </div>
+          </div>
+
+          {link ? (
+            <div className="space-y-2.5 rounded-xl bg-muted/60 p-4">
+              <p className="text-sm font-semibold text-foreground">
+                Their invitation link
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  readOnly
+                  value={link}
+                  aria-label="Invitation link"
+                  onFocus={(event) => event.currentTarget.select()}
+                  className="h-11 flex-1 rounded-xl bg-card font-mono text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void copyLink()}
+                  className="h-11 shrink-0 cursor-pointer rounded-xl px-4 text-sm font-semibold"
+                >
+                  {copied ? (
+                    <Check className="size-4" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )}
+                  {copied ? "Copied" : "Copy link"}
+                </Button>
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Send this yourself if the email does not arrive — it can be
+                filtered as spam, and an account can turn invitation emails off.
+                It only works for {sent.email}, so it is safe to paste in a
+                chat.
+              </p>
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-2.5 sm:flex-row">
+            <Link
+              href={lp("/dashboard/team-management")}
+              className={cn(
+                buttonVariants({ variant: "default" }),
+                "h-11 rounded-xl px-5 text-base font-semibold",
+              )}
+            >
+              Back to the team
+              <ArrowRight data-icon="inline-end" />
+            </Link>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onInviteAnother}
+              className="h-11 cursor-pointer rounded-xl px-5 text-base font-semibold"
+            >
+              <Mail className="size-4" />
+              Invite someone else
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
