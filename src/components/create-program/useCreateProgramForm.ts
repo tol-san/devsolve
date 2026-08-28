@@ -444,9 +444,60 @@ export function useCreateProgramForm() {
     return hasRules && hasExclusions;
   }, [rulesOfEngagement, excludedTypes, newExcludedInput]);
 
-  const isFormValid = useMemo(() => {
-    return isStep1Valid && isStep2Valid && isStep3Valid;
-  }, [isStep1Valid, isStep2Valid, isStep3Valid]);
+  /**
+   * Everything the upstream will refuse a submission for, and the step that
+   * fixes each one.
+   *
+   * Kept apart from the per-step navigation checks on purpose. Those decide
+   * whether you may move on — blocking the whole wizard on a policy nobody has
+   * written yet would be worse than letting the author draft in the order that
+   * suits them. This decides whether the program can be *submitted*, and it is
+   * what the checklist and the submit button both read, so what the sidebar
+   * calls done and what the button will accept cannot disagree.
+   */
+  const missingForSubmit = useMemo(() => {
+    const missing: { step: number; label: string }[] = [];
+
+    if (programName.trim().length < 2)
+      missing.push({ step: 1, label: "Program name" });
+    if (!isHandleValid) missing.push({ step: 1, label: "Handle" });
+    if (!description.trim()) missing.push({ step: 1, label: "Description" });
+    if (!policy.trim()) missing.push({ step: 1, label: "Program policy" });
+    if (buildAssets().length === 0)
+      missing.push({ step: 2, label: "At least one asset" });
+    if (!rulesOfEngagement.trim())
+      missing.push({ step: 3, label: "Rules of engagement" });
+    if (excludedTypes.length === 0 && !newExcludedInput.trim())
+      missing.push({ step: 3, label: "At least one exclusion" });
+
+    /* Claiming bounties while naming no amount is the same contradiction the
+       upstream refuses, so it belongs on this list rather than in a toast the
+       author only meets after pressing submit. */
+    if (
+      paysCashBounties &&
+      parseInt(bountyMatrix.critical.max || "0", 10) <= 0
+    ) {
+      missing.push({ step: 4, label: "Maximum bounty" });
+    }
+
+    return missing;
+  }, [
+    programName,
+    isHandleValid,
+    description,
+    policy,
+    buildAssets,
+    rulesOfEngagement,
+    excludedTypes,
+    newExcludedInput,
+    paysCashBounties,
+    bountyMatrix,
+  ]);
+
+  const isFormValid = useMemo(
+    () => missingForSubmit.length === 0,
+    [missingForSubmit],
+  );
 
   const isNextDisabled = useMemo(() => {
     if (activeTab === 1) return !isStep1Valid;
@@ -491,6 +542,14 @@ export function useCreateProgramForm() {
     if (!isDraft) {
       if (!description.trim()) {
         toast.error("Program description is required.");
+        setActiveTab(1);
+        return;
+      }
+
+      if (!policy.trim()) {
+        toast.error(
+          "Write the program policy before submitting — researchers agree to it.",
+        );
         setActiveTab(1);
         return;
       }
@@ -763,6 +822,7 @@ export function useCreateProgramForm() {
     isSubmitting,
     isFetchingDraft,
     isEditingDraft: Boolean(programId),
+    missingForSubmit,
     /* The handle check needs it: editing a program must not report that
        program's own handle as taken. */
     programId,

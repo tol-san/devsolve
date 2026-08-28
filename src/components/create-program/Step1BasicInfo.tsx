@@ -45,6 +45,8 @@ export function Step1BasicInfo({
   setDescription,
   setProgramType,
   setVisibility,
+  policy,
+  setPolicy,
   formatHandle,
   programId,
 }: Step1BasicInfoProps) {
@@ -163,6 +165,31 @@ export function Step1BasicInfo({
           onChange={(e) => setDescription(e.target.value)}
           className="rounded-xl border-border bg-card text-foreground text-base focus-visible:ring-blue-500 resize-none p-3.5"
         />
+      </div>
+
+      {/* Policy — the terms researchers actually agree to. It was carried in
+          state and sent on every save, but never had a field: the payload
+          substituted a paragraph about sandbox API keys instead, so the program
+          shipped with terms nobody in the organization had written. */}
+      <div className="space-y-2">
+        <label
+          htmlFor="program-policy"
+          className="text-sm font-semibold text-foreground"
+        >
+          Program policy <span className="text-rose-500">*</span>
+        </label>
+        <Textarea
+          id="program-policy"
+          rows={6}
+          placeholder="What researchers may and may not do — test accounts to use, systems to leave alone, how you handle disclosure and rewards."
+          value={policy}
+          onChange={(e) => setPolicy(e.target.value)}
+          className="rounded-xl border-border bg-card text-foreground text-base focus-visible:ring-blue-500 resize-none p-3.5"
+        />
+        <p className="text-sm text-muted-foreground">
+          Researchers agree to this before submitting a report, so write it in
+          your own words. Required before the program can be submitted.
+        </p>
       </div>
 
       {/* Program Type & Visibility */}

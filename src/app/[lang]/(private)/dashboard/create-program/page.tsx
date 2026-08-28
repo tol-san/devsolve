@@ -64,6 +64,7 @@ function CreateProgramContent() {
     isFetchingDraft,
     isEditingDraft,
     programId,
+    missingForSubmit,
     isExistingDraft,
     isFormValid,
     isNextDisabled,
@@ -242,6 +243,30 @@ function CreateProgramContent() {
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               ) : (
+                <div className="flex flex-col items-stretch gap-2 sm:items-end">
+                  {/* A disabled button with no reason beside it is the whole
+                      complaint: the author pressed submit, nothing happened,
+                      and the upstream's refusal only arrived once it did. */}
+                  {missingForSubmit.length > 0 && !isUnderReview ? (
+                    <p className="text-sm text-muted-foreground sm:text-right">
+                      <span className="font-semibold text-foreground">
+                        Before submitting:
+                      </span>{" "}
+                      {missingForSubmit.map((item, index) => (
+                        <React.Fragment key={item.label}>
+                          {index > 0 ? ", " : ""}
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab(item.step)}
+                            className="cursor-pointer font-medium text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
+                          >
+                            {item.label}
+                          </button>
+                        </React.Fragment>
+                      ))}
+                    </p>
+                  ) : null}
+
                 <Button
                   type="button"
                   onClick={handleCreateProgram}
@@ -268,6 +293,7 @@ function CreateProgramContent() {
                         ? "Update Program"
                         : "Submit for Review"}
                 </Button>
+                </div>
               )}
             </div>
           </div>
@@ -284,6 +310,7 @@ function CreateProgramContent() {
           />
 
           <CreateProgramChecklist
+            missingForSubmit={missingForSubmit}
             steps={steps}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
