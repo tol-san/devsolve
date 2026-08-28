@@ -15,7 +15,7 @@ function buildTeamCounts(members: TeamMember[]): TeamCounts {
     (member) => member.status === "Active",
   ).length;
   const pending = members.filter(
-    (member) => member.status === "Pending",
+    (member) => member.status === "Invited",
   ).length;
   const managers = members.filter(
     (member) => member.role === "Manager",
@@ -55,24 +55,30 @@ function formatJoinedDate(joinedAt?: string): string {
   });
 }
 
-function formatRole(role?: string): MemberRole {
-  if (role === "MANAGER") {
-    return "Manager";
-  }
+/**
+ * The owner has no role, and defaulting them to `Member` was not harmless: it
+ * read as a demotion in the Role column, and it made the owner look like a rank
+ * a manager may act on.
+ */
+function formatRole(role?: string | null): MemberRole | null {
+  if (role === "MANAGER") return "Manager";
+  if (role === "MEMBER") return "Member";
+  if (role === "VIEWER") return "Viewer";
 
-  if (role === "VIEWER") {
-    return "Viewer";
-  }
-
-  return "Member";
+  return null;
 }
 
+/**
+ * `SUSPENDED` names an invitation nobody has accepted yet rather than a
+ * disciplinary state — reading it as anything else showed people who had never
+ * arrived as fully active members of the team.
+ */
 function formatStatus(
   status?: string,
   invitationPending?: boolean,
 ): MemberStatus {
-  if (invitationPending || status === "PENDING") {
-    return "Pending";
+  if (invitationPending || status === "SUSPENDED") {
+    return "Invited";
   }
 
   return "Active";
@@ -123,7 +129,7 @@ export function useTeamMembers() {
         joined: formatJoinedDate(member.joinedAt),
         permissions: member.permissions ?? [],
         isPending:
-          Boolean(member.invitationPending) || member.status === "PENDING",
+          Boolean(member.invitationPending) || member.status === "SUSPENDED",
         isSelf: member.self === true,
         isOwner: member.owner === true,
       })),

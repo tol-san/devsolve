@@ -1,7 +1,9 @@
 import type { OrganizationInvitationPermission } from "@/lib/redux/services/organizationsApi";
 
 export type MemberRole = "Manager" | "Member" | "Viewer";
-export type MemberStatus = "Active" | "Pending";
+
+/** `Invited` is an invitation nobody has accepted yet, not a lesser member. */
+export type MemberStatus = "Active" | "Invited";
 
 export type TeamMember = {
   id: string;
@@ -10,7 +12,8 @@ export type TeamMember = {
   name: string;
   email: string;
   avatar?: string;
-  role: MemberRole;
+  /** Null for the owner: the three ranks describe invited members only. */
+  role: MemberRole | null;
   status: MemberStatus;
   joined: string;
   /** What this member may do, as the roster reports it. */

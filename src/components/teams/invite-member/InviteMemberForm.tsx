@@ -73,6 +73,7 @@ const permissionValues = [
   "MANAGE_DISCLOSURE",
   "AWARD_REWARDS",
   "MANAGE_RESEARCHERS",
+  "MANAGE_MEMBERS",
 ] as const;
 
 const inviteMemberSchema = z.object({

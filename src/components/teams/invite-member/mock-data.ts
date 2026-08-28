@@ -99,6 +99,56 @@ export const INVITE_PERMISSION_OPTIONS: InvitePermissionOption[] = [
   },
 ];
 
+/**
+ * The most a rank may hold, as opposed to what it starts with.
+ *
+ * `DEFAULT_PERMISSIONS_BY_ROLE` is the set a member is given; this is the set
+ * they may be *tuned* to. The two differ because the point of per-member
+ * permissions is adjusting someone within their rank — a Member who also
+ * awards rewards is still a Member.
+ *
+ * Without a ceiling the rank stops meaning anything: nothing in the API ties
+ * the two `PATCH`es together, so a "Viewer" could be granted `CREATE_PROGRAM`
+ * and the workspace would honour it, because every feature gates on
+ * permissions and never on role. The badge would say one thing and the app
+ * would do another.
+ *
+ * This is a product decision rather than a fact about the API — adjust the
+ * rows freely. The invariant worth keeping is that each rank is a superset of
+ * the one below it.
+ */
+export const MAX_PERMISSIONS_BY_ROLE: Record<
+  OrganizationInvitationRole,
+  OrganizationInvitationPermission[]
+> = {
+  /* Everything, including the two that reshape the organization itself. */
+  MANAGER: [
+    "VIEW_PROGRAMS",
+    "CREATE_PROGRAM",
+    "EDIT_PROGRAM",
+    "MANAGE_PROGRAM_STATE",
+    "DELETE_PROGRAM",
+    "VIEW_REPORTS",
+    "TRIAGE_REPORTS",
+    "MANAGE_DISCLOSURE",
+    "AWARD_REWARDS",
+    "MANAGE_RESEARCHERS",
+  ],
+  /* Does the work: writes programs and moves reports along. Stops short of
+     deleting a program, opening or closing one, and deciding who may report. */
+  MEMBER: [
+    "VIEW_PROGRAMS",
+    "CREATE_PROGRAM",
+    "EDIT_PROGRAM",
+    "VIEW_REPORTS",
+    "TRIAGE_REPORTS",
+    "MANAGE_DISCLOSURE",
+    "AWARD_REWARDS",
+  ],
+  /* Reads, and nothing else — the whole meaning of the rank. */
+  VIEWER: ["VIEW_PROGRAMS", "VIEW_REPORTS"],
+};
+
 export const DEFAULT_PERMISSIONS_BY_ROLE: Record<
   OrganizationInvitationRole,
   OrganizationInvitationPermission[]

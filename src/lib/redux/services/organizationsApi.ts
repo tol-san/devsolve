@@ -89,11 +89,18 @@ export type OrganizationInvitationPermission =
   | "TRIAGE_REPORTS"
   | "MANAGE_DISCLOSURE"
   | "AWARD_REWARDS"
-  | "MANAGE_RESEARCHERS";
+  | "MANAGE_RESEARCHERS"
+  | "MANAGE_MEMBERS";
 
+/**
+ * `ACTIVE` for somebody on the team, `SUSPENDED` for an invitation nobody has
+ * accepted yet. `REMOVED` is documented but never listed, so the roster only
+ * ever shows the first two.
+ */
 export type OrganizationMemberInvitationStatus =
   | "ACTIVE"
-  | "PENDING"
+  | "SUSPENDED"
+  | "REMOVED"
   | (string & {});
 
 export type InviteOrganizationMemberRequest = {
@@ -122,7 +129,11 @@ export type OrganizationInvitationMember = {
   username?: string | null;
   name: string;
   email: string;
-  role: OrganizationInvitationRole;
+  /**
+   * Null for the owner, who holds every permission without holding a role.
+   * Also the ceiling: a member may not be granted more than the role allows.
+   */
+  role: OrganizationInvitationRole | null;
   permissions: OrganizationInvitationPermission[];
   status: OrganizationMemberInvitationStatus;
   invitationPending: boolean;

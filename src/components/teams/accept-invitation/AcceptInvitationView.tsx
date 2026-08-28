@@ -365,7 +365,7 @@ function AcceptedCard({ member }: { member?: OrganizationInvitationMember }) {
           <dt className="text-sm font-medium text-muted-foreground">Role</dt>
           <dd>
             <Badge variant="tag" className="rounded-lg text-sm">
-              {roleTitle(member?.role)}
+              {roleTitle(member?.role ?? undefined)}
             </Badge>
           </dd>
         </div>

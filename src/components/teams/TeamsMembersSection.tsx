@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DEFAULT_PERMISSIONS_BY_ROLE,
   INVITE_PERMISSION_OPTIONS,
+  MAX_PERMISSIONS_BY_ROLE,
 } from "@/components/teams/invite-member/mock-data";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -134,13 +135,20 @@ function getMemberInitials(name: string) {
     .toUpperCase();
 }
 
-function getRoleBadgeVariant(role: MemberRole) {
+/* A null role is the owner: they hold every permission without holding a rank,
+   so they get their own chip rather than being dressed as the rank below. */
+function getRoleBadgeVariant(role: MemberRole | null) {
+  if (role === null) return "default";
   if (role === "Manager") return "default";
   if (role === "Member") return "secondary";
   return "outline";
 }
 
-function getRoleBadgeClass(role: MemberRole) {
+function getRoleBadgeClass(role: MemberRole | null) {
+  if (role === null) {
+    return "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300";
+  }
+
   if (role === "Manager") {
     return "border-foreground bg-muted text-foreground hover:bg-muted";
   }
@@ -162,8 +170,13 @@ function getMemberPermissions(member: TeamMember, actor: TeamActor) {
      below them and never on another manager. Everyone else is here to read.
      The backend decides the same question again on every request — this only
      keeps the menu from offering what it would refuse. */
+  /* Nobody acts on the owner — not even a manager. Their role comes back null,
+     which used to read as "Member" and put the owner one rank below a manager
+     in this comparison, offering demote and remove against the one account that
+     cannot lose the organization. */
   const canManageTarget =
-    actor.isOwner || (actor.role === "MANAGER" && member.role !== "Manager");
+    !member.isOwner &&
+    (actor.isOwner || (actor.role === "MANAGER" && member.role !== "Manager"));
 
   return {
     canViewProfile: true,
@@ -289,7 +302,9 @@ export function TeamsMembersSection({
     nextRole: OrganizationInvitationRole,
   ) {
     setOpenMenuKey(null);
-    if (nextRole === API_ROLE[member.role]) return;
+    /* The owner has no rank to change, and the menu does not offer it — this is
+       only here so the lookup below cannot be handed a null. */
+    if (!member.role || nextRole === API_ROLE[member.role]) return;
 
     const label =
       ROLE_CHOICES.find((choice) => choice.value === nextRole)?.label ??
@@ -642,9 +657,10 @@ export function TeamsMembersSection({
       </div>
 
       <AnimatePresence>
-        {memberToTune ? (
+        {memberToTune && memberToTune.role ? (
           <EditPermissionsDialog
             member={memberToTune}
+            role={memberToTune.role}
             isSaving={isSavingPermissions}
             error={permissionsError}
             onCancel={() => {
@@ -714,7 +730,7 @@ function OwnerTag() {
   );
 }
 
-function RoleBadge({ role }: { role: MemberRole }) {
+function RoleBadge({ role }: { role: MemberRole | null }) {
   return (
     <Badge
       variant={getRoleBadgeVariant(role)}
@@ -730,7 +746,7 @@ function RoleBadge({ role }: { role: MemberRole }) {
       ) : (
         <Eye className="size-3.5" />
       )}
-      {role}
+      {role ?? "Owner"}
     </Badge>
   );
 }
@@ -863,7 +879,7 @@ function MemberActions({
               Role
             </DropdownMenuLabel>
             <DropdownMenuRadioGroup
-              value={API_ROLE[member.role]}
+              value={member.role ? API_ROLE[member.role] : undefined}
               onValueChange={(nextRole) =>
                 onRoleChange(nextRole as OrganizationInvitationRole)
               }
@@ -1060,12 +1076,15 @@ function RosterMessage({
  */
 function EditPermissionsDialog({
   member,
+  role,
   isSaving,
   error,
   onCancel,
   onSave,
 }: {
   member: TeamMember;
+  /** Narrowed at the call site: the owner has no rank and no ceiling to edit. */
+  role: MemberRole;
   isSaving: boolean;
   error: string | null;
   onCancel: () => void;
@@ -1075,7 +1094,17 @@ function EditPermissionsDialog({
     () => member.permissions,
   );
 
-  const roleDefaults = DEFAULT_PERMISSIONS_BY_ROLE[API_ROLE[member.role]] ?? [];
+  const apiRole = API_ROLE[role];
+  const roleDefaults = DEFAULT_PERMISSIONS_BY_ROLE[apiRole] ?? [];
+  const roleCeiling = MAX_PERMISSIONS_BY_ROLE[apiRole] ?? [];
+
+  /* Granted above their rank — only reachable from before this rule existed, or
+     from a write that did not come through this dialog. Shown rather than
+     silently dropped, because quietly revoking access nobody asked to revoke is
+     worse than naming it. */
+  const beyondRole = selected.filter(
+    (permission) => !roleCeiling.includes(permission),
+  );
 
   /* Order-insensitive: the roster and the defaults list the same set in
      different orders, and a re-ordered array is not an edit. */
@@ -1123,8 +1152,10 @@ function EditPermissionsDialog({
               Permissions for {member.name}
             </h3>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Their role is a starting point. This is the set the workspace
-              actually checks, and it takes effect the moment you save.
+              This is the set the workspace actually checks, and it takes effect
+              the moment you save. A {role.toLowerCase()} can hold{" "}
+              {roleCeiling.length} of {INVITE_PERMISSION_OPTIONS.length}{" "}
+              permissions &mdash; promote them to grant more.
             </p>
           </div>
         </div>
@@ -1133,6 +1164,11 @@ function EditPermissionsDialog({
           <ul className="divide-y divide-border/60">
             {INVITE_PERMISSION_OPTIONS.map((option) => {
               const isOn = selected.includes(option.value);
+              const withinRole = roleCeiling.includes(option.value);
+
+              /* Out of reach for this rank, but never locked *on*: an existing
+                 over-grant has to stay switchable off. */
+              const isLocked = !withinRole && !isOn;
 
               return (
                 <li
@@ -1140,26 +1176,59 @@ function EditPermissionsDialog({
                   className="flex items-start justify-between gap-4 px-5 py-3.5"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">
+                    <p
+                      className={cn(
+                        "text-sm font-semibold",
+                        isLocked ? "text-muted-foreground" : "text-foreground",
+                      )}
+                    >
                       {option.title}
                     </p>
-                    <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
-                      {option.description}
+                    <p
+                      id={`permission-note-${option.value}`}
+                      className="mt-0.5 text-sm leading-relaxed text-muted-foreground"
+                    >
+                      {withinRole ? (
+                        option.description
+                      ) : isOn ? (
+                        <span className="font-medium text-amber-700 dark:text-amber-400">
+                          Above a {role.toLowerCase()}&rsquo;s rank. Turn
+                          it off, or promote them to keep it.
+                        </span>
+                      ) : (
+                        <>
+                          {option.description}{" "}
+                          <span className="font-medium text-foreground">
+                            Needs a higher role.
+                          </span>
+                        </>
+                      )}
                     </p>
                   </div>
 
-                  <Switch
-                    checked={isOn}
-                    disabled={isSaving}
-                    onCheckedChange={() => toggle(option.value)}
-                    aria-label={`${isOn ? "Remove" : "Grant"} ${option.title}`}
-                    className="mt-0.5 shrink-0 cursor-pointer"
-                  />
+                  <div className="mt-0.5 shrink-0">
+                    <Switch
+                      checked={isOn}
+                      disabled={isSaving || isLocked}
+                      onCheckedChange={() => toggle(option.value)}
+                      aria-label={`${isOn ? "Remove" : "Grant"} ${option.title}`}
+                      aria-describedby={`permission-note-${option.value}`}
+                    />
+                  </div>
                 </li>
               );
             })}
           </ul>
         </div>
+
+        {beyondRole.length > 0 ? (
+          <p className="mx-5 mt-4 rounded-xl bg-amber-500/10 p-3 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
+            {beyondRole.length === 1 ? "One permission is" : `${beyondRole.length} permissions are`}{" "}
+            above a {role.toLowerCase()}&rsquo;s rank. The workspace
+            honours them today, so the badge understates what this account can
+            do.
+          </p>
+        ) : null}
 
         {error ? (
           <p
@@ -1178,7 +1247,7 @@ function EditPermissionsDialog({
             onClick={() => setSelected(roleDefaults)}
             className="h-10 cursor-pointer rounded-full px-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
           >
-            Reset to {member.role.toLowerCase()} defaults
+            Reset to {role.toLowerCase()} defaults
           </Button>
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row">

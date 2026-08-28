@@ -11,4 +11,4 @@ export const ROLE_FILTERS: RoleFilter[] = [
   "Viewer",
 ];
 
-export const STATUS_FILTERS: StatusFilter[] = ["All", "Active", "Pending"];
+export const STATUS_FILTERS: StatusFilter[] = ["All", "Active", "Invited"];
