@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
+import { withOrganizationScope } from "@/lib/api/organization-scope";
 import { updateMemberRoleSchema } from "@/lib/validations/organization";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
@@ -64,7 +65,10 @@ export async function PATCH(
 
   try {
     const upstream = await fetch(
-      `${BACKEND_API_URL}/organizations/me/members/${userId}/role`,
+      withOrganizationScope(
+        request,
+        `${BACKEND_API_URL}/organizations/me/members/${userId}/role`,
+      ),
       {
         method: "PATCH",
         headers: {

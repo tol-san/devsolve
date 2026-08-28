@@ -26,16 +26,68 @@ const rawBaseQuery = fetchBaseQuery({
  * cached copy so better-auth mints a fresh one, then replay the request once.
  * A second 401 is a real authorization failure and is passed through.
  */
+/**
+ * The `/organizations/me/*` calls that take an organization.
+ *
+ * An account can belong to several organizations, and these endpoints name
+ * none — so they answer 409 rather than guessing which one is meant. The
+ * choice lives in `activeOrganization`, which until now never left the browser:
+ * the switcher moved a value the API never saw, so a second membership broke
+ * the company workspace outright.
+ *
+ * Paths are matched against the proxy URL, which mirrors the upstream's.
+ */
+const ORGANIZATION_SCOPED = [
+  "/organizations/me",
+  "/organizations/me/members",
+  "/organizations/me/members/invitations",
+  "/organizations/me/programs",
+  "/organizations/me/programs/deleted",
+  "/organizations/me/hacktivity",
+];
+
+/** `/organizations/me/members/{userId}` and its role/permissions children. */
+const ORGANIZATION_SCOPED_PATTERN =
+  /^\/organizations\/me\/members\/[^/]+(\/(role|permissions))?$/;
+
+function takesOrganization(url: string): boolean {
+  const [path] = url.split("?");
+  return (
+    ORGANIZATION_SCOPED.includes(path) || ORGANIZATION_SCOPED_PATTERN.test(path)
+  );
+}
+
+/** Adds the active organization, leaving an explicit one alone. */
+function withOrganization(url: string, organizationId: string): string {
+  if (!takesOrganization(url)) return url;
+  if (/[?&]organizationId=/.test(url)) return url;
+
+  return `${url}${url.includes("?") ? "&" : "?"}organizationId=${encodeURIComponent(organizationId)}`;
+}
+
 export const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  const result = await rawBaseQuery(args, api, extraOptions);
+  /* Which organization the workspace is showing has to travel with the
+     request; the proxy runs on the server and cannot read the choice. */
+  const organizationId = (
+    api.getState() as { activeOrganization?: { organizationId?: string | null } }
+  ).activeOrganization?.organizationId;
+
+  const scopedArgs =
+    organizationId == null
+      ? args
+      : typeof args === "string"
+        ? withOrganization(args, organizationId)
+        : { ...args, url: withOrganization(args.url, organizationId) };
+
+  const result = await rawBaseQuery(scopedArgs, api, extraOptions);
 
   if (result.error?.status === 401) {
     clearAccessToken();
-    return rawBaseQuery(args, api, extraOptions);
+    return rawBaseQuery(scopedArgs, api, extraOptions);
   }
 
   return result;

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
+import { withOrganizationScope } from "@/lib/api/organization-scope";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const PROVIDER_ID = "keycloak";
@@ -44,7 +45,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const upstream = await fetch(
-      `${BACKEND_API_URL}/organizations/me/members/invitations`,
+      withOrganizationScope(
+        request,
+        `${BACKEND_API_URL}/organizations/me/members/invitations`,
+      ),
       {
         method: "POST",
         headers: {

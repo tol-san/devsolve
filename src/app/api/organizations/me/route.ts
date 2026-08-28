@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
+import { withOrganizationScope } from "@/lib/api/organization-scope";
 import { updateOrganizationSchema } from "@/lib/validations/organization";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
@@ -34,7 +35,9 @@ export async function GET(request: NextRequest) {
   if (!token) return unauthorized();
 
   try {
-    const upstream = await fetch(`${BACKEND_API_URL}/organizations/me`, {
+    const upstream = await fetch(
+      withOrganizationScope(request, `${BACKEND_API_URL}/organizations/me`),
+      {
       method: "GET",
       headers: {
         Accept: "application/json",
@@ -92,7 +95,9 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const upstream = await fetch(`${BACKEND_API_URL}/organizations/me`, {
+    const upstream = await fetch(
+      withOrganizationScope(request, `${BACKEND_API_URL}/organizations/me`),
+      {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -134,7 +139,9 @@ export async function DELETE(request: NextRequest) {
   if (!token) return unauthorized();
 
   try {
-    const upstream = await fetch(`${BACKEND_API_URL}/organizations/me`, {
+    const upstream = await fetch(
+      withOrganizationScope(request, `${BACKEND_API_URL}/organizations/me`),
+      {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

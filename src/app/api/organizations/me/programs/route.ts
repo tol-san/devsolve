@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
+import { withOrganizationScope } from "@/lib/api/organization-scope";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const PROVIDER_ID = "keycloak";
@@ -35,8 +36,14 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const queryString = searchParams.toString();
   const upstreamUrl = queryString
-    ? `${BACKEND_API_URL}/organizations/me/programs?${queryString}`
-    : `${BACKEND_API_URL}/organizations/me/programs`;
+    ? withOrganizationScope(
+        request,
+        `${BACKEND_API_URL}/organizations/me/programs?${queryString}`,
+      )
+    : withOrganizationScope(
+        request,
+        `${BACKEND_API_URL}/organizations/me/programs`,
+      );
 
   try {
     const upstream = await fetch(upstreamUrl, {
@@ -93,8 +100,14 @@ export async function POST(request: NextRequest) {
      add an unknown field and silently create a draft instead. */
   const submit = request.nextUrl.searchParams.get("submit") === "true";
   const targetUrl = submit
-    ? `${BACKEND_API_URL}/organizations/me/programs?submit=true`
-    : `${BACKEND_API_URL}/organizations/me/programs`;
+    ? withOrganizationScope(
+        request,
+        `${BACKEND_API_URL}/organizations/me/programs?submit=true`,
+      )
+    : withOrganizationScope(
+        request,
+        `${BACKEND_API_URL}/organizations/me/programs`,
+      );
 
   try {
     const upstream = await fetch(targetUrl, {

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { authClient } from "@/lib/auth/auth-client";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
@@ -80,6 +82,17 @@ export function useCompanyAccess(): CompanyAccess {
      sensible default. */
   const membership =
     rows.find((row) => row.organizationId === activeId) ?? rows[0];
+
+  /* Resolving the default locally is not enough: requests carry the id from
+     the store, so an account that has never touched the switcher would send
+     nothing and get a 409 back from every `/organizations/me/*` call. Held in
+     Redux only — writing it to storage would record a choice nobody made, and
+     the fallback should keep following the list if memberships change. */
+  useEffect(() => {
+    if (membership && membership.organizationId !== activeId) {
+      dispatch(setActiveOrganization(membership.organizationId));
+    }
+  }, [membership, activeId, dispatch]);
 
   const permissions = membership?.permissions ?? [];
 
