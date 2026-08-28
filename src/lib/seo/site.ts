@@ -8,7 +8,7 @@
  */
 
 /** The domain the app is served from in production. */
-const PRODUCTION_URL = "https://devsolve.app";
+const PRODUCTION_URL = "https://www.devsolve.app";
 
 const withoutTrailingSlash = (url: string) => url.replace(/\/+$/, "");
 

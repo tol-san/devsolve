@@ -1,29 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /**
-   * Canonical domain enforcement: www.devsolve.app → devsolve.app (HTTP 308).
-   *
-   * Vercel allows adding a custom redirect for www in the dashboard too, but
-   * doing it here means it is version-controlled and works on every preview
-   * deployment that has the www alias pointed at it. The `permanent` flag
-   * emits a 308 (the permanent form of 307), which preserves the HTTP method
-   * through the redirect — better for POST forms and API clients than 301.
-   *
-   * `has` makes the rule conditional: it only fires when the Host header is
-   * www.devsolve.app, so local development (localhost) is unaffected.
-   */
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.devsolve.app" }],
-        destination: "https://devsolve.app/:path*",
-        permanent: true,
-      },
-    ];
-  },
-
   images: {
    remotePatterns: [
       {
