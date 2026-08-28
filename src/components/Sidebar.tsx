@@ -117,7 +117,9 @@ function SidebarContent({
 
   const filteredNavItems = NAV_ITEMS.filter((item) => {
     if (!item.roles) return true;
-    return item.roles.some((reqRole) => userRoles.includes(reqRole.toUpperCase()));
+    return item.roles.some((reqRole) =>
+      userRoles.includes(reqRole.toUpperCase()),
+    );
   });
 
   /* Longest match wins, so a nested route lights up only its own entry.
@@ -144,46 +146,23 @@ function SidebarContent({
   const identityStatus = isCompany
     ? getOrgStatusLabel(organization?.status)
     : undefined;
-  const identityIsLoading =
-    isPending || (isCompany && isOrganizationLoading);
+  const identityIsLoading = isPending || (isCompany && isOrganizationLoading);
   const settingsHref = isCompany
     ? "/dashboard/organizations"
     : "/dashboard/profile/settings";
-  const settingsLabel = isCompany ? t("sidebar.orgSettings") : t("sidebar.settings");
+  const settingsLabel = isCompany
+    ? t("sidebar.orgSettings")
+    : t("sidebar.settings");
 
   return (
     /* `data-scroll-host` makes the whole sidebar the hover target for the
        nav's scrollbar below, rather than the narrow strip the bar sits in. */
     <div data-scroll-host className="flex h-full flex-col overflow-hidden">
-      {/* Brand. The drawer shares this row with its close control; the
-          desktop rail gives it a row of its own, and swaps the lockup for the
-          circular badge once the rail is too narrow to hold a wordmark. */}
-      <div
-        className={cn(
-          "mb-3 flex h-10 shrink-0 items-center",
-          onNavItemClick
-            ? "justify-between"
-            : collapsed
-              ? "justify-center"
-              : "justify-start",
-        )}
-      >
-        <Link
-          href="/dashboard"
-          onClick={onNavItemClick}
-          aria-label="DevSolve dashboard"
-          className="flex items-center"
-        >
-          <BrandLogo
-            variant={collapsed && !onNavItemClick ? "badge" : "lockup"}
-            className={
-              collapsed && !onNavItemClick ? "size-10" : "h-10 w-38"
-            }
-            sizes={collapsed && !onNavItemClick ? "40px" : "152px"}
-          />
-        </Link>
-
-        {onNavItemClick && (
+      {/* Close control, drawer only. Desktop has no row here at all — its
+          collapse toggle floats on the sidebar's edge, so the profile card
+          starts flush with the top padding instead of after an empty band. */}
+      {onNavItemClick && (
+        <div className="mb-2 flex h-9 shrink-0 items-center justify-end">
           <Button
             size="icon"
             variant="ghost"
@@ -193,8 +172,8 @@ function SidebarContent({
           >
             <X className="size-5" />
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Profile card — resolves the real username rather than guessing a slug */}
       <Link
@@ -218,8 +197,6 @@ function SidebarContent({
           </div>
         ) : (
           <>
-            {/* Bigger than the 40px it was: for a company account this is
-                their own mark, and the card has the room. */}
             <Avatar className="size-12 shrink-0 border-none rounded-full">
               {identityImage && (
                 <AvatarImage
@@ -316,7 +293,11 @@ function SidebarContent({
                       <motion.span
                         layoutId="sidebar-active-rail"
                         className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-blue-600 dark:bg-blue-400"
-                        transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 35,
+                        }}
                       />
                     )}
 
@@ -334,14 +315,18 @@ function SidebarContent({
                             : "text-slate-400 dark:text-neutral-500",
                         )}
                       />
-                      {!collapsed && <span className="truncate">{itemLabel}</span>}
+                      {!collapsed && (
+                        <span className="truncate">{itemLabel}</span>
+                      )}
                     </span>
 
-                    {badgeCount !== undefined && badgeCount > 0 && !collapsed && (
-                      <Badge className="flex size-5 items-center justify-center rounded-full bg-blue-600 p-0 text-xs text-white hover:bg-blue-700">
-                        {badgeCount}
-                      </Badge>
-                    )}
+                    {badgeCount !== undefined &&
+                      badgeCount > 0 &&
+                      !collapsed && (
+                        <Badge className="flex size-5 items-center justify-center rounded-full bg-blue-600 p-0 text-xs text-white hover:bg-blue-700">
+                          {badgeCount}
+                        </Badge>
+                      )}
                   </Link>
                 );
               })}
@@ -389,13 +374,8 @@ const Sidebar = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const {
-    user,
-    isPending,
-    areRolesResolved,
-    displayName,
-    handleSignOut,
-  } = useSidebarAuth();
+  const { user, isPending, areRolesResolved, displayName, handleSignOut } =
+    useSidebarAuth();
   const isCompany = user?.roles?.includes("COMPANY") ?? false;
   const {
     data: organization,
@@ -440,10 +420,6 @@ const Sidebar = () => {
   return (
     <>
       <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur-md lg:hidden dark:border-neutral-800 dark:bg-neutral-900/90">
-        {/* The lockup already says "DevSolve", so the word is not repeated
-            beside it. It also replaces `/logo-1.png`, which is not a file that
-            exists — the header has been rendering a broken image, and a broken
-            image has no dark variant to get wrong. */}
         <Link
           href="/dashboard"
           aria-label="DevSolve dashboard"
