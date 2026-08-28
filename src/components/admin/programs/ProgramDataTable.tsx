@@ -180,7 +180,7 @@ export function ProgramDataTable<TData, TValue>({
       <div className="hidden md:block overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
         <div className="w-full overflow-x-auto">
           <Table>
-            <TableHeader className="border-b border-border bg-muted/60">
+            <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
@@ -189,7 +189,7 @@ export function ProgramDataTable<TData, TValue>({
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      className="px-4"
                     >
                       {header.isPlaceholder
                         ? null

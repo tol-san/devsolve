@@ -69,7 +69,7 @@ export function ProblemDataTable<TData, TValue>({
       {/* Table Container */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs">
         <Table>
-          <TableHeader className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -78,7 +78,7 @@ export function ProblemDataTable<TData, TValue>({
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="h-11 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                    className="px-4"
                   >
                     {header.isPlaceholder
                       ? null

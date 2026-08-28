@@ -4,6 +4,15 @@ import { RotateCw, SquareCheck, Clock, Sparkles, Eye } from "lucide-react";
 import { RetestItem } from "@/lib/redux/services/reportsApi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  MotionTableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ReportRetestTabProps {
   retestHistory: RetestItem[];
@@ -89,28 +98,35 @@ export function ReportRetestTab({
           transition={{ duration: 0.3 }}
           className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs overflow-hidden my-2"
         >
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-muted/60 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <th className="py-3.5 px-4 sm:px-6">REPORT ID & TITLE</th>
-                  <th className="py-3.5 px-4 sm:px-6">VERSION</th>
-                  <th className="py-3.5 px-4 sm:px-6">STATUS</th>
-                  <th className="py-3.5 px-4 sm:px-6">REQUEST DATE</th>
-                  <th className="py-3.5 px-4 sm:px-6">BOUNTY BONUS</th>
-                  <th className="py-3.5 px-4 sm:px-6 text-center">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {retestHistory.map((item, idx) => (
-                  <motion.tr
-                    key={item.id}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: idx * 0.05 }}
-                    className="hover:bg-muted/50 transition-colors group"
-                  >
-                    <td className="py-4 px-4 sm:px-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="py-3.5 px-4 sm:px-6">
+                  Report ID &amp; Title
+                </TableHead>
+                <TableHead className="py-3.5 px-4 sm:px-6">Version</TableHead>
+                <TableHead className="py-3.5 px-4 sm:px-6">Status</TableHead>
+                <TableHead className="py-3.5 px-4 sm:px-6">
+                  Request Date
+                </TableHead>
+                <TableHead className="py-3.5 px-4 sm:px-6">
+                  Bounty Bonus
+                </TableHead>
+                <TableHead className="py-3.5 px-4 sm:px-6 text-center">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {retestHistory.map((item, idx) => (
+                <MotionTableRow
+                  key={item.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: idx * 0.05 }}
+                  className="group"
+                >
+                  <TableCell className="py-4 px-4 whitespace-normal sm:px-6">
                       <div className="flex flex-col">
                         <span className="text-xs sm:text-sm font-semibold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                           {item.reportIdTitle}
@@ -119,16 +135,16 @@ export function ReportRetestTab({
                           {item.securityCategory}
                         </span>
                       </div>
-                    </td>
+                  </TableCell>
 
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      <span className="font-mono text-xs text-muted-foreground font-semibold">
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    <span className="font-mono text-xs text-muted-foreground font-semibold">
                         {item.version}
                       </span>
-                    </td>
+                  </TableCell>
 
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      {item.status === "PASSED" ? (
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    {item.status === "PASSED" ? (
                         <Badge className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20 font-semibold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 w-fit shadow-xs">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                           PASSED
@@ -139,16 +155,16 @@ export function ReportRetestTab({
                           FAILED
                         </Badge>
                       )}
-                    </td>
+                  </TableCell>
 
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      <span className="text-xs text-muted-foreground font-medium">
-                        {item.requestDate}
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {item.requestDate}
                       </span>
-                    </td>
+                  </TableCell>
 
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      {item.bountyBonus ? (
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    {item.bountyBonus ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/20 shadow-xs">
                           <Sparkles className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                           {item.bountyBonus}
@@ -156,9 +172,9 @@ export function ReportRetestTab({
                       ) : (
                         <span className="text-muted-foreground font-medium text-xs">&mdash;</span>
                       )}
-                    </td>
+                  </TableCell>
 
-                    <td className="py-4 px-4 sm:px-6 text-center whitespace-nowrap">
+                  <TableCell className="py-4 px-4 sm:px-6 text-center">
                       <Button
                         size="icon"
                         variant="ghost"
@@ -167,12 +183,11 @@ export function ReportRetestTab({
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  </TableCell>
+                </MotionTableRow>
+              ))}
+            </TableBody>
+          </Table>
         </motion.div>
       )}
     </div>

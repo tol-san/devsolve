@@ -81,13 +81,13 @@ export function OrganizationDataTable<TData, TValue>({
       {/* Table Container */}
       <div className="bg-card text-card-foreground rounded-2xl border border-border overflow-hidden shadow-xs">
         <Table>
-          <TableHeader className="bg-muted/60 border-b border-border">
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent border-none">
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="h-11 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                    className="px-4"
                   >
                     {header.isPlaceholder
                       ? null

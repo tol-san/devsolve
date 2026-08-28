@@ -22,6 +22,14 @@ import {
   FilterTabs,
 } from "@/components/ui/filter-bar";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ProgramPagination } from "@/components/programs/ProgramPagination";
 
 export interface UserRewardItem {
@@ -308,99 +316,96 @@ export default function RewardsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border bg-muted/40 text-xs font-bold uppercase text-muted-foreground tracking-wider">
-                    <th className="py-4 px-6">Program & Report</th>
-                    <th className="py-4 px-4">Severity</th>
-                    <th className="py-4 px-4">Reward</th>
-                    <th className="py-4 px-4">Status</th>
-                    <th className="py-4 px-4">Date</th>
-                    <th className="py-4 px-6 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {paginatedRewards.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-muted/50 transition-colors group"
-                    >
-                      {/* Program & Report Title */}
-                      <td className="py-5 px-6">
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
-                            {item.programName}
-                          </span>
-                          <h4 className="text-lg font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
-                            {item.reportTitle}
-                          </h4>
-                          <span className="text-sm text-muted-foreground font-mono">
-                            ID: {item.reportId}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Severity Badge */}
-                      <td className="py-5 px-4 align-top sm:align-middle">
-                        <span
-                          className={`inline-block px-3 py-1 text-xs font-bold rounded-md border ${getSeverityBadge(
-                            item.severity
-                          )}`}
-                        >
-                          {item.severity}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="py-4 px-6">
+                    Program &amp; Report
+                  </TableHead>
+                  <TableHead className="py-4 px-4">Severity</TableHead>
+                  <TableHead className="py-4 px-4">Reward</TableHead>
+                  <TableHead className="py-4 px-4">Status</TableHead>
+                  <TableHead className="py-4 px-4">Date</TableHead>
+                  <TableHead className="py-4 px-6 text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedRewards.map((item) => (
+                  <TableRow key={item.id} className="group">
+                    {/* Program & Report Title */}
+                    <TableCell className="py-5 px-6 whitespace-normal">
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                          {item.programName}
                         </span>
-                      </td>
+                        <h4 className="text-lg font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+                          {item.reportTitle}
+                        </h4>
+                        <span className="text-sm text-muted-foreground font-mono">
+                          ID: {item.reportId}
+                        </span>
+                      </div>
+                    </TableCell>
 
-                      {/* Reward Amount */}
-                      <td className="py-5 px-4 align-top sm:align-middle">
-                        {item.rewardType === "BOUNTY" ? (
-                          <div className="font-extrabold text-foreground text-xl">
-                            ${item.amount.toLocaleString()}
-                          </div>
-                        ) : (
-                          <div className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xl">
-                            +{item.amount} pts
-                          </div>
-                        )}
-                      </td>
+                    {/* Severity Badge */}
+                    <TableCell className="py-5 px-4 align-top sm:align-middle">
+                      <span
+                        className={`inline-block px-3 py-1 text-xs font-bold rounded-md border ${getSeverityBadge(
+                          item.severity
+                        )}`}
+                      >
+                        {item.severity}
+                      </span>
+                    </TableCell>
 
-                      {/* Status */}
-                      <td className="py-5 px-4 align-top sm:align-middle">
-                        {item.status === "PAID" ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Paid
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                            <Clock className="w-3.5 h-3.5" />
-                            Pending
-                          </span>
-                        )}
-                      </td>
+                    {/* Reward Amount */}
+                    <TableCell className="py-5 px-4 align-top sm:align-middle">
+                      {item.rewardType === "BOUNTY" ? (
+                        <div className="font-extrabold text-foreground text-xl">
+                          ${item.amount.toLocaleString()}
+                        </div>
+                      ) : (
+                        <div className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xl">
+                          +{item.amount} pts
+                        </div>
+                      )}
+                    </TableCell>
 
-                      {/* Date */}
-                      <td className="py-5 px-4 text-sm font-medium text-muted-foreground align-top sm:align-middle">
-                        {item.awardedAt}
-                      </td>
+                    {/* Status */}
+                    <TableCell className="py-5 px-4 align-top sm:align-middle">
+                      {item.status === "PAID" ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Paid
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                          <Clock className="w-3.5 h-3.5" />
+                          Pending
+                        </span>
+                      )}
+                    </TableCell>
 
-                      {/* Action Link */}
-                      <td className="py-5 px-6 text-right align-top sm:align-middle">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-xl text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 font-semibold text-sm"
-                        >
-                          View Report
-                          <ExternalLink className="w-4 h-4 ml-1.5 text-muted-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    {/* Date */}
+                    <TableCell className="py-5 px-4 text-sm font-medium text-muted-foreground align-top sm:align-middle">
+                      {item.awardedAt}
+                    </TableCell>
+
+                    {/* Action Link */}
+                    <TableCell className="py-5 px-6 text-right align-top sm:align-middle">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-xl text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 font-semibold text-sm"
+                      >
+                        View Report
+                        <ExternalLink className="w-4 h-4 ml-1.5 text-muted-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </div>
 

@@ -20,6 +20,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -262,75 +270,75 @@ export default function ModerationLogPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-700 dark:text-slate-300">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200/80 dark:border-slate-800">
-                  <tr>
-                    <th className="py-3.5 px-4">Action</th>
-                    <th className="py-3.5 px-4">Target Type & ID</th>
-                    <th className="py-3.5 px-4">Reason / Note</th>
-                    <th className="py-3.5 px-4">Executed By</th>
-                    <th className="py-3.5 px-4">Timestamp</th>
-                    <th className="py-3.5 px-4">Expires At</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800">
-                  {historyItems.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
-                    >
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        {getActionBadge(item.action as ModerationActionType)}
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="space-y-0.5">
-                          <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider">
-                            {item.targetType}
-                          </Badge>
-                          <p className="font-mono text-xs text-slate-500 truncate max-w-[140px]">
-                            {item.targetId}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 max-w-xs">
-                        <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed line-clamp-2">
-                          {item.reason || "No reason provided."}
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs">
+            <Table className="text-foreground">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="py-3.5 px-4">Action</TableHead>
+                  <TableHead className="py-3.5 px-4">
+                    Target Type &amp; ID
+                  </TableHead>
+                  <TableHead className="py-3.5 px-4">Reason / Note</TableHead>
+                  <TableHead className="py-3.5 px-4">Executed By</TableHead>
+                  <TableHead className="py-3.5 px-4">Timestamp</TableHead>
+                  <TableHead className="py-3.5 px-4">Expires At</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {historyItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="py-4 px-4">
+                      {getActionBadge(item.action as ModerationActionType)}
+                    </TableCell>
+                    <TableCell className="py-4 px-4">
+                      <div className="space-y-0.5">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] font-bold uppercase tracking-wider"
+                        >
+                          {item.targetType}
+                        </Badge>
+                        <p className="font-mono text-xs text-muted-foreground truncate max-w-[140px]">
+                          {item.targetId}
                         </p>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap text-xs">
-                        <div className="flex items-center gap-1 font-medium text-slate-800 dark:text-slate-200">
-                          <User className="size-3.5 text-slate-400" />
-                          {item.adminName || item.adminId || "System Admin"}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap text-xs text-slate-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="size-3.5 text-slate-400" />
-                          {item.createdAt
-                            ? new Date(item.createdAt).toLocaleString()
-                            : "Recent"}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap text-xs text-slate-500">
-                        {item.expiresAt ? (
-                          <span className="text-orange-600 dark:text-orange-400 font-medium">
-                            {new Date(item.expiresAt).toLocaleDateString()}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 px-4 max-w-xs whitespace-normal">
+                      <p className="text-xs text-foreground font-medium leading-relaxed line-clamp-2">
+                        {item.reason || "No reason provided."}
+                      </p>
+                    </TableCell>
+                    <TableCell className="py-4 px-4 text-xs">
+                      <div className="flex items-center gap-1 font-medium text-foreground">
+                        <User className="size-3.5 text-muted-foreground" />
+                        {item.adminName || item.adminId || "System Admin"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 px-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="size-3.5 text-muted-foreground" />
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleString()
+                          : "Recent"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 px-4 text-xs text-muted-foreground">
+                      {item.expiresAt ? (
+                        <span className="text-orange-600 dark:text-orange-400 font-medium">
+                          {new Date(item.expiresAt).toLocaleDateString()}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
 
           {/* Pagination Controls */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <span>Rows per page</span>
               <div className="w-20">

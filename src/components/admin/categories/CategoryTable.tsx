@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { Pencil, Tags, Trash2 } from "lucide-react";
 import {
+  MotionTableRow,
   Table,
   TableBody,
   TableCell,
@@ -112,24 +113,24 @@ export function CategoryTable({
     <>
       <div className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs">
         <Table>
-          <TableHeader className="border-b border-border bg-muted/60">
-            <TableRow className="border-none hover:bg-transparent">
-              <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-4">
                 Category
               </TableHead>
-              <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <TableHead className="px-4">
                 Scope
               </TableHead>
-              <TableHead className="hidden h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground lg:table-cell">
+              <TableHead className="hidden px-4 lg:table-cell">
                 Description
               </TableHead>
-              <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <TableHead className="px-4">
                 Order
               </TableHead>
-              <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <TableHead className="px-4">
                 Active
               </TableHead>
-              <TableHead className="h-11 px-4 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <TableHead className="px-4 text-right">
                 Actions
               </TableHead>
             </TableRow>
@@ -162,14 +163,14 @@ export function CategoryTable({
 
             <AnimatePresence initial={false}>
               {categories.map((category) => (
-                <motion.tr
+                <MotionTableRow
                   key={category.id}
                   layout
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.18 }}
-                  className="border-b border-border transition-colors last:border-0 hover:bg-muted/60"
+                  className="last:border-0"
                 >
                   <TableCell className="px-4 py-3">
                     <div className="flex items-center gap-3 py-0.5">
@@ -230,7 +231,7 @@ export function CategoryTable({
                       </button>
                     </div>
                   </TableCell>
-                </motion.tr>
+                </MotionTableRow>
               ))}
             </AnimatePresence>
           </TableBody>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import {
   useGetModerationHistoryQuery,
 } from "@/lib/redux/services/admin/moderationActionsApi";
@@ -22,6 +22,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  MotionTableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ModerationActionDetailModal } from "./ModerationActionDetailModal";
 import {
   Search,
@@ -208,67 +217,68 @@ export function ModerationHistoryTable() {
         </Card>
       ) : (
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border bg-muted/60 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Action</th>
-                  <th className="py-3.5 px-4">Target Type</th>
-                  <th className="py-3.5 px-4">Target ID</th>
-                  <th className="py-3.5 px-4">Admin Name</th>
-                  <th className="py-3.5 px-4">Reason</th>
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4 text-right">Details</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-sm">
-                <AnimatePresence mode="popLayout">
-                  {actionsList.map((item) => (
-                    <motion.tr
-                      key={item.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="hover:bg-muted/60 transition-colors"
-                    >
-                      <td className="py-3.5 px-4">{getActionBadge(item.action)}</td>
-                      <td className="py-3.5 px-4 font-semibold text-foreground">
-                        {item.targetType}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground max-w-[140px] truncate">
-                        {item.targetId}
-                      </td>
-                      <td className="py-3.5 px-4 text-foreground font-medium">
-                        <div className="flex items-center gap-1.5">
-                          <User className="size-3.5 text-muted-foreground" />
-                          <span>{item.adminName || item.adminId}</span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 text-muted-foreground max-w-[220px] truncate">
-                        {item.reason}
-                      </td>
-                      <td className="py-3.5 px-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="size-3 text-muted-foreground" />
-                          <span>{new Date(item.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedActionId(item.id)}
-                          className="h-8 cursor-pointer rounded-xl px-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                        >
-                          <Eye data-icon="inline-start" /> View
-                        </Button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="py-3.5 px-4">Action</TableHead>
+                <TableHead className="py-3.5 px-4">Target Type</TableHead>
+                <TableHead className="py-3.5 px-4">Target ID</TableHead>
+                <TableHead className="py-3.5 px-4">Admin Name</TableHead>
+                <TableHead className="py-3.5 px-4">Reason</TableHead>
+                <TableHead className="py-3.5 px-4">Date</TableHead>
+                <TableHead className="py-3.5 px-4 text-right">Details</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <AnimatePresence mode="popLayout">
+                {actionsList.map((item) => (
+                  <MotionTableRow
+                    key={item.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <TableCell className="py-3.5 px-4">
+                      {getActionBadge(item.action)}
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 font-semibold text-foreground">
+                      {item.targetType}
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 font-mono text-xs text-muted-foreground max-w-[140px] truncate">
+                      {item.targetId}
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-foreground font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <User className="size-3.5 text-muted-foreground" />
+                        <span>{item.adminName || item.adminId}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-muted-foreground max-w-[220px] truncate">
+                      {item.reason}
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="size-3 text-muted-foreground" />
+                        <span>
+                          {new Date(item.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3.5 px-4 text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedActionId(item.id)}
+                        className="h-8 cursor-pointer rounded-xl px-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                      >
+                        <Eye data-icon="inline-start" /> View
+                      </Button>
+                    </TableCell>
+                  </MotionTableRow>
+                ))}
+              </AnimatePresence>
+            </TableBody>
+          </Table>
 
           {/* PAGINATION FOOTER */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-t border-border text-xs text-muted-foreground">

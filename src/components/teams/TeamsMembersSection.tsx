@@ -47,6 +47,15 @@ import {
   FilterSearch,
   FilterSelect,
 } from "@/components/ui/filter-bar";
+import {
+  MotionTableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
@@ -316,238 +325,247 @@ export function TeamsMembersSection({
 
   return (
     <>
-      <FilterBar>
-        <FilterRow>
-          <FilterSearch
-            value={searchTerm}
-            onChange={setSearchTerm}
-            label="Search members"
-            placeholder="Search by member name or email..."
-          />
-
-          <FilterControls>
-            <FilterSelect
-              icon={UserRound}
-              label="Role"
-              items={ROLE_FILTER_LABELS}
-              value={roleFilter}
-              onValueChange={(value) => setRoleFilter(value as RoleFilter)}
+      {/* The bar and the roster it narrows are one block: without a
+          container of their own they sit flush, since `FilterBar` carries
+          no outer margin and the page wraps this whole section in a single
+          animated child. */}
+      <div className="space-y-6">
+        <FilterBar>
+          <FilterRow>
+            <FilterSearch
+              value={searchTerm}
+              onChange={setSearchTerm}
+              label="Search members"
+              placeholder="Search by member name or email..."
             />
-            <FilterSelect
-              icon={Filter}
-              label="Status"
-              items={STATUS_FILTER_LABELS}
-              value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as StatusFilter)}
-            />
-          </FilterControls>
-        </FilterRow>
 
-        <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
-          <p className="text-sm font-medium text-muted-foreground">
-            {filteredMembers.length} of {counts.total} members in view
-          </p>
-          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-            Team roster
-          </p>
-        </div>
-      </FilterBar>
+            <FilterControls>
+              <FilterSelect
+                icon={UserRound}
+                label="Role"
+                items={ROLE_FILTER_LABELS}
+                value={roleFilter}
+                onValueChange={(value) => setRoleFilter(value as RoleFilter)}
+              />
+              <FilterSelect
+                icon={Filter}
+                label="Status"
+                items={STATUS_FILTER_LABELS}
+                value={statusFilter}
+                onValueChange={(value) => setStatusFilter(value as StatusFilter)}
+              />
+            </FilterControls>
+          </FilterRow>
 
-      {isError ? (
-        <RosterMessage
-          title="We could not load your team"
-          body="The organization service did not answer. Your members are still there — this screen just could not read them."
-          action={
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onRetry}
-              className="h-10 cursor-pointer rounded-xl px-4 text-sm font-semibold"
-            >
-              <RefreshCcw className="size-4" />
-              Try again
-            </Button>
-          }
-        />
-      ) : isLoading ? (
-        <RosterSkeleton />
-      ) : filteredMembers.length === 0 ? (
-        counts.total === 0 ? (
+          <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+            <p className="text-sm font-medium text-muted-foreground">
+              {filteredMembers.length} of {counts.total} members in view
+            </p>
+            <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              Team roster
+            </p>
+          </div>
+        </FilterBar>
+
+        {isError ? (
           <RosterMessage
-            title="No one else is here yet"
-            body="Invite the people who triage your reports and run your programs. They need a DevSolve account first — an invitation is matched to the address it was sent to."
-            action={
-              <Link
-                href={lp("/dashboard/team-management/invite")}
-                className={cn(
-                  buttonVariants({ variant: "default" }),
-                  "h-10 rounded-xl px-4 text-sm font-semibold",
-                )}
-              >
-                <UserPlus className="size-4" />
-                Invite your first member
-              </Link>
-            }
-          />
-        ) : (
-          <RosterMessage
-            title="No members match these filters"
-            body={"All " + counts.total + " of them are still on the team — the search or the filters are hiding them."}
+            title="We could not load your team"
+            body="The organization service did not answer. Your members are still there — this screen just could not read them."
             action={
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setSearchTerm("");
-                  setRoleFilter("All");
-                  setStatusFilter("All");
-                }}
+                onClick={onRetry}
                 className="h-10 cursor-pointer rounded-xl px-4 text-sm font-semibold"
               >
-                Clear filters
+                <RefreshCcw className="size-4" />
+                Try again
               </Button>
             }
           />
-        )
-      ) : (
-        <>
-          {/* Cards below `lg`, where six columns would only mean a sideways
-              scroll and a row nobody can read end to end. */}
-          <ul className="grid grid-cols-1 gap-3 lg:hidden">
-            {filteredMembers.map((member, index) => (
-              <MemberCard
-                key={member.id}
-                member={member}
-                index={index}
-                tone={getAvatarTone(member.id)}
-                permissions={getMemberPermissions(member, actor)}
-                isSelf={member.id === actor.userId}
-                isOwner={member.id === ownerId}
-                menuOpen={openMenuMemberId === member.id}
-                onMenuOpenChange={(open) =>
-                  setOpenMenuMemberId(open ? member.id : null)
-                }
-                onViewProfile={() => openProfile(member)}
-                onRoleChange={(role) => void handleRoleChange(member, role)}
-                onRemove={() => askToRemove(member)}
-              />
-            ))}
-          </ul>
+        ) : isLoading ? (
+          <RosterSkeleton />
+        ) : filteredMembers.length === 0 ? (
+          counts.total === 0 ? (
+            <RosterMessage
+              title="No one else is here yet"
+              body="Invite the people who triage your reports and run your programs. They need a DevSolve account first — an invitation is matched to the address it was sent to."
+              action={
+                <Link
+                  href={lp("/dashboard/team-management/invite")}
+                  className={cn(
+                    buttonVariants({ variant: "default" }),
+                    "h-10 rounded-xl px-4 text-sm font-semibold",
+                  )}
+                >
+                  <UserPlus className="size-4" />
+                  Invite your first member
+                </Link>
+              }
+            />
+          ) : (
+            <RosterMessage
+              title="No members match these filters"
+              body={"All " + counts.total + " of them are still on the team — the search or the filters are hiding them."}
+              action={
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setRoleFilter("All");
+                    setStatusFilter("All");
+                  }}
+                  className="h-10 cursor-pointer rounded-xl px-4 text-sm font-semibold"
+                >
+                  Clear filters
+                </Button>
+              }
+            />
+          )
+        ) : (
+          <>
+            {/* Cards below `lg`, where six columns would only mean a sideways
+                scroll and a row nobody can read end to end. */}
+            <ul className="grid grid-cols-1 gap-3 lg:hidden">
+              {filteredMembers.map((member, index) => (
+                <MemberCard
+                  key={member.id}
+                  member={member}
+                  index={index}
+                  tone={getAvatarTone(member.id)}
+                  permissions={getMemberPermissions(member, actor)}
+                  isSelf={member.id === actor.userId}
+                  isOwner={member.id === ownerId}
+                  menuOpen={openMenuMemberId === member.id}
+                  onMenuOpenChange={(open) =>
+                    setOpenMenuMemberId(open ? member.id : null)
+                  }
+                  onViewProfile={() => openProfile(member)}
+                  onRoleChange={(role) => void handleRoleChange(member, role)}
+                  onRemove={() => askToRemove(member)}
+                />
+              ))}
+            </ul>
 
-          <div className="hidden overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 lg:block dark:ring-foreground/10">
-            <table className="min-w-full border-collapse text-left">
-              <thead>
-                <tr className="border-b border-border bg-muted/60 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <th scope="col" className="px-4 py-3.5 sm:px-6">
-                    Member
-                  </th>
-                  <th scope="col" className="px-4 py-3.5 sm:px-6">
-                    Role
-                  </th>
-                  <th scope="col" className="px-4 py-3.5 sm:px-6">
-                    Access
-                  </th>
-                  <th scope="col" className="px-4 py-3.5 sm:px-6">
-                    Status
-                  </th>
-                  <th scope="col" className="px-4 py-3.5 sm:px-6">
-                    Joined
-                  </th>
-                  <th scope="col" className="px-4 py-3.5 text-center sm:px-6">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
+            <div className="hidden overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 lg:block dark:ring-foreground/10">
+              <Table className="min-w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col" className="px-4 py-3.5 sm:px-6">
+                      Member
+                    </TableHead>
+                    <TableHead scope="col" className="px-4 py-3.5 sm:px-6">
+                      Role
+                    </TableHead>
+                    <TableHead scope="col" className="px-4 py-3.5 sm:px-6">
+                      Access
+                    </TableHead>
+                    <TableHead scope="col" className="px-4 py-3.5 sm:px-6">
+                      Status
+                    </TableHead>
+                    <TableHead scope="col" className="px-4 py-3.5 sm:px-6">
+                      Joined
+                    </TableHead>
+                    <TableHead
+                      scope="col"
+                      className="px-4 py-3.5 text-center sm:px-6"
+                    >
+                      <span className="sr-only">Actions</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
 
-              <tbody className="divide-y divide-border">
-                {filteredMembers.map((member, index) => (
-                  <motion.tr
-                    key={member.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: index * 0.04 }}
-                    className="group transition-colors duration-200 hover:bg-muted/50"
-                  >
-                    <td className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center gap-4">
-                        <Avatar
-                          size="lg"
-                          className={cn(
-                            "size-11 rounded-full",
-                            getAvatarTone(member.id),
-                          )}
-                        >
-                          <AvatarImage
-                            src={member.avatar}
-                            alt=""
-                            className="rounded-full object-cover"
-                          />
-                          <AvatarFallback
+                <TableBody>
+                  {filteredMembers.map((member, index) => (
+                    <MotionTableRow
+                      key={member.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, delay: index * 0.04 }}
+                      className="group"
+                    >
+                      <TableCell className="px-4 py-4 whitespace-normal sm:px-6">
+                        <div className="flex items-center gap-4">
+                          <Avatar
+                            size="lg"
                             className={cn(
-                              "rounded-full font-bold",
+                              "size-11 rounded-full",
                               getAvatarTone(member.id),
                             )}
                           >
-                            {getMemberInitials(member.name)}
-                          </AvatarFallback>
-                        </Avatar>
+                            <AvatarImage
+                              src={member.avatar}
+                              alt=""
+                              className="rounded-full object-cover"
+                            />
+                            <AvatarFallback
+                              className={cn(
+                                "rounded-full font-bold",
+                                getAvatarTone(member.id),
+                              )}
+                            >
+                              {getMemberInitials(member.name)}
+                            </AvatarFallback>
+                          </Avatar>
 
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="truncate text-base font-semibold tracking-[-0.01em] text-foreground">
-                              {member.name}
-                            </span>
-                            {member.id === actor.userId ? <YouTag /> : null}
-                            {member.id === ownerId ? <OwnerTag /> : null}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate text-base font-semibold tracking-[-0.01em] text-foreground">
+                                {member.name}
+                              </span>
+                              {member.id === actor.userId ? <YouTag /> : null}
+                              {member.id === ownerId ? <OwnerTag /> : null}
+                            </div>
+                            <p className="truncate text-sm text-muted-foreground">
+                              {member.email}
+                            </p>
                           </div>
-                          <p className="truncate text-sm text-muted-foreground">
-                            {member.email}
-                          </p>
                         </div>
-                      </div>
-                    </td>
+                      </TableCell>
 
-                    <td className="px-4 py-4 whitespace-nowrap sm:px-6">
-                      <RoleBadge role={member.role} />
-                    </td>
+                      <TableCell className="px-4 py-4 sm:px-6">
+                        <RoleBadge role={member.role} />
+                      </TableCell>
 
-                    <td className="px-4 py-4 sm:px-6">
-                      <AccessSummary permissions={member.permissions} />
-                    </td>
+                      <TableCell className="px-4 py-4 whitespace-normal sm:px-6">
+                        <AccessSummary permissions={member.permissions} />
+                      </TableCell>
 
-                    <td className="px-4 py-4 whitespace-nowrap sm:px-6">
-                      <StatusBadge status={member.status} />
-                    </td>
+                      <TableCell className="px-4 py-4 sm:px-6">
+                        <StatusBadge status={member.status} />
+                      </TableCell>
 
-                    <td className="px-4 py-4 whitespace-nowrap sm:px-6">
-                      <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                        <CalendarDays className="size-4" />
-                        {member.joined}
-                      </span>
-                    </td>
+                      <TableCell className="px-4 py-4 sm:px-6">
+                        <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                          <CalendarDays className="size-4" />
+                          {member.joined}
+                        </span>
+                      </TableCell>
 
-                    <td className="px-4 py-4 text-center whitespace-nowrap sm:px-6">
-                      <MemberActions
-                        member={member}
-                        permissions={getMemberPermissions(member, actor)}
-                        open={openMenuMemberId === member.id}
-                        onOpenChange={(open) =>
-                          setOpenMenuMemberId(open ? member.id : null)
-                        }
-                        onViewProfile={() => openProfile(member)}
-                        onRoleChange={(role) =>
-                          void handleRoleChange(member, role)
-                        }
-                        onRemove={() => askToRemove(member)}
-                      />
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+                      <TableCell className="px-4 py-4 text-center sm:px-6">
+                        <MemberActions
+                          member={member}
+                          permissions={getMemberPermissions(member, actor)}
+                          open={openMenuMemberId === member.id}
+                          onOpenChange={(open) =>
+                            setOpenMenuMemberId(open ? member.id : null)
+                          }
+                          onViewProfile={() => openProfile(member)}
+                          onRoleChange={(role) =>
+                            void handleRoleChange(member, role)
+                          }
+                          onRemove={() => askToRemove(member)}
+                        />
+                      </TableCell>
+                    </MotionTableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        )}
+      </div>
 
       <AnimatePresence>
         {memberToRemove ? (

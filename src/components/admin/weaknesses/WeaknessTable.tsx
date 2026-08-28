@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "motion/react";
 import { Loader2, PencilLine, ShieldAlert, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,6 +16,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  MotionTableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useDeleteWeaknessMutation } from "@/lib/redux/services/adminWeaknessesApi";
 import type { Weakness } from "@/lib/redux/services/weaknessesApi";
 
@@ -78,30 +87,30 @@ export function WeaknessTable({
   return (
     <>
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-3xl border-collapse text-left">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                <th className="px-4 py-3 sm:px-6">CWE</th>
-                <th className="px-4 py-3 sm:px-6">Name</th>
-                <th className="px-4 py-3 sm:px-6">Description</th>
-                <th className="px-4 py-3 sm:px-6">Status</th>
-                <th className="px-4 py-3 text-right sm:px-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {weaknesses.map((weakness, index) => {
-                const isRetired = weakness.isActive === false;
+        <Table className="min-w-3xl">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-4 py-3 sm:px-6">CWE</TableHead>
+              <TableHead className="px-4 py-3 sm:px-6">Name</TableHead>
+              <TableHead className="px-4 py-3 sm:px-6">Description</TableHead>
+              <TableHead className="px-4 py-3 sm:px-6">Status</TableHead>
+              <TableHead className="px-4 py-3 text-right sm:px-6">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {weaknesses.map((weakness, index) => {
+              const isRetired = weakness.isActive === false;
 
-                return (
-                  <motion.tr
-                    key={weakness.id}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: Math.min(index, 12) * 0.02 }}
-                    className="border-b border-border last:border-0 hover:bg-muted/40"
-                  >
-                    <td className="px-4 py-3.5 whitespace-nowrap sm:px-6">
+              return (
+                <MotionTableRow
+                  key={weakness.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: Math.min(index, 12) * 0.02 }}
+                >
+                  <TableCell className="px-4 py-3.5 sm:px-6">
                       {weakness.cweId ? (
                         <span className="font-mono text-sm font-semibold text-foreground">
                           {weakness.cweId}
@@ -109,31 +118,31 @@ export function WeaknessTable({
                       ) : (
                         <span className="text-sm text-muted-foreground">—</span>
                       )}
-                    </td>
+                  </TableCell>
 
-                    <td className="px-4 py-3.5 sm:px-6">
-                      <span className="text-sm font-semibold text-foreground">
-                        {weakness.name}
-                      </span>
-                    </td>
+                  <TableCell className="px-4 py-3.5 whitespace-normal sm:px-6">
+                    <span className="text-sm font-semibold text-foreground">
+                      {weakness.name}
+                    </span>
+                  </TableCell>
 
-                    <td className="max-w-md px-4 py-3.5 sm:px-6">
-                      <p className="line-clamp-2 text-sm text-muted-foreground">
-                        {weakness.description || "—"}
-                      </p>
-                    </td>
+                  <TableCell className="max-w-md px-4 py-3.5 whitespace-normal sm:px-6">
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                      {weakness.description || "—"}
+                    </p>
+                  </TableCell>
 
-                    <td className="px-4 py-3.5 whitespace-nowrap sm:px-6">
-                      <Badge
-                        variant={isRetired ? "secondary" : "tag"}
-                        className="rounded-lg text-sm"
-                      >
-                        {isRetired ? "Retired" : "Active"}
-                      </Badge>
-                    </td>
+                  <TableCell className="px-4 py-3.5 sm:px-6">
+                    <Badge
+                      variant={isRetired ? "secondary" : "tag"}
+                      className="rounded-lg text-sm"
+                    >
+                      {isRetired ? "Retired" : "Active"}
+                    </Badge>
+                  </TableCell>
 
-                    <td className="px-4 py-3.5 text-right whitespace-nowrap sm:px-6">
-                      <div className="inline-flex items-center gap-1">
+                  <TableCell className="px-4 py-3.5 text-right sm:px-6">
+                    <div className="inline-flex items-center gap-1">
                         <Button
                           type="button"
                           variant="ghost"
@@ -154,19 +163,24 @@ export function WeaknessTable({
                         >
                           <Trash2 className="size-4" />
                         </Button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        <footer className="border-t border-border bg-muted/40 px-4 py-3 text-sm font-medium text-muted-foreground sm:px-6">
-          Showing {weaknesses.length} of {totalCount}{" "}
-          {totalCount === 1 ? "weakness" : "weaknesses"}
-        </footer>
+                    </div>
+                  </TableCell>
+                </MotionTableRow>
+              );
+            })}
+          </TableBody>
+          <TableFooter className="bg-muted/40">
+            <TableRow className="hover:bg-transparent">
+              <TableCell
+                colSpan={5}
+                className="px-4 py-3 text-sm font-medium text-muted-foreground sm:px-6"
+              >
+                Showing {weaknesses.length} of {totalCount}{" "}
+                {totalCount === 1 ? "weakness" : "weaknesses"}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
       </div>
 
       <AlertDialog

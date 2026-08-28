@@ -19,10 +19,22 @@ import {
   ChevronRight,
   Filter,
   DollarSign,
+  FileSearch,
 } from "lucide-react";
 
 import { useGetReportsQuery, ReportItem } from "@/lib/redux/services/reportsApi";
 import { Button } from "@/components/ui/button";
+import {
+  MotionTableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableEmpty,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableSkeleton,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -260,119 +272,126 @@ export default function MyReportsPage() {
 
       {/* Data Table Container */}
       <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-muted/60 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                <th className="py-3.5 px-4 sm:px-6">REPORT ID</th>
-                <th className="py-3.5 px-4 sm:px-6">VULNERABILITY & PROGRAM</th>
-                <th className="py-3.5 px-4 sm:px-6">TYPE</th>
-                <th className="py-3.5 px-4 sm:px-6">SEVERITY</th>
-                <th className="py-3.5 px-4 sm:px-6">STATUS</th>
-                <th className="py-3.5 px-4 sm:px-6">BOUNTY/REP</th>
-                <th className="py-3.5 px-4 sm:px-6">LAST ACTIVITY</th>
-                <th className="py-3.5 px-4 sm:px-6 text-center">ACTION</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground text-sm">
-                    Loading reports...
-                  </td>
-                </tr>
-              ) : reports.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="py-12 text-center text-muted-foreground text-sm">
-                    No reports match your filters.
-                  </td>
-                </tr>
-              ) : (
-                reports.map((report, idx) => (
-                  <motion.tr
-                    key={report.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: idx * 0.04 }}
-                    className="hover:bg-muted/50 transition-colors group"
-                  >
-                    {/* Report ID */}
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      <Link
-                        href={`/dashboard/my-reports/${report.id}`}
-                        className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline decoration-2 underline-offset-2"
-                      >
-                        {report.reportId}
-                      </Link>
-                    </td>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="py-3.5 px-4 sm:px-6">Report ID</TableHead>
+              <TableHead className="py-3.5 px-4 sm:px-6">
+                Vulnerability &amp; Program
+              </TableHead>
+              <TableHead className="py-3.5 px-4 sm:px-6">Type</TableHead>
+              <TableHead className="py-3.5 px-4 sm:px-6">Severity</TableHead>
+              <TableHead className="py-3.5 px-4 sm:px-6">Status</TableHead>
+              <TableHead className="py-3.5 px-4 sm:px-6">Bounty/Rep</TableHead>
+              <TableHead className="py-3.5 px-4 sm:px-6">
+                Last Activity
+              </TableHead>
+              <TableHead className="py-3.5 px-4 sm:px-6 text-center">
+                Action
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableSkeleton rows={6} columns={8} />
+            ) : reports.length === 0 ? (
+              <TableEmpty
+                colSpan={8}
+                icon={FileSearch}
+                title="No reports match your filters"
+                description="Nothing here fits the search, type, severity or status you picked. Widen one of them to see more."
+              />
+            ) : (
+              reports.map((report, idx) => (
+                <MotionTableRow
+                  key={report.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: idx * 0.04 }}
+                  className="group"
+                >
+                  {/* Report ID */}
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    <Link
+                      href={`/dashboard/my-reports/${report.id}`}
+                      className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline decoration-2 underline-offset-2"
+                    >
+                      {report.reportId}
+                    </Link>
+                  </TableCell>
 
-                    {/* Vulnerability & Program */}
-                    <td className="py-4 px-4 sm:px-6">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-xs shrink-0 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20">
-                          <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 rounded-lg">
-                            {report.avatarLetter}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col min-w-0">
-                          <Link href={`/dashboard/my-reports/${report.id}`}>
-                            <strong className="text-sm sm:text-base font-semibold text-foreground truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors block">
-                              {report.title}
-                            </strong>
-                          </Link>
-                          <span className="text-xs sm:text-sm text-muted-foreground truncate">{report.program}</span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Type */}
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      <span className="text-sm font-medium text-muted-foreground">{report.type}</span>
-                    </td>
-
-                    {/* Severity */}
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      {getSeverityBadge(report.severity)}
-                    </td>
-
-                    {/* Status */}
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      {getStatusBadge(report.status)}
-                    </td>
-
-                    {/* Bounty/Rep */}
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      {getBountyDisplay(report)}
-                    </td>
-
-                    {/* Last Activity */}
-                    <td className="py-4 px-4 sm:px-6 whitespace-nowrap">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-sm text-muted-foreground font-medium">{report.lastActivityDate}</span>
-                        <span className="text-xs font-bold tracking-wide text-blue-600 dark:text-blue-400 uppercase">
-                          {report.lastActivityBadge}
+                  {/* Vulnerability & Program */}
+                  <TableCell className="py-4 px-4 whitespace-normal sm:px-6">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-xs shrink-0 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20">
+                        <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 rounded-lg">
+                          {report.avatarLetter}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0">
+                        <Link href={`/dashboard/my-reports/${report.id}`}>
+                          <strong className="text-sm sm:text-base font-semibold text-foreground truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors block">
+                            {report.title}
+                          </strong>
+                        </Link>
+                        <span className="text-xs sm:text-sm text-muted-foreground truncate">
+                          {report.program}
                         </span>
                       </div>
-                    </td>
+                    </div>
+                  </TableCell>
 
-                    {/* Action */}
-                    <td className="py-4 px-4 sm:px-6 text-center whitespace-nowrap">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setSelectedReport(report)}
-                        aria-label="View Report"
-                        className="w-8 h-8 rounded-lg text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                  {/* Type */}
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {report.type}
+                    </span>
+                  </TableCell>
+
+                  {/* Severity */}
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    {getSeverityBadge(report.severity)}
+                  </TableCell>
+
+                  {/* Status */}
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    {getStatusBadge(report.status)}
+                  </TableCell>
+
+                  {/* Bounty/Rep */}
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    {getBountyDisplay(report)}
+                  </TableCell>
+
+                  {/* Last Activity */}
+                  <TableCell className="py-4 px-4 sm:px-6">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm text-muted-foreground font-medium">
+                        {report.lastActivityDate}
+                      </span>
+                      <span className="text-xs font-bold tracking-wide text-blue-600 dark:text-blue-400 uppercase">
+                        {report.lastActivityBadge}
+                      </span>
+                    </div>
+                  </TableCell>
+
+                  {/* Action */}
+                  <TableCell className="py-4 px-4 sm:px-6 text-center">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setSelectedReport(report)}
+                      aria-label="View Report"
+                      className="w-8 h-8 rounded-lg text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </MotionTableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
 
         {/* Pagination Footer */}
         <footer className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-border bg-muted/30">

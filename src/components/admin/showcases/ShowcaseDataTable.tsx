@@ -12,6 +12,14 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Eye,
   ChevronLeft,
   ChevronRight,
@@ -95,106 +103,106 @@ export function ShowcaseDataTable({
   return (
     <div className="space-y-4">
       {/* Table Container */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-700 dark:text-slate-300">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200/80 dark:border-slate-800">
-              <tr>
-                <th className="py-3.5 px-4">Showcase Title & Overview</th>
-                <th className="py-3.5 px-4">Author</th>
-                <th className="py-3.5 px-4">Category</th>
-                <th className="py-3.5 px-4">Type</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-4">Submitted At</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800">
-              {paginatedItems.map((item) => (
-                <tr
-                  key={item.showcaseId}
-                  className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
-                >
-                  {/* Title & Overview */}
-                  <td className="py-4 px-4 max-w-xs sm:max-w-md">
-                    <div className="space-y-1">
-                      <p className="font-bold text-sm text-slate-900 dark:text-slate-100 line-clamp-1">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                        {item.overview}
-                      </p>
-                    </div>
-                  </td>
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs">
+        <Table className="text-foreground">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="py-3.5 px-4">
+                Showcase Title &amp; Overview
+              </TableHead>
+              <TableHead className="py-3.5 px-4">Author</TableHead>
+              <TableHead className="py-3.5 px-4">Category</TableHead>
+              <TableHead className="py-3.5 px-4">Type</TableHead>
+              <TableHead className="py-3.5 px-4">Status</TableHead>
+              <TableHead className="py-3.5 px-4">Submitted At</TableHead>
+              <TableHead className="py-3.5 px-4 text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedItems.map((item) => (
+              <TableRow key={item.showcaseId}>
+                {/* Title & Overview */}
+                <TableCell className="py-4 px-4 max-w-xs whitespace-normal sm:max-w-md">
+                  <div className="space-y-1">
+                    <p className="font-bold text-sm text-foreground line-clamp-1">
+                      {item.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      {item.overview}
+                    </p>
+                  </div>
+                </TableCell>
 
-                  {/* Author */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                      <User className="size-3.5 text-slate-400" />
-                      {item.authorName || "Anonymous"}
-                    </div>
-                  </td>
+                {/* Author */}
+                <TableCell className="py-4 px-4">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                    <User className="size-3.5 text-muted-foreground" />
+                    {item.authorName || "Anonymous"}
+                  </div>
+                </TableCell>
 
-                  {/* Category */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    {item.categoryName ? (
-                      <Badge variant="outline" className="text-xs font-medium border-slate-300 dark:border-slate-700">
-                        <Tag className="size-3 mr-1 text-blue-500" />
-                        {item.categoryName}
-                      </Badge>
-                    ) : (
-                      <span className="text-xs text-slate-400">—</span>
-                    )}
-                  </td>
-
-                  {/* Type */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                      {item.submissionType}
-                    </span>
-                  </td>
-
-                  {/* Status */}
-                  <td className="py-4 px-4 whitespace-nowrap">
-                    {getStatusBadge(item.reviewStatus)}
-                  </td>
-
-                  {/* Submitted At */}
-                  <td className="py-4 px-4 whitespace-nowrap text-xs text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="size-3.5 text-slate-400" />
-                      {item.submittedAt
-                        ? new Date(item.submittedAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "Recent"}
-                    </div>
-                  </td>
-
-                  {/* Action */}
-                  <td className="py-4 px-4 text-right whitespace-nowrap">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => onReview(item.showcaseId)}
-                      className="h-8 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer shadow-2xs"
+                {/* Category */}
+                <TableCell className="py-4 px-4">
+                  {item.categoryName ? (
+                    <Badge
+                      variant="outline"
+                      className="text-xs font-medium border-border"
                     >
-                      <Eye className="size-3.5 mr-1" />
-                      Review
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      <Tag className="size-3 mr-1 text-blue-500" />
+                      {item.categoryName}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+
+                {/* Type */}
+                <TableCell className="py-4 px-4">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {item.submissionType}
+                  </span>
+                </TableCell>
+
+                {/* Status */}
+                <TableCell className="py-4 px-4">
+                  {getStatusBadge(item.reviewStatus)}
+                </TableCell>
+
+                {/* Submitted At */}
+                <TableCell className="py-4 px-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="size-3.5 text-muted-foreground" />
+                    {item.submittedAt
+                      ? new Date(item.submittedAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Recent"}
+                  </div>
+                </TableCell>
+
+                {/* Action */}
+                <TableCell className="py-4 px-4 text-right">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => onReview(item.showcaseId)}
+                    className="h-8 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer shadow-2xs"
+                  >
+                    <Eye className="size-3.5 mr-1" />
+                    Review
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Pagination Footer */}
       {totalItems > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <span>Rows per page</span>
             <div className="w-20">

@@ -36,6 +36,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // Targeted scope assets fallback data
 const topAssets = [
@@ -429,44 +437,52 @@ export default function OrganizationAnalyticsPage() {
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-border text-[11px] font-bold uppercase text-muted-foreground tracking-wider">
-                  <th className="pb-3">Asset Target</th>
-                  <th className="pb-3">Type</th>
-                  <th className="pb-3">Total Reports</th>
-                  <th className="pb-3 text-right">Critical Findings</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-sm">
-                {topAssets.map((asset) => (
-                  <tr key={asset.name} className="hover:bg-muted/40 transition-colors">
-                    <td className="py-3.5 font-mono font-medium text-foreground">
-                      <span className="px-2 py-1 bg-muted rounded-lg text-xs">
-                        {asset.name}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="h-auto px-0 pb-3">
+                  Asset Target
+                </TableHead>
+                <TableHead className="h-auto px-0 pb-3">
+                  Type
+                </TableHead>
+                <TableHead className="h-auto px-0 pb-3">
+                  Total Reports
+                </TableHead>
+                <TableHead className="h-auto px-0 pb-3 text-right">
+                  Critical Findings
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {topAssets.map((asset) => (
+                <TableRow key={asset.name}>
+                  <TableCell className="px-0 py-3.5 font-mono font-medium text-foreground">
+                    <span className="px-2 py-1 bg-muted rounded-lg text-xs">
+                      {asset.name}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-0 py-3.5 text-muted-foreground font-medium text-xs">
+                    {asset.type}
+                  </TableCell>
+                  <TableCell className="px-0 py-3.5 font-bold text-foreground">
+                    {asset.reports}
+                  </TableCell>
+                  <TableCell className="px-0 py-3.5 text-right">
+                    {asset.critical > 0 ? (
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/20">
+                        {asset.critical} Critical
                       </span>
-                    </td>
-                    <td className="py-3.5 text-muted-foreground font-medium text-xs">
-                      {asset.type}
-                    </td>
-                    <td className="py-3.5 font-bold text-foreground">
-                      {asset.reports}
-                    </td>
-                    <td className="py-3.5 text-right">
-                      {asset.critical > 0 ? (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/20">
-                          {asset.critical} Critical
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground font-medium">0</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground font-medium">
+                        0
+                      </span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
     </motion.div>

@@ -4,6 +4,14 @@ import React, { useState } from "react";
 import { Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ResearcherAccessBadge } from "@/components/researchers/ResearcherAccessBadge";
 import { ReviewDecisionDialog } from "@/components/researchers/ReviewDecisionDialog";
 import { formatDateTime } from "@/lib/format/datetime";
@@ -57,94 +65,93 @@ export function ResearcherQueueTable({
   return (
     <>
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-4xl border-collapse text-left">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                <th className="px-4 py-3 sm:px-6">Researcher</th>
-                <th className="px-4 py-3 sm:px-6">Why they want in</th>
-                <th className="px-4 py-3 sm:px-6">Requested</th>
-                <th className="px-4 py-3 sm:px-6">Status</th>
-                <th className="px-4 py-3 text-right sm:px-6">Decision</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((record) => {
-                const decisions = allowedDecisions(record.status);
-                const reviewed =
-                  record.status !== "PENDING" ? record.reviewNote?.trim() : "";
+        <Table className="min-w-4xl">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="px-4 py-3 sm:px-6">Researcher</TableHead>
+              <TableHead className="px-4 py-3 sm:px-6">
+                Why they want in
+              </TableHead>
+              <TableHead className="px-4 py-3 sm:px-6">Requested</TableHead>
+              <TableHead className="px-4 py-3 sm:px-6">Status</TableHead>
+              <TableHead className="px-4 py-3 text-right sm:px-6">
+                Decision
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {records.map((record) => {
+              const decisions = allowedDecisions(record.status);
+              const reviewed =
+                record.status !== "PENDING" ? record.reviewNote?.trim() : "";
 
-                return (
-                  <tr
-                    key={record.id}
-                    className="border-b border-border last:border-b-0 align-top"
-                  >
-                    <td className="px-4 py-4 sm:px-6">
-                      <p className="text-sm font-bold text-foreground">
-                        {record.researcherName?.trim() || "Unnamed researcher"}
+              return (
+                <TableRow key={record.id} className="align-top">
+                  <TableCell className="px-4 py-4 whitespace-normal sm:px-6">
+                    <p className="text-sm font-bold text-foreground">
+                      {record.researcherName?.trim() || "Unnamed researcher"}
+                    </p>
+                    {record.researcherEmail && (
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {record.researcherEmail}
                       </p>
-                      {record.researcherEmail && (
-                        <p className="mt-0.5 text-sm text-muted-foreground">
-                          {record.researcherEmail}
-                        </p>
-                      )}
-                    </td>
+                    )}
+                  </TableCell>
 
-                    <td className="max-w-md px-4 py-4 sm:px-6">
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                        {record.motivation?.trim() || (
-                          /* Pre-approved rather than asked: there was never a
-                             request, so there is no motivation to show. */
-                          <span className="text-muted-foreground">
-                            Approved without a request
-                          </span>
-                        )}
-                      </p>
-                      {reviewed && (
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          <span className="font-semibold">Your note:</span>{" "}
-                          {reviewed}
-                        </p>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-4 text-sm whitespace-nowrap text-muted-foreground sm:px-6">
-                      {formatDateTime(record.requestedAt ?? record.createdAt)}
-                      {record.reviewedAt && (
-                        <span className="mt-0.5 block text-xs">
-                          Reviewed {formatDateTime(record.reviewedAt)}
+                  <TableCell className="max-w-md px-4 py-4 whitespace-normal sm:px-6">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+                      {record.motivation?.trim() || (
+                        /* Pre-approved rather than asked: there was never a
+                           request, so there is no motivation to show. */
+                        <span className="text-muted-foreground">
+                          Approved without a request
                         </span>
                       )}
-                    </td>
+                    </p>
+                    {reviewed && (
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        <span className="font-semibold">Your note:</span>{" "}
+                        {reviewed}
+                      </p>
+                    )}
+                  </TableCell>
 
-                    <td className="px-4 py-4 sm:px-6">
-                      <ResearcherAccessBadge status={record.status} />
-                    </td>
+                  <TableCell className="px-4 py-4 text-sm text-muted-foreground sm:px-6">
+                    {formatDateTime(record.requestedAt ?? record.createdAt)}
+                    {record.reviewedAt && (
+                      <span className="mt-0.5 block text-xs">
+                        Reviewed {formatDateTime(record.reviewedAt)}
+                      </span>
+                    )}
+                  </TableCell>
 
-                    <td className="px-4 py-4 sm:px-6">
-                      <div className="flex justify-end gap-2">
-                        {decisions.map((decision) => (
-                          <Button
-                            key={decision}
-                            type="button"
-                            size="sm"
-                            variant={
-                              decision === "APPROVE" ? "default" : "outline"
-                            }
-                            onClick={() => setPending({ record, decision })}
-                            className="cursor-pointer rounded-xl"
-                          >
-                            {DECISION_LABEL[decision]}
-                          </Button>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  <TableCell className="px-4 py-4 sm:px-6">
+                    <ResearcherAccessBadge status={record.status} />
+                  </TableCell>
+
+                  <TableCell className="px-4 py-4 sm:px-6">
+                    <div className="flex justify-end gap-2">
+                      {decisions.map((decision) => (
+                        <Button
+                          key={decision}
+                          type="button"
+                          size="sm"
+                          variant={
+                            decision === "APPROVE" ? "default" : "outline"
+                          }
+                          onClick={() => setPending({ record, decision })}
+                          className="cursor-pointer rounded-xl"
+                        >
+                          {DECISION_LABEL[decision]}
+                        </Button>
+                      ))}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
 
       <ReviewDecisionDialog
