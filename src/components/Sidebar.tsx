@@ -26,7 +26,7 @@ import { NotificationTrigger } from "@/components/notifications/NotificationTrig
 import { ThemeToggle } from "@/components/motion/theme-toggle";
 import { useGetBookmarksQuery } from "@/lib/redux/services/bookmarksApi";
 import { cn } from "@/lib/utils";
-import { useT } from "@/lib/i18n/I18nProvider";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 function getInitials(text: string): string {
@@ -39,10 +39,21 @@ function getInitials(text: string): string {
 }
 
 /** Does this path sit under that nav href? */
-function matches(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
-  if (href === "/dashboard") return pathname === "/dashboard";
-  return pathname === href || pathname.startsWith(`${href}/`);
+/**
+ * Whether this entry is the page being looked at.
+ *
+ * `usePathname` returns the URL as it actually is, locale and all
+ * (`/km/dashboard/team-management`), while the nav entries are written without
+ * one. Comparing the two directly meant no entry ever matched and nothing was
+ * ever highlighted, so the target is localised first.
+ *
+ * The two roots are exact-match only: every dashboard path begins with
+ * `/km/dashboard`, so a prefix test would light Dashboard up on every screen,
+ * and `/km` would light up Home on all of them.
+ */
+function matches(pathname: string, target: string, isRoot: boolean): boolean {
+  if (isRoot) return pathname === target;
+  return pathname === target || pathname.startsWith(`${target}/`);
 }
 
 /** All the sidebar needs of an organization, and all a membership carries. */
@@ -78,6 +89,11 @@ function SidebarContent({
   collapsed = false,
 }: SidebarContentProps) {
   const t = useT();
+  /* Every entry goes through this: a locale-less href still resolves, but only
+     by bouncing off the middleware redirect, which costs a round trip and
+     drops client-side navigation. It is also what the active check compares
+     against. */
+  const lp = useLocalePath();
   const { openNotification } = useNotification();
   const { hasCompanyAccess, isOwner, canAny } = useCompanyAccess();
   const { data: bookmarksResponse } = useGetBookmarksQuery(undefined, {
@@ -137,7 +153,9 @@ function SidebarContent({
      because a plain `startsWith` can't tell a parent from the real target. */
   const activeHref = filteredNavItems
     .map((item) => item.href)
-    .filter((href) => matches(pathname, href))
+    .filter((href) =>
+      matches(pathname, lp(href), href === "/" || href === "/dashboard"),
+    )
     .sort((a, b) => b.length - a.length)[0];
 
   const categories = Array.from(
@@ -194,7 +212,7 @@ function SidebarContent({
 
       {/* Profile card — resolves the real username rather than guessing a slug */}
       <Link
-        href="/dashboard/profile"
+        href={lp("/dashboard/profile")}
         onClick={onNavItemClick}
         title={collapsed ? identityName : undefined}
         className={cn(
@@ -286,7 +304,7 @@ function SidebarContent({
                 return (
                   <Link
                     key={item.name}
-                    href={item.href}
+                    href={lp(item.href)}
                     title={collapsed ? itemLabel : undefined}
                     aria-current={isActive ? "page" : undefined}
                     onClick={(e) => {
@@ -299,9 +317,11 @@ function SidebarContent({
                     className={cn(
                       "group relative flex h-10 w-full items-center rounded-xl px-3 text-sm font-semibold transition-colors",
                       collapsed ? "justify-center px-0" : "justify-between",
+                      /* On a card surface a tint alone is easy to miss, so
+                         the active row carries a ring as well as the rail. */
                       isActive
-                        ? "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300"
-                        : "text-slate-600 hover:bg-slate-100/70 hover:text-slate-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100",
+                        ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     {/* The rail is the only active cue left when labels are
@@ -329,7 +349,7 @@ function SidebarContent({
                           "size-4.5 shrink-0",
                           isActive
                             ? "text-blue-600 dark:text-blue-400"
-                            : "text-slate-400 dark:text-neutral-500",
+                            : "text-muted-foreground",
                         )}
                       />
                       {!collapsed && (
@@ -355,7 +375,7 @@ function SidebarContent({
       {/* Footer */}
       <div className="mt-auto shrink-0 space-y-1.5 border-t border-slate-200/60 pt-3 dark:border-neutral-800">
         <Link
-          href={settingsHref}
+          href={lp(settingsHref)}
           onClick={onNavItemClick}
           title={collapsed ? settingsLabel : undefined}
           className={cn(
@@ -443,7 +463,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur-md lg:hidden dark:border-neutral-800 dark:bg-neutral-900/90">
+      <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-border bg-card px-4 py-3 backdrop-blur-xl lg:hidden dark:bg-card/85">
         <Link
           href="/dashboard"
           aria-label="DevSolve dashboard"
@@ -492,7 +512,7 @@ const Sidebar = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 left-0 z-50 flex h-full w-70 flex-col overflow-hidden border-r border-slate-200 bg-white p-4 shadow-2xl lg:hidden dark:border-neutral-800 dark:bg-neutral-950"
+              className="fixed inset-y-0 left-0 z-50 flex h-full w-70 flex-col overflow-hidden border-r border-border bg-card p-4 shadow-2xl backdrop-blur-xl lg:hidden dark:bg-card/95"
             >
               <SidebarContent
                 pathname={pathname}
@@ -515,7 +535,11 @@ const Sidebar = () => {
       <motion.aside
         animate={{ width: collapsed ? 84 : 260 }}
         transition={{ type: "spring", stiffness: 380, damping: 34 }}
-        className="sticky top-0 z-30 hidden h-dvh shrink-0 flex-col overflow-visible border-r border-slate-200/80 p-4 lg:flex dark:border-neutral-800"
+        /* The navbar's surface: opaque in light, translucent and blurred in
+           dark, so the page backdrop reads through it without washing the nav
+           out. It sat on the bare backdrop before, which left the grid paper
+           running straight under the labels. */
+        className="sticky top-0 z-30 hidden h-dvh shrink-0 flex-col overflow-visible border-r border-border bg-card p-4 backdrop-blur-xl lg:flex dark:bg-card/85"
       >
         <SidebarContent
           pathname={pathname}
