@@ -16,6 +16,7 @@ import {
 import { NAV_ITEMS } from "@/config/navigation";
 import { useSidebarAuth, SidebarUser } from "@/hooks/useSidebarAuth";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { useMyMembership } from "@/hooks/useMyMembership";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +92,7 @@ function SidebarContent({
 }: SidebarContentProps) {
   const t = useT();
   const { openNotification } = useNotification();
+  const { belongs } = useMyMembership();
   const { data: bookmarksResponse } = useGetBookmarksQuery(undefined, {
     skip: !user,
   });
@@ -116,6 +118,13 @@ function SidebarContent({
   ).map((r) => r.trim().toUpperCase());
 
   const filteredNavItems = NAV_ITEMS.filter((item) => {
+    /* Membership-gated entries are hidden until the roster says this account
+       is on a team. A company account is excluded too: `/organizations/me`
+       answers with its *own* organization, which it already reaches through
+       the Organization screens — the member's view would only duplicate them
+       under a name that suggests otherwise. */
+    if (item.requiresMembership && (!belongs || isCompany)) return false;
+
     if (!item.roles) return true;
     return item.roles.some((reqRole) =>
       userRoles.includes(reqRole.toUpperCase()),

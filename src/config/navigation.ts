@@ -20,6 +20,7 @@ import {
   Tags,
   Bug,
   MailOpen,
+  UsersRound,
   ShieldQuestion,
   UserRoundCheck,
   LucideIcon,
@@ -32,6 +33,12 @@ export interface NavItem {
   badge?: number;
   roles?: string[];
   category?: "Overview" | "Researcher" | "Organization" | "Administration";
+  /**
+   * Shown only to accounts that are actually on an organization's roster.
+   * Role is the wrong test for these: someone who accepted an invitation is a
+   * member of a company workspace while still holding a researcher account.
+   */
+  requiresMembership?: boolean;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -50,6 +57,9 @@ export const NAV_ITEMS: NavItem[] = [
   // Team invitations addressed to this account. Not role-scoped: a company
   // owner can be invited onto someone else's team just as a researcher can.
   { name: "Invitations", href: "/dashboard/invitations", icon: MailOpen, roles: ["USER", "COMPANY", "ADMIN"], category: "Overview" },
+  // The other end of that invitation: the workspace they are now part of.
+  // Hidden until they are on one, so it is never an empty promise.
+  { name: "My Team", href: "/dashboard/my-team", icon: UsersRound, roles: ["USER", "COMPANY", "ADMIN"], category: "Overview", requiresMembership: true },
 
   // USER Role items
   { name: "Reports", href: "/dashboard/my-reports", icon: FileText, roles: ["USER"], category: "Researcher" },

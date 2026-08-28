@@ -199,6 +199,7 @@ function InvitationRow({
   /** Null until the page has mounted; see `useNow`. */
   now: number | null;
 }) {
+  const lp = useLocalePath();
   const [acceptInvitation, { isLoading }] =
     useAcceptOrganizationInvitationMutation();
 
@@ -344,10 +345,17 @@ function InvitationRow({
 
       <div className="flex shrink-0 items-center gap-3">
         {accepted ? (
-          <span className="flex h-10 items-center gap-2 rounded-xl bg-emerald-50 px-4 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+          <Link
+            href={lp("/dashboard/my-team")}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "h-10 w-full cursor-pointer rounded-xl px-4 text-sm font-semibold sm:w-auto",
+            )}
+          >
             <CheckCircle2 className="size-4" />
-            Joined
-          </span>
+            Open your team
+            <ArrowRight data-icon="inline-end" />
+          </Link>
         ) : (
           <Button
             type="button"

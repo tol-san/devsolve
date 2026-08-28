@@ -390,8 +390,11 @@ function AcceptedCard({ member }: { member?: OrganizationInvitationMember }) {
       </dl>
 
       <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
+        {/* Their own view of the workspace. `/dashboard/team-management` is
+            the owner's roster and is gated to a company account, so it is the
+            one screen a brand new member cannot open. */}
         <Link
-          href={lp("/dashboard/team-management")}
+          href={lp("/dashboard/my-team")}
           className={cn(
             buttonVariants({ variant: "default" }),
             "h-11 rounded-xl bg-blue-600 px-5 text-base font-semibold text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500",

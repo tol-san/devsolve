@@ -8,9 +8,8 @@ import {
   ChevronDown,
   Crown,
   Eye,
+  Loader2,
   MoreHorizontal,
-  PencilLine,
-  RefreshCcw,
   Search,
   Trash2,
   UserRound,
@@ -20,7 +19,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { ROLE_FILTERS, STATUS_FILTERS } from "@/components/teams/mock-data";
 import type {
   MemberRole,
-  MemberStatus,
   RoleFilter,
   StatusFilter,
   TeamCounts,
@@ -33,31 +31,60 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
+import { useMyMembership } from "@/hooks/useMyMembership";
+import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
+import {
+  useRemoveMemberMutation,
+  useUpdateMemberRoleMutation,
+  type OrganizationInvitationRole,
+} from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 
-const CURRENT_TEAM_ACTOR = {
-  email: "elena@cloudvault.io",
-  role: "Manager" as MemberRole,
-  isOwner: true,
+/** The signed-in account, as far as this roster is concerned. */
+type TeamActor = {
+  userId?: string;
+  role?: OrganizationInvitationRole;
+  isOwner: boolean;
 };
 
-type ConfirmActionState =
-  | {
-      type: "change-status";
-      member: TeamMember;
-      nextStatus: MemberStatus;
-    }
-  | {
-      type: "remove-member";
-      member: TeamMember;
-    };
+/** The wire values, from the display ones this table carries. */
+const API_ROLE: Record<MemberRole, OrganizationInvitationRole> = {
+  Manager: "MANAGER",
+  Member: "MEMBER",
+  Viewer: "VIEWER",
+};
+
+const ROLE_CHOICES: { value: OrganizationInvitationRole; label: string }[] = [
+  { value: "MANAGER", label: "Manager" },
+  { value: "MEMBER", label: "Member" },
+  { value: "VIEWER", label: "Viewer" },
+];
+
+/** What the upstream's refusals mean to the person who pressed the button. */
+function memberActionMessage(error: unknown, fallback: string): string {
+  const status = apiErrorStatus(error);
+
+  if (status === 401) {
+    return "Your session ended. Sign in again and try once more.";
+  }
+  if (status === 403) {
+    return "Your role does not allow this. An owner or manager can do it.";
+  }
+  if (status === 404) {
+    return "That person is no longer on this team — the list is already out of date.";
+  }
+
+  return apiErrorMessage(error, fallback);
+}
 
 function getMemberInitials(name: string) {
   return name
@@ -86,18 +113,20 @@ function getRoleBadgeClass(role: MemberRole) {
   return "border-border bg-muted text-muted-foreground";
 }
 
-function getMemberPermissions(member: TeamMember) {
-  const isCurrentUser = member.email === CURRENT_TEAM_ACTOR.email;
+function getMemberPermissions(member: TeamMember, actor: TeamActor) {
+  const isCurrentUser = Boolean(actor.userId) && member.id === actor.userId;
+
+  /* An owner may act on anyone but themselves. A manager may act on the ranks
+     below them and never on another manager. Everyone else is here to read.
+     The backend decides the same question again on every request — this only
+     keeps the menu from offering what it would refuse. */
   const canManageTarget =
-    CURRENT_TEAM_ACTOR.isOwner ||
-    (CURRENT_TEAM_ACTOR.role === "Manager" && member.role !== "Manager");
+    actor.isOwner || (actor.role === "MANAGER" && member.role !== "Manager");
 
   return {
     canViewProfile: true,
     canEditRole: !isCurrentUser && canManageTarget,
-    canChangeStatus: !isCurrentUser && canManageTarget,
     canRemove: !isCurrentUser && canManageTarget,
-    disableSelfStatusChange: isCurrentUser,
     disableSelfRemoval: isCurrentUser,
   };
 }
@@ -132,21 +161,37 @@ export function TeamsMembersSection({
   const router = useRouter();
   const lp = useLocalePath();
   const [openMenuMemberId, setOpenMenuMemberId] = useState<string | null>(null);
-  const [confirmAction, setConfirmAction] = useState<ConfirmActionState | null>(null);
+  const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
+  const [removalError, setRemovalError] = useState<string | null>(null);
+
+  const { member: ownMembership, organization } = useMyMembership();
+  const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
+  const [updateMemberRole] = useUpdateMemberRoleMutation();
+
+  const actor: TeamActor = {
+    userId: ownMembership?.userId,
+    role: ownMembership?.role,
+    /* Not on the roster at all means the owner: they reach this screen through
+       the company account rather than through a membership row. */
+    isOwner:
+      !ownMembership || organization?.ownerId === ownMembership.userId,
+  };
 
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setConfirmAction(null);
+      /* Not while the request is in flight: closing the dialog would leave the
+         person with no idea whether it went through. */
+      if (event.key === "Escape" && !isRemoving) {
+        setMemberToRemove(null);
       }
     }
 
-    if (confirmAction) {
+    if (memberToRemove) {
       window.addEventListener("keydown", handleEscape);
     }
 
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [confirmAction]);
+  }, [memberToRemove, isRemoving]);
 
   function getAvatarTone(memberId: string) {
     const tones = [
@@ -165,28 +210,79 @@ export function TeamsMembersSection({
     return tones[numericSeed % tones.length];
   }
 
-  function handleMenuAction(action: "view-profile" | "edit-role", member: TeamMember) {
+  function openProfile(member: TeamMember) {
     setOpenMenuMemberId(null);
 
-    if (action === "view-profile") {
-      /* `member.id` is the backend `userId`. The profile route takes either a
-         username or a user id and tells the two apart itself, so the id goes
-         straight in — there is no username on a member record to look up. */
-      router.push(lp(`/dashboard/profile/${member.id}`));
-      return;
+    /* `member.id` is the backend `userId`. The profile route takes either a
+       username or a user id and tells the two apart itself, so the id goes
+       straight in — there is no username on a member record to look up. */
+    router.push(lp(`/dashboard/profile/${member.id}`));
+  }
+
+  async function handleRoleChange(
+    member: TeamMember,
+    nextRole: OrganizationInvitationRole,
+  ) {
+    setOpenMenuMemberId(null);
+    if (nextRole === API_ROLE[member.role]) return;
+
+    const label =
+      ROLE_CHOICES.find((choice) => choice.value === nextRole)?.label ??
+      "member";
+
+    try {
+      await updateMemberRole({ userId: member.id, role: nextRole }).unwrap();
+
+      toast.success({
+        title: "Role updated",
+        description: `${member.name} is now a ${label.toLowerCase()} on this team.`,
+      });
+    } catch (error) {
+      toast.destructive({
+        title: "Role not updated",
+        description: memberActionMessage(
+          error,
+          "The role could not be changed. Trying again is usually enough.",
+        ),
+      });
     }
-
-    // Editing a role from here is still to be connected.
-    void member;
   }
 
-  function handleConfirmAction(action: ConfirmActionState) {
+  function askToRemove(member: TeamMember) {
     setOpenMenuMemberId(null);
-    setConfirmAction(action);
+    setRemovalError(null);
+    setMemberToRemove(member);
   }
 
-  function handleConfirmSubmit() {
-    setConfirmAction(null);
+  /**
+   * The removal itself.
+   *
+   * `removeMember` invalidates `OrganizationMembers`, so the roster refetches
+   * on its own and the row leaves without anything here tracking it. The
+   * dialog stays open on failure: the message belongs next to the name it is
+   * about, not only in a toast that fades.
+   */
+  async function handleRemoveConfirmed() {
+    if (!memberToRemove) return;
+
+    setRemovalError(null);
+
+    try {
+      await removeMember({ userId: memberToRemove.id }).unwrap();
+
+      toast.success({
+        title: "Member removed",
+        description: `${memberToRemove.name} no longer has access to this workspace.`,
+      });
+      setMemberToRemove(null);
+    } catch (error) {
+      setRemovalError(
+        memberActionMessage(
+          error,
+          "The member could not be removed. Trying again is usually enough.",
+        ),
+      );
+    }
   }
 
   return (
@@ -312,7 +408,7 @@ export function TeamsMembersSection({
                 )
               ) : (
                 filteredMembers.map((member, index) => {
-                  const permissions = getMemberPermissions(member);
+                  const permissions = getMemberPermissions(member, actor);
 
                   return (
                     <motion.tr
@@ -436,7 +532,7 @@ export function TeamsMembersSection({
                           >
                             {permissions.canViewProfile ? (
                               <DropdownMenuItem
-                                onClick={() => handleMenuAction("view-profile", member)}
+                                onClick={() => openProfile(member)}
                                 className="rounded-[10px] px-3 py-2.5 text-foreground focus:bg-muted focus:text-foreground cursor-pointer"
                               >
                                 <Eye className="size-4" />
@@ -444,34 +540,39 @@ export function TeamsMembersSection({
                               </DropdownMenuItem>
                             ) : null}
 
+                            {/* The role is changed here rather than behind an
+                                "edit" that opened nothing: three values, one
+                                PATCH, and the roster refetches itself. There is
+                                no status control — the API has no endpoint for
+                                it, and PENDING is simply an invitation nobody
+                                has accepted yet. */}
                             {permissions.canEditRole ? (
-                              <DropdownMenuItem
-                                onClick={() => handleMenuAction("edit-role", member)}
-                                className="rounded-[10px] px-3 py-2.5 text-foreground focus:bg-muted focus:text-foreground cursor-pointer"
-                              >
-                                <PencilLine className="size-4" />
-                                Edit role
-                              </DropdownMenuItem>
+                              <>
+                                <DropdownMenuSeparator className="my-1 bg-border" />
+                                <DropdownMenuLabel className="px-3 py-1.5 text-sm font-semibold text-muted-foreground">
+                                  Role
+                                </DropdownMenuLabel>
+                                <DropdownMenuRadioGroup
+                                  value={API_ROLE[member.role]}
+                                  onValueChange={(nextRole) =>
+                                    void handleRoleChange(
+                                      member,
+                                      nextRole as OrganizationInvitationRole,
+                                    )
+                                  }
+                                >
+                                  {ROLE_CHOICES.map((choice) => (
+                                    <DropdownMenuRadioItem
+                                      key={choice.value}
+                                      value={choice.value}
+                                      className="rounded-[10px] px-3 py-2.5 text-foreground focus:bg-muted focus:text-foreground cursor-pointer"
+                                    >
+                                      {choice.label}
+                                    </DropdownMenuRadioItem>
+                                  ))}
+                                </DropdownMenuRadioGroup>
+                              </>
                             ) : null}
-
-                            {(permissions.canChangeStatus ||
-                              permissions.disableSelfStatusChange) && (
-                              <DropdownMenuItem
-                                disabled={permissions.disableSelfStatusChange}
-                                onClick={() =>
-                                  handleConfirmAction({
-                                    type: "change-status",
-                                    member,
-                                    nextStatus:
-                                      member.status === "Active" ? "Pending" : "Active",
-                                  })
-                                }
-                                className="rounded-[10px] px-3 py-2.5 text-foreground focus:bg-muted focus:text-foreground data-disabled:text-muted-foreground cursor-pointer"
-                              >
-                                <RefreshCcw className="size-4" />
-                                Change status
-                              </DropdownMenuItem>
-                            )}
 
                             {(permissions.canRemove || permissions.disableSelfRemoval) && (
                               <>
@@ -479,12 +580,7 @@ export function TeamsMembersSection({
                                 <DropdownMenuItem
                                   variant="destructive"
                                   disabled={permissions.disableSelfRemoval}
-                                  onClick={() =>
-                                    handleConfirmAction({
-                                      type: "remove-member",
-                                      member,
-                                    })
-                                  }
+                                  onClick={() => askToRemove(member)}
                                   className="rounded-[10px] px-3 py-2.5 text-red-600 dark:text-red-400 focus:bg-red-500/10 focus:text-red-600 cursor-pointer"
                                 >
                                   <Trash2 className="size-4" />
@@ -514,11 +610,17 @@ export function TeamsMembersSection({
       </div>
 
       <AnimatePresence>
-        {confirmAction ? (
-          <TeamMemberConfirmationDialog
-            action={confirmAction}
-            onCancel={() => setConfirmAction(null)}
-            onConfirm={handleConfirmSubmit}
+        {memberToRemove ? (
+          <RemoveMemberDialog
+            member={memberToRemove}
+            isRemoving={isRemoving}
+            error={removalError}
+            onCancel={() => {
+              if (isRemoving) return;
+              setMemberToRemove(null);
+              setRemovalError(null);
+            }}
+            onConfirm={() => void handleRemoveConfirmed()}
           />
         ) : null}
       </AnimatePresence>
@@ -566,21 +668,26 @@ function StatusFilterSelect({
   );
 }
 
-function TeamMemberConfirmationDialog({
-  action,
+/**
+ * The last stop before someone loses their access.
+ *
+ * It holds while the request is in flight and keeps itself open if the request
+ * fails, with the reason under the name it is about — a toast that has already
+ * faded is no help to someone deciding whether to press it again.
+ */
+function RemoveMemberDialog({
+  member,
+  isRemoving,
+  error,
   onCancel,
   onConfirm,
 }: {
-  action: ConfirmActionState;
+  member: TeamMember;
+  isRemoving: boolean;
+  error: string | null;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
-  const isRemoval = action.type === "remove-member";
-  const title = isRemoval ? "Remove member?" : "Confirm status change?";
-  const description = isRemoval
-    ? `Remove ${action.member.name} from the organization workspace? This action should be confirmed before access is revoked.`
-    : `Change ${action.member.name}'s status from ${action.member.status} to ${action.nextStatus}? This will affect how they appear in the team roster.`;
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -594,19 +701,14 @@ function TeamMemberConfirmationDialog({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 6, scale: 0.98 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
-        className="w-full max-w-md rounded-2xl border border-border bg-card text-card-foreground p-5 shadow-2xl"
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="team-member-confirm-title"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-3">
-          <div
-            className={cn(
-              "flex size-10 shrink-0 items-center justify-center rounded-full",
-              isRemoval ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-muted text-foreground"
-            )}
-          >
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
             <AlertTriangle className="size-5" />
           </div>
 
@@ -615,31 +717,48 @@ function TeamMemberConfirmationDialog({
               id="team-member-confirm-title"
               className="text-lg font-semibold text-foreground"
             >
-              {title}
+              Remove {member.name}?
             </h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              They lose access to this organization&apos;s workspace right away.
+              Their reports and activity stay where they are. Getting them back
+              on the team means sending a new invitation.
+            </p>
           </div>
         </div>
+
+        {error ? (
+          <p
+            role="alert"
+            className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm font-medium leading-relaxed text-red-700 dark:text-red-300"
+          >
+            {error}
+          </p>
+        ) : null}
 
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"
+            disabled={isRemoving}
             onClick={onCancel}
-            className="h-10 rounded-full border-border bg-card px-4 text-foreground hover:bg-muted cursor-pointer"
+            className="h-10 cursor-pointer rounded-full border-border bg-card px-4 text-foreground hover:bg-muted"
           >
             Cancel
           </Button>
           <Button
             type="button"
-            variant={isRemoval ? "destructive" : "default"}
+            variant="destructive"
+            disabled={isRemoving}
             onClick={onConfirm}
-            className={cn(
-              "h-10 rounded-full px-4 cursor-pointer",
-              !isRemoval && "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-600 dark:text-white"
-            )}
+            className="h-10 cursor-pointer rounded-full px-4"
           >
-            {isRemoval ? "Confirm removal" : "Confirm change"}
+            {isRemoving ? (
+              <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+            ) : (
+              <Trash2 className="size-4" />
+            )}
+            {isRemoving ? "Removing…" : "Remove member"}
           </Button>
         </div>
       </motion.div>
