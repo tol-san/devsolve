@@ -9,7 +9,7 @@ export function PublicProgramFooter() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo-1.png"
+              src="/devsolve.png"
               alt="DevSolve"
               width={44}
               height={44}
@@ -73,7 +73,7 @@ export function PublicProgramFooter() {
               </p>
               <div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-slate-950">
                 <Image
-                  src="/logo-1.png"
+                  src="/devsolve.png"
                   alt="DevSolve Organizer"
                   width={40}
                   height={40}

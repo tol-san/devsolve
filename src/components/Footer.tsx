@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowUp } from "lucide-react";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
-import darkModeLogo from "@/app/devsolve_dark_mode-removebg-preview.png";
 import mptcLight from "../../public/mptc-lightmode.png";
 import mptcDark from "../../public/mptc-darkmode.png";
 import istadLight from "../../public/istad-lightmode.png";
@@ -88,8 +87,8 @@ export default function Footer() {
      light and dark file — and next-themes only knows the theme after
      hydration, so the server render has to commit to the light files or the
      two disagree. `useIsDark` is the codebase's guard for exactly this: it
-     reports `false` for one frame, then the real value. The DevSolve wordmark
-     no longer needs it; that one is a single file recoloured in CSS. */
+     reports `false` for one frame, then the real value. The DevSolve
+     wordmark no longer needs it: it is one file in both themes. */
   const isDarkTheme = useIsDark();
 
   const scrollToTop = () => {
@@ -123,25 +122,25 @@ export default function Footer() {
         >
           <div className="flex flex-col items-start gap-5 lg:col-span-5">
             {/* `/devsolve-logo.png` is the logo as drawn: navy wordmark,
-                #0059FC bulb, transparent background. It is used as-is on light
-                surfaces — no blend mode, since there is no white box to hide
-                and multiplying only muddied it against the backdrop.
+                #0059FC bulb, transparent background. No blend mode — there is
+                no white box to hide, and multiplying only muddied it against
+                the backdrop.
 
-                Dark mode needs the other file rather than a filter. The navy
-                in this one sits at about 1.1:1 against the neutral-950 footer,
-                so the wordmark disappears while the bright bulb stays — half a
-                logo. Recolouring it in CSS (`brightness-0 invert`) fixes the
-                contrast by flattening every colour to white, which throws away
-                the two blues and the bug. The dark file is the same lockup
-                with the wordmark redrawn in white, so the design survives. */}
+                Dark mode gets this same file, by choice: one artwork
+                everywhere beats a matched pair that can drift. The cost is
+                stated where it is decided, in `BrandLogo` — the navy sits at
+                about 1.1:1 against the neutral-950 footer, so on dark the blue
+                half of the lockup carries it and the navy half recedes. The
+                remedy, if it is ever wanted, is a light plate behind the mark;
+                a CSS recolour (`brightness-0 invert`) is not one, since it
+                flattens the two blues and the bug into a single white. */}
             <Link href={lp("/")} aria-label={t("footer.home")} className="group block">
               <span className="relative block h-16 w-44 sm:h-20 sm:w-56">
                 <Image
-                  key={isDarkTheme ? "dark-logo" : "light-logo"}
-                  src={isDarkTheme ? darkModeLogo : "/devsolve-logo.png"}
+                  src="/devsolve-logo.png"
                   alt="DevSolve"
                   fill
-                  quality={95}
+                  quality={90}
                   sizes="(min-width: 640px) 224px, 176px"
                   className="object-contain object-left transition-transform duration-200 group-hover:scale-[1.03]"
                 />
@@ -232,7 +231,7 @@ export default function Footer() {
                     key={art.src}
                     src={art}
                     alt={partner.alt}
-                    quality={95}
+                    quality={90}
                     sizes="(min-width: 640px) 340px, 260px"
                     className="h-full w-auto max-w-full object-contain"
                   />

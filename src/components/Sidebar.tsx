@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
@@ -16,6 +15,7 @@ import {
 
 import { NAV_ITEMS } from "@/config/navigation";
 import { useSidebarAuth, SidebarUser } from "@/hooks/useSidebarAuth";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -155,11 +155,35 @@ function SidebarContent({
     /* `data-scroll-host` makes the whole sidebar the hover target for the
        nav's scrollbar below, rather than the narrow strip the bar sits in. */
     <div data-scroll-host className="flex h-full flex-col overflow-hidden">
-      {/* Close control, drawer only. Desktop has no row here at all — its
-          collapse toggle floats on the sidebar's edge, so the profile card
-          starts flush with the top padding instead of after an empty band. */}
-      {onNavItemClick && (
-        <div className="mb-2 flex h-9 shrink-0 items-center justify-end">
+      {/* Brand. The drawer shares this row with its close control; the
+          desktop rail gives it a row of its own, and swaps the lockup for the
+          circular badge once the rail is too narrow to hold a wordmark. */}
+      <div
+        className={cn(
+          "mb-3 flex h-10 shrink-0 items-center",
+          onNavItemClick
+            ? "justify-between"
+            : collapsed
+              ? "justify-center"
+              : "justify-start",
+        )}
+      >
+        <Link
+          href="/dashboard"
+          onClick={onNavItemClick}
+          aria-label="DevSolve dashboard"
+          className="flex items-center"
+        >
+          <BrandLogo
+            variant={collapsed && !onNavItemClick ? "badge" : "lockup"}
+            className={
+              collapsed && !onNavItemClick ? "size-10" : "h-10 w-38"
+            }
+            sizes={collapsed && !onNavItemClick ? "40px" : "152px"}
+          />
+        </Link>
+
+        {onNavItemClick && (
           <Button
             size="icon"
             variant="ghost"
@@ -169,8 +193,8 @@ function SidebarContent({
           >
             <X className="size-5" />
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Profile card — resolves the real username rather than guessing a slug */}
       <Link
@@ -184,7 +208,7 @@ function SidebarContent({
       >
         {identityIsLoading ? (
           <div className="flex w-full animate-pulse items-center gap-3">
-            <div className="size-10 shrink-0 rounded-full bg-slate-300/60 dark:bg-neutral-700" />
+            <div className="size-12 shrink-0 rounded-full bg-slate-300/60 dark:bg-neutral-700" />
             {!collapsed && (
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <div className="h-3.5 w-20 rounded bg-slate-300/60 dark:bg-neutral-700" />
@@ -194,7 +218,9 @@ function SidebarContent({
           </div>
         ) : (
           <>
-            <Avatar className="size-10 shrink-0 border-none rounded-full">
+            {/* Bigger than the 40px it was: for a company account this is
+                their own mark, and the card has the room. */}
+            <Avatar className="size-12 shrink-0 border-none rounded-full">
               {identityImage && (
                 <AvatarImage
                   src={identityImage}
@@ -414,18 +440,16 @@ const Sidebar = () => {
   return (
     <>
       <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 py-3 backdrop-blur-md lg:hidden dark:border-neutral-800 dark:bg-neutral-900/90">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <Image
-            src="/logo-1.png"
-            alt=""
-            width={36}
-            height={36}
-            className="size-9 object-contain"
-            priority
-          />
-          <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-neutral-100">
-            DevSolve
-          </span>
+        {/* The lockup already says "DevSolve", so the word is not repeated
+            beside it. It also replaces `/logo-1.png`, which is not a file that
+            exists — the header has been rendering a broken image, and a broken
+            image has no dark variant to get wrong. */}
+        <Link
+          href="/dashboard"
+          aria-label="DevSolve dashboard"
+          className="flex items-center"
+        >
+          <BrandLogo priority className="h-10 w-36" sizes="144px" />
         </Link>
 
         <div className="flex items-center gap-2">

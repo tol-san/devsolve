@@ -12,7 +12,6 @@ import {
 } from "motion/react";
 import { ArrowUpRight, Bug, Lightbulb, MessagesSquare, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import devsolveMarkDark from "@/app/devsolve_dark_mode-removebg-preview.png";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import SectionBackdrop, {
   ACCENT,
@@ -511,13 +510,12 @@ export function HeroPlatform() {
             {/* The mark sits at the hub the four pillars are anchored to. */}
             <span className="pointer-events-none absolute left-1/2 top-1/2 mt-3 block h-11 w-40 -translate-x-1/2 -translate-y-1/2 sm:h-13 sm:w-48">
               <Image
-                key={isDark ? "dark" : "light"}
-                src={isDark ? devsolveMarkDark : "/devsolve-logo.png"}
+                src="/devsolve-logo.png"
                 alt="DevSolve"
                 fill
                 priority
                 sizes="192px"
-                className={`object-contain ${isDark ? "" : "mix-blend-multiply"}`}
+                className="object-contain"
               />
             </span>
           </div>

@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
-import darkModeLogo from "@/app/devsolve_dark_mode-removebg-preview.png";
 import { ThemeToggle, useThemeToggle } from "@/components/motion/theme-toggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
@@ -236,8 +235,9 @@ const Navbar = () => {
     variant: "rectangle",
     start: "bottom-up",
   });
-  const isDarkLogo = mounted && isDark;
-  const logoSrc = isDarkLogo ? darkModeLogo : "/devsolve-logo.png";
+  /* One artwork in both themes — see `BrandLogo` for why, and for the
+     contrast trade it accepts. */
+  const logoSrc = "/devsolve-logo.png";
 
   // The header is a fixed island with no backdrop band, so it always overlaps
   // page content. To keep the screen clear it retracts while the reader moves
@@ -581,19 +581,17 @@ const Navbar = () => {
                 >
                   {/* Narrows through the band where the nav is fighting for
                       room, back to full size once there is space again. */}
-                  <span className="relative block h-10 w-33 sm:w-35 lg:w-32 xl:h-11 xl:w-38.5">
+                  <span className="relative block h-11 w-38 sm:w-40 lg:w-36 xl:h-12 xl:w-44">
                     <Image
-                      key={isDarkLogo ? "dark-logo" : "light-logo"}
                       src={logoSrc}
                       alt="DevSolve"
                       fill
                       priority
-                      sizes="(min-width: 1280px) 154px, 132px"
-                      className={cn(
-                        "origin-left object-contain object-left transition-transform scale-[1.15]",
-                        !isDarkLogo && "mix-blend-multiply",
-                        isDarkLogo && "translate-x-[2px]",
-                      )}
+                      sizes="(min-width: 1280px) 176px, 152px"
+                      /* No `mix-blend-multiply`: the file is transparent, so
+                         it bought nothing on light and would sink the mark
+                         into the surface on dark. */
+                      className="origin-left object-contain object-left transition-transform scale-[1.15]"
                     />
                   </span>
                 </motion.div>

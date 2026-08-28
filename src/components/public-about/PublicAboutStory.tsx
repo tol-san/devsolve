@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { motion } from "motion/react";
 import {
   Bug,
@@ -197,12 +197,13 @@ export function PublicAboutStory() {
                   <span className="size-2 rounded-full bg-emerald-400" />
                 </div>
                 <div className="rounded-[24px] border border-slate-100 bg-slate-50 px-6 py-10 text-center dark:border-white/6 dark:bg-slate-950">
-                  <Image
-                    src="/logo_devsolve-removebg.png"
-                    alt="DevSolve"
-                    width={180}
-                    height={180}
-                    className="mx-auto h-auto w-[180px] object-contain"
+                  {/* On a surface that flips with the theme, so it takes the
+                      pair rather than one file: the navy wordmark is roughly
+                      1.1:1 against the dark version of this panel. */}
+                  <BrandLogo
+                    align="center"
+                    className="mx-auto h-[72px] w-[180px]"
+                    sizes="180px"
                   />
                   <p className="mt-5 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
                     DevSolve

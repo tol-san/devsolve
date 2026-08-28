@@ -176,7 +176,7 @@ export default function KnowledgeConvergence({
             <div className="relative z-10 mb-10 flex h-[250px] w-[250px] items-center justify-center rounded-[42px] border border-blue-100 bg-[linear-gradient(180deg,#f8fbff_0%,#dbeafe_100%)] shadow-[0_26px_60px_rgba(37,99,235,0.18)] dark:border-blue-400/15 dark:bg-[linear-gradient(180deg,#0f172a_0%,#142853_100%)]">
               <div className="absolute inset-5 rounded-[34px] border border-white/80 bg-[linear-gradient(180deg,#3b82f6_0%,#1d4ed8_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.30)] dark:border-white/10" />
               <Image
-                src="/logo_devsolve-removebg.png"
+                src="/devsolve.png"
                 alt="DevSolve logo"
                 width={170}
                 height={170}

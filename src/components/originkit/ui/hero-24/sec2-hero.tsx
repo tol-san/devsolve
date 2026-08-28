@@ -6,8 +6,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import devsolveMarkDark from "@/app/devsolve_dark_mode-removebg-preview.png";
-import SectionBackdrop, { useIsDark } from "@/components/landing/SectionBackdrop";
+import SectionBackdrop from "@/components/landing/SectionBackdrop";
 import { PillarOrbit } from "@/components/landing/PillarOrbit";
 import { ScaleFrame } from "@/components/originkit/ui/hero-24/scale-frame";
 
@@ -23,10 +22,8 @@ const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
  *
  *  A soft scrim sits behind it: over a field of dots a wordmark loses its
  *  counters, and a blurred disc of the page's own colour lifts it clear
- *  without reading as a plate. `useIsDark` is gated on hydration, so the
- *  server render and the first client render agree on which file this uses. */
+ *  without reading as a plate. */
 const Wordmark = ({ className, step }: { className: string; step: number }) => {
-  const isDark = useIsDark();
   return (
     <div
       style={delay(step)}
@@ -37,13 +34,12 @@ const Wordmark = ({ className, step }: { className: string; step: number }) => {
         className="absolute -inset-x-[38%] -inset-y-[120%] rounded-[999px] bg-white/80 blur-xl dark:bg-neutral-950/80"
       />
       <Image
-        key={isDark ? "dark" : "light"}
-        src={isDark ? devsolveMarkDark : "/devsolve-logo.png"}
+        src="/devsolve-logo.png"
         alt="DevSolve"
         fill
         priority
         sizes="240px"
-        className={`object-contain ${isDark ? "" : "mix-blend-multiply"}`}
+        className="object-contain"
       />
     </div>
   );

@@ -4,9 +4,8 @@ import React, { useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-import darkModeLogo from "@/app/devsolve_dark_mode-removebg-preview.png";
 import { AsciiHand } from "./AsciiHand";
-import { PRIMARY, useIsDark } from "./SectionBackdrop";
+import { PRIMARY } from "./SectionBackdrop";
 
 /* A store that reports `false` to the server and `true` to the client, which
    is how you ask React "has this hydrated yet?" without a setState in an
@@ -57,10 +56,6 @@ function RevealWords({ text, delay = 0 }: { text: string; delay?: number }) {
    ════════════════════════════════════════════════════════════════════ */
 
 function CentreMark() {
-  /* Already gated on hydration, so the server render and the first client
-     render agree on which file the <Image> points at. */
-  const isDark = useIsDark();
-
   return (
     <motion.span
       initial={{ opacity: 0, scale: 0.94 }}
@@ -69,13 +64,12 @@ function CentreMark() {
       className="relative block h-14 w-52 sm:h-16 sm:w-60"
     >
       <Image
-        key={isDark ? "dark" : "light"}
-        src={isDark ? darkModeLogo : "/devsolve-logo.png"}
+        src="/devsolve-logo.png"
         alt="DevSolve"
         fill
         priority
         sizes="240px"
-        className={`object-contain ${isDark ? "" : "mix-blend-multiply"}`}
+        className="object-contain"
       />
     </motion.span>
   );

@@ -4,8 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, type Variants } from "motion/react";
 import { Loader2 } from "lucide-react";
-import devsolveMarkDark from "@/app/devsolve_dark_mode-removebg-preview.png";
-import { useIsDark } from "@/components/landing/SectionBackdrop";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import { USER_FEATURES, COMPANY_FEATURES } from "@/lib/constants/auth";
 import { AccountTypeCard } from "@/components/account-type/AccountTypeCard";
@@ -35,7 +33,6 @@ const cardVariants: Variants = {
 
 export default function AccountTypeSelectionPage() {
   const { isLoggingIn, handleLogin } = useKeycloakLogin();
-  const isDark = useIsDark();
 
   /* The backdrop is the auth layout's; this shell stays transparent so it
      shows through. */
@@ -56,8 +53,7 @@ export default function AccountTypeSelectionPage() {
           >
             <span className="relative block h-10 w-36">
               <Image
-                key={isDark ? "dark" : "light"}
-                src={isDark ? devsolveMarkDark : "/devsolve-logo.png"}
+                src="/devsolve-logo.png"
                 alt="DevSolve"
                 fill
                 priority

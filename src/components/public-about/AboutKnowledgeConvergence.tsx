@@ -199,7 +199,7 @@ export function AboutKnowledgeConvergence() {
               <div className="absolute inset-5 rounded-[36px] border border-white/80 bg-[linear-gradient(180deg,#3b82f6_0%,#1d4ed8_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.30)] dark:border-white/10" />
               <div className="relative z-10 flex flex-col items-center">
                 <Image
-                  src="/logo_devsolve-removebg.png"
+                  src="/devsolve.png"
                   alt="DevSolve logo"
                   width={150}
                   height={150}
