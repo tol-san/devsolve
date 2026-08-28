@@ -184,16 +184,17 @@ const Navbar = () => {
      it. The membership also carries the identity shown here; `/organizations/me`
      is owner-only and answers 404 for a member. */
   const {
-    hasCompanyAccess: isCompany,
     isOwner,
     membership,
     isLoading: isMembershipLoading,
   } = useCompanyAccess();
 
-  const organizationStatus = isCompany
+  const organizationStatus = isOwner
     ? organizationStatusLabel(membership?.organizationStatus)
     : undefined;
-  const navbarIdentity: NavbarIdentity = isCompany
+  /* Only an owner's account is the organization. A member signs in as
+     themselves and belongs to one, so the menu shows them. */
+  const navbarIdentity: NavbarIdentity = isOwner
     ? {
       isCompany: true,
       name: membership?.organizationName || "Company workspace",
@@ -203,12 +204,9 @@ const Navbar = () => {
       status: organizationStatus,
       image: membership?.organizationLogoUrl ?? undefined,
       profileHref: "/dashboard/profile",
-      profileLabel: isOwner ? "Organization profile" : "My profile",
-      /* Organization settings are the owner's; a member's are their own. */
-      settingsHref: isOwner
-        ? "/dashboard/organizations"
-        : "/dashboard/profile/settings",
-      settingsLabel: isOwner ? "Organization settings" : "Settings",
+      profileLabel: "Organization profile",
+      settingsHref: "/dashboard/organizations",
+      settingsLabel: "Organization settings",
     }
     : {
       isCompany: false,

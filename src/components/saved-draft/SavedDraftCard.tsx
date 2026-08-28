@@ -14,6 +14,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 
 import type { SavedDraftItem } from "@/components/saved-draft/types";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +50,11 @@ function getDraftHref(item: SavedDraftItem) {
 }
 
 export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
+  /* A report draft is the reporter's own and always theirs to discard. A
+     program draft belongs to the organization and takes DELETE_PROGRAM, so
+     without it there is nothing here to press. */
+  const { can } = useCompanyAccess();
+  const canDelete = item.category === "report" || can("DELETE_PROGRAM");
   const [imageError, setImageError] = useState(false);
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -107,14 +113,18 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
                 <Eye className="w-4 h-4 mr-2" />
                 View in card
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-1" />
-              <DropdownMenuItem
-                onClick={() => setShowDeleteDialog(true)}
-                className="rounded-[10px] px-3 py-2 text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10 focus:text-red-600 dark:focus:text-red-400 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete draft
-              </DropdownMenuItem>
+              {canDelete && (
+                <>
+                  <DropdownMenuSeparator className="my-1" />
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="rounded-[10px] px-3 py-2 text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10 focus:text-red-600 dark:focus:text-red-400 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete draft
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

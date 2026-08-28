@@ -59,7 +59,6 @@ interface SidebarContentProps {
   isPending: boolean;
   displayName: string;
   organization?: SidebarOrganizationIdentity;
-  isCompany: boolean;
   isOrganizationLoading: boolean;
   onNavItemClick?: () => void;
   onSignOut: () => void;
@@ -73,7 +72,6 @@ function SidebarContent({
   isPending,
   displayName,
   organization,
-  isCompany,
   isOrganizationLoading,
   onNavItemClick,
   onSignOut,
@@ -146,19 +144,24 @@ function SidebarContent({
     new Set(filteredNavItems.map((item) => item.category || "Overview")),
   );
 
-  const identityName = isCompany
+  /* Whose card is this? An owner's account IS the company, so it shows
+     the organization. A member is a person who happens to belong to one:
+     their own name, email and avatar belong here, and the workspace they
+     were invited into is on My Team. Company *access* is a different
+     question, and the nav below answers it separately. */
+  const identityName = isOwner
     ? organization?.name || t("sidebar.status.default")
     : displayName;
-  const identityImage = isCompany ? organization?.logoUrl : user?.image;
-  const identityDetail = isCompany
+  const identityImage = isOwner ? organization?.logoUrl : user?.image;
+  const identityDetail = isOwner
     ? organization?.slug
       ? `@${organization.slug}`
       : getOrgStatusLabel(organization?.status)
     : user?.email;
-  const identityStatus = isCompany
+  const identityStatus = isOwner
     ? getOrgStatusLabel(organization?.status)
     : undefined;
-  const identityIsLoading = isPending || (isCompany && isOrganizationLoading);
+  const identityIsLoading = isPending || (isOwner && isOrganizationLoading);
   /* Organization settings belong to the owner — `/organizations/me` is an
      owner endpoint. A member's settings are their own account's. */
   const settingsHref = isOwner
@@ -215,7 +218,7 @@ function SidebarContent({
               {identityImage && (
                 <AvatarImage
                   src={identityImage}
-                  alt={isCompany ? `${identityName} logo` : ""}
+                  alt={isOwner ? `${identityName} logo` : ""}
                   className="rounded-full"
                 />
               )}
@@ -395,11 +398,7 @@ const Sidebar = () => {
      registering a company, so an invited member never carries it. The
      membership row also carries the identity this card needs — `/organizations/me`
      is owner-only and answers 404 for a member. */
-  const {
-    hasCompanyAccess: isCompany,
-    membership,
-    isLoading: isMembershipLoading,
-  } = useCompanyAccess();
+  const { membership, isLoading: isMembershipLoading } = useCompanyAccess();
 
   const organization: SidebarOrganizationIdentity | undefined = membership
     ? {
@@ -501,7 +500,6 @@ const Sidebar = () => {
                 isPending={isSidebarIdentityPending}
                 displayName={displayName}
                 organization={organization}
-                isCompany={isCompany}
                 isOrganizationLoading={isCompanyIdentityLoading}
                 onNavItemClick={() => setIsOpen(false)}
                 onSignOut={handleSignOut}
@@ -525,7 +523,6 @@ const Sidebar = () => {
           isPending={isSidebarIdentityPending}
           displayName={displayName}
           organization={organization}
-          isCompany={isCompany}
           isOrganizationLoading={isCompanyIdentityLoading}
           onSignOut={handleSignOut}
           collapsed={collapsed}

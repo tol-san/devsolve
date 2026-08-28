@@ -33,6 +33,7 @@ import {
   ProgramStateBadge,
 } from "@/components/admin/programs/ProgramStatusBadge";
 import { ProgramManagementSummaryItem } from "@/lib/types/admin/programAdminTypes";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useDeleteProgramMutation } from "@/lib/redux/services/program/programsApi";
 import {
   useApproveProgramMutation,
@@ -90,6 +91,12 @@ function OwnerProgramActions({
   const [isOpen, setIsOpen] = useState(false);
   const [deleteProgram, { isLoading }] = useDeleteProgramMutation();
 
+  /* Deleting a program is its own permission, and a member without it meets a
+     403 at the end of the confirmation. The button is not shown at all rather
+     than shown and refused. */
+  const { can } = useCompanyAccess();
+  const canDelete = can("DELETE_PROGRAM");
+
   const handleDelete = async () => {
     try {
       await deleteProgram(program.id).unwrap();
@@ -115,15 +122,17 @@ function OwnerProgramActions({
           View
           <ArrowRight data-icon="inline-end" />
         </Link>
-        <Button
-          type="button"
-          variant="destructive"
-          size="icon-sm"
-          aria-label={`Delete ${program.name}`}
-          onClick={() => setIsOpen(true)}
-        >
-          <Trash2 />
-        </Button>
+        {canDelete && (
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon-sm"
+            aria-label={`Delete ${program.name}`}
+            onClick={() => setIsOpen(true)}
+          >
+            <Trash2 />
+          </Button>
+        )}
       </div>
 
       <AlertDialog
