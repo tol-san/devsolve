@@ -1,3 +1,4 @@
+import type { OrganizationInvitationPermission } from "@/lib/redux/services/organizationsApi";
 import {
   Home,
   LayoutDashboard,
@@ -39,6 +40,15 @@ export interface NavItem {
    * member of a company workspace while still holding a researcher account.
    */
   requiresMembership?: boolean;
+  /**
+   * Organization permissions that earn this entry regardless of role.
+   *
+   * The same reason: an invited member does the company's work — triaging its
+   * reports, running its programs — while holding a researcher account, so a
+   * role check hides every screen they were invited to use. Holding any one of
+   * these is enough, and the backend authorizes the requests either way.
+   */
+  permissions?: OrganizationInvitationPermission[];
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -73,14 +83,14 @@ export const NAV_ITEMS: NavItem[] = [
 
   // COMPANY Role items
   { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["COMPANY"], category: "Organization" },
-  { name: "Program Management", href: "/dashboard/program-management", icon: Building2, roles: ["COMPANY"], category: "Organization" },
-  { name: "Create Program", href: "/dashboard/create-program", icon: PlusCircle, roles: ["COMPANY"], category: "Organization" },
+  { name: "Program Management", href: "/dashboard/program-management", icon: Building2, roles: ["COMPANY"], category: "Organization", permissions: ["VIEW_PROGRAMS"] },
+  { name: "Create Program", href: "/dashboard/create-program", icon: PlusCircle, roles: ["COMPANY"], category: "Organization", permissions: ["CREATE_PROGRAM"] },
   { name: "Saved Drafts", href: "/dashboard/saved-draft", icon: FilePen, roles: ["COMPANY"], category: "Organization" },
-  { name: "Report Management", href: "/dashboard/report-management", icon: ClipboardList, roles: ["COMPANY"], category: "Organization" },
+  { name: "Report Management", href: "/dashboard/report-management", icon: ClipboardList, roles: ["COMPANY"], category: "Organization", permissions: ["VIEW_REPORTS", "TRIAGE_REPORTS"] },
   { name: "Team Management", href: "/dashboard/team-management", icon: Users, roles: ["COMPANY"], category: "Organization" },
   // The other side of the same gate: who outside the organization may report
   // to it. One decision covers every program the company runs.
-  { name: "Researcher Access", href: "/dashboard/researcher-access", icon: UserRoundCheck, roles: ["COMPANY"], category: "Organization" },
+  { name: "Researcher Access", href: "/dashboard/researcher-access", icon: UserRoundCheck, roles: ["COMPANY"], category: "Organization", permissions: ["MANAGE_RESEARCHERS"] },
 
   // ADMIN Role items
   { name: "Organization Verification", href: "/dashboard/company-verification", icon: ShieldCheck, roles: ["ADMIN"], category: "Administration" },

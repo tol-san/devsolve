@@ -19,6 +19,7 @@ export default function ResearcherAccessPage() {
   return (
     <RequireRole
       roles={["COMPANY"]}
+      orPermission="MANAGE_RESEARCHERS"
       title="This screen is for companies"
       description="Approving researchers is something an organization does. To see where you stand with the companies you have approached, open your own access instead."
       action={{ href: "/dashboard/my-access", label: "My access" }}

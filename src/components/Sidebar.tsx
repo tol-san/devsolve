@@ -92,7 +92,7 @@ function SidebarContent({
 }: SidebarContentProps) {
   const t = useT();
   const { openNotification } = useNotification();
-  const { belongs } = useMyMembership();
+  const { belongs, member: ownMembership } = useMyMembership();
   const { data: bookmarksResponse } = useGetBookmarksQuery(undefined, {
     skip: !user,
   });
@@ -124,6 +124,17 @@ function SidebarContent({
        the Organization screens — the member's view would only duplicate them
        under a name that suggests otherwise. */
     if (item.requiresMembership && (!belongs || isCompany)) return false;
+
+    /* A permission the account actually holds opens the entry on its own. An
+       invited member triaging a company's reports has a researcher role and
+       would otherwise never see the screen they were invited to work in. */
+    if (
+      item.permissions?.some((permission) =>
+        ownMembership?.permissions?.includes(permission),
+      )
+    ) {
+      return true;
+    }
 
     if (!item.roles) return true;
     return item.roles.some((reqRole) =>

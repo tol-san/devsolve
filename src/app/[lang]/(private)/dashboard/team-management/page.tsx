@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 
 import { TeamsMembersSection } from "@/components/teams/TeamsMembersSection";
 import { TeamsPageHeader } from "@/components/teams/TeamsPageHeader";
+import { TeamsStatsGrid } from "@/components/teams/TeamsStatsGrid";
 import {
   pageEnterContainer,
   pageEnterItem,
@@ -33,7 +34,13 @@ export default function TeamsPage() {
       className="w-full space-y-7 pb-12"
     >
       <motion.div variants={pageEnterItem}>
-        <TeamsPageHeader counts={counts} />
+        <TeamsPageHeader />
+      </motion.div>
+
+      {/* The shape of the team before the list of it: how many, how many are
+          still only invited, and how the ranks are split. */}
+      <motion.div variants={pageEnterItem}>
+        <TeamsStatsGrid counts={counts} />
       </motion.div>
 
       <motion.div variants={pageEnterItem}>

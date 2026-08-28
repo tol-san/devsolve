@@ -6,7 +6,9 @@ import { motion } from "motion/react";
 import { ArrowRight, ShieldOff } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
+import { useMyMembership } from "@/hooks/useMyMembership";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
+import type { OrganizationInvitationPermission } from "@/lib/redux/services/organizationsApi";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +31,7 @@ import { cn } from "@/lib/utils";
  */
 export function RequireRole({
   roles,
+  orPermission,
   title,
   description,
   action,
@@ -36,6 +39,16 @@ export function RequireRole({
 }: {
   /** Any one of these is enough. Compared case-insensitively. */
   roles: string[];
+  /**
+   * An organization permission that admits the account regardless of role.
+   *
+   * For screens a company invites people into: a member who was granted the
+   * permission holds a researcher account, so the role check alone would shut
+   * out exactly the person the invitation was for. Unlike
+   * `useOrganizationPermission`, absence refuses here — this is the outer gate,
+   * and an account on no roster at all has no business on the screen.
+   */
+  orPermission?: OrganizationInvitationPermission;
   title: string;
   description: string;
   /** Where this account should have gone instead. */
@@ -44,11 +57,17 @@ export function RequireRole({
 }) {
   const lp = useLocalePath();
   const { user, areRolesResolved } = useSidebarAuth();
+  const { member, isLoading: isMembershipLoading } = useMyMembership();
 
-  /* Roles arrive with the session, or from the access token a beat later.
-     Deciding before they land would show the refusal to the very people the
-     screen is for, and then swap it out under them. */
-  if (!areRolesResolved) {
+  const holdsPermission = Boolean(
+    orPermission && member?.permissions?.includes(orPermission),
+  );
+
+  /* Roles arrive with the session, or from the access token a beat later, and
+     the roster a beat after that. Deciding before they land would show the
+     refusal to the very people the screen is for, and then swap it out under
+     them. */
+  if (!areRolesResolved || (orPermission && isMembershipLoading)) {
     return (
       <div
         aria-busy="true"
@@ -67,7 +86,7 @@ export function RequireRole({
     user?.roles ?? (user?.role ? user.role.split(",") : ["USER"])
   ).map((role) => role.trim().toUpperCase());
 
-  if (roles.some((role) => held.includes(role.toUpperCase()))) {
+  if (holdsPermission || roles.some((role) => held.includes(role.toUpperCase()))) {
     return <>{children}</>;
   }
 

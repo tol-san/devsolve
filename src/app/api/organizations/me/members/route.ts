@@ -22,11 +22,19 @@ async function bearerTokenFor(request: NextRequest): Promise<string | null> {
 const unauthorized = () =>
   NextResponse.json({ message: "Not authenticated" }, { status: 401 });
 
-const unreachable = () =>
-  NextResponse.json(
-    { message: "Unable to reach the organization service. Please try again." },
-    { status: 502 }
-  );
+/**
+ * An empty roster and a refused one look identical to the caller, deliberately:
+ * a screen that says "no teammates" beats one that says "403". But the two mean
+ * very different things while wiring the member experience up — whether the
+ * upstream scopes this to the owner or to anyone on the roster decides whether
+ * an invited member sees their team at all — so the real status is relayed in
+ * `x-upstream-status` for anyone looking in devtools.
+ */
+const softEmpty = (upstreamStatus: number | "unreachable") =>
+  NextResponse.json([], {
+    status: 200,
+    headers: { "x-upstream-status": String(upstreamStatus) },
+  });
 
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
@@ -43,7 +51,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (upstream.status === 404 || upstream.status === 403) {
-      return NextResponse.json([], { status: 200 });
+      return softEmpty(upstream.status);
     }
 
     const raw = await upstream.text();
@@ -57,11 +65,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (!upstream.ok) {
-      return NextResponse.json([], { status: 200 });
+      return softEmpty(upstream.status);
     }
 
     return NextResponse.json(body, { status: upstream.status });
   } catch {
-    return NextResponse.json([], { status: 200 });
+    return softEmpty("unreachable");
   }
 }

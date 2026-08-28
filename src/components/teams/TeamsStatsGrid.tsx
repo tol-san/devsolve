@@ -22,7 +22,13 @@ function buildTeamStatCards(counts: TeamCounts): TeamStatCard[] {
     {
       title: "Total Members",
       value: counts.total,
-      meta: `${counts.active} active`,
+      /* Pending belongs here rather than under Members: an unaccepted
+         invitation can be for any of the three roles, so subtracting it from
+         one of them was arithmetic that could go negative. */
+      meta:
+        counts.pending > 0
+          ? `${counts.active} active · ${counts.pending} invited`
+          : `${counts.active} active`,
       icon: Users,
       iconClassName: "bg-muted text-foreground",
     },
@@ -36,7 +42,7 @@ function buildTeamStatCards(counts: TeamCounts): TeamStatCard[] {
     {
       title: "Members",
       value: counts.members,
-      meta: `${counts.members - counts.pending} working staff / ${counts.pending} pending`,
+      meta: "Day-to-day collaborators",
       icon: UserCheck,
       iconClassName: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     },

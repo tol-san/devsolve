@@ -1,3 +1,5 @@
+import type { OrganizationInvitationPermission } from "@/lib/redux/services/organizationsApi";
+
 export type MemberRole = "Manager" | "Member" | "Viewer";
 export type MemberStatus = "Active" | "Pending";
 
@@ -9,6 +11,10 @@ export type TeamMember = {
   role: MemberRole;
   status: MemberStatus;
   joined: string;
+  /** What this member may do, as the roster reports it. */
+  permissions: OrganizationInvitationPermission[];
+  /** An invitation nobody has accepted yet, rather than a colleague. */
+  isPending: boolean;
 };
 
 export type RoleFilter = "All" | MemberRole;

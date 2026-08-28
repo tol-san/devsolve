@@ -120,6 +120,9 @@ export function useTeamMembers() {
           member.invitationPending,
         ),
         joined: formatJoinedDate(member.joinedAt),
+        permissions: member.permissions ?? [],
+        isPending:
+          Boolean(member.invitationPending) || member.status === "PENDING",
       })),
     [organizationMembers],
   );
