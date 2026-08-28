@@ -12,6 +12,7 @@ import {
   Loader2,
   MoreHorizontal,
   RefreshCcw,
+  SlidersHorizontal,
   Trash2,
   UserPlus,
   UserRound,
@@ -28,7 +29,10 @@ import type {
 } from "@/components/teams/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { INVITE_PERMISSION_OPTIONS } from "@/components/teams/invite-member/mock-data";
+import {
+  DEFAULT_PERMISSIONS_BY_ROLE,
+  INVITE_PERMISSION_OPTIONS,
+} from "@/components/teams/invite-member/mock-data";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -62,10 +66,12 @@ import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import {
   useRemoveMemberMutation,
+  useUpdateMemberPermissionsMutation,
   useUpdateMemberRoleMutation,
   type OrganizationInvitationPermission,
   type OrganizationInvitationRole,
 } from "@/lib/redux/services/organizationsApi";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 /** The signed-in account, as far as this roster is concerned. */
@@ -162,6 +168,10 @@ function getMemberPermissions(member: TeamMember, actor: TeamActor) {
   return {
     canViewProfile: true,
     canEditRole: !isCurrentUser && canManageTarget,
+    /* Role and permissions are separate PATCHes and separate decisions: the
+       role sets a starting point, the permission set is what actually applies,
+       and an owner may tune one without touching the other. */
+    canEditPermissions: !isCurrentUser && canManageTarget,
     canRemove: !isCurrentUser && canManageTarget,
     disableSelfRemoval: isCurrentUser,
   };
@@ -215,6 +225,8 @@ export function TeamsMembersSection({
   const [openMenuKey, setOpenMenuKey] = useState<string | null>(null);
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
   const [removalError, setRemovalError] = useState<string | null>(null);
+  const [memberToTune, setMemberToTune] = useState<TeamMember | null>(null);
+  const [permissionsError, setPermissionsError] = useState<string | null>(null);
 
   /* This screen is owner-only — the roster endpoint behind it answers 404 for
      a member — so the actor is the owner, and the roster's own rows are the
@@ -222,6 +234,8 @@ export function TeamsMembersSection({
   const { membership, isOwner } = useCompanyAccess();
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
   const [updateMemberRole] = useUpdateMemberRoleMutation();
+  const [updateMemberPermissions, { isLoading: isSavingPermissions }] =
+    useUpdateMemberPermissionsMutation();
 
   const actor: TeamActor = {
     role: membership?.role ?? undefined,
@@ -296,6 +310,47 @@ export function TeamsMembersSection({
           "The role could not be changed. Trying again is usually enough.",
         ),
       });
+    }
+  }
+
+  function askToTunePermissions(member: TeamMember) {
+    setOpenMenuKey(null);
+    setPermissionsError(null);
+    setMemberToTune(member);
+  }
+
+  /**
+   * The permission set itself.
+   *
+   * Like the removal dialog, this one stays open on failure — the message
+   * belongs beside the switches it is about. On success the mutation
+   * invalidates `OrganizationMembers`, so the row's Access column refreshes
+   * without anything here tracking it.
+   */
+  async function handlePermissionsSave(
+    next: OrganizationInvitationPermission[],
+  ) {
+    if (!memberToTune) return;
+
+    setPermissionsError(null);
+    try {
+      await updateMemberPermissions({
+        userId: memberToTune.id,
+        permissions: next,
+      }).unwrap();
+
+      toast.success({
+        title: "Permissions updated",
+        description: `${memberToTune.name} now has ${next.length} of ${INVITE_PERMISSION_OPTIONS.length} permissions.`,
+      });
+      setMemberToTune(null);
+    } catch (error) {
+      setPermissionsError(
+        memberActionMessage(
+          error,
+          "The permissions could not be saved. Trying again is usually enough.",
+        ),
+      );
     }
   }
 
@@ -458,6 +513,7 @@ export function TeamsMembersSection({
                   }
                   onViewProfile={() => openProfile(member)}
                   onRoleChange={(role) => void handleRoleChange(member, role)}
+                  onEditPermissions={() => askToTunePermissions(member)}
                   onRemove={() => askToRemove(member)}
                 />
               ))}
@@ -572,6 +628,7 @@ export function TeamsMembersSection({
                           onRoleChange={(role) =>
                             void handleRoleChange(member, role)
                           }
+                          onEditPermissions={() => askToTunePermissions(member)}
                           onRemove={() => askToRemove(member)}
                         />
                       </TableCell>
@@ -583,6 +640,22 @@ export function TeamsMembersSection({
           </>
         )}
       </div>
+
+      <AnimatePresence>
+        {memberToTune ? (
+          <EditPermissionsDialog
+            member={memberToTune}
+            isSaving={isSavingPermissions}
+            error={permissionsError}
+            onCancel={() => {
+              if (isSavingPermissions) return;
+              setMemberToTune(null);
+              setPermissionsError(null);
+            }}
+            onSave={(next) => void handlePermissionsSave(next)}
+          />
+        ) : null}
+      </AnimatePresence>
 
       <AnimatePresence>
         {memberToRemove ? (
@@ -742,6 +815,7 @@ function MemberActions({
   onOpenChange,
   onViewProfile,
   onRoleChange,
+  onEditPermissions,
   onRemove,
 }: {
   member: TeamMember;
@@ -750,6 +824,7 @@ function MemberActions({
   onOpenChange: (open: boolean) => void;
   onViewProfile: () => void;
   onRoleChange: (role: OrganizationInvitationRole) => void;
+  onEditPermissions: () => void;
   onRemove: () => void;
 }) {
   return (
@@ -806,6 +881,19 @@ function MemberActions({
           </>
         ) : null}
 
+        {permissions.canEditPermissions ? (
+          <>
+            <DropdownMenuSeparator className="my-1 bg-border" />
+            <DropdownMenuItem
+              onClick={onEditPermissions}
+              className="cursor-pointer rounded-[10px] px-3 py-2.5 text-foreground focus:bg-muted focus:text-foreground"
+            >
+              <SlidersHorizontal className="size-4" />
+              Edit permissions
+            </DropdownMenuItem>
+          </>
+        ) : null}
+
         {permissions.canRemove || permissions.disableSelfRemoval ? (
           <>
             <DropdownMenuSeparator className="my-1 bg-border" />
@@ -837,6 +925,7 @@ function MemberCard({
   onMenuOpenChange,
   onViewProfile,
   onRoleChange,
+  onEditPermissions,
   onRemove,
 }: {
   member: TeamMember;
@@ -849,6 +938,7 @@ function MemberCard({
   onMenuOpenChange: (open: boolean) => void;
   onViewProfile: () => void;
   onRoleChange: (role: OrganizationInvitationRole) => void;
+  onEditPermissions: () => void;
   onRemove: () => void;
 }) {
   return (
@@ -892,6 +982,7 @@ function MemberCard({
           onOpenChange={onMenuOpenChange}
           onViewProfile={onViewProfile}
           onRoleChange={onRoleChange}
+          onEditPermissions={onEditPermissions}
           onRemove={onRemove}
         />
       </div>
@@ -955,6 +1046,165 @@ function RosterMessage({
         {body}
       </p>
       {action ? <div className="mt-1">{action}</div> : null}
+    </motion.div>
+  );
+}
+
+/**
+ * The permission set for one member.
+ *
+ * A role is three coarse presets; this is the set that actually decides what
+ * the workspace will let them do, and the two are edited apart because the API
+ * keeps them apart — `PATCH .../role` and `PATCH .../permissions` are separate
+ * calls, and an owner may tune the set without moving anyone's rank.
+ */
+function EditPermissionsDialog({
+  member,
+  isSaving,
+  error,
+  onCancel,
+  onSave,
+}: {
+  member: TeamMember;
+  isSaving: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onSave: (permissions: OrganizationInvitationPermission[]) => void;
+}) {
+  const [selected, setSelected] = useState<OrganizationInvitationPermission[]>(
+    () => member.permissions,
+  );
+
+  const roleDefaults = DEFAULT_PERMISSIONS_BY_ROLE[API_ROLE[member.role]] ?? [];
+
+  /* Order-insensitive: the roster and the defaults list the same set in
+     different orders, and a re-ordered array is not an edit. */
+  const isDirty =
+    selected.length !== member.permissions.length ||
+    selected.some((permission) => !member.permissions.includes(permission));
+
+  function toggle(permission: OrganizationInvitationPermission) {
+    setSelected((current) =>
+      current.includes(permission)
+        ? current.filter((entry) => entry !== permission)
+        : [...current, permission],
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-[2px]"
+      onClick={onCancel}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="team-member-permissions-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start gap-3 p-5 pb-4">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <SlidersHorizontal className="size-5" />
+          </div>
+
+          <div className="min-w-0 space-y-1">
+            <h3
+              id="team-member-permissions-title"
+              className="text-lg font-semibold text-foreground"
+            >
+              Permissions for {member.name}
+            </h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Their role is a starting point. This is the set the workspace
+              actually checks, and it takes effect the moment you save.
+            </p>
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto border-y border-border">
+          <ul className="divide-y divide-border/60">
+            {INVITE_PERMISSION_OPTIONS.map((option) => {
+              const isOn = selected.includes(option.value);
+
+              return (
+                <li
+                  key={option.value}
+                  className="flex items-start justify-between gap-4 px-5 py-3.5"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">
+                      {option.title}
+                    </p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+                      {option.description}
+                    </p>
+                  </div>
+
+                  <Switch
+                    checked={isOn}
+                    disabled={isSaving}
+                    onCheckedChange={() => toggle(option.value)}
+                    aria-label={`${isOn ? "Remove" : "Grant"} ${option.title}`}
+                    className="mt-0.5 shrink-0 cursor-pointer"
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {error ? (
+          <p
+            role="alert"
+            className="mx-5 mt-4 rounded-xl bg-red-500/10 p-3 text-sm font-medium leading-relaxed text-red-700 dark:text-red-300"
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <div className="flex flex-col-reverse gap-2 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={isSaving}
+            onClick={() => setSelected(roleDefaults)}
+            className="h-10 cursor-pointer rounded-full px-3 text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            Reset to {member.role.toLowerCase()} defaults
+          </Button>
+
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isSaving}
+              onClick={onCancel}
+              className="h-10 cursor-pointer rounded-full border-border bg-card px-4 text-foreground hover:bg-muted"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={isSaving || !isDirty}
+              onClick={() => onSave(selected)}
+              className="h-10 cursor-pointer rounded-full px-4"
+            >
+              {isSaving ? (
+                <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+              ) : null}
+              {isSaving ? "Saving…" : "Save permissions"}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
