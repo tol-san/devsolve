@@ -160,6 +160,37 @@ export type MyOrganizationInvitation = {
   expiresAt: string;
 };
 
+/**
+ * One organization this account belongs to, from
+ * `GET /organizations/me/memberships`.
+ *
+ * The answer to "does this account have a company workspace", which the
+ * Keycloak `COMPANY` realm role cannot give: that role is granted for
+ * *registering* a company, so an invited member never has it no matter what
+ * the roster says. Owners appear here too — `owner: true`, `role: null`, all
+ * ten permissions — so one call covers both, owned entries first.
+ */
+export type OrganizationMembership = {
+  organizationId: string;
+  organizationName: string;
+  organizationSlug?: string | null;
+  organizationLogoUrl?: string | null;
+  organizationStatus: OrganizationStatus;
+  /** True when this account registered the company rather than joining it. */
+  owner: boolean;
+  /** Null for the owner: the three ranks describe invited members only. */
+  role?: OrganizationInvitationRole | null;
+  /** What this account may do here. The only thing worth gating UI on. */
+  permissions: OrganizationInvitationPermission[];
+  joinedAt?: string;
+};
+
+type MyMembershipsEnvelope = {
+  memberships?: OrganizationMembership[];
+  data?: OrganizationMembership[];
+  items?: OrganizationMembership[];
+};
+
 type MyInvitationsEnvelope = {
   invitations?: MyOrganizationInvitation[];
   data?: MyOrganizationInvitation[];
@@ -353,6 +384,30 @@ export const organizationsApi = proxyApi.injectEndpoints({
       ],
     }),
     /**
+     * Every organization this account belongs to.
+     *
+     * Cheap, cached and asked for every signed-in account, because it is what
+     * decides whether there is a company workspace at all. An account on no
+     * team gets `[]`, which is an answer rather than an error.
+     */
+    getMyMemberships: builder.query<OrganizationMembership[], void>({
+      query: () => ({
+        url: "/organizations/me/memberships",
+        method: "GET",
+      }),
+      transformResponse: (
+        response: OrganizationMembership[] | MyMembershipsEnvelope | null,
+      ) => {
+        if (Array.isArray(response)) return response;
+        if (!response) return [];
+        return (
+          response.memberships ?? response.data ?? response.items ?? []
+        );
+      },
+      providesTags: ["OrganizationMemberships"],
+    }),
+
+    /**
      * Invitations waiting for the signed-in account.
      *
      * Server-side this is already filtered to invitations that would succeed
@@ -388,8 +443,12 @@ export const organizationsApi = proxyApi.injectEndpoints({
         url: `/organizations/invitations/${token}/accept`,
         method: "POST",
       }),
+      /* An invitation is not access; accepting it is. The new membership shows
+         up only in `/organizations/me/memberships`, so that is what has to be
+         re-read — the workspace appears on the strength of it. */
       invalidatesTags: [
         "OrganizationMembers",
+        "OrganizationMemberships",
         "OrganizationInvitations",
       ],
     }),
@@ -441,6 +500,7 @@ export const {
   useGetOrganizationProgramsByIdQuery,
   useGetOrganizationMembersQuery,
   useInviteOrganizationMemberMutation,
+  useGetMyMembershipsQuery,
   useGetMyInvitationsQuery,
   useAcceptOrganizationInvitationMutation,
   useUpdateMemberRoleMutation,

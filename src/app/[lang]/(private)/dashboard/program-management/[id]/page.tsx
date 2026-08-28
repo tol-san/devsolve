@@ -52,6 +52,7 @@ import {
   useResumeProgramMutation,
   useUpdateProgramVisibilityMutation,
 } from "@/lib/redux/services/program/programsApi";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import { ProgramRejectDialog } from "@/components/admin/programs/ProgramRejectDialog";
 import { ProgramDetailHero } from "@/components/programs/ProgramDetailHero";
@@ -76,7 +77,7 @@ function ProgramDetailPageContent({
 
   const { user } = useSidebarAuth();
   const isAdmin = user?.roles?.includes("ADMIN") ?? false;
-  const isCompanyUser = user?.roles?.includes("COMPANY") ?? false;
+  const { hasCompanyAccess: isCompanyUser, can } = useCompanyAccess();
   const isAdminScope = searchParams.get("scope") === "admin" && isAdmin;
 
   const [activeTab, setActiveTab] = useState<ProgramDetailTabId>("overview");
@@ -401,8 +402,10 @@ function ProgramDetailPageContent({
                 </>
               )}
 
-              {/* Company Lifecycle Status Button */}
-              {!isAdminScope && (
+              {/* Publish, pause, resume and close are all one permission —
+                  without it the state is shown by the badge above and there is
+                  nothing here to press. */}
+              {!isAdminScope && can("MANAGE_PROGRAM_STATE") && (
                 <div className="ml-0 sm:ml-2">
                   {program.state === "DRAFT" ? (
                     <DropdownMenu>

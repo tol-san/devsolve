@@ -13,6 +13,7 @@ import { DashboardMyPrograms } from "@/components/dashboard/DashboardMyPrograms"
 import { DashboardReportStatus } from "@/components/dashboard/DashboardReportStatus";
 import { DashboardReportSeverity } from "@/components/dashboard/DashboardReportSeverity";
 import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,8 +65,10 @@ export default function DashboardPage() {
   const { user, areRolesResolved } = useSidebarAuth();
   const isAdminUser =
     user?.roles?.includes("ADMIN") || user?.role?.includes("ADMIN");
-  const isCompanyUser = user?.roles?.includes("COMPANY") ?? false;
-  const dashboardView = isCompanyUser ? "company" : "user";
+  /* A membership, not a realm role: an invited member works in the company
+     workspace while holding an ordinary researcher account. */
+  const { hasCompanyAccess } = useCompanyAccess();
+  const dashboardView = hasCompanyAccess ? "company" : "user";
 
   const {
     data: dashboardData,

@@ -29,7 +29,7 @@ import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import { authClient } from "@/lib/auth/auth-client";
 import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
-import { useGetMyOrganizationQuery } from "@/lib/redux/services/organizationsApi";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import {
   useAcceptOrganizationInvitationMutation,
   type OrganizationInvitationMember,
@@ -330,10 +330,11 @@ function AcceptedCard({ member }: { member?: OrganizationInvitationMember }) {
   const permissions = member?.permissions ?? [];
 
   /* The accept response carries the member, not the organization — so the
-     name comes from the workspace they have just been let into. Skipped
-     silently if it cannot be read; the confirmation still stands without it. */
-  const { data: organization } = useGetMyOrganizationQuery();
-  const organizationName = organization?.name?.trim();
+     name comes from the membership the accept has just created. Accepting
+     invalidates the memberships tag, so this is the freshly written row rather
+     than a stale one. */
+  const { membership } = useCompanyAccess();
+  const organizationName = membership?.organizationName?.trim();
 
   return (
     <motion.div

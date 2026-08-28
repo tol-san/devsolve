@@ -34,7 +34,7 @@ import { NotificationTrigger } from "@/components/notifications/NotificationTrig
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import { authClient } from "@/lib/auth/auth-client";
-import { useGetMyOrganizationQuery } from "@/lib/redux/services/organizationsApi";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -179,30 +179,36 @@ const Navbar = () => {
     () => navLinks.filter((link) => !(link.guestOnly && sessionUser)),
     [sessionUser],
   );
-  const isCompany = sessionUser?.roles?.includes("COMPANY") ?? false;
+  /* Company access is a membership, not the `COMPANY` realm role — that role
+     is granted for registering a company, so an invited member never carries
+     it. The membership also carries the identity shown here; `/organizations/me`
+     is owner-only and answers 404 for a member. */
   const {
-    data: organization,
-    isLoading: isOrganizationLoading,
-    isFetching: isOrganizationFetching,
-  } = useGetMyOrganizationQuery(undefined, {
-    skip: !sessionUser || !areRolesResolved || !isCompany,
-  });
+    hasCompanyAccess: isCompany,
+    isOwner,
+    membership,
+    isLoading: isMembershipLoading,
+  } = useCompanyAccess();
+
   const organizationStatus = isCompany
-    ? organizationStatusLabel(organization?.status)
+    ? organizationStatusLabel(membership?.organizationStatus)
     : undefined;
   const navbarIdentity: NavbarIdentity = isCompany
     ? {
       isCompany: true,
-      name: organization?.name || "Company workspace",
-      detail: organization?.slug
-        ? `@${organization.slug}`
-        : organization?.domain || organizationStatus,
+      name: membership?.organizationName || "Company workspace",
+      detail: membership?.organizationSlug
+        ? `@${membership.organizationSlug}`
+        : organizationStatus,
       status: organizationStatus,
-      image: organization?.logoUrl,
+      image: membership?.organizationLogoUrl ?? undefined,
       profileHref: "/dashboard/profile",
-      profileLabel: "Organization profile",
-      settingsHref: "/dashboard/organizations",
-      settingsLabel: "Organization settings",
+      profileLabel: isOwner ? "Organization profile" : "My profile",
+      /* Organization settings are the owner's; a member's are their own. */
+      settingsHref: isOwner
+        ? "/dashboard/organizations"
+        : "/dashboard/profile/settings",
+      settingsLabel: isOwner ? "Organization settings" : "Settings",
     }
     : {
       isCompany: false,
@@ -217,7 +223,7 @@ const Navbar = () => {
   const isNavbarIdentityPending =
     isSessionPending ||
     (Boolean(sessionUser) && !areRolesResolved) ||
-    (isCompany && (isOrganizationLoading || isOrganizationFetching));
+    isMembershipLoading;
   // Anything inside this is "the menu"; a press anywhere else dismisses it.
   const headerRef = useRef<HTMLElement>(null);
 

@@ -423,20 +423,26 @@ export async function GET(request: NextRequest) {
     if (!reportsResult.response.ok) {
       return relay(reportsResult.response, "Unable to load dashboard reports.");
     }
-    if (isCompany && programsResult && !programsResult.response.ok) {
+    /* Both of these are the company's, and an invited member may hold neither.
+       `/organizations/me` is owner-only and answers 404 for a member;
+       `/organizations/me/programs` answers 403 without VIEW_PROGRAMS and 409
+       for an account in more than one organization. None of those is a broken
+       dashboard — they are sections this account cannot see, so the overview
+       is built from what it can and the rest comes back empty. A 401 is
+       different: the session itself is finished, and saying so is the only
+       useful answer. */
+    if (isCompany && programsResult && programsResult.response.status === 401) {
       return relay(programsResult.response, "Unable to load organization programs.");
-    }
-    if (isCompany && organizationResult && !organizationResult.response.ok) {
-      return relay(organizationResult.response, "Unable to load the organization.");
     }
 
     const reportsPage = pageSchema(reportSchema).safeParse(reportsResult.data);
-    const programsPage = pageSchema(programSchema).safeParse(programsResult?.data ?? {
-      content: [],
-    });
-    const organization = isCompany
-      ? organizationSchema.safeParse(organizationResult?.data)
-      : null;
+    const programsPage = pageSchema(programSchema).safeParse(
+      programsResult?.response.ok ? programsResult.data : { content: [] },
+    );
+    const organization =
+      isCompany && organizationResult?.response.ok
+        ? organizationSchema.safeParse(organizationResult.data)
+        : null;
 
     if (!reportsPage.success || !programsPage.success || (organization && !organization.success)) {
       return NextResponse.json(

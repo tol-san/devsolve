@@ -6,9 +6,10 @@ import React, { Suspense, useCallback, useEffect, useMemo, useState } from "reac
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
-import { ArrowLeft, Plus } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import {
   useGetAdminProgramsQuery,
@@ -16,6 +17,7 @@ import {
   ProgramSubmissionState,
   ProgramState,
 } from "@/lib/redux/services/admin/programAdminApi";
+import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
 import { useGetMyCompanyProgramsQuery } from "@/lib/redux/services/program/programsApi";
 import { ProgramStatCards } from "@/components/admin/programs/ProgramStatCards";
 import { ProgramFiltersBar } from "@/components/admin/programs/ProgramFiltersBar";
@@ -26,7 +28,8 @@ function ProgramManagementPageContent() {
   const searchParams = useSearchParams();
   const { user } = useSidebarAuth();
   const isAdmin = user?.roles?.includes("ADMIN") ?? false;
-  const isCompanyUser = user?.roles?.includes("COMPANY") ?? false;
+  const { hasCompanyAccess: isCompanyUser, can, hasMultiple } =
+    useCompanyAccess();
   const isAdminScope =
     (searchParams.get("scope") === "admin" || (isAdmin && !isCompanyUser)) &&
     isAdmin;
@@ -72,8 +75,18 @@ function ProgramManagementPageContent() {
     );
 
   // COMPANY DATA QUERY (for non-admin users)
-  const { data: companyOverallResponse, isLoading: isCompanyLoading } =
-    useGetMyCompanyProgramsQuery({ size: 100 }, { skip: isAdminScope });
+  const {
+    data: companyOverallResponse,
+    isLoading: isCompanyLoading,
+    error: companyError,
+  } = useGetMyCompanyProgramsQuery({ size: 100 }, { skip: isAdminScope });
+
+  /* An account that both owns a company and was invited into another cannot be
+     resolved to one organization by `/organizations/me/programs`, which answers
+     409 rather than guessing. There is no switcher yet, so the situation is
+     named instead of being shown as a failure to load. */
+  const isAmbiguousOrganization =
+    apiErrorStatus(companyError) === 409 || (hasMultiple && Boolean(companyError));
 
   const isLoading = isAdminScope
     ? isAdminPendingLoading || isAdminApprovedLoading || isAdminRejectedLoading
@@ -264,8 +277,9 @@ function ProgramManagementPageContent() {
             </Badge>
           )}
 
-          {/* Create Program button for Company role */}
-          {!isAdminScope && (
+          {/* Offered only to accounts that hold CREATE_PROGRAM: a viewer who
+              followed it would fill the form in and meet a 403 at the end. */}
+          {!isAdminScope && can("CREATE_PROGRAM") && (
             <Link href="/dashboard/create-program">
               <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm h-10 px-4 gap-2  shadow-xs cursor-pointer">
                 <Plus className="w-4 h-4" />
@@ -275,6 +289,27 @@ function ProgramManagementPageContent() {
           )}
         </div>
       </header>
+
+      {/* One account, two organizations: the endpoint cannot pick for us. */}
+      {isAmbiguousOrganization && (
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-500/30 dark:bg-amber-500/10"
+        >
+          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-foreground">
+              This account belongs to more than one organization
+            </p>
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              {apiErrorMessage(
+                companyError,
+                "Programs are read for one organization at a time, and this account is in several. Until there is a way to switch between them here, use the account that belongs to a single organization.",
+              )}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* STAT CARDS */}
       {!isLoading && (

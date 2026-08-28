@@ -13,6 +13,7 @@ import {
   Clock3,
   Save,
 } from "lucide-react";
+import { RequireOrgPermission } from "@/components/auth/RequireOrgPermission";
 import { Button } from "@/components/ui/button";
 import { CreateProgramHeader } from "@/components/create-program/CreateProgramHeader";
 import { CreateProgramStepper } from "@/components/create-program/CreateProgramStepper";
@@ -295,15 +296,22 @@ function CreateProgramContent() {
 
 export default function CreateProgramPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="w-full space-y-6 pb-12 animate-pulse">
-          <div className="h-20 bg-slate-100 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800" />
-          <div className="h-64 bg-slate-100 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800" />
-        </div>
-      }
+    <RequireOrgPermission
+      permission="CREATE_PROGRAM"
+      title="You cannot create programs here"
+      description="Opening a new bounty or disclosure program needs the “Create programs” permission in this organization. An owner or manager can grant it from team management."
+      action={{ href: "/dashboard/program-management", label: "See the programs" }}
     >
-      <CreateProgramContent />
-    </Suspense>
+      <Suspense
+        fallback={
+          <div className="w-full space-y-6 pb-12 animate-pulse">
+            <div className="h-20 bg-slate-100 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800" />
+            <div className="h-64 bg-slate-100 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800" />
+          </div>
+        }
+      >
+        <CreateProgramContent />
+      </Suspense>
+    </RequireOrgPermission>
   );
 }

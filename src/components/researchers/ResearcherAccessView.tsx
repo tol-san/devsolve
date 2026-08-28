@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { STATUS_LABEL } from "@/lib/researchers/access";
-import { useGetMyOrganizationQuery } from "@/lib/redux/services/organizationsApi";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useGetOrganizationResearchersQuery } from "@/lib/redux/services/researcherAccessApi";
 import {
   RESEARCHER_ACCESS_STATUSES,
@@ -52,9 +52,11 @@ export function ResearcherAccessView() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [session, setSession] = useState(0);
 
-  const { data: organization, isLoading: isOrgLoading } =
-    useGetMyOrganizationQuery();
-  const organizationId = organization?.id ?? "";
+  /* The organization id comes from the membership: `/organizations/me` is an
+     owner endpoint, and a manager holding MANAGE_RESEARCHERS works this queue
+     without owning the company. */
+  const { membership, isLoading: isOrgLoading } = useCompanyAccess();
+  const organizationId = membership?.organizationId ?? "";
 
   const { data, isLoading, isFetching, isError } =
     useGetOrganizationResearchersQuery(

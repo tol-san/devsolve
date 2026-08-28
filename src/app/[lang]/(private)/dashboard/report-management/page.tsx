@@ -4,6 +4,7 @@ import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { motion } from "motion/react";
 
+import { RequireOrgPermission } from "@/components/auth/RequireOrgPermission";
 import { ManagedReportCard } from "@/components/report-management/ManagedReportCard";
 import { ReportFiltersBar } from "@/components/report-management/ReportFiltersBar";
 import { ReportManagementHeader } from "@/components/report-management/ReportManagementHeader";
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/page-enter-motion";
 import { useReportManagement } from "@/hooks/useReportManagement";
 
-export default function ReportManagementPage() {
+function ReportManagementContent() {
   const {
     searchTerm,
     setSearchTerm,
@@ -249,5 +250,25 @@ export default function ReportManagementPage() {
         )}
       </motion.section>
     </motion.section>
+  );
+}
+
+/**
+ * The company's report queue.
+ *
+ * Guarded on `VIEW_REPORTS` rather than on being a company account: an invited
+ * member with that permission does this work, and the guard wraps the content
+ * so its queries do not fire before the answer is in.
+ */
+export default function ReportManagementPage() {
+  return (
+    <RequireOrgPermission
+      permission="VIEW_REPORTS"
+      title="You cannot see this organization's reports"
+      description="Reading the report queue needs the “View reports” permission in this organization. If you are a researcher, your own submissions are on your reports screen."
+      action={{ href: "/dashboard/my-reports", label: "My reports" }}
+    >
+      <ReportManagementContent />
+    </RequireOrgPermission>
   );
 }

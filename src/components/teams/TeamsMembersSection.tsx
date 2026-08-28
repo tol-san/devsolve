@@ -51,7 +51,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { useMyMembership } from "@/hooks/useMyMembership";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import {
@@ -177,22 +177,21 @@ export function TeamsMembersSection({
   const [memberToRemove, setMemberToRemove] = useState<TeamMember | null>(null);
   const [removalError, setRemovalError] = useState<string | null>(null);
 
-  const { member: ownMembership, organization } = useMyMembership();
+  /* This screen is owner-only — the roster endpoint behind it answers 404 for
+     a member — so the actor is the owner, and the roster's own rows are the
+     people being acted on. */
+  const { membership, isOwner } = useCompanyAccess();
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
   const [updateMemberRole] = useUpdateMemberRoleMutation();
 
-  /* The roster does not mark the owner — the role column only knows the three
-     invitable ranks — but the organization names them, and knowing which row
-     is the owner is half of reading a team list. */
-  const ownerId = organization?.ownerId;
+  /* The roster does not mark the owner and neither does the membership row,
+     which carries no user id — so no row is flagged as the owner's here. */
+  const ownerId: string | undefined = undefined;
 
   const actor: TeamActor = {
-    userId: ownMembership?.userId,
-    role: ownMembership?.role,
-    /* Not on the roster at all means the owner: they reach this screen through
-       the company account rather than through a membership row. */
-    isOwner:
-      !ownMembership || organization?.ownerId === ownMembership.userId,
+    userId: undefined,
+    role: membership?.role ?? undefined,
+    isOwner,
   };
 
   useEffect(() => {

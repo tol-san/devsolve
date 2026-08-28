@@ -3,9 +3,10 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, KeyRound } from "lucide-react";
+import { ArrowRight, Clock3, KeyRound } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useOrganizationPermission } from "@/hooks/useOrganizationPermission";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import type { OrganizationInvitationPermission } from "@/lib/redux/services/organizationsApi";
@@ -22,8 +23,7 @@ import { cn } from "@/lib/utils";
  * Same standing as `RequireRole`: a courtesy, not a security boundary. The
  * backend authorizes every request regardless — what this prevents is a member
  * watching a screen fire calls it has no business making and reading a 403
- * where an explanation belongs. It errs towards showing the screen when the
- * permission cannot be read at all; see `useOrganizationPermission`.
+ * where an explanation belongs.
  *
  * Wrap the *content*, not the page, so the guarded component's hooks do not
  * run before the answer is in.
@@ -33,6 +33,7 @@ export function RequireOrgPermission({
   title,
   description,
   action,
+  requireActiveOrganization = true,
   children,
 }: {
   permission: OrganizationInvitationPermission;
@@ -40,10 +41,18 @@ export function RequireOrgPermission({
   description: string;
   /** Where this member should have gone instead. */
   action?: { href: string; label: string };
+  /**
+   * Only an `ACTIVE` organization accepts program and report actions; a
+   * `PENDING` or `REJECTED` one answers 403 or 409. Screens that only read can
+   * opt out, but anything that acts should say why it cannot rather than
+   * render an empty list and let the reader discover it.
+   */
+  requireActiveOrganization?: boolean;
   children: React.ReactNode;
 }) {
   const lp = useLocalePath();
   const { granted, isResolved } = useOrganizationPermission(permission);
+  const { membership, isActive } = useCompanyAccess();
 
   /* The roster arrives a beat after the session. Deciding before it lands
      would show the refusal to the very members the screen is for. */
@@ -60,8 +69,55 @@ export function RequireOrgPermission({
     );
   }
 
+  if (granted && requireActiveOrganization && !isActive) {
+    const rejected = membership?.organizationStatus === "REJECTED";
+
+    return (
+      <Notice
+        icon={<Clock3 className="size-5.5" />}
+        title={
+          rejected
+            ? `${membership?.organizationName ?? "This organization"} was not approved`
+            : `${membership?.organizationName ?? "This organization"} is still under review`
+        }
+        description={
+          rejected
+            ? "DevSolve did not approve this organization, so its programs and reports are closed. Its owner can correct the submission and send it back for review."
+            : "Programs and reports open up once DevSolve has verified the organization. Nothing here is lost in the meantime — the workspace fills in as soon as it is approved."
+        }
+        action={action}
+        lp={lp}
+      />
+    );
+  }
+
   if (granted) return <>{children}</>;
 
+  return (
+    <Notice
+      icon={<KeyRound className="size-5.5" />}
+      title={title}
+      description={description}
+      action={action}
+      lp={lp}
+    />
+  );
+}
+
+/** One card, whichever of the two reasons kept the reader out. */
+function Notice({
+  icon,
+  title,
+  description,
+  action,
+  lp,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  action?: { href: string; label: string };
+  lp: (path: string) => string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -74,7 +130,7 @@ export function RequireOrgPermission({
           aria-hidden
           className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground"
         >
-          <KeyRound className="size-5.5" />
+          {icon}
         </span>
 
         <div className="space-y-1.5">

@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { ArrowRight, ShieldOff } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
-import { useMyMembership } from "@/hooks/useMyMembership";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import type { OrganizationInvitationPermission } from "@/lib/redux/services/organizationsApi";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
@@ -43,10 +43,8 @@ export function RequireRole({
    * An organization permission that admits the account regardless of role.
    *
    * For screens a company invites people into: a member who was granted the
-   * permission holds a researcher account, so the role check alone would shut
-   * out exactly the person the invitation was for. Unlike
-   * `useOrganizationPermission`, absence refuses here — this is the outer gate,
-   * and an account on no roster at all has no business on the screen.
+   * permission holds a researcher account, so a role check alone would shut
+   * out exactly the person the invitation was for.
    */
   orPermission?: OrganizationInvitationPermission;
   title: string;
@@ -57,11 +55,9 @@ export function RequireRole({
 }) {
   const lp = useLocalePath();
   const { user, areRolesResolved } = useSidebarAuth();
-  const { member, isLoading: isMembershipLoading } = useMyMembership();
+  const { can, isLoading: isMembershipLoading } = useCompanyAccess();
 
-  const holdsPermission = Boolean(
-    orPermission && member?.permissions?.includes(orPermission),
-  );
+  const holdsPermission = Boolean(orPermission && can(orPermission));
 
   /* Roles arrive with the session, or from the access token a beat later, and
      the roster a beat after that. Deciding before they land would show the

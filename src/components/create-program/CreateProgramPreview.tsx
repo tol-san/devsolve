@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Shield, ArrowRight, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useGetMyOrganizationQuery } from "@/lib/redux/services/organizationsApi";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import type { ProgramType, ScopeTarget } from "./types";
 
 interface CreateProgramPreviewProps {
@@ -22,7 +22,15 @@ export function CreateProgramPreview({
   activeInScope,
   getRewardRange,
 }: CreateProgramPreviewProps) {
-  const { data: organization } = useGetMyOrganizationQuery();
+  /* The membership, not `/organizations/me`: a member creating a program has
+     no access to the organization's own record. */
+  const { membership } = useCompanyAccess();
+  const organization = membership
+    ? {
+        name: membership.organizationName,
+        logoUrl: membership.organizationLogoUrl ?? undefined,
+      }
+    : undefined;
   const [imageError, setImageError] = useState(false);
 
   const logoUrl = !imageError && organization?.logoUrl ? organization.logoUrl : null;

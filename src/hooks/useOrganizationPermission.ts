@@ -1,50 +1,31 @@
 "use client";
 
-import { useMyMembership } from "@/hooks/useMyMembership";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import type { OrganizationInvitationPermission } from "@/lib/redux/services/organizationsApi";
 
 /**
- * What the signed-in account is allowed to do inside its own organization.
+ * Whether the signed-in account holds one permission in its organization.
  *
- * The reading comes from its own row on the roster — see `useMyMembership` for
- * how that row is found.
+ * A thin reading of `useCompanyAccess`, kept as its own hook because that is
+ * how the guards read: one permission, one question.
  *
- * **Absence is not a refusal.** An owner is not necessarily on the member
- * roster, and the proxy route answers `[]` rather than an error when the
- * upstream refuses the list. Both look identical from here, so a missing row
- * means *unknown*, and unknown grants — the backend authorizes every request
- * on its own and will refuse what this account may not do. Only an actual
- * membership row that lacks the permission denies anything.
+ * Absence refuses. This used to guess — the roster it read was owner-only, so
+ * "no row" could mean either "not a member" or "not allowed to see the list",
+ * and granting was the safer of two bad options. `/organizations/me/memberships`
+ * answers for owners and members alike, so there is nothing left to guess at:
+ * no membership means no company screen, and an owner arrives holding all ten.
  */
 export function useOrganizationPermission(
   permission: OrganizationInvitationPermission,
 ): { granted: boolean; isResolved: boolean } {
-  const { member, isLoading } = useMyMembership();
+  const { can, hasCompanyAccess, isLoading } = useCompanyAccess();
 
   if (isLoading) {
     return { granted: false, isResolved: false };
   }
 
-  if (!member) {
-    return { granted: true, isResolved: true };
-  }
-
-  /* Only the three invitable roles carry a permission list. Anything else on
-     the roster — an owner, or a role added upstream after this was written —
-     is not something a permission list can describe, so it is not something to
-     refuse on. Denying here would be locking an owner out of their own
-     organization over a field that was never about them. */
-  const carriesPermissions =
-    member.role === "MANAGER" ||
-    member.role === "MEMBER" ||
-    member.role === "VIEWER";
-
-  if (!carriesPermissions || !Array.isArray(member.permissions)) {
-    return { granted: true, isResolved: true };
-  }
-
   return {
-    granted: member.permissions.includes(permission),
+    granted: hasCompanyAccess && can(permission),
     isResolved: true,
   };
 }

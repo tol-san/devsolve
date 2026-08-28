@@ -16,7 +16,7 @@ import {
 import { NAV_ITEMS } from "@/config/navigation";
 import { useSidebarAuth, SidebarUser } from "@/hooks/useSidebarAuth";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { useMyMembership } from "@/hooks/useMyMembership";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,10 +25,6 @@ import { useNotification } from "@/components/notifications/NotificationContext"
 import { NotificationTrigger } from "@/components/notifications/NotificationTrigger";
 import { ThemeToggle } from "@/components/motion/theme-toggle";
 import { useGetBookmarksQuery } from "@/lib/redux/services/bookmarksApi";
-import {
-  type Organization,
-  useGetMyOrganizationQuery,
-} from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -42,21 +38,6 @@ function getInitials(text: string): string {
     .slice(0, 2);
 }
 
-function organizationStatusLabel(status?: string): string {
-  switch (status) {
-    case "ACTIVE":
-      return "Verified company";
-    case "PENDING":
-      return "Under review";
-    case "REJECTED":
-      return "Verification rejected";
-    case "SUSPENDED":
-      return "Company suspended";
-    default:
-      return "Company workspace";
-  }
-}
-
 /** Does this path sit under that nav href? */
 function matches(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -64,12 +45,20 @@ function matches(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** All the sidebar needs of an organization, and all a membership carries. */
+export type SidebarOrganizationIdentity = {
+  name?: string;
+  slug?: string | null;
+  logoUrl?: string | null;
+  status?: string;
+};
+
 interface SidebarContentProps {
   pathname: string;
   user?: SidebarUser;
   isPending: boolean;
   displayName: string;
-  organization?: Organization;
+  organization?: SidebarOrganizationIdentity;
   isCompany: boolean;
   isOrganizationLoading: boolean;
   onNavItemClick?: () => void;
@@ -92,7 +81,7 @@ function SidebarContent({
 }: SidebarContentProps) {
   const t = useT();
   const { openNotification } = useNotification();
-  const { belongs, member: ownMembership } = useMyMembership();
+  const { hasCompanyAccess, isOwner, canAny } = useCompanyAccess();
   const { data: bookmarksResponse } = useGetBookmarksQuery(undefined, {
     skip: !user,
   });
@@ -118,29 +107,32 @@ function SidebarContent({
   ).map((r) => r.trim().toUpperCase());
 
   const filteredNavItems = NAV_ITEMS.filter((item) => {
-    /* Membership-gated entries are hidden until the roster says this account
-       is on a team. A company account is excluded too: `/organizations/me`
-       answers with its *own* organization, which it already reaches through
-       the Organization screens — the member's view would only duplicate them
-       under a name that suggests otherwise. */
-    if (item.requiresMembership && (!belongs || isCompany)) return false;
+    /* Owner-exclusive screens sit on endpoints that answer 404 for a member,
+       so they are hidden rather than offered as a dead end. */
+    if (item.ownerOnly && !isOwner) return false;
 
-    /* A permission the account actually holds opens the entry on its own. An
-       invited member triaging a company's reports has a researcher role and
-       would otherwise never see the screen they were invited to work in. */
-    if (
-      item.permissions?.some((permission) =>
-        ownMembership?.permissions?.includes(permission),
-      )
-    ) {
-      return true;
-    }
+    /* The member's own view of a workspace they joined; for an owner it would
+       only restate the screens they already have. */
+    if (item.memberOnly && (!hasCompanyAccess || isOwner)) return false;
+
+    /* The company workspace is decided by permissions, never by the `COMPANY`
+       realm role — that role means "registered a company", so an invited
+       member never has it however much access they were granted. Owners come
+       back from the memberships endpoint holding all ten, so this covers them
+       without a second rule. */
+    if (item.permissions?.length) return canAny(item.permissions);
 
     if (!item.roles) return true;
     return item.roles.some((reqRole) =>
       userRoles.includes(reqRole.toUpperCase()),
     );
-  });
+  })
+    /* Saved drafts is listed for both audiences; an account that is a
+       researcher *and* a company member matches both and would see it twice. */
+    .filter(
+      (item, index, items) =>
+        items.findIndex((other) => other.href === item.href) === index,
+    );
 
   /* Longest match wins, so a nested route lights up only its own entry.
      `/dashboard/profile/settings` used to highlight "My Profile" as well,
@@ -161,16 +153,18 @@ function SidebarContent({
   const identityDetail = isCompany
     ? organization?.slug
       ? `@${organization.slug}`
-      : organization?.domain || getOrgStatusLabel(organization?.status)
+      : getOrgStatusLabel(organization?.status)
     : user?.email;
   const identityStatus = isCompany
     ? getOrgStatusLabel(organization?.status)
     : undefined;
   const identityIsLoading = isPending || (isCompany && isOrganizationLoading);
-  const settingsHref = isCompany
+  /* Organization settings belong to the owner — `/organizations/me` is an
+     owner endpoint. A member's settings are their own account's. */
+  const settingsHref = isOwner
     ? "/dashboard/organizations"
     : "/dashboard/profile/settings";
-  const settingsLabel = isCompany
+  const settingsLabel = isOwner
     ? t("sidebar.orgSettings")
     : t("sidebar.settings");
 
@@ -396,16 +390,27 @@ const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, isPending, areRolesResolved, displayName, handleSignOut } =
     useSidebarAuth();
-  const isCompany = user?.roles?.includes("COMPANY") ?? false;
+
+  /* Company access is a membership, not a realm role: `COMPANY` is granted for
+     registering a company, so an invited member never carries it. The
+     membership row also carries the identity this card needs — `/organizations/me`
+     is owner-only and answers 404 for a member. */
   const {
-    data: organization,
-    isLoading: isOrganizationLoading,
-    isFetching: isOrganizationFetching,
-  } = useGetMyOrganizationQuery(undefined, {
-    skip: !areRolesResolved || !isCompany,
-  });
-  const isCompanyIdentityLoading =
-    !areRolesResolved || isOrganizationLoading || isOrganizationFetching;
+    hasCompanyAccess: isCompany,
+    membership,
+    isLoading: isMembershipLoading,
+  } = useCompanyAccess();
+
+  const organization: SidebarOrganizationIdentity | undefined = membership
+    ? {
+        name: membership.organizationName,
+        slug: membership.organizationSlug,
+        logoUrl: membership.organizationLogoUrl,
+        status: membership.organizationStatus,
+      }
+    : undefined;
+
+  const isCompanyIdentityLoading = !areRolesResolved || isMembershipLoading;
   const isSidebarIdentityPending =
     isPending || (Boolean(user) && !areRolesResolved);
 

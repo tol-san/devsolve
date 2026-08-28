@@ -16,6 +16,7 @@ import {
   pageEnterItem,
 } from "@/components/ui/page-enter-motion";
 import type { DraftCategory, SavedDraftItem } from "@/components/saved-draft/types";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import {
   useGetMyCompanyProgramsQuery,
@@ -29,7 +30,6 @@ import {
 import { toDate } from "@/lib/format/datetime";
 import { describe } from "@/lib/seo/text";
 import { isEditableDraft, isUnderReview } from "@/lib/programs/draft-status";
-import { useGetMyOrganizationQuery } from "@/lib/redux/services/organizationsApi";
 import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 6;
@@ -74,7 +74,9 @@ export function SavedDraftPage() {
     (user?.role ? user.role.split(",") : ["USER"])
   ).map((r) => r.trim().toUpperCase());
 
-  const isCompany = userRoles.includes("COMPANY");
+  /* Company drafts are program drafts, and a member invited to run programs
+     has them too — the realm role would have hidden that. */
+  const { hasCompanyAccess: isCompany, can, membership } = useCompanyAccess();
   const isUser = userRoles.includes("USER");
 
   const ALL_TABS: DraftCategory[] = ["all", "program", "response", "report"];
@@ -89,8 +91,15 @@ export function SavedDraftPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<"recent" | "oldest" | "title">("recent");
 
-  // Fetch real company organization profile for real logo
-  const { data: companyOrg } = useGetMyOrganizationQuery(undefined, { skip: !isCompany });
+  /* The company's own logo, taken from the membership — `/organizations/me`
+     is an owner endpoint and a member drafting a program has no access to it.
+     Memoised because the draft list is built in a `useMemo` that depends on
+     it, and a fresh object each render would rebuild the whole list. */
+  const companyOrg = useMemo(
+    () =>
+      membership ? { logoUrl: membership.organizationLogoUrl ?? "" } : undefined,
+    [membership],
+  );
 
   // Fetch real company programs (filter by state: DRAFT)
   const { data: companyProgramsData, isLoading: isCompanyProgramsLoading } =
@@ -301,6 +310,15 @@ export function SavedDraftPage() {
        endpoints — deleting a report draft through the program endpoint would
        404 and leave the card in place. */
     const item = draftItems.find((draft) => draft.id === itemId);
+
+    /* A report draft is the reporter's own and always theirs to discard. A
+       program draft belongs to the organization, so it takes DELETE_PROGRAM —
+       without it the upstream answers 403 and the card stays put either way,
+       so the refusal is stated instead. */
+    if (item?.category !== "report" && !can("DELETE_PROGRAM")) {
+      toast.error("Deleting a program needs the delete permission");
+      return;
+    }
 
     try {
       if (item?.category === "report") {

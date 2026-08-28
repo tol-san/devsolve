@@ -9,8 +9,6 @@ import {
   Building2,
   CalendarDays,
   ClipboardList,
-  ExternalLink,
-  Globe,
   MailOpen,
   PlusCircle,
   ShieldCheck,
@@ -25,14 +23,12 @@ import {
   INVITE_PERMISSION_OPTIONS,
   INVITE_ROLE_OPTIONS,
 } from "@/components/teams/invite-member/mock-data";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { useMyMembership } from "@/hooks/useMyMembership";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { formatDate } from "@/lib/format/datetime";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import type {
-  OrganizationInvitationMember,
   OrganizationInvitationPermission,
   OrganizationInvitationRole,
 } from "@/lib/redux/services/organizationsApi";
@@ -120,18 +116,6 @@ function permissionTitle(permission: OrganizationInvitationPermission): string {
   );
 }
 
-function initialsOf(name: string) {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "?"
-  );
-}
-
 /**
  * The organization this account was invited into, from the member's side.
  *
@@ -145,18 +129,15 @@ function initialsOf(name: string) {
  */
 export function MyTeamView() {
   const lp = useLocalePath();
-  const { organization, member, members, belongs, isLoading } =
-    useMyMembership();
+  const { membership, hasCompanyAccess, isLoading } = useCompanyAccess();
 
   if (isLoading) return <MyTeamSkeleton />;
-  if (!belongs) return <NotOnATeam />;
+  if (!hasCompanyAccess || !membership) return <NotOnATeam />;
 
-  const name = organization?.name?.trim() || "Your organization";
-  const status = organization?.status
-    ? STATUS_COPY[String(organization.status)]
-    : undefined;
-  const role = roleCopy(member?.role);
-  const permissions = member?.permissions ?? [];
+  const name = membership.organizationName?.trim() || "Your organization";
+  const status = STATUS_COPY[String(membership.organizationStatus)];
+  const role = roleCopy(membership.role ?? undefined);
+  const permissions = membership.permissions ?? [];
   const open = DESTINATIONS.filter((destination) =>
     destination.permissions.some((permission) =>
       permissions.includes(permission),
@@ -195,9 +176,9 @@ export function MyTeamView() {
       <section className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-4">
           <CompanyLogo
-            organizationId={organization?.id ?? ""}
+            organizationId={membership.organizationId}
             name={name}
-            logoUrl={organization?.logoUrl ?? null}
+            logoUrl={membership.organizationLogoUrl ?? null}
             className="size-14"
           />
           <div className="min-w-0 space-y-1.5">
@@ -218,35 +199,17 @@ export function MyTeamView() {
               )}
             </div>
 
-            {organization?.description?.trim() && (
-              <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                {organization.description.trim()}
-              </p>
-            )}
-
+            {/* The membership carries identity, not the full profile: the
+                organization's own record is an owner endpoint. */}
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-              {organization?.slug && <span>@{organization.slug}</span>}
-              {organization?.industry && <span>{organization.industry}</span>}
-              {organization?.country && <span>{organization.country}</span>}
+              {membership.organizationSlug ? (
+                <span>@{membership.organizationSlug}</span>
+              ) : null}
+              {membership.owner ? <span>You own this organization</span> : null}
             </p>
           </div>
         </div>
 
-        {organization?.websiteUrl && (
-          <a
-            href={organization.websiteUrl}
-            target="_blank"
-            rel="noreferrer noopener"
-            className={cn(
-              buttonVariants({ variant: "outline" }),
-              "h-10 shrink-0 rounded-xl px-4 text-sm font-semibold",
-            )}
-          >
-            <Globe className="size-4" />
-            Website
-            <ExternalLink data-icon="inline-end" className="size-3.5" />
-          </a>
-        )}
       </section>
 
       {/* What this account is on that team */}
@@ -266,12 +229,12 @@ export function MyTeamView() {
             >
               {role.title}
             </Badge>
-            {member?.joinedAt && (
+            {membership.joinedAt ? (
               <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <CalendarDays className="size-3.5" />
-                Joined {formatDate(member.joinedAt)}
+                Joined {formatDate(membership.joinedAt)}
               </span>
-            )}
+            ) : null}
           </div>
 
           <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
@@ -352,97 +315,7 @@ export function MyTeamView() {
         </section>
       )}
 
-      {/* Everyone else */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Users className="size-4 text-muted-foreground" />
-          <h2 className="text-base font-bold tracking-tight text-foreground">
-            Teammates
-          </h2>
-          {members.length > 0 && (
-            <Badge
-              variant="outline"
-              className="h-6 rounded-full px-2 text-sm font-semibold text-muted-foreground"
-            >
-              {members.length}
-            </Badge>
-          )}
-        </div>
-
-        {members.length === 0 ? (
-          <p className="rounded-2xl border border-border bg-card p-5 text-sm leading-relaxed text-muted-foreground">
-            The member list is not available to your account. Everything else on
-            this page still applies — the roster is simply something the
-            organization has not opened up to your role.
-          </p>
-        ) : (
-          <ul className="grid grid-cols-1 gap-2">
-            {members.map((teammate) => (
-              <TeammateRow
-                key={teammate.userId || teammate.email}
-                teammate={teammate}
-                isSelf={teammate.userId === member?.userId}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
     </motion.div>
-  );
-}
-
-function TeammateRow({
-  teammate,
-  isSelf,
-}: {
-  teammate: OrganizationInvitationMember;
-  isSelf: boolean;
-}) {
-  const name = teammate.name?.trim() || teammate.email || "Member";
-  const pending = teammate.invitationPending || teammate.status === "PENDING";
-
-  return (
-    <li className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-4 py-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <Avatar className="size-10 shrink-0 rounded-full">
-          <AvatarFallback className="bg-muted text-sm font-bold text-muted-foreground">
-            {initialsOf(name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="min-w-0">
-          <p className="truncate text-base font-semibold text-foreground">
-            {name}
-            {isSelf && (
-              <span className="ml-2 text-sm font-medium text-muted-foreground">
-                You
-              </span>
-            )}
-          </p>
-          {teammate.email && (
-            <p className="truncate text-sm text-muted-foreground">
-              {teammate.email}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
-        {pending && (
-          <Badge
-            variant="outline"
-            className="h-7 rounded-full border-amber-200 bg-amber-50 px-2.5 text-sm font-semibold text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
-          >
-            Invited
-          </Badge>
-        )}
-        <Badge
-          variant="outline"
-          className="h-7 rounded-full px-2.5 text-sm font-semibold text-muted-foreground"
-        >
-          {roleCopy(teammate.role).title}
-        </Badge>
-      </div>
-    </li>
   );
 }
 

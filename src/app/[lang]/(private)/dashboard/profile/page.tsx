@@ -9,6 +9,7 @@ import { useGetEditProfileFormQuery } from "@/lib/redux/services/profileApi";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import CompanyProfileView from "@/components/profile/company/CompanyProfileView";
 import AdminProfileView from "@/components/profile/admin/AdminProfileView";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 
 /**
@@ -22,7 +23,9 @@ import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 export default function MyProfilePage() {
   const router = useRouter();
   const { user, areRolesResolved } = useSidebarAuth();
-  const isCompany = user?.roles?.includes("COMPANY") ?? false;
+  /* The company profile is the *organization's* record, which only its owner
+     can read or edit — a member's profile here is their own account. */
+  const { isOwner: isCompany } = useCompanyAccess();
   const isAdmin = user?.roles?.includes("ADMIN") ?? false;
   const { data, isError } = useGetEditProfileFormQuery(undefined, {
     skip: !areRolesResolved || isCompany || isAdmin,
