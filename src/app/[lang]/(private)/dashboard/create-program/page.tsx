@@ -63,6 +63,7 @@ function CreateProgramContent() {
     isSubmitting,
     isFetchingDraft,
     isEditingDraft,
+    programId,
     isExistingDraft,
     isFormValid,
     isNextDisabled,
@@ -149,6 +150,7 @@ function CreateProgramContent() {
               setVisibility={setVisibility}
               setPolicy={setPolicy}
               formatHandle={formatHandle}
+              programId={programId ?? undefined}
             />
           )}
 

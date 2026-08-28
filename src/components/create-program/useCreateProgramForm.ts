@@ -306,13 +306,25 @@ export function useCreateProgramForm() {
    */
   const paysCashBounties = programType !== "RESPONSE" && offerBounties;
 
-  const buildRuleSection = (text: string, description: string) => ({
-    description,
-    rules: text
+  /**
+   * A guideline block, or nothing at all.
+   *
+   * The upstream used to require every section on any save, so a draft had to
+   * carry a description the author never wrote — and that invented text became
+   * the policy researchers were bound by if they submitted without going back.
+   * Absence is allowed now, so an unanswered section is omitted rather than
+   * filled in on the author's behalf.
+   */
+  const buildRuleSection = (text: string, description: string) => {
+    const rules = text
       .split(/\r?\n/)
       .map((line) => line.replace(/^[•\-\s]+/, "").trim())
-      .filter(Boolean),
-  });
+      .filter(Boolean);
+
+    if (rules.length === 0) return undefined;
+
+    return { description, rules };
+  };
 
   const buildAssets = useCallback((): Asset[] => {
     const inScopeAssets: Asset[] = inScopeTargets
@@ -467,16 +479,11 @@ export function useCreateProgramForm() {
       return;
     }
 
-    if (formattedHandle.length < 2 || formattedHandle.length > 100) {
-      toast.error("Program handle must be between 2 and 100 characters.");
-      setActiveTab(1);
-      return;
-    }
-
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(formattedHandle)) {
-      toast.error(
-        "Program handle must contain only lowercase letters, numbers, and single hyphens.",
-      );
+    /* The handle's length and pattern are the upstream's rules, checked live in
+       step 1 and again on the write, which answers with the rule that refused
+       it. A copy of the regex here only drifts the day the rule changes. */
+    if (!formattedHandle) {
+      toast.error("A program handle is required.");
       setActiveTab(1);
       return;
     }
@@ -530,17 +537,20 @@ export function useCreateProgramForm() {
     }
 
     try {
+      /* Only `handle` and `name` are required now, and the rest is sent only
+         when the author actually wrote it. What used to sit here instead —
+         a stand-in description, a paragraph of sandbox policy, `["DoS"]` as
+         the exclusions — was fiction that persisted and could reach
+         researchers as the real terms. An unanswered section is omitted; the
+         submit call is what checks completeness. */
       const payload = {
-        // Both are guaranteed by the checks above, placeholders included.
         handle: formattedHandle,
         name: trimmedName,
-        description: description || "Draft program description",
+        description: description.trim() || undefined,
         engagementType:
           programType === "RESPONSE" ? ("RESPONSE" as const) : ("BOUNTY" as const),
         visibility,
-        policy:
-          policy.trim() ||
-          "Please test only using designated sandbox API keys and test merchant accounts provided in our documentation. Do not attempt real financial transactions, credit card authorization overrides, or account takeovers against active merchants.",
+        policy: policy.trim() || undefined,
         proofOfConceptRequirements: buildRuleSection(
           pocRequirements,
           "Reports must contain complete details to allow our engineering team to quickly validate the issue."
@@ -549,10 +559,14 @@ export function useCreateProgramForm() {
           rulesOfEngagement,
           "Researchers must follow these operational guidelines during testing activities:"
         ),
-        exclusions: {
-          description: "The following issue types are considered out-of-scope and non-rewardable:",
-          rules: effectiveExcludedTypes.length > 0 ? effectiveExcludedTypes : ["DoS"],
-        },
+        exclusions:
+          effectiveExcludedTypes.length > 0
+            ? {
+                description:
+                  "The following issue types are considered out-of-scope and non-rewardable:",
+                rules: effectiveExcludedTypes,
+              }
+            : undefined,
         offersBounties: paysCashBounties && maximumBounty > 0,
         minimumBounty,
         maximumBounty,
@@ -578,17 +592,18 @@ export function useCreateProgramForm() {
           );
         }
       } else {
-        const createdProgram = await createProgram({
+        /* `?submit=true` creates and enters review in one transaction. The old
+           create-then-submit pair could fail on the second call and leave a
+           draft the author was told had been submitted. */
+        await createProgram({
           ...payload,
-          state: "DRAFT" as ProgramState,
+          ...(isDraft ? { state: "DRAFT" as ProgramState } : {}),
+          submit: !isDraft,
         }).unwrap();
 
-        if (isDraft) {
-          toast.success("Draft saved successfully!");
-        } else {
-          await submitProgramForReview(createdProgram.id).unwrap();
-          toast.success("Program submitted for review!");
-        }
+        toast.success(
+          isDraft ? "Draft saved successfully!" : "Program submitted for review!",
+        );
       }
 
       /* Land on the screen that actually lists what was just saved. Saved
@@ -612,6 +627,23 @@ export function useCreateProgramForm() {
         if (!dataObj) return "Unable to save program. Please try again.";
 
         const details = (dataObj.details ?? dataObj) as Record<string, unknown>;
+
+        /* `violations` carries the constraint that refused the value and its
+           parameters, so its wording is the rule itself rather than our
+           paraphrase of it. Preferred over `errorDetails`, which is the same
+           failures flattened to a field/message map. */
+        const violations = (details?.violations ?? dataObj.violations) as
+          | { field?: string; message?: string }[]
+          | undefined;
+
+        if (Array.isArray(violations) && violations.length > 0) {
+          const spoken = violations
+            .map((violation) => violation.message)
+            .filter((message): message is string => Boolean(message));
+
+          if (spoken.length > 0) return spoken.join(" ");
+        }
+
         const errorDetails =
           (details?.errorDetails as Record<string, string> | undefined) ??
           (dataObj.errorDetails as Record<string, string> | undefined);
@@ -731,6 +763,9 @@ export function useCreateProgramForm() {
     isSubmitting,
     isFetchingDraft,
     isEditingDraft: Boolean(programId),
+    /* The handle check needs it: editing a program must not report that
+       program's own handle as taken. */
+    programId,
     isExistingDraft,
     isFormValid,
     isNextDisabled,

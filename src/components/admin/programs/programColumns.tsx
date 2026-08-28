@@ -321,7 +321,14 @@ export const getProgramColumns =
         header: ({ column }) => <SortableHeader label="Type" column={column} />,
         cell: ({ row }) => (
           <Badge variant="secondary" className="rounded-lg font-semibold text-xs dark:bg-slate-800 dark:text-slate-300">
-            {row.original.engagementType === "BOUNTY" ? "BOUNTY" : "RESPONSE"}
+            {/* Null until the author reaches step 1's engagement question, and
+                falling through to "RESPONSE" labelled every unfinished draft as
+                a response program. */}
+            {row.original.engagementType
+              ? row.original.engagementType === "BOUNTY"
+                ? "BOUNTY"
+                : "RESPONSE"
+              : "—"}
           </Badge>
         ),
       },

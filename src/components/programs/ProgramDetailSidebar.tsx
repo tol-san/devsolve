@@ -87,7 +87,7 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
           <div className="flex justify-between items-center">
             <dt className="text-muted-foreground font-medium">Program Type</dt>
             <dd className="font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-100 text-xs dark:text-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20">
-              {program.engagementType}
+              {program.engagementType ?? "Not set"}
             </dd>
           </div>
         </dl>

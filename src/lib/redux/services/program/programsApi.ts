@@ -11,6 +11,15 @@ import { PageProgramManagementSummaryResponseDto } from "@/lib/types/admin/progr
 
 export * from "@/lib/types/programs/types";
 
+/** `GET /organizations/me/programs/handle-available` */
+export type ProgramHandleAvailability = {
+  /** The normalized form that will be stored — show this back to the author. */
+  handle: string;
+  available: boolean;
+  /** The rule that failed, or null when the handle is free. */
+  reason?: string | null;
+};
+
 export const programsApi = proxyApi.injectEndpoints({
   endpoints: (builder) => ({
     // GET /programs?page=0&size=20&search=...
@@ -135,13 +144,45 @@ export const programsApi = proxyApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: "Program", id }],
     }),
 
-    createProgram: builder.mutation<Program, CreateProgramRequest & { state?: string }>({
-      query: (body) => ({
-        url: "/organizations/me/programs",
+    createProgram: builder.mutation<
+      Program,
+      CreateProgramRequest & { state?: string; submit?: boolean }
+    >({
+      query: ({ submit, ...body }) => ({
+        /* One transaction: the program is created and enters review together,
+           so a failure leaves nothing behind rather than an orphan draft the
+           author was told had been submitted. */
+        url: submit
+          ? "/organizations/me/programs?submit=true"
+          : "/organizations/me/programs",
         method: "POST",
         body,
       }),
       invalidatesTags: ["Program"],
+    }),
+
+    /**
+     * Whether a handle can still be taken.
+     *
+     * Checks every program — draft, private, soft-deleted — through the same
+     * repository the write uses, so it cannot disagree with the save.
+     * `GET /programs/handle/{handle}` is not a substitute: it resolves
+     * published programs only, so a draft holding the handle reads as free.
+     *
+     * Malformed handles answer here too, with the broken rule as `reason`, so
+     * one debounced call covers both format and uniqueness.
+     */
+    getProgramHandleAvailability: builder.query<
+      ProgramHandleAvailability,
+      { handle: string; programId?: string }
+    >({
+      query: ({ handle, programId }) => {
+        const params = new URLSearchParams({ handle });
+        /* Editing an existing program: its own handle must not read as taken. */
+        if (programId) params.set("programId", programId);
+
+        return `/organizations/me/programs/handle-available?${params.toString()}`;
+      },
     }),
 
     updateProgram: builder.mutation<
@@ -273,6 +314,8 @@ export const {
   useGetMyCompanyProgramByIdQuery,
   useGetProgramByIdQuery,
   useCreateProgramMutation,
+  useGetProgramHandleAvailabilityQuery,
+  useLazyGetProgramHandleAvailabilityQuery,
   useUpdateProgramMutation,
   useDeleteProgramMutation,
   useUpdateProgramStateMutation,

@@ -5,8 +5,9 @@ import { motion } from "motion/react";
 import { RuleSection, ProgramDetail } from "@/lib/types/programs/types";
 
 interface ProgramRulesTabProps {
-  rulesOfEngagement?: RuleSection;
-  exclusions?: RuleSection;
+  /* Null on a draft, absent on an older record — both mean "not written yet". */
+  rulesOfEngagement?: RuleSection | null;
+  exclusions?: RuleSection | null;
   program?: ProgramDetail; // Fallback in case parent passes program directly!
 }
 

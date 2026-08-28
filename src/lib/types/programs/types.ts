@@ -58,22 +58,34 @@ export interface RewardTier {
   points: number;
 }
 
+/**
+ * A program as it is written, which is not the same as a program that is
+ * finished.
+ *
+ * Only the two fields that identify it are required: everything else is
+ * answered across four wizard steps and may legitimately be missing while the
+ * author is still working. Completeness is checked at submission, not on save
+ * — which is what lets a draft be saved without inventing a policy nobody
+ * wrote. Omit an unanswered field rather than sending `""` or `[]`; the
+ * difference between "empty" and "not answered yet" is one the upstream reads.
+ */
 export interface CreateProgramRequest {
   handle: string;
   name: string;
-  description: string;
-  engagementType: "BOUNTY" | "RESPONSE";
-  visibility: "PUBLIC" | "PRIVATE" | "INVITE_ONLY";
+  description?: string;
+  engagementType?: "BOUNTY" | "RESPONSE";
+  /** Defaults to `PRIVATE` upstream when omitted: a draft is not public. */
+  visibility?: "PUBLIC" | "PRIVATE" | "INVITE_ONLY";
   state?: ProgramState;
-  policy: string;
-  proofOfConceptRequirements: RuleSection | string;
-  rulesOfEngagement: RuleSection;
-  exclusions: RuleSection;
-  offersBounties: boolean;
-  minimumBounty: number;
-  maximumBounty: number;
-  assets: Asset[];
-  rewards: RewardTier[];
+  policy?: string;
+  proofOfConceptRequirements?: RuleSection | string;
+  rulesOfEngagement?: RuleSection;
+  exclusions?: RuleSection;
+  offersBounties?: boolean;
+  minimumBounty?: number;
+  maximumBounty?: number;
+  assets?: Asset[];
+  rewards?: RewardTier[];
 }
 
 export type UpdateProgramRequest = Partial<
@@ -97,15 +109,19 @@ export interface Program {
   organizationId: string;
   handle: string;
   name: string;
-  description: string;
+  /* Null on a draft. Completeness is checked at submission, so everything the
+     wizard fills in across steps 1-4 can legitimately be missing until then —
+     these were non-null only because the upstream used to demand them on every
+     save, which is what forced placeholder text into the payload. */
+  description?: string | null;
   organizationName: string;
   organization?: OrganizationSummary | null;
   logoUrl?: string | null;
-  engagementType: EngagementType;
+  engagementType?: EngagementType | null;
   state: ProgramState;
   submissionState: SubmissionState;
   visibility: ProgramVisibility;
-  policy: string;
+  policy?: string | null;
   offersBounties: boolean;
   minimumBounty: number;
   maximumBounty: number;
@@ -137,9 +153,10 @@ export interface ProgramDetail {
   rejectionReason?: string | null;
 
   // Added Rules & Exclusions fields
-  rulesOfEngagement?: RuleSection;
-  exclusions?: RuleSection;
+  rulesOfEngagement?: RuleSection | null;
+  exclusions?: RuleSection | null;
 
+  /** Empty until the author reaches step 2. */
   assets: ProgramAsset[];
   inScopeAssets?: ProgramAsset[];
   rewards: ProgramReward[];
