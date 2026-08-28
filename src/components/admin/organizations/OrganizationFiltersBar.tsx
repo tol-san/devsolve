@@ -1,11 +1,15 @@
 "use client";
 
 import React from "react";
-import { Search, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+import {
+  ActiveFilters,
+  FilterBar,
+  FilterRow,
+  FilterSearch,
+  FilterTabs,
+  type ActiveFilter,
+} from "@/components/ui/filter-bar";
 import type { OrganizationVerificationFilter } from "@/lib/types/admin/types";
 
 interface OrganizationFiltersBarProps {
@@ -39,60 +43,42 @@ export const OrganizationFiltersBar: React.FC<OrganizationFiltersBarProps> = ({
   onSearchQueryChange,
   counts,
 }) => {
-  return (
-    <div className="flex flex-col justify-between gap-4 rounded-2xl border border-border bg-card p-4 shadow-xs md:flex-row md:items-center">
-      {/* STATUS FILTER TABS */}
-      <ToggleGroup
-        multiple={false}
-        value={[statusFilter]}
-        onValueChange={(values) => {
-          const nextStatus = values[values.length - 1] as
-            | OrganizationVerificationFilter
-            | undefined;
-          if (nextStatus) onStatusFilterChange(nextStatus);
-        }}
-        spacing={1}
-        className="max-w-full shrink-0 overflow-x-auto rounded-xl border border-border bg-muted p-1"
-      >
-        {TABS.map((tab) => {
-          const isActive = statusFilter === tab.key;
-          return (
-            <ToggleGroupItem
-              key={tab.key}
-              value={tab.key}
-              className="h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-semibold text-muted-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-2xs"
-            >
-              {tab.label}
-              <Badge variant={isActive ? "default" : "secondary"} className="rounded-full tabular-nums">
-                {counts[tab.countKey]}
-              </Badge>
-            </ToggleGroupItem>
-          );
-        })}
-      </ToggleGroup>
+  const activeFilters: ActiveFilter[] = searchQuery.trim()
+    ? [
+        {
+          key: "search",
+          label: `"${searchQuery.trim()}"`,
+          clear: () => onSearchQueryChange(""),
+        },
+      ]
+    : [];
 
-      {/* SEARCH INPUT BAR */}
-      <div className="relative w-full md:w-80 shrink-0">
-        <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
+  return (
+    <FilterBar>
+      <FilterTabs
+        label="Verification status"
+        value={statusFilter}
+        onChange={onStatusFilterChange}
+        tabs={TABS.map((tab) => ({
+          value: tab.key,
+          label: tab.label,
+          count: counts[tab.countKey] ?? 0,
+        }))}
+      />
+
+      <FilterRow>
+        <FilterSearch
           value={searchQuery}
-          onChange={(e) => onSearchQueryChange(e.target.value)}
-          placeholder="Search name, owner, or website..."
-          className="h-10 rounded-xl border-border bg-card pl-9 pr-10 text-sm text-foreground placeholder:text-muted-foreground shadow-2xs"
+          onChange={onSearchQueryChange}
+          label="Search organizations"
+          placeholder="Search name, owner or website..."
         />
-        {searchQuery && (
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            aria-label="Clear organization search"
-            onClick={() => onSearchQueryChange("")}
-            className="absolute right-1 top-1/2 size-8 -translate-y-1/2 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-          >
-            <X />
-          </Button>
-        )}
-      </div>
-    </div>
+      </FilterRow>
+
+      <ActiveFilters
+        filters={activeFilters}
+        onClearAll={() => onSearchQueryChange("")}
+      />
+    </FilterBar>
   );
 };

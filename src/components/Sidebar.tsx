@@ -16,6 +16,7 @@ import {
 import { NAV_ITEMS } from "@/config/navigation";
 import { useSidebarAuth, SidebarUser } from "@/hooks/useSidebarAuth";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { OrganizationSwitcher } from "@/components/teams/OrganizationSwitcher";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -271,6 +272,10 @@ function SidebarContent({
           </>
         )}
       </Link>
+
+      {/* Which organization the company screens below are showing. Renders
+          nothing unless this account is on more than one. */}
+      <OrganizationSwitcher collapsed={collapsed} />
 
       {/* Navigation */}
       <nav className="scrollbar-hover-only min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { BookmarkCategory } from "@/lib/types/bookmarks/types";
 import { useGetBookmarksQuery, useRemoveBookmarkMutation } from "@/lib/redux/services/bookmarksApi";
 import { BookmarkHeader } from "@/components/bookmarks/BookmarkHeader";
-import { BookmarkFiltersBar } from "@/components/bookmarks/BookmarkFiltersBar";
 import { BookmarkCard } from "@/components/bookmarks/BookmarkCard";
 import { Bookmark, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ import { Button } from "@/components/ui/button";
 export default function BookmarksPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<BookmarkCategory>("all");
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
 
   const { data: bookmarksResponse, isLoading, isFetching } =
@@ -78,24 +76,15 @@ export default function BookmarksPage() {
         onSearchChange={setSearchTerm}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
-        showMoreFilters={showMoreFilters}
-        onToggleMoreFilters={() => setShowMoreFilters(!showMoreFilters)}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+        isFilterActive={isFilterActive}
+        onResetFilters={handleResetFilters}
         counts={counts}
         totalSavedCount={totalSavedCount}
         visibleCount={bookmarks.length}
       />
 
-      {/* EXPANDABLE ADVANCED FILTERS PANEL */}
-      <AnimatePresence>
-        {showMoreFilters && (
-          <BookmarkFiltersBar
-            sortBy={sortBy}
-            onSortByChange={setSortBy}
-            onResetFilters={handleResetFilters}
-            isFilterActive={isFilterActive}
-          />
-        )}
-      </AnimatePresence>
 
       {/* MAIN CONTENT AREA */}
       <main className="pt-2">

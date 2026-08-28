@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Search,
   ArrowLeft,
   Eye,
   X,
@@ -20,61 +19,35 @@ import {
   ChevronRight,
   Filter,
   DollarSign,
-  ChevronDown,
-  Check,
 } from "lucide-react";
 
 import { useGetReportsQuery, ReportItem } from "@/lib/redux/services/reportsApi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+  ActiveFilters,
+  FilterBar,
+  FilterControls,
+  FilterRow,
+  FilterSearch,
+  FilterSelect,
+  FilterTabs,
+} from "@/components/ui/filter-bar";
 
-const SEVERITY_OPTIONS = [
-  { label: "Severity: All", value: "All" },
-  { label: "Critical", value: "CRITICAL" },
-  { label: "High", value: "HIGH" },
-  { label: "Medium", value: "MEDIUM" },
-  { label: "Low", value: "LOW" },
+const SEVERITY_LABELS: Record<string, string> = {
+  All: "Any severity",
+  CRITICAL: "Critical",
+  HIGH: "High",
+  MEDIUM: "Medium",
+  LOW: "Low",
+};
+
+const STATUS_TABS: { value: "All" | "Open" | "Resolved"; label: string }[] = [
+  { value: "All", label: "All" },
+  { value: "Open", label: "Open" },
+  { value: "Resolved", label: "Resolved" },
 ];
-
-function SeverityFilterSelect({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (val: string) => void;
-}) {
-  return (
-    <Select value={value} onValueChange={(val) => val && onChange(val)}>
-      <SelectTrigger className="h-10.5 px-3.5 w-full sm:w-auto min-w-[165px] text-sm font-semibold bg-card ring-1 ring-foreground/5 dark:ring-foreground/10 hover:ring-foreground/10 dark:hover:ring-foreground/20 rounded-xl text-foreground flex items-center justify-between gap-2.5 cursor-pointer shadow-2xs focus:ring-2 focus:ring-blue-600/20">
-        <div className="flex items-center gap-2 min-w-0">
-          <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
-          <SelectValue placeholder="Severity: All" />
-        </div>
-      </SelectTrigger>
-      <SelectContent className="rounded-xl bg-card ring-1 ring-foreground/5 dark:ring-foreground/10 p-1 shadow-xl">
-        {SEVERITY_OPTIONS.map((opt) => (
-          <SelectItem
-            key={opt.value}
-            value={opt.value}
-            className="text-sm font-medium text-foreground focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:text-blue-700 dark:focus:text-blue-300 rounded-lg cursor-pointer py-2 px-3"
-          >
-            {opt.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
 
 export default function MyReportsPage() {
   const router = useRouter();
@@ -230,46 +203,60 @@ export default function MyReportsPage() {
         </Button>
       </header>
 
-      {/* Filter & Search Toolbar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 bg-card p-3.5 sm:p-4 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
-        {/* Search Input */}
-        <div className="relative flex-1 min-w-0 w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="text"
+      <FilterBar>
+        <FilterTabs
+          label="Report status"
+          value={activeTab}
+          onChange={setActiveTab}
+          tabs={STATUS_TABS}
+        />
+
+        <FilterRow>
+          <FilterSearch
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by ID, program, or title..."
-            className="pl-10 h-10.5 w-full rounded-xl border border-transparent bg-muted/50 text-base focus-visible:ring-2 focus-visible:ring-blue-600/30"
+            onChange={setSearchTerm}
+            label="Search reports"
+            placeholder="Search by ID, program or title..."
           />
-        </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-          {/* Status Tabs */}
-          <div className="flex items-center p-1 bg-muted/60 rounded-xl gap-1 w-full sm:w-auto">
-            {(["All", "Open", "Resolved"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 sm:flex-initial relative px-4 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer text-center ${
-                  activeTab === tab
-                    ? "bg-card text-blue-600 dark:text-blue-400 shadow-xs"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+          <FilterControls>
+            <FilterSelect
+              icon={Filter}
+              label="Severity"
+              items={SEVERITY_LABELS}
+              value={severityFilter}
+              onValueChange={setSeverityFilter}
+            />
+          </FilterControls>
+        </FilterRow>
 
-          {/* Severity Custom Select Dropdown */}
-          <SeverityFilterSelect
-            value={severityFilter}
-            onChange={setSeverityFilter}
-          />
-        </div>
-      </div>
+        <ActiveFilters
+          filters={[
+            ...(severityFilter !== "All"
+              ? [
+                  {
+                    key: "severity",
+                    label: SEVERITY_LABELS[severityFilter] ?? severityFilter,
+                    clear: () => setSeverityFilter("All"),
+                  },
+                ]
+              : []),
+            ...(searchTerm.trim()
+              ? [
+                  {
+                    key: "search",
+                    label: `"${searchTerm.trim()}"`,
+                    clear: () => setSearchTerm(""),
+                  },
+                ]
+              : []),
+          ]}
+          onClearAll={() => {
+            setSeverityFilter("All");
+            setSearchTerm("");
+          }}
+        />
+      </FilterBar>
 
       {/* Data Table Container */}
       <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs overflow-hidden">

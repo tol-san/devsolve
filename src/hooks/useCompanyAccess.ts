@@ -1,6 +1,11 @@
 "use client";
 
 import { authClient } from "@/lib/auth/auth-client";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import {
+  rememberActiveOrganization,
+  setActiveOrganization,
+} from "@/lib/redux/slices/activeOrganizationSlice";
 import {
   useGetMyMembershipsQuery,
   type OrganizationInvitationPermission,
@@ -14,7 +19,7 @@ export type CompanyAccess = {
   membership?: OrganizationMembership;
   /** Whether there is a company workspace to show at all. */
   hasCompanyAccess: boolean;
-  /** True only for the account that registered the company. */
+  /** True only for the account that registered the active organization. */
   isOwner: boolean;
   /** What this account may do in the active organization. */
   permissions: OrganizationInvitationPermission[];
@@ -24,11 +29,10 @@ export type CompanyAccess = {
   canAny: (permissions: OrganizationInvitationPermission[]) => boolean;
   /** Only an ACTIVE organization accepts program and report actions. */
   isActive: boolean;
-  /**
-   * Both owns a company and belongs to another. `/organizations/me/programs`
-   * answers 409 for these accounts until there is a switcher to disambiguate.
-   */
+  /** On more than one organization, so the workspace has a choice to make. */
   hasMultiple: boolean;
+  /** Point the workspace at another organization this account belongs to. */
+  switchOrganization: (organizationId: string) => void;
   isLoading: boolean;
 };
 
@@ -50,23 +54,42 @@ export type CompanyAccess = {
  * the owner-exclusive screens whose endpoints 404 for a member: company
  * profile, logo, team management, verification, resubmit.
  *
+ * An account can be on several organizations, so which one the company screens
+ * are showing is a choice — held in `activeOrganization` and remembered across
+ * reloads. Everything below reads the *active* membership, so a screen never
+ * has to think about the list.
+ *
  * Roles still decide `ADMIN`, which is genuinely an account-level fact.
  */
 export function useCompanyAccess(): CompanyAccess {
   const { data: session, isPending: sessionPending } = authClient.useSession();
+  const dispatch = useAppDispatch();
+  const activeId = useAppSelector(
+    (state) => state.activeOrganization.organizationId,
+  );
 
   const { data: memberships, isLoading } = useGetMyMembershipsQuery(undefined, {
     skip: !session,
   });
 
   const rows = memberships ?? [];
-  /* Owned entries come first from the API, so the head of the list is the
-     workspace to open when an account has more than one. */
-  const membership = rows[0];
+
+  /* The remembered choice, when it is still one of theirs — access can be
+     revoked, and a stale id should fall back rather than empty the workspace.
+     Owned entries come first from the API, so the head of the list is the
+     sensible default. */
+  const membership =
+    rows.find((row) => row.organizationId === activeId) ?? rows[0];
+
   const permissions = membership?.permissions ?? [];
 
   const can = (permission: OrganizationInvitationPermission) =>
     permissions.includes(permission);
+
+  const switchOrganization = (organizationId: string) => {
+    rememberActiveOrganization(organizationId);
+    dispatch(setActiveOrganization(organizationId));
+  };
 
   return {
     memberships: rows,
@@ -78,6 +101,7 @@ export function useCompanyAccess(): CompanyAccess {
     canAny: (wanted) => wanted.some(can),
     isActive: membership?.organizationStatus === "ACTIVE",
     hasMultiple: rows.length > 1,
+    switchOrganization,
     isLoading: sessionPending || isLoading,
   };
 }

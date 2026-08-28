@@ -11,14 +11,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Search,
 } from "lucide-react";
 
 import { WeaknessFormDialog } from "@/components/admin/weaknesses/WeaknessFormDialog";
 import { WeaknessTable } from "@/components/admin/weaknesses/WeaknessTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  ActiveFilters,
+  FilterBar,
+  FilterControls,
+  FilterRow,
+  FilterSearch,
+} from "@/components/ui/filter-bar";
 import { Switch } from "@/components/ui/switch";
 import { useGetAdminWeaknessesQuery } from "@/lib/redux/services/adminWeaknessesApi";
 import type { Weakness } from "@/lib/redux/services/weaknessesApi";
@@ -123,28 +128,54 @@ export default function AdminWeaknessesPage() {
       </header>
 
       {!isError && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-          <div className="relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
+        <FilterBar>
+          <FilterRow>
+            <FilterSearch
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by name or CWE id…"
-              aria-label="Search weaknesses"
-              className="h-11 w-full rounded-xl border-border bg-background pl-10 text-base text-foreground"
+              onChange={setSearch}
+              label="Search weaknesses"
+              placeholder="Search by name or CWE id..."
             />
-          </div>
 
-          <label className="flex shrink-0 cursor-pointer items-center gap-2.5 px-1 text-sm font-semibold text-foreground">
-            <Switch
-              checked={activeOnly}
-              onCheckedChange={setActiveOnly}
-              aria-label="Hide retired weaknesses"
-            />
-            Hide retired
-          </label>
-        </div>
+            <FilterControls>
+              <label className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-2.5 rounded-xl bg-muted/50 px-3 text-sm font-medium text-foreground shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+                <Switch
+                  checked={activeOnly}
+                  onCheckedChange={setActiveOnly}
+                  aria-label="Hide retired weaknesses"
+                />
+                Hide retired
+              </label>
+            </FilterControls>
+          </FilterRow>
+
+          <ActiveFilters
+            filters={[
+              ...(activeOnly
+                ? [
+                    {
+                      key: "retired",
+                      label: "Retired hidden",
+                      clear: () => setActiveOnly(false),
+                    },
+                  ]
+                : []),
+              ...(search.trim()
+                ? [
+                    {
+                      key: "search",
+                      label: `"${search.trim()}"`,
+                      clear: () => setSearch(""),
+                    },
+                  ]
+                : []),
+            ]}
+            onClearAll={() => {
+              setActiveOnly(false);
+              setSearch("");
+            }}
+          />
+        </FilterBar>
       )}
 
       <main className="flex flex-col gap-3">

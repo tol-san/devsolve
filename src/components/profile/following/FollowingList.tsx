@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, UserCheck } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { UserCheck } from "lucide-react";
+import { FilterSearch } from "@/components/ui/filter-bar";
 import { FollowingUser } from "@/lib/types/profile/types";
 import FollowingItem from "./FollowingItem";
 
@@ -46,17 +46,13 @@ export default function FollowingList({
             </p>
           </div>
 
-          {/* Search Input */}
-          <div className="relative min-w-[220px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search following..."
-              className="h-11 rounded-xl border border-border bg-card pl-9 pr-4 text-sm font-medium text-foreground shadow-none placeholder:text-muted-foreground focus-visible:border-blue-500 focus-visible:ring-4 focus-visible:ring-blue-500/10"
-            />
-          </div>
+          <FilterSearch
+          value={search}
+          onChange={setSearch}
+          label="Search following"
+          placeholder="Search following..."
+          className="w-full sm:max-w-xs"
+        />
         </div>
 
         <p className="pt-0.5 text-sm font-medium text-muted-foreground">

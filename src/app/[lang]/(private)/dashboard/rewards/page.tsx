@@ -7,12 +7,20 @@ import {
   Award,
   CheckCircle2,
   Clock,
-  Search,
+  Filter,
   ExternalLink,
   ShieldCheck,
   Download,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {
+  ActiveFilters,
+  FilterBar,
+  FilterControls,
+  FilterRow,
+  FilterSearch,
+  FilterSelect,
+  FilterTabs,
+} from "@/components/ui/filter-bar";
 import { Button } from "@/components/ui/button";
 import { ProgramPagination } from "@/components/programs/ProgramPagination";
 
@@ -45,6 +53,21 @@ const MOCK_REWARDS: UserRewardItem[] = Array.from({ length: 28 }, (_, index) => 
     awardedAt: `2026-03-${10 + (index % 18)}`,
   };
 });
+
+const REWARD_TYPE_TABS: {
+  value: "ALL" | "BOUNTY" | "POINTS";
+  label: string;
+}[] = [
+  { value: "ALL", label: "All rewards" },
+  { value: "BOUNTY", label: "Bounties ($)" },
+  { value: "POINTS", label: "Points" },
+];
+
+const REWARD_STATUS_LABELS: Record<string, string> = {
+  ALL: "Any status",
+  PAID: "Paid",
+  PENDING: "Pending",
+};
 
 export default function RewardsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -210,64 +233,69 @@ export default function RewardsPage() {
           </div>
         </div>
 
-        {/* FILTERS & SEARCH BAR */}
-        <div className="p-4 bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search by program, report title, or ID..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
+        <FilterBar>
+          <FilterTabs
+            label="Reward type"
+            value={typeFilter}
+            onChange={(value) => {
+              setTypeFilter(value);
+              setCurrentPage(1);
+            }}
+            tabs={REWARD_TYPE_TABS}
+          />
+
+          <FilterRow>
+            <FilterSearch
+              value={searchTerm}
+              onChange={(value) => {
+                setSearchTerm(value);
+                setCurrentPage(1);
+              }}
+              label="Search rewards"
+              placeholder="Search by program, report title or ID..."
+            />
+
+            <FilterControls>
+              <FilterSelect
+                icon={Filter}
+                label="Status"
+                items={REWARD_STATUS_LABELS}
+                value={statusFilter}
+                onValueChange={(value) => {
+                  setStatusFilter(value as "ALL" | "PAID" | "PENDING");
                   setCurrentPage(1);
                 }}
-                className="pl-10 h-11 rounded-xl border border-transparent bg-muted/50 text-base focus-visible:ring-blue-500 placeholder:text-muted-foreground"
               />
-            </div>
+            </FilterControls>
+          </FilterRow>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-              <div className="bg-muted/60 p-1 rounded-xl flex items-center shrink-0">
-                {(["ALL", "BOUNTY", "POINTS"] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => {
-                      setTypeFilter(t);
-                      setCurrentPage(1);
-                    }}
-                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                      typeFilter === t
-                        ? "bg-card text-blue-600 dark:text-blue-400 shadow-xs"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t === "ALL" ? "All Rewards" : t === "BOUNTY" ? "Bounties ($)" : "Points"}
-                  </button>
-                ))}
-              </div>
-
-              <div className="bg-muted/60 p-1 rounded-xl flex items-center shrink-0">
-                {(["ALL", "PAID", "PENDING"] as const).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => {
-                      setStatusFilter(s);
-                      setCurrentPage(1);
-                    }}
-                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-                      statusFilter === s
-                        ? "bg-card text-blue-600 dark:text-blue-400 shadow-xs"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+          <ActiveFilters
+            filters={[
+              ...(statusFilter !== "ALL"
+                ? [
+                    {
+                      key: "status",
+                      label: REWARD_STATUS_LABELS[statusFilter],
+                      clear: () => setStatusFilter("ALL"),
+                    },
+                  ]
+                : []),
+              ...(searchTerm.trim()
+                ? [
+                    {
+                      key: "search",
+                      label: `"${searchTerm.trim()}"`,
+                      clear: () => setSearchTerm(""),
+                    },
+                  ]
+                : []),
+            ]}
+            onClearAll={() => {
+              setStatusFilter("ALL");
+              setSearchTerm("");
+            }}
+          />
+        </FilterBar>
 
         {/* REWARDS HISTORY TABLE */}
         <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs overflow-hidden">

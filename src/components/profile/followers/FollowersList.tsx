@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Search } from "lucide-react";
+import { Users } from "lucide-react";
+import { FilterSearch } from "@/components/ui/filter-bar";
 import { FollowRecord } from "@/lib/types/profile/types";
 import FollowerItem from "./FollowerItem";
 
@@ -41,17 +42,13 @@ export default function FollowersList({ total, items, baseProfilePath }: Followe
           </p>
         </div>
 
-        {/* Search Input */}
-        <div className="relative min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search followers..."
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-9 pr-4 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-blue-500 focus:outline-hidden dark:focus:border-blue-500"
-          />
-        </div>
+        <FilterSearch
+          value={search}
+          onChange={setSearch}
+          label="Search followers"
+          placeholder="Search followers..."
+          className="w-full sm:max-w-xs"
+        />
       </div>
 
       {/* Followers Items Grid */}

@@ -12,7 +12,6 @@ import {
   Loader2,
   MoreHorizontal,
   RefreshCcw,
-  Search,
   Trash2,
   UserPlus,
   UserRound,
@@ -20,7 +19,6 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
-import { ROLE_FILTERS, STATUS_FILTERS } from "@/components/teams/mock-data";
 import type {
   MemberRole,
   RoleFilter,
@@ -42,14 +40,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  FilterBar,
+  FilterControls,
+  FilterRow,
+  FilterSearch,
+  FilterSelect,
+} from "@/components/ui/filter-bar";
 import { toast } from "@/hooks/use-toast";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
@@ -70,6 +67,21 @@ type TeamActor = {
 };
 
 /** The wire values, from the display ones this table carries. */
+/* Base UI renders the value on the trigger unless the root is handed these,
+   which turned "All roles" into a bare "All". */
+const ROLE_FILTER_LABELS: Record<string, string> = {
+  All: "All roles",
+  Manager: "Manager",
+  Member: "Member",
+  Viewer: "Viewer",
+};
+
+const STATUS_FILTER_LABELS: Record<string, string> = {
+  All: "All statuses",
+  Active: "Active",
+  Pending: "Invited",
+};
+
 const API_ROLE: Record<MemberRole, OrganizationInvitationRole> = {
   Manager: "MANAGER",
   Member: "MEMBER",
@@ -304,78 +316,42 @@ export function TeamsMembersSection({
 
   return (
     <>
-      {/* Same shell and controls as the saved drafts screen: one soft card,
-          a muted search field, and the filters as labelled selects rather than
-          a pill row — so the two list screens read as one family. */}
-      <div className="rounded-[24px] bg-card p-5 text-card-foreground shadow-[0_10px_24px_rgba(15,23,42,0.04)] ring-1 ring-foreground/5 sm:p-6 dark:ring-foreground/10">
-        <div className="space-y-3">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search by member name or email..."
-                className="h-11 rounded-xl border border-transparent bg-muted/50 pr-3 pl-9 text-sm text-foreground shadow-[0_1px_3px_rgba(15,23,42,0.04)] focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
-              />
-            </div>
+      <FilterBar>
+        <FilterRow>
+          <FilterSearch
+            value={searchTerm}
+            onChange={setSearchTerm}
+            label="Search members"
+            placeholder="Search by member name or email..."
+          />
 
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex h-11 items-center gap-2 rounded-xl bg-muted/50 px-3 text-sm text-muted-foreground shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
-                <UserRound className="size-4" />
-                <span className="shrink-0 font-medium">Role</span>
-                <Select
-                  value={roleFilter}
-                  onValueChange={(value) => setRoleFilter(value as RoleFilter)}
-                >
-                  <SelectTrigger className="h-8 border-none bg-transparent font-medium text-foreground shadow-none focus:ring-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ROLE_FILTERS.map((filter) => (
-                      <SelectItem key={filter} value={filter}>
-                        {filter === "All" ? "All roles" : filter}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <FilterControls>
+            <FilterSelect
+              icon={UserRound}
+              label="Role"
+              items={ROLE_FILTER_LABELS}
+              value={roleFilter}
+              onValueChange={(value) => setRoleFilter(value as RoleFilter)}
+            />
+            <FilterSelect
+              icon={Filter}
+              label="Status"
+              items={STATUS_FILTER_LABELS}
+              value={statusFilter}
+              onValueChange={(value) => setStatusFilter(value as StatusFilter)}
+            />
+          </FilterControls>
+        </FilterRow>
 
-              <div className="inline-flex h-11 items-center gap-2 rounded-xl bg-muted/50 px-3 text-sm text-muted-foreground shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
-                <Filter className="size-4" />
-                <span className="shrink-0 font-medium">Status</span>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) =>
-                    setStatusFilter(value as StatusFilter)
-                  }
-                >
-                  <SelectTrigger className="h-8 border-none bg-transparent font-medium text-foreground shadow-none focus:ring-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_FILTERS.map((filter) => (
-                      <SelectItem key={filter} value={filter}>
-                        {filter === "All" ? "All statuses" : filter}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
-            <p className="text-sm font-medium text-muted-foreground">
-              {filteredMembers.length} of {counts.total} members in view
-            </p>
-            <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
-              Team roster
-            </p>
-          </div>
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+          <p className="text-sm font-medium text-muted-foreground">
+            {filteredMembers.length} of {counts.total} members in view
+          </p>
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            Team roster
+          </p>
         </div>
-      </div>
+      </FilterBar>
 
       {isError ? (
         <RosterMessage

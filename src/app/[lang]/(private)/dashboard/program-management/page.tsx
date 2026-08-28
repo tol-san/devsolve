@@ -81,10 +81,11 @@ function ProgramManagementPageContent() {
     error: companyError,
   } = useGetMyCompanyProgramsQuery({ size: 100 }, { skip: isAdminScope });
 
-  /* An account that both owns a company and was invited into another cannot be
-     resolved to one organization by `/organizations/me/programs`, which answers
-     409 rather than guessing. There is no switcher yet, so the situation is
-     named instead of being shown as a failure to load. */
+  /* Switching organizations is a frontend choice, but this endpoint has no
+     organization parameter: `/organizations/me/programs` resolves the caller
+     and answers 409 when that is more than one company. Selecting a workspace
+     in the sidebar therefore moves identity, permissions and navigation, and
+     cannot move this list until the endpoint accepts an organization. */
   const isAmbiguousOrganization =
     apiErrorStatus(companyError) === 409 || (hasMultiple && Boolean(companyError));
 
@@ -299,13 +300,14 @@ function ProgramManagementPageContent() {
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
           <div className="space-y-1">
             <p className="text-base font-semibold text-foreground">
-              This account belongs to more than one organization
+              Programs cannot be listed for this account yet
             </p>
             <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
               {apiErrorMessage(
                 companyError,
-                "Programs are read for one organization at a time, and this account is in several. Until there is a way to switch between them here, use the account that belongs to a single organization.",
-              )}
+                "This account belongs to more than one organization, and the programs endpoint reads them one organization at a time without a way to say which.",
+              )}{" "}
+              Everything else follows the workspace you pick in the sidebar.
             </p>
           </div>
         </div>

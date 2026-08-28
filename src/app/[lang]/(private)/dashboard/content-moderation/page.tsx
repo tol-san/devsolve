@@ -7,10 +7,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Flag,
-  ChevronDown,
+  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
-  Search,
   RotateCcw,
   SlidersHorizontal,
   ArrowLeft,
@@ -25,16 +24,15 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
+  ActiveFilters,
+  FilterBar,
+  FilterControls,
+  FilterRow,
+  FilterSearch,
+  FilterSelect,
+  FilterTabs,
+} from "@/components/ui/filter-bar";
 import {
   Select,
   SelectTrigger,
@@ -253,9 +251,6 @@ function ContentManagement() {
     { label: "Oldest First", value: "OLDEST" },
   ] as const;
 
-  const hasFilters =
-    typeFilter !== "ALL" || reasonFilter !== "ALL" || searchQuery.trim() !== "";
-
   const activeBlurb =
     TABS.find((tab) => tab.value === activeTab)?.blurb ?? TABS[0].blurb;
 
@@ -341,141 +336,85 @@ function ContentManagement() {
 
       {activeTab === "queue" ? (
         <>
-          {/* ── Filter & sort toolbar ── */}
-          <div className="flex flex-col justify-between gap-4 rounded-2xl border border-border bg-card p-4 shadow-xs lg:flex-row lg:items-center">
-            {/* Content type pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
-              {contentTypeOptions.map((opt) => {
-                const isActive = typeFilter === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setTypeFilter(opt.value)}
-                    aria-pressed={isActive}
-                    className={cn(
-                      "shrink-0 cursor-pointer rounded-xl border px-4 py-1.5 text-sm font-semibold transition-colors",
-                      isActive
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
+          <FilterBar>
+            <FilterTabs
+              label="Content type"
+              value={typeFilter}
+              onChange={setTypeFilter}
+              tabs={contentTypeOptions.map((option) => ({
+                value: option.value,
+                label: option.label,
+              }))}
+            />
 
-            {/* Search, reason, sort */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="relative flex-1 sm:w-48">
-                <Search className="absolute left-3 top-2.5 size-3.5 text-muted-foreground" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search reports..."
-                  aria-label="Search reports"
-                  className="h-9 rounded-xl border-border bg-card pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground shadow-2xs"
+            <FilterRow>
+              <FilterSearch
+                value={searchQuery}
+                onChange={setSearchQuery}
+                label="Search reports"
+                placeholder="Search reports..."
+              />
+
+              <FilterControls>
+                <FilterSelect
+                  icon={SlidersHorizontal}
+                  label="Reason"
+                  items={Object.fromEntries(
+                    reasonOptions.map((option) => [option.value, option.label]),
+                  )}
+                  value={reasonFilter}
+                  onValueChange={setReasonFilter}
                 />
-              </div>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 cursor-pointer rounded-xl border-border bg-card px-3 text-sm font-semibold text-foreground shadow-2xs hover:bg-muted"
-                    />
+                <FilterSelect
+                  icon={ArrowUpDown}
+                  label="Sort by"
+                  items={Object.fromEntries(
+                    sortOptions.map((option) => [option.value, option.label]),
+                  )}
+                  value={sortBy}
+                  onValueChange={(value) =>
+                    setSortBy(value as (typeof sortOptions)[number]["value"])
                   }
-                >
-                  <SlidersHorizontal
-                    data-icon="inline-start"
-                    className="text-muted-foreground"
-                  />
-                  <span>
-                    Reason: {reasonFilter === "ALL" ? "All" : reasonFilter}
-                  </span>
-                  <ChevronDown
-                    data-icon="inline-end"
-                    className="text-muted-foreground"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 border-border bg-card text-card-foreground">
-                  <DropdownMenuLabel>Filter by Reason</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    {reasonOptions.map((opt) => (
-                      <DropdownMenuItem
-                        key={opt.value}
-                        onClick={() => setReasonFilter(opt.value)}
-                        className={
-                          reasonFilter === opt.value
-                            ? "font-semibold text-foreground"
-                            : "text-muted-foreground"
-                        }
-                      >
-                        {opt.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                />
+              </FilterControls>
+            </FilterRow>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 cursor-pointer rounded-xl border-border bg-card px-3 text-sm font-semibold text-foreground shadow-2xs hover:bg-muted"
-                    />
-                  }
-                >
-                  <span className="font-normal text-muted-foreground">Sort:</span>
-                  <span>
-                    {sortOptions.find((s) => s.value === sortBy)?.label ||
-                      "Most Reported"}
-                  </span>
-                  <ChevronDown
-                    data-icon="inline-end"
-                    className="text-muted-foreground"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44 border-border bg-card text-card-foreground">
-                  <DropdownMenuLabel>Sort Order</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    {sortOptions.map((opt) => (
-                      <DropdownMenuItem
-                        key={opt.value}
-                        onClick={() => setSortBy(opt.value)}
-                        className={
-                          sortBy === opt.value
-                            ? "font-semibold text-foreground"
-                            : "text-muted-foreground"
-                        }
-                      >
-                        {opt.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {hasFilters && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetFilters}
-                  className="h-9 cursor-pointer rounded-xl px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  <RotateCcw data-icon="inline-start" /> Reset
-                </Button>
-              )}
-            </div>
-          </div>
+            <ActiveFilters
+              filters={[
+                ...(typeFilter !== "ALL"
+                  ? [
+                      {
+                        key: "type",
+                        label:
+                          contentTypeOptions.find(
+                            (option) => option.value === typeFilter,
+                          )?.label ?? typeFilter,
+                        clear: () => setTypeFilter("ALL"),
+                      },
+                    ]
+                  : []),
+                ...(reasonFilter !== "ALL"
+                  ? [
+                      {
+                        key: "reason",
+                        label: reasonFilter,
+                        clear: () => setReasonFilter("ALL"),
+                      },
+                    ]
+                  : []),
+                ...(searchQuery.trim()
+                  ? [
+                      {
+                        key: "search",
+                        label: `"${searchQuery.trim()}"`,
+                        clear: () => setSearchQuery(""),
+                      },
+                    ]
+                  : []),
+              ]}
+              onClearAll={resetFilters}
+            />
+          </FilterBar>
 
           {/* ── Reports and the reason breakdown ── */}
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">

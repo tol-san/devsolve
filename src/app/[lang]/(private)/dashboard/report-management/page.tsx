@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -44,7 +43,6 @@ function ReportManagementContent() {
     isError,
     refetch,
   } = useReportManagement();
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
 
   const hasActiveFilters =
     searchTerm.trim().length > 0 ||
@@ -88,9 +86,6 @@ function ReportManagementContent() {
           typeCounts={typeCounts}
           severityCounts={severityCounts}
           statusCounts={statusCounts}
-          showMoreFilters={showMoreFilters}
-          onToggleMoreFilters={() => setShowMoreFilters((current) => !current)}
-          hasActiveFilters={hasActiveFilters}
           onClearFilters={clearFilters}
         />
       </motion.div>
