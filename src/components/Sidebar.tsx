@@ -468,23 +468,23 @@ const Sidebar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-border bg-card px-4 py-3 backdrop-blur-xl lg:hidden dark:bg-card/85">
+      <header className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-border bg-card px-3 py-2.5 sm:px-4 sm:py-3 backdrop-blur-xl lg:hidden dark:bg-card/85">
         <Link
           href="/dashboard"
           aria-label="DevSolve dashboard"
-          className="flex items-center"
+          className="flex items-center shrink-0"
         >
-          <BrandLogo priority className="h-10 w-36" sizes="144px" />
+          <BrandLogo priority className="h-9 w-32 sm:h-10 sm:w-36" sizes="(max-width: 640px) 128px, 144px" />
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <LanguageSwitcher />
           <NotificationTrigger />
           <ThemeToggle
             variant="rectangle"
             start="bottom-up"
-            className="size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-700 shadow-2xs transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 cursor-pointer"
-            iconClassName="size-5"
+            className="size-9 sm:size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-700 shadow-2xs transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 cursor-pointer"
+            iconClassName="size-4.5 sm:size-5"
           />
           <Button
             size="icon"
@@ -492,9 +492,9 @@ const Sidebar = () => {
             onClick={() => setIsOpen(true)}
             aria-label="Open menu"
             aria-expanded={isOpen}
-            className="cursor-pointer rounded-xl text-slate-700 hover:bg-slate-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            className="size-9 sm:size-10 cursor-pointer rounded-xl text-slate-700 hover:bg-slate-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
           >
-            <Menu className="size-6" />
+            <Menu className="size-5 sm:size-6" />
           </Button>
         </div>
       </header>

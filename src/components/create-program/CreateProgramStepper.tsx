@@ -16,7 +16,7 @@ export function CreateProgramStepper({
   setActiveTab,
 }: CreateProgramStepperProps) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-border">
+    <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 border-b border-border scrollbar-none">
       {steps.map((step) => {
         const Icon = step.icon;
         const isActive = activeTab === step.id;
@@ -25,8 +25,9 @@ export function CreateProgramStepper({
         return (
           <button
             key={step.id}
+            type="button"
             onClick={() => setActiveTab(step.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shrink-0 cursor-pointer ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 cursor-pointer ${
               isActive
                 ? "bg-blue-600 text-white dark:bg-blue-600 dark:text-white shadow-xs"
                 : isCompleted
@@ -35,11 +36,11 @@ export function CreateProgramStepper({
             }`}
           >
             {isCompleted ? (
-              <Check className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400 shrink-0" />
             ) : (
-              <Icon className="w-4 h-4" />
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             )}
-            <span>{step.label}</span>
+            <span className="whitespace-nowrap">{step.label}</span>
           </button>
         );
       })}

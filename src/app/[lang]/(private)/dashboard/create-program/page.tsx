@@ -25,6 +25,7 @@ import { CreateProgramPreview } from "@/components/create-program/CreateProgramP
 import { CreateProgramChecklist } from "@/components/create-program/CreateProgramChecklist";
 import { CreateProgramTipCard } from "@/components/create-program/CreateProgramTipCard";
 import { useCreateProgramForm } from "@/components/create-program/useCreateProgramForm";
+import { cn } from "@/lib/utils";
 
 function CreateProgramContent() {
   const {
@@ -135,7 +136,7 @@ function CreateProgramContent() {
       {/* MAIN LAYOUT GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* LEFT 2 COLUMNS: FORM STEPS */}
-        <div className="lg:col-span-2 p-6 sm:p-8 bg-card text-card-foreground rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-6">
+        <div className="lg:col-span-2 p-4 sm:p-6 md:p-8 bg-card text-card-foreground rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-6 min-w-0">
           {activeTab === 1 && (
             <Step1BasicInfo
               programName={programName}
@@ -195,19 +196,22 @@ function CreateProgramContent() {
           )}
 
           {/* FOOTER NAVIGATION BUTTONS */}
-          <div className="pt-4 border-t border-border flex items-center justify-between">
+          <div className="pt-4 border-t border-border flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <Button
               type="button"
               variant="outline"
               disabled={activeTab === 1}
               onClick={() => setActiveTab(Math.max(activeTab - 1, 1))}
-              className="rounded-xl border-border bg-card text-foreground font-semibold text-sm h-11 px-5 cursor-pointer hover:bg-muted"
+              className={cn(
+                "rounded-xl border-border bg-card text-foreground font-semibold text-sm h-11 px-5 cursor-pointer hover:bg-muted justify-center w-full sm:w-auto",
+                activeTab === 1 && "hidden sm:inline-flex invisible pointer-events-none"
+              )}
             >
               <ChevronLeft className="w-4 h-4 mr-1.5" />
               Previous
             </Button>
 
-            <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
               <Button
                 type="button"
                 variant="outline"
@@ -224,12 +228,17 @@ function CreateProgramContent() {
                       ? undefined
                       : "Add a program name and handle before saving a draft"
                 }
-                className="rounded-xl border-border bg-card text-foreground font-semibold text-sm h-11 px-5 gap-2 cursor-pointer hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                className={cn(
+                  "rounded-xl border-border bg-card text-foreground font-semibold text-sm h-11 px-3 sm:px-5 gap-1.5 sm:gap-2 cursor-pointer hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 justify-center",
+                  activeTab === 1 && "col-span-1"
+                )}
               >
-                <Save className="w-4 h-4 text-muted-foreground" />
-                {/* An approved or live program is no longer a draft, so saving
-                    it is an edit and says so. */}
-                {isDraftProgram ? "Save as Draft" : "Save Changes"}
+                <Save className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="truncate">
+                  {/* An approved or live program is no longer a draft, so saving
+                      it is an edit and says so. */}
+                  {isDraftProgram ? "Save as Draft" : "Save Changes"}
+                </span>
               </Button>
 
               {activeTab < 4 ? (
@@ -237,18 +246,18 @@ function CreateProgramContent() {
                   type="button"
                   onClick={() => setActiveTab(Math.min(activeTab + 1, 4))}
                   disabled={isNextDisabled}
-                  className="rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm h-11 px-6 gap-1.5 cursor-pointer dark:bg-blue-600 dark:hover:bg-blue-700"
+                  className="rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm h-11 px-4 sm:px-6 gap-1.5 cursor-pointer dark:bg-blue-600 dark:hover:bg-blue-700 justify-center col-span-1"
                 >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
+                  <span>Next</span>
+                  <ChevronRight className="w-4 h-4 shrink-0" />
                 </Button>
               ) : (
-                <div className="flex flex-col items-stretch gap-2 sm:items-end">
+                <div className="col-span-2 sm:col-span-1 flex flex-col items-stretch gap-2 sm:items-end w-full sm:w-auto">
                   {/* A disabled button with no reason beside it is the whole
                       complaint: the author pressed submit, nothing happened,
                       and the upstream's refusal only arrived once it did. */}
                   {missingForSubmit.length > 0 && !isUnderReview ? (
-                    <p className="text-sm text-muted-foreground sm:text-right">
+                    <p className="text-sm text-muted-foreground text-left sm:text-right">
                       <span className="font-semibold text-foreground">
                         Before submitting:
                       </span>{" "}
@@ -267,32 +276,32 @@ function CreateProgramContent() {
                     </p>
                   ) : null}
 
-                <Button
-                  type="button"
-                  onClick={handleCreateProgram}
-                  disabled={
-                    !isFormValid || isCreating || isFetchingDraft || isUnderReview
-                  }
-                  title={
-                    isUnderReview
-                      ? "This program is being reviewed and cannot be edited"
-                      : undefined
-                  }
-                  size="lg"
-                  className="rounded-xl"
-                >
-                  {isCreating
-                    ? isSubmitting
-                      ? "Submitting..."
-                      : isEditingDraft
-                        ? "Updating..."
-                        : "Creating..."
-                    : isExistingDraft
-                      ? "Submit for Review"
-                      : isEditingDraft
-                        ? "Update Program"
-                        : "Submit for Review"}
-                </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCreateProgram}
+                    disabled={
+                      !isFormValid || isCreating || isFetchingDraft || isUnderReview
+                    }
+                    title={
+                      isUnderReview
+                        ? "This program is being reviewed and cannot be edited"
+                        : undefined
+                    }
+                    size="lg"
+                    className="rounded-xl w-full sm:w-auto justify-center"
+                  >
+                    {isCreating
+                      ? isSubmitting
+                        ? "Submitting..."
+                        : isEditingDraft
+                          ? "Updating..."
+                          : "Creating..."
+                      : isExistingDraft
+                        ? "Submit for Review"
+                        : isEditingDraft
+                          ? "Update Program"
+                          : "Submit for Review"}
+                  </Button>
                 </div>
               )}
             </div>

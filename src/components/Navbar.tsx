@@ -9,11 +9,16 @@ import {
   ArrowRight,
   ChevronDown,
   Flame,
+  Globe,
+  Home,
+  Info,
   LayoutDashboard,
   Lightbulb,
   Loader2,
   LogOut,
+  LucideIcon,
   Menu,
+  MessageSquare,
   Moon,
   Sun,
   Trophy,
@@ -50,6 +55,7 @@ type NavLink = {
   name: string;
   href?: string;
   items?: NavItem[];
+  icon?: LucideIcon;
   /**
    * Dropped from the bar once there is a session — an introduction to the
    * platform is for people deciding whether to join, not for members who
@@ -61,42 +67,39 @@ type NavLink = {
 };
 
 const navLinks: NavLink[] = [
-  { name: "Home",
-    tKey: "nav.home", href: "/" },
-  { name: "Programs",
-    tKey: "nav.programs", href: "/programs" },
+  { name: "Home", tKey: "nav.home", href: "/", icon: Home },
+  { name: "Programs", tKey: "nav.programs", href: "/programs", icon: Globe },
   {
     name: "Community",
     tKey: "nav.community",
     href: "/community",
+    icon: MessageSquare,
     items: [
       {
         name: "Hacktivity",
-    tKey: "nav.hacktivity",
+        tKey: "nav.hacktivity",
         href: "/hacktivity",
         description: "Real-time security activity feed and disclosures.",
         icon: "hacktivity",
       },
       {
         name: "Problem",
-    tKey: "nav.problem",
+        tKey: "nav.problem",
         href: "/problems",
         description: "Post bugs, blockers, and security questions.",
         icon: "problem",
       },
       {
         name: "Showcase",
-    tKey: "nav.showcase",
+        tKey: "nav.showcase",
         href: "/showcases",
         description: "Share product wins, demos, and build highlights.",
         icon: "showcase",
       },
     ],
   },
-  { name: "Leaderboard",
-    tKey: "nav.leaderboard", href: "/leaderboard" },
-  { name: "About",
-    tKey: "nav.about", href: "/about", guestOnly: true },
+  { name: "Leaderboard", tKey: "nav.leaderboard", href: "/leaderboard", icon: Trophy },
+  { name: "About", tKey: "nav.about", href: "/about", guestOnly: true, icon: Info },
 ];
 
 // Scrolling down only retracts the island once the reader is past this much of
@@ -821,15 +824,11 @@ const Navbar = () => {
                 </div>
               </nav>
 
-              {/* Staged so each width carries only what fits: hamburger alone,
-                  then Get Started, then Log in, and the theme toggle last —
-                  it is the one control the mobile panel also offers. */}
-              <div className="flex shrink-0 items-center justify-end gap-1.5 xl:gap-2.5">
-                {sessionUser && <NotificationTrigger />}
-
-                {/* Beside the theme toggle: both are display preferences, and
-                    the mobile panel offers the pair together too. */}
+              {/* Header actions: on responsive matches dashboard header (LanguageSwitcher, NotificationTrigger, ThemeToggle, Hamburger), on desktop includes NavbarUserMenu */}
+              <div className="flex shrink-0 items-center justify-end gap-2">
                 <LanguageSwitcher className="hidden lg:inline-flex" />
+
+                {sessionUser && <NotificationTrigger />}
 
                 <ThemeToggle
                   variant="rectangle"
@@ -839,29 +838,26 @@ const Navbar = () => {
                       ? "Switch to light mode"
                       : "Switch to dark mode"
                   }
-                  /* Appears at `lg`, the same width the hamburger disappears
-                     at. Deferring it to `xl` left the 1024–1279px band with
-                     the mobile panel already gone and the toggle not yet
-                     arrived, so there was no way to change the theme at all. */
-                  className="hidden size-9 xl:size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-100 dark:hover:border-blue-500/40 dark:hover:bg-neutral-800 dark:hover:text-blue-300 dark:focus-visible:ring-blue-500/30 lg:inline-flex"
-                  iconClassName="size-4 xl:size-[18px]"
+                  className="size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-700 shadow-2xs transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 cursor-pointer inline-flex"
+                  iconClassName="size-5"
                 />
 
                 {/* Signed out: Log in + Get Started. Signed in: the account
-                    menu, so a session is visible outside /dashboard too. */}
-                <NavbarUserMenu
-                  onLogin={handleLogin}
-                  isLoggingIn={isLoggingIn}
-                  user={sessionUser}
-                  identity={navbarIdentity}
-                  isIdentityPending={isNavbarIdentityPending}
-                  onSignOut={handleSignOut}
-                />
+                    menu, so a session is visible outside /dashboard too. (Desktop only) */}
+                <div className="hidden lg:flex items-center gap-2">
+                  <NavbarUserMenu
+                    onLogin={handleLogin}
+                    isLoggingIn={isLoggingIn}
+                    user={sessionUser}
+                    identity={navbarIdentity}
+                    isIdentityPending={isNavbarIdentityPending}
+                    onSignOut={handleSignOut}
+                  />
+                </div>
 
                 <Button
-                  type="button"
-                  variant="outline"
                   size="icon"
+                  variant="ghost"
                   onClick={() => setMobileMenuOpen((current) => !current)}
                   aria-expanded={mobileMenuOpen}
                   aria-controls="mobile-navigation"
@@ -870,7 +866,7 @@ const Navbar = () => {
                       ? "Close navigation menu"
                       : "Open navigation menu"
                   }
-                  className="size-10 rounded-lg border-slate-300 bg-white text-slate-700 shadow-xs hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-neutral-700/80 dark:bg-neutral-900/80 dark:text-neutral-100 dark:hover:border-blue-500/40 dark:hover:bg-neutral-800 dark:hover:text-blue-200 lg:hidden"
+                  className="cursor-pointer rounded-xl text-slate-700 hover:bg-slate-100 dark:text-neutral-200 dark:hover:bg-neutral-800 lg:hidden"
                 >
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.span
@@ -879,11 +875,12 @@ const Navbar = () => {
                       animate={{ opacity: 1, rotate: 0, scale: 1 }}
                       exit={{ opacity: 0, rotate: 45, scale: 0.8 }}
                       transition={{ duration: 0.15 }}
+                      className="inline-flex items-center justify-center"
                     >
                       {mobileMenuOpen ? (
-                        <X className="size-5" />
+                        <X className="size-6" />
                       ) : (
-                        <Menu className="size-5" />
+                        <Menu className="size-6" />
                       )}
                     </motion.span>
                   </AnimatePresence>
@@ -935,15 +932,16 @@ const Navbar = () => {
                 >
                   {visibleNavLinks.map((link) => {
                     const isActive = isNavLinkActive(pathname, link);
+                    const Icon = link.icon;
 
                     if (link.items?.length) {
                       return (
                         <div key={`${link.name}-mobile`} className="space-y-1">
                           <div
                             className={cn(
-                              "flex min-h-10 w-full items-center justify-between rounded-lg text-sm font-semibold transition-colors",
+                              "flex min-h-10 w-full items-center justify-between rounded-xl text-sm font-semibold transition-colors",
                               isActive
-                                ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
+                                ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30"
                                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
                             )}
                           >
@@ -953,9 +951,10 @@ const Navbar = () => {
                               href={link.href ?? "/community"}
                               onClick={() => setMobileMenuOpen(false)}
                               aria-current={isActive ? "page" : undefined}
-                              className="flex min-h-10 flex-1 items-center pl-4"
+                              className="flex min-h-10 flex-1 items-center gap-3 pl-3"
                             >
-                              {t(link.tKey ?? "") || link.name}
+                              {Icon && <Icon className="size-4.5 shrink-0 text-slate-500 dark:text-neutral-400" />}
+                              <span>{t(link.tKey ?? "") || link.name}</span>
                             </Link>
                             <button
                               type="button"
@@ -964,7 +963,7 @@ const Navbar = () => {
                               onClick={() =>
                                 setMobileCommunityOpen((current) => !current)
                               }
-                              className="flex min-h-10 items-center pl-3 pr-4"
+                              className="flex min-h-10 items-center pl-3 pr-3"
                             >
                               <motion.span
                                 animate={{ rotate: mobileCommunityOpen ? 180 : 0 }}
@@ -1085,13 +1084,25 @@ const Navbar = () => {
                         onClick={() => setMobileMenuOpen(false)}
                         aria-current={isActive ? "page" : undefined}
                         className={cn(
-                          "flex min-h-10 items-center rounded-lg px-4 text-sm font-semibold transition-colors",
+                          "relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
                           isActive
-                            ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
+                            ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30"
                             : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
                         )}
                       >
-                        {t(link.tKey ?? "") || link.name}
+                        {isActive && (
+                          <motion.span
+                            layoutId="mobile-navbar-active-rail"
+                            className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-blue-600 dark:bg-blue-400"
+                            transition={{
+                              type: "spring",
+                              stiffness: 400,
+                              damping: 35,
+                            }}
+                          />
+                        )}
+                        {Icon && <Icon className="size-4.5 shrink-0 text-slate-500 dark:text-neutral-400" />}
+                        <span>{t(link.tKey ?? "") || link.name}</span>
                       </Link>
                     );
                   })}

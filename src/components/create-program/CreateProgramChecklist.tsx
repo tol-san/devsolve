@@ -19,7 +19,7 @@ export function CreateProgramChecklist({
   missingForSubmit,
 }: CreateProgramChecklistProps) {
   return (
-    <div className="bg-card text-card-foreground rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 shadow-xs space-y-4">
+    <div className="bg-card text-card-foreground rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 sm:p-6 shadow-xs space-y-4">
       <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border pb-3">
         Setup Progress
       </h3>

@@ -53,7 +53,7 @@ export function CreateProgramPreview({
         </span>
       </div>
 
-      <div className="bg-card text-card-foreground rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 shadow-xs space-y-5">
+      <div className="bg-card text-card-foreground rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 sm:p-6 shadow-xs space-y-5">
         {/* Header: Logo, Org Name, Badge & Bookmark */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">

@@ -66,15 +66,15 @@ export function Step4BountyMatrix({
 
       {/* REWARD MATRIX TABLE (DYNAMIC $ vs pts) */}
       {offerBounties && (
-        <div className="border border-border rounded-xl overflow-hidden bg-card">
-          <Table>
+        <div className="border border-border rounded-xl overflow-x-auto bg-card">
+          <Table className="min-w-[320px] sm:min-w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="py-3.5 px-6">Severity</TableHead>
-                <TableHead className="py-3.5 px-4">
+                <TableHead className="py-3 px-3 sm:py-3.5 sm:px-6">Severity</TableHead>
+                <TableHead className="py-3 px-2 sm:py-3.5 sm:px-4">
                   Min ({programType === "BOUNTY" ? "$" : "pts"})
                 </TableHead>
-                <TableHead className="py-3.5 px-6">
+                <TableHead className="py-3 px-3 sm:py-3.5 sm:px-6">
                   Max ({programType === "BOUNTY" ? "$" : "pts"})
                 </TableHead>
               </TableRow>
@@ -82,12 +82,12 @@ export function Step4BountyMatrix({
             <TableBody>
               {/* CRITICAL */}
               <TableRow>
-                <TableCell className="py-4 px-6">
-                  <span className="inline-block px-3 py-1 text-xs font-bold rounded-md bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20">
+                <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
+                  <span className="inline-block px-2.5 py-1 text-xs font-bold rounded-md bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20">
                     CRITICAL
                   </span>
                 </TableCell>
-                <TableCell className="py-4 px-4">
+                <TableCell className="py-3 px-2 sm:py-4 sm:px-4">
                   <Input
                     type="number"
                     value={
@@ -109,10 +109,10 @@ export function Step4BountyMatrix({
                         });
                       }
                     }}
-                    className="h-10 w-32 rounded-xl text-base font-semibold border-border bg-card text-foreground"
+                    className="h-10 w-24 sm:w-32 rounded-xl text-sm sm:text-base font-semibold border-border bg-card text-foreground"
                   />
                 </TableCell>
-                <TableCell className="py-4 px-6">
+                <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
                   <Input
                     type="number"
                     value={
@@ -134,19 +134,19 @@ export function Step4BountyMatrix({
                         });
                       }
                     }}
-                    className="h-10 w-32 rounded-xl text-base font-semibold border-border bg-card text-foreground"
+                    className="h-10 w-24 sm:w-32 rounded-xl text-sm sm:text-base font-semibold border-border bg-card text-foreground"
                   />
                 </TableCell>
               </TableRow>
 
               {/* HIGH */}
               <TableRow>
-                <TableCell className="py-4 px-6">
-                  <span className="inline-block px-3 py-1 text-xs font-bold rounded-md bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20">
+                <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
+                  <span className="inline-block px-2.5 py-1 text-xs font-bold rounded-md bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20">
                     HIGH
                   </span>
                 </TableCell>
-                <TableCell className="py-4 px-4">
+                <TableCell className="py-3 px-2 sm:py-4 sm:px-4">
                   <Input
                     type="number"
                     value={
@@ -168,10 +168,10 @@ export function Step4BountyMatrix({
                         });
                       }
                     }}
-                    className="h-10 w-32 rounded-xl text-base font-semibold border-border bg-card text-foreground"
+                    className="h-10 w-24 sm:w-32 rounded-xl text-sm sm:text-base font-semibold border-border bg-card text-foreground"
                   />
                 </TableCell>
-                <TableCell className="py-4 px-6">
+                <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
                   <Input
                     type="number"
                     value={
@@ -193,19 +193,19 @@ export function Step4BountyMatrix({
                         });
                       }
                     }}
-                    className="h-10 w-32 rounded-xl text-base font-semibold border-border bg-card text-foreground"
+                    className="h-10 w-24 sm:w-32 rounded-xl text-sm sm:text-base font-semibold border-border bg-card text-foreground"
                   />
                 </TableCell>
               </TableRow>
 
               {/* MEDIUM */}
               <TableRow>
-                <TableCell className="py-4 px-6">
-                  <span className="inline-block px-3 py-1 text-xs font-bold rounded-md bg-sky-50 text-sky-600 border border-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/20">
+                <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
+                  <span className="inline-block px-2.5 py-1 text-xs font-bold rounded-md bg-sky-50 text-sky-600 border border-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/20">
                     MEDIUM
                   </span>
                 </TableCell>
-                <TableCell className="py-4 px-4">
+                <TableCell className="py-3 px-2 sm:py-4 sm:px-4">
                   <Input
                     type="number"
                     value={
@@ -227,10 +227,10 @@ export function Step4BountyMatrix({
                         });
                       }
                     }}
-                    className="h-10 w-32 rounded-xl text-base font-semibold border-border bg-card text-foreground"
+                    className="h-10 w-24 sm:w-32 rounded-xl text-sm sm:text-base font-semibold border-border bg-card text-foreground"
                   />
                 </TableCell>
-                <TableCell className="py-4 px-6">
+                <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
                   <Input
                     type="number"
                     value={
@@ -252,19 +252,19 @@ export function Step4BountyMatrix({
                         });
                       }
                     }}
-                    className="h-10 w-32 rounded-xl text-base font-semibold border-border bg-card text-foreground"
+                    className="h-10 w-24 sm:w-32 rounded-xl text-sm sm:text-base font-semibold border-border bg-card text-foreground"
                   />
                 </TableCell>
               </TableRow>
 
               {/* LOW */}
               <TableRow>
-                <TableCell className="py-4 px-6">
-                  <span className="inline-block px-3 py-1 text-xs font-bold rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20">
+                <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
+                  <span className="inline-block px-2.5 py-1 text-xs font-bold rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20">
                     LOW
                   </span>
                 </TableCell>
-                <TableCell className="py-4 px-4">
+                <TableCell className="py-3 px-2 sm:py-4 sm:px-4">
                   <Input
                     type="number"
                     value={
@@ -286,10 +286,10 @@ export function Step4BountyMatrix({
                         });
                       }
                     }}
-                    className="h-10 w-32 rounded-xl text-base font-semibold border-border bg-card text-foreground"
+                    className="h-10 w-24 sm:w-32 rounded-xl text-sm sm:text-base font-semibold border-border bg-card text-foreground"
                   />
                 </TableCell>
-                <TableCell className="py-4 px-6">
+                <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
                   <Input
                     type="number"
                     value={
@@ -311,7 +311,7 @@ export function Step4BountyMatrix({
                         });
                       }
                     }}
-                    className="h-10 w-32 rounded-xl text-base font-semibold border-border bg-card text-foreground"
+                    className="h-10 w-24 sm:w-32 rounded-xl text-sm sm:text-base font-semibold border-border bg-card text-foreground"
                   />
                 </TableCell>
               </TableRow>
