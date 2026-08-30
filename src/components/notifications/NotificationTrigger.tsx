@@ -18,7 +18,7 @@ export const NotificationTrigger: React.FC<{ className?: string }> = ({ classNam
       aria-label="Notifications"
       title="Notifications"
       className={cn(
-        "relative inline-flex size-9 sm:size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-700 shadow-2xs transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800",
+        "relative inline-flex size-9 sm:size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-700 shadow-2xs transition-all active:scale-95 hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800",
         className,
       )}
     >

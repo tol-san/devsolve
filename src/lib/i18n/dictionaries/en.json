@@ -22,18 +22,34 @@
     "lightMode": "Light mode",
     "darkMode": "Dark mode"
   },
+  "notifications": {
+    "title": "Notifications",
+    "all": "All",
+    "unread": "Unread",
+    "markAllRead": "Mark all as read",
+    "emptyTitle": "No notifications yet",
+    "emptyAll": "You have no notifications in your inbox.",
+    "emptyUnread": "You have read all your notifications.",
+    "failedLoad": "Failed to load notifications. Please try again.",
+    "retry": "Retry",
+    "viewDetails": "View details",
+    "opening": "Opening…"
+  },
   "hero": {
     "kicker": "DevSolve Platform",
     "kickerSub": "Unified Bug Bounty & Developer Hub",
     "titleLine1": "Turn Found Vulnerabilities",
     "titleLine2": "Into Verified Solutions",
+    "platformTitleLine1": "A Single Platform Built for",
+    "platformTitleLine2": "Developers and Security.",
+    "platformSubtitle": "DevSolve helps security researchers find and report vulnerabilities with guaranteed bounty escrow, while helping engineering teams remediate threats with verified code solutions.",
     "subheadline": "The open security platform where engineering teams launch bug bounties with transparent SLAs, triage disclosures in real-time, and developers resolve complex technical challenges.",
     "getStarted": "Get Started Free",
-    "exploreBounties": "Explore Bug Bounties",
+    "exploreBounties": "Explore Programs",
     "activeBountyPool": "Active Bounty Pool",
     "avgTriageSla": "Average Triage SLA",
     "protectedScopes": "Protected Scopes",
-    "researchersAndDevs": "Researchers & Devs",
+    "researchersAndDevs": "Engineers & Researchers",
     "liveTriageStream": "Live Triage Stream",
     "realtime": "Realtime",
     "patchApplied": "Patch Applied",
@@ -41,6 +57,33 @@
     "browseActivePrograms": "Browse 50+ Active Programs",
     "platform": "Platform",
     "live": "Live",
+    "diagram": {
+      "devHuntersTitle": "Developers & Hunters",
+      "devHuntersSubtitle": "[ Bounty Researchers ]",
+      "secDevOpsTitle": "Security & DevOps",
+      "secDevOpsSubtitle": "[ Engineering Teams ]",
+      "hubCycle": "• DISCOVER • TRIAGE • REMEDIATE • VERIFY",
+      "researchers": {
+        "payoutsLabel": "Guaranteed Payouts & Fast SLAs",
+        "payoutsSub": "Instant bounty escrow on triage",
+        "triageLabel": "Real-Time Vulnerability Triage",
+        "triageSub": "Direct sync with core maintainers",
+        "communityLabel": "Community Solution Engine",
+        "communitySub": "Collaborative patch development",
+        "cliLabel": "CLI & GitHub Integrations",
+        "cliSub": "Submit reports right from your terminal"
+      },
+      "organizations": {
+        "scopeLabel": "Centralized Scope & Asset Control",
+        "scopeSub": "Define precise public & private boundaries",
+        "slaLabel": "Automated SLA & Policy Rules",
+        "slaSub": "Enforce strict resolution timelines",
+        "patchLabel": "Verified Patch Verification",
+        "patchSub": "Zero regression with live proof-of-concept",
+        "teamLabel": "Team Permissions & Audit Logs",
+        "teamSub": "Role-based access & compliance tracking"
+      }
+    },
     "pillars": {
       "bounty": {
         "label": "Bug Bounty",
