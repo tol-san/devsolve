@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Globe,
   Building2,
@@ -18,7 +19,20 @@ import {
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
+  Share2,
+  Check,
+  Shield,
+  FileCheck2,
+  Lock,
+  Search,
+  Clock,
+  Zap,
+  Target,
+  FileCode2,
+  Sparkles,
+  Info,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   useGetOrganizationByIdQuery,
   useGetOrganizationProgramsByIdQuery,
@@ -30,7 +44,7 @@ const defaultCompanyProfile = {
   logo: null as string | null,
   verified: true,
   description:
-    "Official CyberShield Security Organization. We invite security researchers to help us keep our web applications, core API infrastructure, and payment gateways secure.",
+    "Official CyberShield Security Organization. We invite security researchers to help us keep our web applications, core API infrastructure, and payment gateways secure through responsible disclosure and reward-driven bug bounty programs.",
   stats: {
     activePrograms: 0,
     resolvedReports: 0,
@@ -46,53 +60,76 @@ const defaultCompanyProfile = {
   },
 };
 
+type OrganizationTab = "programs" | "policy" | "about";
+
 function CompanyProfileContent() {
+  const [activeTab, setActiveTab] = useState<OrganizationTab>("programs");
+  const [programFilter, setProgramFilter] = useState<"ALL" | "BOUNTY" | "RESPONSE">("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const searchParams = useSearchParams();
   const orgId = searchParams.get("id") || searchParams.get("orgId");
 
-  const { data: orgData } = useGetOrganizationByIdQuery(orgId!, {
-    skip: !orgId,
-  });
-
-  const { data: orgProgramsData } = useGetOrganizationProgramsByIdQuery(
-    { id: orgId!, page: 1, size: 20 },
+  const { data: orgData, isLoading: isOrgLoading } = useGetOrganizationByIdQuery(
+    orgId!,
     { skip: !orgId }
   );
 
-  const fetchedPrograms: any[] = Array.isArray(orgProgramsData)
-    ? orgProgramsData
-    : (orgProgramsData as any)?.content ||
+  const { data: orgProgramsData, isLoading: isProgramsLoading } =
+    useGetOrganizationProgramsByIdQuery(
+      { id: orgId!, page: 1, size: 20 },
+      { skip: !orgId }
+    );
+
+  const fetchedPrograms: any[] = useMemo(() => {
+    if (!orgProgramsData) return [];
+    if (Array.isArray(orgProgramsData)) return orgProgramsData;
+    return (
+      (orgProgramsData as any)?.content ||
       (Array.isArray((orgProgramsData as any)?.data)
         ? (orgProgramsData as any).data
-        : []);
+        : [])
+    );
+  }, [orgProgramsData]);
+
   const activeProgramsCount =
     (orgProgramsData as any)?.totalElements ?? fetchedPrograms.length;
 
-  const displayProfile = {
-    name: orgData?.name || defaultCompanyProfile.name,
-    handle: orgData?.slug
-      ? `@${orgData.slug}`
-      : orgData?.name
-      ? `@${orgData.name.toLowerCase().replace(/\s+/g, "-")}`
-      : defaultCompanyProfile.handle,
-    logo: orgData?.logoUrl || defaultCompanyProfile.logo,
-    verified: orgData ? (!!orgData.verifiedAt || orgData.status === "ACTIVE") : defaultCompanyProfile.verified,
-    description: orgData?.description || defaultCompanyProfile.description,
-    stats: {
-      activePrograms: activeProgramsCount,
-      resolvedReports: 0,
-      totalBountyPaid: "$0",
-      maxBounty: "$0",
-    },
-    details: {
-      industry: orgData?.industry || defaultCompanyProfile.details.industry,
-      companySize: orgData?.companySize || defaultCompanyProfile.details.companySize,
-      country: orgData?.country || defaultCompanyProfile.details.country,
-      domain: orgData?.domain || defaultCompanyProfile.details.domain,
-      websiteUrl: orgData?.websiteUrl || (orgData?.domain ? `https://${orgData.domain}` : defaultCompanyProfile.details.websiteUrl),
-    },
-  };
+  const displayProfile = useMemo(() => {
+    return {
+      name: orgData?.name || defaultCompanyProfile.name,
+      handle: orgData?.slug
+        ? `@${orgData.slug}`
+        : orgData?.name
+        ? `@${orgData.name.toLowerCase().replace(/\s+/g, "-")}`
+        : defaultCompanyProfile.handle,
+      logo: orgData?.logoUrl || defaultCompanyProfile.logo,
+      verified: orgData
+        ? !!orgData.verifiedAt || orgData.status === "ACTIVE"
+        : defaultCompanyProfile.verified,
+      description: orgData?.description || defaultCompanyProfile.description,
+      stats: {
+        activePrograms: activeProgramsCount,
+        resolvedReports: 0,
+        totalBountyPaid: "$0",
+        maxBounty: "$0",
+      },
+      details: {
+        industry: orgData?.industry || defaultCompanyProfile.details.industry,
+        companySize:
+          orgData?.companySize || defaultCompanyProfile.details.companySize,
+        country: orgData?.country || defaultCompanyProfile.details.country,
+        domain: orgData?.domain || defaultCompanyProfile.details.domain,
+        websiteUrl:
+          orgData?.websiteUrl ||
+          (orgData?.domain
+            ? `https://${orgData.domain}`
+            : defaultCompanyProfile.details.websiteUrl),
+      },
+    };
+  }, [orgData, activeProgramsCount]);
 
   const logoUrl = orgData?.logoUrl;
   const companyInitials = (displayProfile.name || "OR")
@@ -103,87 +140,155 @@ function CompanyProfileContent() {
     .join("")
     .toUpperCase();
 
-  const displayPrograms = fetchedPrograms.slice(0, 2);
-  const catalogHref = orgId ? `/company/programs?id=${orgId}` : "/company/programs";
+  const catalogHref = orgId
+    ? `/company/programs?id=${orgId}`
+    : "/company/programs";
+
+  const handleCopyLink = () => {
+    if (typeof window === "undefined") return;
+    void navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      toast.success("Organization link copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const handleToggleFollow = () => {
+    setIsFollowing((prev) => {
+      const next = !prev;
+      if (next) {
+        toast.success(`Following ${displayProfile.name}`);
+      } else {
+        toast.success(`Unfollowed ${displayProfile.name}`);
+      }
+      return next;
+    });
+  };
+
+  const filteredPrograms = useMemo(() => {
+    return fetchedPrograms.filter((p) => {
+      const title = p.name || p.title || "";
+      const desc = p.description || "";
+      const isBounty =
+        p.offersBounties || (p.engagementType as string) === "BOUNTY";
+
+      const matchesType =
+        programFilter === "ALL"
+          ? true
+          : programFilter === "BOUNTY"
+          ? isBounty
+          : !isBounty;
+
+      const q = searchQuery.trim().toLowerCase();
+      const matchesQuery =
+        !q ||
+        title.toLowerCase().includes(q) ||
+        desc.toLowerCase().includes(q);
+
+      return matchesType && matchesQuery;
+    });
+  }, [fetchedPrograms, programFilter, searchQuery]);
 
   return (
-    <div className="min-h-screen w-full text-foreground font-sans p-6 sm:p-8 space-y-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-
-        {/* BACK TO MARKETPLACE BUTTON */}
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6 pb-16"
+    >
+      {/* ── Top Navigation Bar ──────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
         <Link
           href="/programs"
-          className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Programs Marketplace
+          <ArrowLeft className="size-4" />
+          <span>Back to Programs Marketplace</span>
         </Link>
+      </div>
 
-        {/* 1. HEADER HERO SECTION */}
-        <div className="bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xs">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            
-            {/* Logo & Company Title Info */}
-            <div className="flex items-start sm:items-center gap-5">
-              <div className="w-20 h-20 rounded-2xl bg-card border border-border flex items-center justify-center shrink-0 shadow-md overflow-hidden ring-1 ring-foreground/5">
+      {/* ── 1. Hero Cover & Profile Banner ──────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+        {/* Decorative Cover Banner */}
+        <div className="relative h-36 sm:h-48 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.2),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
+        </div>
+
+        {/* Profile Identity Bar */}
+        <div className="px-5 pb-6 sm:px-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            {/* Left: Logo & Identity Info */}
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 -mt-16 sm:-mt-20">
+              <div className="relative size-28 sm:size-36 shrink-0 rounded-3xl border-4 border-card bg-card shadow-md overflow-hidden ring-2 ring-primary/20 flex items-center justify-center">
                 {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={logoUrl}
                     alt={displayProfile.name}
-                    className="w-full h-full object-cover"
+                    className="size-full object-cover"
                   />
                 ) : (
-                  <span className="text-xl font-black text-foreground tracking-wider">
+                  <span className="text-3xl sm:text-4xl font-black text-primary">
                     {companyInitials}
                   </span>
                 )}
               </div>
 
-              <div className="space-y-1">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
                     {displayProfile.name}
                   </h1>
                   {displayProfile.verified && (
-                    <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold px-3 py-1 rounded-full">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      Active / Verified
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      <ShieldCheck className="size-3.5" />
+                      Verified Org
                     </span>
                   )}
-                  <span className="bg-muted text-muted-foreground text-xs font-semibold px-2.5 py-1 rounded-lg ring-1 ring-foreground/5 dark:ring-foreground/10">
-                    Organization Profile
-                  </span>
                 </div>
 
-                <p className="text-sm text-muted-foreground font-mono">
-                  {displayProfile.handle}
-                </p>
-
-                <p className="text-sm text-muted-foreground max-w-2xl pt-1 leading-relaxed">
-                  {displayProfile.description}
-                </p>
+                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground/80 font-mono">
+                    {displayProfile.handle}
+                  </span>
+                  {displayProfile.details.industry && (
+                    <span className="inline-flex items-center gap-1">
+                      <Building2 className="size-3.5" />
+                      {displayProfile.details.industry}
+                    </span>
+                  )}
+                  {displayProfile.details.country && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="size-3.5" />
+                      {displayProfile.details.country}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* EXTERNAL ACTION BUTTONS */}
-            <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
+            {/* Right: Actions Hub */}
+            <div className="flex flex-wrap items-center gap-2.5 pt-2 sm:pt-0">
               <button
-                onClick={() => setIsFollowing(!isFollowing)}
-                className={`flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl border transition-all cursor-pointer ${
+                type="button"
+                onClick={handleToggleFollow}
+                className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
                   isFollowing
-                    ? "bg-card text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                    : "bg-card hover:bg-accent text-foreground border-border"
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+                    : "border-border bg-card text-foreground hover:bg-accent"
                 }`}
               >
                 {isFollowing ? (
                   <>
-                    <BookmarkCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    Following
+                    <BookmarkCheck className="size-4" />
+                    <span>Following</span>
                   </>
                 ) : (
                   <>
-                    <Bookmark className="w-4 h-4 text-muted-foreground" />
-                    Follow
+                    <Bookmark className="size-4 text-muted-foreground" />
+                    <span>Follow</span>
                   </>
                 )}
               </button>
@@ -192,226 +297,488 @@ function CompanyProfileContent() {
                 href={displayProfile.details.websiteUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-2xs transition-colors hover:bg-primary/90 cursor-pointer"
               >
-                <Globe className="w-4 h-4" />
-                Visit website
-                <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                <Globe className="size-4" />
+                <span>Website</span>
+                <ExternalLink className="size-3.5 opacity-80" />
               </a>
-            </div>
 
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={handleCopyLink}
+                title="Share organization"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-semibold text-muted-foreground shadow-2xs transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
+              >
+                {copied ? (
+                  <>
+                    <Check className="size-4 text-emerald-500" />
+                    <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="size-4" />
+                    <span className="hidden sm:inline">Share</span>
+                  </>
+                )}
+              </motion.button>
+            </div>
           </div>
+        </div>
+      </div>
 
-          {/* PUBLIC STATS METRICS CARDS */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-border">
-            
-            <div className="bg-muted/50 dark:bg-muted/30 p-4 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10 space-y-1">
-              <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                Active Programs
-              </div>
-              <div className="text-2xl font-black text-foreground">
-                {displayProfile.stats.activePrograms}
-              </div>
-              <p className="text-[11px] text-muted-foreground">Currently accepting reports</p>
+      {/* ── 2. Performance & Activity Metrics Strip ─────────────────── */}
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-blue-500/30">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Active Programs
+            </span>
+            <div className="flex size-8 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <ShieldCheck className="size-4" />
             </div>
-
-            <div className="bg-muted/50 dark:bg-muted/30 p-4 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10 space-y-1">
-              <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                Resolved Reports
-              </div>
-              <div className="text-2xl font-black text-foreground">
-                {displayProfile.stats.resolvedReports}
-              </div>
-              <p className="text-[11px] text-muted-foreground">Closed vulnerabilities</p>
-            </div>
-
-            <div className="bg-muted/50 dark:bg-muted/30 p-4 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10 space-y-1">
-              <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                Total Disbursed
-              </div>
-              <div className="text-2xl font-black text-foreground">
-                {displayProfile.stats.totalBountyPaid}
-              </div>
-              <p className="text-[11px] text-muted-foreground">Bounties paid to researchers</p>
-            </div>
-
-            <div className="bg-muted/50 dark:bg-muted/30 p-4 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10 space-y-1">
-              <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                Top Bounty Award
-              </div>
-              <div className="text-2xl font-black text-foreground">
-                {displayProfile.stats.maxBounty}
-              </div>
-              <p className="text-[11px] text-muted-foreground">For Critical findings</p>
-            </div>
-
+          </div>
+          <div className="mt-3">
+            <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              {displayProfile.stats.activePrograms}
+            </p>
+            <p className="mt-1 text-xs font-medium text-muted-foreground">
+              Live bug bounty scopes
+            </p>
           </div>
         </div>
 
-        {/* 2. MAIN BODY GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* ACTIVE PROGRAMS DIRECTORY (2 COLUMNS) */}
-          <div className="lg:col-span-2 bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 rounded-2xl p-6 space-y-5">
-            
-            {/* SECTION HEADER WITH LINK TO CATALOG */}
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <h2 className="text-lg font-bold text-foreground tracking-tight">
-                  Security Programs
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Public programs owned and operated by {displayProfile.name}.
-                </p>
-              </div>
-
-              <Link
-                href={catalogHref}
-                className="flex items-center gap-1.5 bg-muted/60 hover:bg-muted text-primary border border-border text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer group shadow-2xs"
-              >
-                View Catalog ({activeProgramsCount})
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-emerald-500/30">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Avg. Response SLA
+            </span>
+            <div className="flex size-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Clock className="size-4" />
             </div>
+          </div>
+          <div className="mt-3">
+            <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              &lt; 24h
+            </p>
+            <p className="mt-1 text-xs font-medium text-muted-foreground">
+              First triage response
+            </p>
+          </div>
+        </div>
 
-            {/* Preview Program Items (Max 2 items) */}
-            {displayPrograms.length === 0 ? (
-              <div className="p-8 text-center bg-muted/30 rounded-xl ring-1 ring-foreground/5 space-y-2">
-                <p className="text-sm font-semibold text-foreground">
-                  No security programs published yet
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {displayProfile.name} has not published any public bug bounty or response programs.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {displayPrograms.map((program) => {
-                  const title = program.name || (program as any).title || "Program";
-                  const rawHandle = program.handle || title.toLowerCase().replace(/\s+/g, "-");
-                  const handle = rawHandle.startsWith("@") ? rawHandle : `@${rawHandle}`;
-                  const isBounty = program.offersBounties || (program.engagementType as string) === "BOUNTY";
-                  const maxBounty = program.maximumBounty ?? 0;
-                  const rewardBadgeText = isBounty
-                    ? maxBounty > 0
-                      ? `Up to $${maxBounty.toLocaleString()}`
-                      : "Up to $15,000"
-                    : "Points Only";
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-emerald-500/30">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Total Disbursed
+            </span>
+            <div className="flex size-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <DollarSign className="size-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+              {displayProfile.stats.totalBountyPaid}
+            </p>
+            <p className="mt-1 text-xs font-medium text-muted-foreground">
+              Bounties rewarded
+            </p>
+          </div>
+        </div>
 
-                  return (
-                    <Link
-                      key={program.id}
-                      href={`/programs/${program.id}`}
-                      className="bg-muted/40 hover:bg-accent/60 ring-1 ring-foreground/5 dark:ring-foreground/10 rounded-xl p-4 flex items-center justify-between gap-4 transition-all group cursor-pointer"
-                    >
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground font-mono">
-                          {handle}
-                        </p>
-                      </div>
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-purple-500/30">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Top Bounty Award
+            </span>
+            <div className="flex size-8 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              <Award className="size-4" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+              {displayProfile.stats.maxBounty}
+            </p>
+            <p className="mt-1 text-xs font-medium text-muted-foreground">
+              For Critical findings
+            </p>
+          </div>
+        </div>
+      </div>
 
-                      <div className="flex items-center gap-3 shrink-0">
-                        {isBounty ? (
-                          <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold px-3 py-1 rounded-full">
-                            {rewardBadgeText}
-                          </span>
-                        ) : (
-                          <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-bold px-3 py-1 rounded-full">
-                            {rewardBadgeText}
-                          </span>
-                        )}
-
-                        <span className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-colors">
-                          <Send className="w-3.5 h-3.5" />
-                          Submit
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+      {/* ── 3. Tabbed Navigation Rail ───────────────────────────────── */}
+      <div className="border-b border-border">
+        <nav className="flex gap-4 sm:gap-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <button
+            type="button"
+            onClick={() => setActiveTab("programs")}
+            className={`relative flex items-center gap-2 pb-3.5 pt-1 text-sm font-semibold transition cursor-pointer ${
+              activeTab === "programs"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Shield className="size-4" />
+            <span>Programs</span>
+            <span className="rounded-md bg-muted px-1.5 py-0.5 text-xs font-bold text-muted-foreground">
+              {activeProgramsCount}
+            </span>
+            {activeTab === "programs" && (
+              <motion.div
+                layoutId="org-tab-indicator"
+                className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary"
+                transition={{ type: "spring", stiffness: 400, damping: 35 }}
+              />
             )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("policy")}
+            className={`relative flex items-center gap-2 pb-3.5 pt-1 text-sm font-semibold transition cursor-pointer ${
+              activeTab === "policy"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <FileCheck2 className="size-4" />
+            <span>Scope & Disclosure Policy</span>
+            {activeTab === "policy" && (
+              <motion.div
+                layoutId="org-tab-indicator"
+                className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary"
+                transition={{ type: "spring", stiffness: 400, damping: 35 }}
+              />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("about")}
+            className={`relative flex items-center gap-2 pb-3.5 pt-1 text-sm font-semibold transition cursor-pointer ${
+              activeTab === "about"
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Info className="size-4" />
+            <span>About Organization</span>
+            {activeTab === "about" && (
+              <motion.div
+                layoutId="org-tab-indicator"
+                className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary"
+                transition={{ type: "spring", stiffness: 400, damping: 35 }}
+              />
+            )}
+          </button>
+        </nav>
+      </div>
+
+      {/* ── 4. Main Content Two-Column Grid ─────────────────────────── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:gap-8 items-start">
+        {/* Left Section (2 Columns) */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* TAB 1: PROGRAMS */}
+          {activeTab === "programs" && (
+            <div className="space-y-5">
+              {/* Filter and Search Controls */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/60 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setProgramFilter("ALL")}
+                    className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                      programFilter === "ALL"
+                        ? "bg-primary text-primary-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    All ({fetchedPrograms.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProgramFilter("BOUNTY")}
+                    className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                      programFilter === "BOUNTY"
+                        ? "bg-primary text-primary-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Bounty
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setProgramFilter("RESPONSE")}
+                    className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                      programFilter === "RESPONSE"
+                        ? "bg-primary text-primary-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Response
+                  </button>
+                </div>
+
+                <div className="relative flex-1 sm:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search programs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-9 w-full rounded-xl border border-border bg-card pl-9 pr-3 text-xs font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              {/* Program Items */}
+              {filteredPrograms.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center space-y-2">
+                  <p className="text-sm font-bold text-foreground">
+                    No matching programs found
+                  </p>
+                  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    Try adjusting your filters or search keywords.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3.5">
+                  {filteredPrograms.map((program) => {
+                    const title =
+                      program.name || (program as any).title || "Program";
+                    const rawHandle =
+                      program.handle ||
+                      title.toLowerCase().replace(/\s+/g, "-");
+                    const handle = rawHandle.startsWith("@")
+                      ? rawHandle
+                      : `@${rawHandle}`;
+                    const isBounty =
+                      program.offersBounties ||
+                      (program.engagementType as string) === "BOUNTY";
+                    const maxBounty = program.maximumBounty ?? 0;
+                    const rewardBadgeText = isBounty
+                      ? maxBounty > 0
+                        ? `Up to $${maxBounty.toLocaleString()}`
+                        : "Up to $15,000"
+                      : "Points Only";
+
+                    return (
+                      <div
+                        key={program.id}
+                        className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-border/80 hover:shadow-xs shadow-2xs"
+                      >
+                        <div className="space-y-1.5 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/programs/${program.id}`}
+                              className="text-base font-bold text-foreground transition-colors group-hover:text-primary"
+                            >
+                              {title}
+                            </Link>
+                          </div>
+                          <p className="text-xs font-mono text-muted-foreground">
+                            {handle}
+                          </p>
+                          {program.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-2 pt-0.5">
+                              {program.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0 self-start sm:self-center">
+                          <span
+                            className={`rounded-full border px-3 py-1 text-xs font-bold ${
+                              isBounty
+                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                : "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                            }`}
+                          >
+                            {rewardBadgeText}
+                          </span>
+
+                          <Link
+                            href={`/programs/${program.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90 shadow-2xs"
+                          >
+                            <Send className="size-3.5" />
+                            <span>View Scope</span>
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: POLICY & SAFE HARBOR */}
+          {activeTab === "policy" && (
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                  <ShieldCheck className="size-5 text-emerald-500" />
+                  <span>DevSolve Safe Harbor Commitment</span>
+                </div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {displayProfile.name} adheres to the DevSolve Standard Safe Harbor terms. When you conduct vulnerability research within the stated scope and in compliance with this policy:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground pl-2">
+                  <li>We consider your research activities to be authorized and will not initiate legal action against you.</li>
+                  <li>We will work with you to understand and resolve the report quickly.</li>
+                  <li>We will recognize your contribution publicly unless you request anonymity.</li>
+                </ul>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                  <Clock className="size-5 text-primary" />
+                  <span>Response SLA Targets</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                    <p className="text-xs text-muted-foreground">First Response</p>
+                    <p className="text-lg font-bold text-foreground mt-0.5">&lt; 24 Hours</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                    <p className="text-xs text-muted-foreground">Triage & Validation</p>
+                    <p className="text-lg font-bold text-foreground mt-0.5">&lt; 48 Hours</p>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                    <p className="text-xs text-muted-foreground">Bounty Award</p>
+                    <p className="text-lg font-bold text-foreground mt-0.5">&lt; 5 Days</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: ABOUT */}
+          {activeTab === "about" && (
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-3">
+                <h3 className="text-base font-bold text-foreground">
+                  Organization Summary
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {displayProfile.description}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-3">
+                <h3 className="text-base font-bold text-foreground">
+                  Security Operations
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {displayProfile.name}&apos;s security engineering team conducts continuous reviews and coordinates with independent researchers worldwide to safeguard user data and maintain zero-day defense integrity.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar (1 Column) */}
+        <div className="space-y-6">
+          {/* Quick Submit Card */}
+          <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 shadow-2xs space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+              <Zap className="size-4" />
+              <span>Found a Vulnerability?</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Report security findings responsibly to {displayProfile.name} and earn rewards.
+            </p>
+            <Link
+              href={catalogHref}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground shadow-xs transition-colors hover:bg-primary/90"
+            >
+              <Send className="size-3.5" />
+              <span>Submit a Report</span>
+            </Link>
           </div>
 
-          {/* COMPANY DETAILS SIDEBAR (1 COLUMN) */}
-          <div className="bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 rounded-2xl p-6 space-y-5 h-fit">
-            <h3 className="text-lg font-bold text-foreground border-b border-border pb-3 tracking-tight">
-              Company details
+          {/* Company Details Meta List */}
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-3">
+              Company Overview
             </h3>
 
-            <div className="space-y-4 text-sm pt-1">
-              
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
-                  <Building2 className="w-4 h-4 text-muted-foreground" /> Industry
+            <div className="space-y-3.5 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Building2 className="size-4 text-muted-foreground" />
+                  Industry
                 </span>
-                <span className="text-foreground font-medium">
+                <span className="font-semibold text-foreground truncate">
                   {displayProfile.details.industry}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
-                  <Users className="w-4 h-4 text-muted-foreground" /> Size
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Users className="size-4 text-muted-foreground" />
+                  Size
                 </span>
-                <span className="text-foreground font-medium">
+                <span className="font-semibold text-foreground truncate">
                   {displayProfile.details.companySize}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
-                  <MapPin className="w-4 h-4 text-muted-foreground" /> Country
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <MapPin className="size-4 text-muted-foreground" />
+                  Country
                 </span>
-                <span className="text-foreground font-medium">
+                <span className="font-semibold text-foreground truncate">
                   {displayProfile.details.country}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
-                  <Globe className="w-4 h-4 text-muted-foreground" /> Domain
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Globe className="size-4 text-muted-foreground" />
+                  Domain
                 </span>
                 <a
                   href={displayProfile.details.websiteUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-mono text-xs inline-flex items-center gap-1"
+                  className="inline-flex items-center gap-1 font-mono text-xs font-bold text-primary hover:underline"
                 >
-                  {displayProfile.details.domain}
-                  <ExternalLink className="w-3 h-3" />
+                  <span>{displayProfile.details.domain}</span>
+                  <ExternalLink className="size-3" />
                 </a>
               </div>
-
             </div>
           </div>
 
+          {/* Security Verification Card */}
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs space-y-2.5">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <Lock className="size-4 text-primary" />
+              <span>Verified Enterprise</span>
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              This organization is identity-verified and registered on the DevSolve bug bounty marketplace.
+            </p>
+          </div>
         </div>
-
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-/**
- * An organization's public page.
- *
- * Lifted out of `app/(public)/company/page.tsx` so that route can be a server
- * component and carry its own metadata. It previously sat under a layout that
- * declared the metadata instead, and a title on a layout replaces the root
- * title template for every route beneath it — which cost `/company/programs/{id}`
- * its site-name suffix.
- */
 export default function PublicOrganizationProfileView() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Loading organization profile...</div>}>
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-muted-foreground">
+          Loading organization profile...
+        </div>
+      }
+    >
       <CompanyProfileContent />
     </Suspense>
   );
