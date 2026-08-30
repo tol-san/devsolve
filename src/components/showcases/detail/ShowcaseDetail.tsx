@@ -16,8 +16,10 @@ import {
   Network,
   Share2,
   Terminal,
+  ZoomIn,
 } from "lucide-react";
 
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { Button } from "@/components/ui/button";
@@ -534,66 +536,86 @@ function ShowcaseImage({
   framed?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   if (failed) return null;
 
   const frame = cn(
-    "relative w-full overflow-hidden flex items-center justify-center",
+    "relative w-full overflow-hidden flex items-center justify-center cursor-pointer",
     heightClassName,
     framed &&
       "rounded-2xl border border-slate-200/80 bg-slate-950 dark:border-neutral-800 dark:bg-neutral-950 shadow-md",
   );
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer noopener"
-      title="Open the full-size image"
-      className={cn(frame, "group block transition-opacity hover:opacity-98")}
-    >
-      {isOptimizable(url) ? (
-        <>
-          {/* Ambient Blurred Background Fill (eliminates empty letterbox spaces for portrait/custom images) */}
-          <Image
-            src={url}
-            alt=""
-            fill
-            aria-hidden="true"
-            sizes="100px"
-            quality={30}
-            className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
-          />
-          {/* Main Crisp Image */}
-          <Image
-            src={url}
-            alt={alt}
-            fill
-            sizes={sizes}
-            quality={90}
-            onError={() => setFailed(true)}
-            className="relative z-10 object-contain drop-shadow-md"
-          />
-        </>
-      ) : (
-        <>
-          {/* Ambient Blurred Background Fill */}
-          <img
-            src={url}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
-          />
-          {/* Main Crisp Image */}
-          <img
-            src={url}
-            alt={alt}
-            loading="lazy"
-            onError={() => setFailed(true)}
-            className="relative z-10 h-full w-full object-contain drop-shadow-md"
-          />
-        </>
-      )}
-    </a>
+    <>
+      <button
+        type="button"
+        onClick={() => setIsPreviewOpen(true)}
+        title="Click to view full image"
+        aria-label={`View full image: ${alt}`}
+        className={cn(
+          frame,
+          "group block w-full text-left transition-all hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+        )}
+      >
+        {isOptimizable(url) ? (
+          <>
+            {/* Ambient Blurred Background Fill (eliminates empty letterbox spaces for portrait/custom images) */}
+            <Image
+              src={url}
+              alt=""
+              fill
+              aria-hidden="true"
+              sizes="100px"
+              quality={30}
+              className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
+            />
+            {/* Main Crisp Image */}
+            <Image
+              src={url}
+              alt={alt}
+              fill
+              sizes={sizes}
+              quality={90}
+              onError={() => setFailed(true)}
+              className="relative z-10 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+            />
+          </>
+        ) : (
+          <>
+            {/* Ambient Blurred Background Fill */}
+            <img
+              src={url}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
+            />
+            {/* Main Crisp Image */}
+            <img
+              src={url}
+              alt={alt}
+              loading="lazy"
+              onError={() => setFailed(true)}
+              className="relative z-10 h-full w-full object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+            />
+          </>
+        )}
+
+        {/* Hover zoom overlay badge */}
+        <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/60 px-2.5 py-1 text-xs font-semibold text-white opacity-0 backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 shadow-md">
+          <ZoomIn className="size-3.5" />
+          <span>Preview</span>
+        </div>
+      </button>
+
+      <ImagePreviewModal
+        src={url}
+        alt={alt}
+        title={alt}
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+      />
+    </>
   );
 }
 

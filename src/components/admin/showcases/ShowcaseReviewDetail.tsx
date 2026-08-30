@@ -13,8 +13,10 @@ import {
   RotateCcw,
   Terminal,
   XCircle,
+  ZoomIn,
 } from "lucide-react";
 
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ShowcaseDecisionDialog } from "@/components/admin/showcases/ShowcaseDecisionDialog";
@@ -331,93 +333,139 @@ function isOptimizable(url: string) {
 
 function Cover({ url, title }: { url?: string; title: string }) {
   const [failed, setFailed] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const shown = failed ? undefined : url;
 
   return (
-    <div className="relative h-60 w-full overflow-hidden bg-slate-950 sm:h-72 dark:bg-slate-950 flex items-center justify-center">
-      {shown ? (
-        isOptimizable(shown) ? (
-          <>
-            {/* Ambient Blurred Background Fill */}
-            <Image
-              src={shown}
-              alt=""
-              fill
-              aria-hidden="true"
-              sizes="100px"
-              quality={30}
-              className="object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
-            />
-            {/* Main Crisp Image */}
-            <Image
-              src={shown}
-              alt={`${title} cover`}
-              fill
-              quality={90}
-              sizes="(max-width: 1024px) 100vw, 720px"
-              onError={() => setFailed(true)}
-              className="relative z-10 object-contain drop-shadow-md"
-            />
-          </>
+    <>
+      <div
+        onClick={() => shown && setIsPreviewOpen(true)}
+        className={`relative h-60 w-full overflow-hidden bg-slate-950 sm:h-72 dark:bg-slate-950 flex items-center justify-center ${
+          shown ? "cursor-pointer group" : ""
+        }`}
+        title={shown ? "Click to view full cover image" : undefined}
+      >
+        {shown ? (
+          isOptimizable(shown) ? (
+            <>
+              {/* Ambient Blurred Background Fill */}
+              <Image
+                src={shown}
+                alt=""
+                fill
+                aria-hidden="true"
+                sizes="100px"
+                quality={30}
+                className="object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
+              />
+              {/* Main Crisp Image */}
+              <Image
+                src={shown}
+                alt={`${title} cover`}
+                fill
+                quality={90}
+                sizes="(max-width: 1024px) 100vw, 720px"
+                onError={() => setFailed(true)}
+                className="relative z-10 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+              />
+            </>
+          ) : (
+            <>
+              {/* Ambient Blurred Background Fill */}
+              <img
+                src={shown}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 size-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
+              />
+              {/* Main Crisp Image */}
+              <img
+                src={shown}
+                alt={`${title} cover`}
+                onError={() => setFailed(true)}
+                className="relative z-10 size-full object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+              />
+            </>
+          )
         ) : (
-          <>
-            {/* Ambient Blurred Background Fill */}
-            <img
-              src={shown}
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 size-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
-            />
-            {/* Main Crisp Image */}
-            <img
-              src={shown}
-              alt={`${title} cover`}
-              onError={() => setFailed(true)}
-              className="relative z-10 size-full object-contain drop-shadow-md"
-            />
-          </>
-        )
-      ) : (
-        <div className="flex size-full flex-col items-center justify-center gap-1.5 text-slate-400">
-          <ImageOff aria-hidden="true" className="size-6" />
-          <span className="text-xs font-medium">No cover image</span>
-        </div>
+          <div className="flex size-full flex-col items-center justify-center gap-1.5 text-slate-400">
+            <ImageOff aria-hidden="true" className="size-6" />
+            <span className="text-xs font-medium">No cover image</span>
+          </div>
+        )}
+
+        {shown && (
+          <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/60 px-2.5 py-1 text-xs font-semibold text-white opacity-0 backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 shadow-md">
+            <ZoomIn className="size-3.5" />
+            <span>Preview</span>
+          </div>
+        )}
+      </div>
+
+      {shown && (
+        <ImagePreviewModal
+          src={shown}
+          alt={`${title} cover`}
+          title={`${title} - Cover`}
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+        />
       )}
-    </div>
+    </>
   );
 }
 
 function StepImage({ url, caption }: { url: string; caption: string }) {
   const [failed, setFailed] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   if (failed) return null;
 
   return (
-    <figure className="space-y-1.5">
-      <div className="relative h-40 w-full overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-        {isOptimizable(url) ? (
-          <Image
-            src={url}
-            alt={caption}
-            fill
-            quality={90}
-            sizes="(max-width: 640px) 90vw, 320px"
-            onError={() => setFailed(true)}
-            className="object-contain"
-          />
-        ) : (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={url}
-            alt={caption}
-            onError={() => setFailed(true)}
-            className="absolute inset-0 size-full object-contain"
-          />
-        )}
-      </div>
-      <figcaption className="text-xs text-slate-500 dark:text-slate-400">
-        {caption}
-      </figcaption>
-    </figure>
+    <>
+      <figure className="space-y-1.5">
+        <div
+          onClick={() => setIsPreviewOpen(true)}
+          className="group relative h-40 w-full overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 cursor-pointer"
+          title="Click to view full image"
+        >
+          {isOptimizable(url) ? (
+            <Image
+              src={url}
+              alt={caption}
+              fill
+              quality={90}
+              sizes="(max-width: 640px) 90vw, 320px"
+              onError={() => setFailed(true)}
+              className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={url}
+              alt={caption}
+              onError={() => setFailed(true)}
+              className="absolute inset-0 size-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+          )}
+
+          <div className="absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-lg border border-white/20 bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white opacity-0 backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 shadow-md">
+            <ZoomIn className="size-3" />
+            <span>Preview</span>
+          </div>
+        </div>
+        <figcaption className="text-xs text-slate-500 dark:text-slate-400">
+          {caption}
+        </figcaption>
+      </figure>
+
+      <ImagePreviewModal
+        src={url}
+        alt={caption}
+        title={caption}
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+      />
+    </>
   );
 }
 

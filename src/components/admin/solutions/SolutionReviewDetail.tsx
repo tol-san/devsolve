@@ -17,9 +17,11 @@ import {
   Scale,
   Video,
   XCircle,
+  ZoomIn,
   type LucideIcon,
 } from "lucide-react";
 
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -77,6 +79,11 @@ export function SolutionReviewDetail({ id }: { id: string }) {
   } = useGetAdminSolutionDetailQuery(id);
 
   const [decision, setDecision] = useState<SolutionDecision | null>(null);
+  const [previewImage, setPreviewImage] = useState<{
+    src: string;
+    alt?: string;
+    title?: string;
+  } | null>(null);
 
   /* The question this answers. Skipped until the solution names it, and its
      own failure is not fatal — the answer is still reviewable without it. */
@@ -338,32 +345,68 @@ export function SolutionReviewDetail({ id }: { id: string }) {
                   Attachments
                 </h3>
                 <div className="space-y-2">
-                  {attachments.map((file, index) => (
-                    <div
-                      key={file.id ?? index}
-                      className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
-                          {file.originalFileName ?? "Unnamed file"}
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {[file.mimeType, formatBytes(file.sizeBytes)]
-                            .filter(Boolean)
-                            .join(" · ") || "—"}
-                        </p>
-                      </div>
-                      <a
-                        href={file.downloadUrl}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                  {attachments.map((file, index) => {
+                    const isImg =
+                      file.mimeType?.startsWith("image/") ||
+                      /\.(png|jpe?g|webp|gif|svg)$/i.test(
+                        file.originalFileName || file.downloadUrl || "",
+                      );
+
+                    return (
+                      <div
+                        key={file.id ?? index}
+                        className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60"
                       >
-                        <Download aria-hidden="true" className="size-3.5" />
-                        Download
-                      </a>
-                    </div>
-                  ))}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+                            {file.originalFileName ?? "Unnamed file"}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {[file.mimeType, formatBytes(file.sizeBytes)]
+                              .filter(Boolean)
+                              .join(" · ") || "—"}
+                          </p>
+                        </div>
+                        {file.downloadUrl?.startsWith("https://") && (
+                          <div className="flex items-center gap-2">
+                            {isImg && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPreviewImage({
+                                    src: file.downloadUrl!,
+                                    alt: file.originalFileName ?? "Attachment",
+                                    title:
+                                      file.originalFileName ??
+                                      "Attachment Preview",
+                                  })
+                                }
+                                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 cursor-pointer"
+                              >
+                                <ZoomIn
+                                  aria-hidden="true"
+                                  className="size-3.5"
+                                />
+                                Preview
+                              </button>
+                            )}
+                            <a
+                              href={file.downloadUrl}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                              className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                            >
+                              <Download
+                                aria-hidden="true"
+                                className="size-3.5"
+                              />
+                              Download
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -508,6 +551,14 @@ export function SolutionReviewDetail({ id }: { id: string }) {
         decision={decision}
         isOpen={Boolean(decision)}
         onClose={() => setDecision(null)}
+      />
+
+      <ImagePreviewModal
+        src={previewImage?.src ?? null}
+        alt={previewImage?.alt ?? "Attachment"}
+        title={previewImage?.title}
+        isOpen={previewImage !== null}
+        onClose={() => setPreviewImage(null)}
       />
     </motion.div>
   );

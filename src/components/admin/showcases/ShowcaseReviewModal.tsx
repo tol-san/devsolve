@@ -25,8 +25,10 @@ import {
   AlertCircle,
   User,
   Calendar,
+  ZoomIn,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import {
   useGetShowcaseReviewDetailQuery,
   useGetShowcaseReviewHistoryQuery,
@@ -47,6 +49,10 @@ export function ShowcaseReviewModal({
   const [activeTab, setActiveTab] = useState<"detail" | "history">("detail");
   const [rejectionReason, setRejectionReason] = useState("");
   const [isRejecting, setIsRejecting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{
+    url: string;
+    title: string;
+  } | null>(null);
 
   const { data: detail, isLoading: isLoadingDetail } =
     useGetShowcaseReviewDetailQuery(showcaseId ?? "", {
@@ -193,13 +199,26 @@ export function ShowcaseReviewModal({
               <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
                 {/* Cover Image */}
                 {detail.coverImageUrl && (
-                  <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950">
+                  <div
+                    onClick={() =>
+                      setPreviewImage({
+                        url: detail.coverImageUrl!,
+                        title: `${detail.title} - Cover`,
+                      })
+                    }
+                    className="group relative aspect-video w-full overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 cursor-pointer"
+                    title="Click to view full cover image"
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={detail.coverImageUrl}
                       alt={detail.title}
-                      className="object-cover w-full h-full"
+                      className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-[1.01]"
                     />
+                    <div className="absolute bottom-2 right-2 z-20 flex items-center gap-1 rounded-lg border border-white/20 bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white opacity-0 backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 shadow-md">
+                      <ZoomIn className="size-3" />
+                      <span>Preview</span>
+                    </div>
                   </div>
                 )}
 
@@ -427,6 +446,14 @@ export function ShowcaseReviewModal({
           </DialogFooter>
         )}
       </DialogContent>
+
+      <ImagePreviewModal
+        src={previewImage?.url ?? null}
+        alt={previewImage?.title ?? "Showcase image"}
+        title={previewImage?.title}
+        isOpen={previewImage !== null}
+        onClose={() => setPreviewImage(null)}
+      />
     </Dialog>
   );
 }

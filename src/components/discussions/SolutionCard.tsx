@@ -21,9 +21,11 @@ import {
   Scale,
   Video,
   X,
+  ZoomIn,
   type LucideIcon,
 } from "lucide-react";
 
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { Button } from "@/components/ui/button";
@@ -125,6 +127,11 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   const body = solution.bodyMarkdown ?? "";
   const [expanded, setExpanded] = useState(body.length <= COLLAPSE_OVER);
   const [reporting, setReporting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{
+    src: string;
+    alt?: string;
+    title?: string;
+  } | null>(null);
   const isLong = body.length > COLLAPSE_OVER;
 
   /* The summary is authoritative once loaded; until then the score that came
@@ -395,25 +402,56 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
               {resources.map((resource, i) => (
                 <ResourceLink key={resource.id ?? i} resource={resource} />
               ))}
-              {attachments.map((file, i) => (
-                <a
-                  key={file.id ?? i}
-                  href={file.downloadUrl}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
-                >
-                  <Download aria-hidden="true" className="size-3.5 shrink-0" />
-                  <span className="truncate">
-                    {file.originalFileName ?? "Attachment"}
-                  </span>
-                  {file.sizeBytes !== undefined && (
-                    <span className="shrink-0 font-medium text-slate-400">
-                      {formatBytes(file.sizeBytes)}
+              {attachments.map((file, i) => {
+                const isImg =
+                  file.mimeType?.startsWith("image/") ||
+                  /\.(png|jpe?g|webp|gif|svg)$/i.test(
+                    file.originalFileName || file.downloadUrl || "",
+                  );
+
+                return isImg ? (
+                  <button
+                    key={file.id ?? i}
+                    type="button"
+                    onClick={() =>
+                      setPreviewImage({
+                        src: file.downloadUrl!,
+                        alt: file.originalFileName ?? "Attachment",
+                        title: file.originalFileName ?? "Attachment Preview",
+                      })
+                    }
+                    className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 cursor-pointer"
+                  >
+                    <ZoomIn aria-hidden="true" className="size-3.5 shrink-0" />
+                    <span className="truncate">
+                      {file.originalFileName ?? "Attachment"}
                     </span>
-                  )}
-                </a>
-              ))}
+                    {file.sizeBytes !== undefined && (
+                      <span className="shrink-0 font-medium text-slate-400">
+                        {formatBytes(file.sizeBytes)}
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <a
+                    key={file.id ?? i}
+                    href={file.downloadUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                  >
+                    <Download aria-hidden="true" className="size-3.5 shrink-0" />
+                    <span className="truncate">
+                      {file.originalFileName ?? "Attachment"}
+                    </span>
+                    {file.sizeBytes !== undefined && (
+                      <span className="shrink-0 font-medium text-slate-400">
+                        {formatBytes(file.sizeBytes)}
+                      </span>
+                    )}
+                  </a>
+                );
+              })}
             </div>
           )}
         </div>
@@ -426,6 +464,14 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         authorName={name}
         open={reporting}
         onOpenChange={setReporting}
+      />
+
+      <ImagePreviewModal
+        src={previewImage?.src ?? null}
+        alt={previewImage?.alt ?? "Attachment"}
+        title={previewImage?.title}
+        isOpen={previewImage !== null}
+        onClose={() => setPreviewImage(null)}
       />
     </>
   );

@@ -46,6 +46,7 @@ type NavItem = {
   name: string;
   href: string;
   description?: string;
+  descTKey?: string;
   icon?: "problem" | "showcase" | "hacktivity";
   /** Catalogue key — `name` remains the stable identity and fallback. */
   tKey?: string;
@@ -78,6 +79,7 @@ const navLinks: NavLink[] = [
       {
         name: "Hacktivity",
         tKey: "nav.hacktivity",
+        descTKey: "nav.hacktivityDesc",
         href: "/hacktivity",
         description: "Real-time security activity feed and disclosures.",
         icon: "hacktivity",
@@ -85,6 +87,7 @@ const navLinks: NavLink[] = [
       {
         name: "Problem",
         tKey: "nav.problem",
+        descTKey: "nav.problemDesc",
         href: "/problems",
         description: "Post bugs, blockers, and security questions.",
         icon: "problem",
@@ -92,6 +95,7 @@ const navLinks: NavLink[] = [
       {
         name: "Showcase",
         tKey: "nav.showcase",
+        descTKey: "nav.showcaseDesc",
         href: "/showcases",
         description: "Share product wins, demos, and build highlights.",
         icon: "showcase",
@@ -722,7 +726,7 @@ const Navbar = () => {
                                   />
 
                                   <p className="relative z-10 px-3 pb-1 pt-1.5 text-xs font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-neutral-500">
-                                    Start a discussion
+                                    {t("nav.startDiscussion") || "Start a discussion"}
                                   </p>
 
                                   <div className="relative z-10 flex flex-col gap-0.5">
@@ -777,7 +781,7 @@ const Navbar = () => {
                                               <ArrowRight className="size-3.5 -translate-x-1 opacity-0 transition-all duration-200 group-hover/item:translate-x-0 group-hover/item:opacity-100" />
                                             </span>
                                             <span className="mt-0.5 block text-sm leading-5 text-slate-500 dark:text-neutral-400">
-                                              {item.description}
+                                              {(item.descTKey && t(item.descTKey)) || item.description}
                                             </span>
                                           </span>
                                         </Link>
