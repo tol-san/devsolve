@@ -15,6 +15,7 @@ import {
 import { motion } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import { Profile, ProfileStats } from "@/lib/types/profile/types";
+import { authClient } from "@/lib/auth/auth-client";
 
 interface ProfileSidebarProps {
   profile: Profile;
@@ -42,7 +43,20 @@ export default function ProfileSidebar({
     followers = 0,
     following = 0,
     username,
+    isOwnProfile,
+    id,
   } = profile;
+
+  const { data: session } = authClient.useSession();
+  const sessionUserId = session?.user?.id;
+  const sessionEmail = session?.user?.email;
+  const sessionUsername = sessionEmail ? sessionEmail.split("@")[0].toLowerCase() : "";
+
+  const isOwn = Boolean(
+    isOwnProfile ||
+    (sessionUserId && id && sessionUserId === id) ||
+    (sessionUsername && username && username.toLowerCase() === sessionUsername)
+  );
 
   const profileBasePath = baseProfilePath ?? `/dashboard/profile/${username}`;
 
@@ -61,12 +75,24 @@ export default function ProfileSidebar({
       <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs">
         <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
           <Quote className="size-3.5 text-primary" />
-          <span>About Researcher</span>
+          <span>{isOwn ? "About You" : "About Researcher"}</span>
         </h2>
 
         {bio && bio.trim().length > 0 ? (
           <div className="prose prose-sm prose-slate dark:prose-invert mt-3 max-w-none text-sm leading-relaxed text-foreground/90 wrap-break-word">
             <ReactMarkdown>{bio}</ReactMarkdown>
+          </div>
+        ) : isOwn ? (
+          <div className="mt-3 rounded-xl border border-dashed border-border bg-muted/20 p-3.5 text-center space-y-1.5">
+            <p className="text-xs text-muted-foreground">
+              You haven&apos;t added a bio yet.
+            </p>
+            <Link
+              href="/dashboard/profile/settings"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            >
+              <span>Add your research bio</span>
+            </Link>
           </div>
         ) : (
           <p className="mt-3 text-sm italic text-muted-foreground">
@@ -129,6 +155,19 @@ export default function ProfileSidebar({
                 <ExternalLink className="size-3.5 shrink-0 text-muted-foreground opacity-60 transition-opacity group-hover:opacity-100" />
               </a>
             ))
+          ) : isOwn ? (
+            <div className="flex items-center justify-between text-xs text-muted-foreground py-1 px-1">
+              <span className="flex items-center gap-1.5">
+                <Link2 className="size-3.5" />
+                No links added
+              </span>
+              <Link
+                href="/dashboard/profile/settings"
+                className="font-semibold text-primary hover:underline"
+              >
+                Add links
+              </Link>
+            </div>
           ) : (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Link2 className="size-4 shrink-0" />

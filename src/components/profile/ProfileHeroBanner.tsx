@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Profile } from "@/lib/types/profile/types";
 import FollowButton from "@/components/profile/FollowButton";
 import { isUuid } from "@/components/Leaderboard/leaderboard-ui";
+import { authClient } from "@/lib/auth/auth-client";
 
 interface ProfileHeroBannerProps {
   profile: Profile;
@@ -34,6 +35,17 @@ export default function ProfileHeroBanner({
     isOwnProfile,
     id,
   } = profile;
+
+  const { data: session } = authClient.useSession();
+  const sessionUserId = session?.user?.id;
+  const sessionEmail = session?.user?.email;
+  const sessionUsername = sessionEmail ? sessionEmail.split("@")[0].toLowerCase() : "";
+
+  const isOwn = Boolean(
+    isOwnProfile ||
+    (sessionUserId && id && sessionUserId === id) ||
+    (sessionUsername && username && username.toLowerCase() === sessionUsername)
+  );
 
   const [copied, setCopied] = useState(false);
 
@@ -90,11 +102,16 @@ export default function ProfileHeroBanner({
                 >
                   <ShieldCheck className="size-5" />
                 </span>
+                {isOwn && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
+                    You
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 {username && !isUuid(username) && (
-                  <span className="font-medium text-foreground/80">
+                  <span className="font-medium text-foreground/80 font-mono">
                     @{username}
                   </span>
                 )}
@@ -110,9 +127,9 @@ export default function ProfileHeroBanner({
 
           {/* Right: Actions Hub */}
           <div className="flex flex-wrap items-center gap-2.5 pt-2 sm:pt-0">
-            {isOwnProfile ? (
+            {isOwn ? (
               <>
-                {onEdit && (
+                {onEdit ? (
                   <button
                     type="button"
                     onClick={onEdit}
@@ -121,10 +138,18 @@ export default function ProfileHeroBanner({
                     <Pencil className="size-4" />
                     <span>Edit profile</span>
                   </button>
+                ) : (
+                  <Link
+                    href="/dashboard/profile/settings"
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-2xs transition-colors hover:bg-accent cursor-pointer"
+                  >
+                    <Pencil className="size-4" />
+                    <span>Edit profile</span>
+                  </Link>
                 )}
                 <Link
                   href="/dashboard/profile/settings"
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-2xs transition-colors hover:bg-accent"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-2xs transition-colors hover:bg-accent cursor-pointer"
                 >
                   <Settings className="size-4" />
                   <span>Settings</span>

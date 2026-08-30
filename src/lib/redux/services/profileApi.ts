@@ -856,6 +856,25 @@ export const profileApi = baseApi.injectEndpoints({
       invalidatesTags: ["Profile"],
     }),
 
+    // PUT /api/v1/user-profiles/me/cover — upload cover image
+    uploadCoverImage: builder.mutation<UserProfileApiResponse, FormData>({
+      query: (body) => ({
+        url: "/user-profiles/me/cover",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Profile"],
+    }),
+
+    // DELETE /api/v1/user-profiles/me/cover — remove cover image
+    removeCoverImage: builder.mutation<UserProfileApiResponse, void>({
+      query: () => ({
+        url: "/user-profiles/me/cover",
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Profile"],
+    }),
+
     // GET /api/v1/user-profiles — search / list public profiles
     getPublicProfiles: builder.query<
       PagePublicUserProfileResponse,
@@ -884,6 +903,8 @@ export const {
   useGetEditProfileFormQuery,
   useGetProfileProvisioningStatusQuery,
   useUpdateProfileMutation,
+  useUploadCoverImageMutation,
+  useRemoveCoverImageMutation,
   useGetAccountStatusQuery,
   useGetMyFollowsQuery,
   useGetFollowersQuery,

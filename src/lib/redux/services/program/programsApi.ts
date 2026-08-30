@@ -302,6 +302,18 @@ export const programsApi = proxyApi.injectEndpoints({
         { type: "Program", id },
       ],
     }),
+
+    // GET /programs/{id}/updates (public changelog/updates)
+    getProgramUpdates: builder.query<
+      any,
+      { id: string; page?: number; size?: number; sort?: string }
+    >({
+      query: ({ id, page = 0, size = 10, sort }) => ({
+        url: `/programs/${id}/updates`,
+        params: { page, size, ...(sort ? { sort } : {}) },
+      }),
+      providesTags: (_result, _error, { id }) => [{ type: "Program", id }],
+    }),
   }),
 
   overrideExisting: true,
@@ -313,6 +325,7 @@ export const {
   useGetMyCompanyProgramsQuery,
   useGetMyCompanyProgramByIdQuery,
   useGetProgramByIdQuery,
+  useGetProgramUpdatesQuery,
   useCreateProgramMutation,
   useGetProgramHandleAvailabilityQuery,
   useLazyGetProgramHandleAvailabilityQuery,

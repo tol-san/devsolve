@@ -11,12 +11,14 @@ import ProfileTabsContainer from "@/components/profile/ProfileTabsContainer";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import ProfileNotFound from "@/components/profile/ProfileNotFound";
 import { isNotFoundError } from "@/lib/api/query-error";
+import { authClient } from "@/lib/auth/auth-client";
 
 /**
  * A member's public profile view.
  */
 export default function PublicProfileView() {
   const { username } = useParams<{ username: string }>();
+  const { data: session } = authClient.useSession();
   const { data, isLoading, isError, error, refetch } =
     useGetProfileByUsernameQuery(username);
 
@@ -35,7 +37,21 @@ export default function PublicProfileView() {
   }
 
   const { profile: rawProfile, stats, severity, badges } = data;
-  const profile = { ...rawProfile, isOwnProfile: false };
+
+  const sessionUserId = session?.user?.id;
+  const sessionEmail = session?.user?.email;
+  const sessionUsername = sessionEmail ? sessionEmail.split("@")[0].toLowerCase() : "";
+
+  const isOwnProfile = Boolean(
+    rawProfile.isOwnProfile ||
+    (sessionUserId && rawProfile.id && sessionUserId === rawProfile.id) ||
+    (sessionUsername && (
+      username?.toLowerCase() === sessionUsername ||
+      rawProfile.username?.toLowerCase() === sessionUsername
+    ))
+  );
+
+  const profile = { ...rawProfile, isOwnProfile };
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

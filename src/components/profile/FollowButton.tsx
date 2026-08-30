@@ -44,6 +44,17 @@ export default function FollowButton({
   const [fallbackFollowing, setFallbackFollowing] = useState(initialFollowing);
   const isFollowing = targetId ? (summary?.following ?? initialFollowing) : fallbackFollowing;
 
+  // Never show follow button for self
+  const isSelf = Boolean(
+    type === "USER" &&
+    session?.user &&
+    targetId &&
+    (session.user.id === targetId ||
+      (session.user.email && session.user.email.split("@")[0].toLowerCase() === targetId.toLowerCase()))
+  );
+
+  if (isSelf) return null;
+
   const isPending =
     isSessionPending ||
     isLoggingIn ||

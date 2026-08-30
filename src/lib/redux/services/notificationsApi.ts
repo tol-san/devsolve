@@ -49,6 +49,20 @@ export const notificationsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Notification"],
     }),
+
+    getNotificationPreferences: builder.query<any[], void>({
+      query: () => "/notifications/preferences",
+      providesTags: ["Notification"],
+    }),
+
+    updateNotificationPreferences: builder.mutation<any[], any>({
+      query: (body) => ({
+        url: "/notifications/preferences",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Notification"],
+    }),
   }),
 });
 
@@ -57,4 +71,6 @@ export const {
   useGetUnreadCountQuery,
   useMarkAsReadMutation,
   useMarkAllAsReadMutation,
+  useGetNotificationPreferencesQuery,
+  useUpdateNotificationPreferencesMutation,
 } = notificationsApi;
