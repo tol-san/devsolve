@@ -132,13 +132,23 @@ export default function Footer() {
                 flattens the two blues and the bug into a single white. */}
             <Link href={lp("/")} aria-label={t("footer.home")} className="group block">
               <span className="relative block h-16 w-44 sm:h-20 sm:w-56">
+                {/* Light Mode Logo */}
                 <Image
                   src="/devsolve-logo.png"
                   alt="DevSolve"
                   fill
                   quality={90}
                   sizes="(min-width: 640px) 224px, 176px"
-                  className="object-contain object-left transition-transform duration-200 group-hover:scale-[1.03]"
+                  className="object-contain object-left transition-transform duration-200 group-hover:scale-[1.03] dark:hidden"
+                />
+                {/* Dark Mode Logo */}
+                <Image
+                  src="/devsolve-fulltext-logo-darkmode.png"
+                  alt="DevSolve"
+                  fill
+                  quality={90}
+                  sizes="(min-width: 640px) 224px, 176px"
+                  className="hidden object-contain object-left transition-transform duration-200 group-hover:scale-[1.03] dark:block"
                 />
               </span>
             </Link>

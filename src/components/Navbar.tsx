@@ -589,16 +589,23 @@ const Navbar = () => {
                   {/* Narrows through the band where the nav is fighting for
                       room, back to full size once there is space again. */}
                   <span className="relative block h-11 w-38 sm:w-40 lg:w-36 xl:h-12 xl:w-44">
+                    {/* Light Mode Logo */}
                     <Image
-                      src={logoSrc}
+                      src="/devsolve-logo.png"
                       alt="DevSolve"
                       fill
                       priority
                       sizes="(min-width: 1280px) 176px, 152px"
-                      /* No `mix-blend-multiply`: the file is transparent, so
-                         it bought nothing on light and would sink the mark
-                         into the surface on dark. */
-                      className="origin-left object-contain object-left transition-transform scale-[1.15]"
+                      className="origin-left object-contain object-left transition-transform scale-[1.15] dark:hidden"
+                    />
+                    {/* Dark Mode Logo */}
+                    <Image
+                      src="/devsolve-fulltext-logo-darkmode.png"
+                      alt="DevSolve"
+                      fill
+                      priority
+                      sizes="(min-width: 1280px) 176px, 152px"
+                      className="hidden origin-left object-contain object-left transition-transform scale-[1.15] dark:block"
                     />
                   </span>
                 </motion.div>

@@ -1,26 +1,18 @@
 "use client";
 
 import Image from "next/image";
-
 import { cn } from "@/lib/utils";
 
 /**
- * The DevSolve lockup — the same artwork in both themes.
+ * The DevSolve lockup with seamless dynamic Light & Dark mode support.
  *
- * `devsolve-logo.png` is the full-detail lockup: the puzzle bulb, "Dev" in
- * navy and "Solve" in blue, on a transparent background. It is deliberately
- * used on dark surfaces too, rather than swapping in the white-wordmark file,
- * so the brand reads identically everywhere. The trade is contrast: that navy
- * sits at roughly 1.1:1 against a near-black surface, so on dark the blue half
- * of the wordmark carries the mark while the navy half recedes. If that ever
- * needs fixing, the fix is a light plate behind it — not a second file, which
- * is what made the two themes disagree in the first place.
+ * Fulltext variant:
+ * - Light: `/devsolve-logo.png`
+ * - Dark: `/devsolve-fulltext-logo-darkmode.png`
  *
- * No theme branch also means no hydration dance: one `src`, server and client
- * agreeing on the first frame.
- *
- * Sized by the caller through `className`. The box is fixed and the artwork is
- * contained inside it, so nothing around it moves.
+ * Icon / Badge variant:
+ * - Light: `/devsolvewithouttext-lightmode.png`
+ * - Dark: `/only-devsolve-logo-notext-darkmode.png`
  */
 export function BrandLogo({
   className,
@@ -32,31 +24,49 @@ export function BrandLogo({
   /** The box. Give it a height and a width; defaults to a small header size. */
   className?: string;
   /**
-   * `lockup` is the bulb and wordmark side by side, and takes the theme pair.
-   * `badge` is the circular mark, which carries its own light disc and so is
-   * one file on either surface — for square slots the lockup would only be
-   * letterboxed into.
+   * `lockup` is the bulb and wordmark side by side.
+   * `badge` or `icon` is the standalone bulb mark.
    */
-  variant?: "lockup" | "badge";
+  variant?: "lockup" | "badge" | "icon";
   /** Where the artwork sits in that box. */
   align?: "left" | "center";
   priority?: boolean;
   sizes?: string;
 }) {
-  const badge = variant === "badge";
+  const isIcon = variant === "badge" || variant === "icon";
+
+  const lightSrc = isIcon
+    ? "/devsolvewithouttext-lightmode.png"
+    : "/devsolve-logo.png";
+  const darkSrc = isIcon
+    ? "/only-devsolve-logo-notext-darkmode.png"
+    : "/devsolve-fulltext-logo-darkmode.png";
 
   return (
     <span
-      className={cn("relative block", badge ? "size-10" : "h-10 w-36", className)}
+      className={cn("relative block", isIcon ? "size-10" : "h-10 w-36", className)}
     >
+      {/* Light Mode Logo */}
       <Image
-        src={badge ? "/devsolve.png" : "/devsolve-logo.png"}
+        src={lightSrc}
         alt="DevSolve"
         fill
         priority={priority}
         sizes={sizes}
         className={cn(
-          "object-contain",
+          "object-contain dark:hidden",
+          align === "center" ? "object-center" : "object-left",
+        )}
+      />
+      {/* Dark Mode Logo */}
+      <Image
+        src={darkSrc}
+        alt="DevSolve"
+        fill
+        priority={priority}
+        sizes={sizes}
+        className={cn(
+          "hidden object-contain dark:block",
           align === "center" ? "object-center" : "object-left",
         )}
       />

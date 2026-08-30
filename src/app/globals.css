@@ -558,6 +558,19 @@ html .wmde-markdown pre > code::-webkit-scrollbar-thumb:hover {
   animation: lineShadow 15s linear infinite;
 }
 
+@keyframes flowDash {
+  0% {
+    stroke-dashoffset: 45;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-flow-dash {
+  animation: flowDash 1.6s linear infinite;
+}
+
 /* Khmer script is Brahmic and does not support arbitrary letter-spacing (tracking).
    CSS letter-spacing pulls combining vowel signs and diacritics away from their base
    consonants, creating dotted circle placeholders (◌). We reset letter-spacing for Khmer. */
