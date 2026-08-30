@@ -254,10 +254,8 @@ export function StatsSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden bg-white py-20 sm:py-24 dark:bg-neutral-950"
+      className="relative overflow-hidden py-10 sm:py-14"
     >
-      <SectionBackdrop seed={2} gridSize={88} />
-
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
         {/* ── Header ── */}
         <motion.div

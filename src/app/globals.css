@@ -545,6 +545,19 @@ html .wmde-markdown pre > code::-webkit-scrollbar-thumb:hover {
   }
 }
 
+@keyframes lineShadow {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100% -100%;
+  }
+}
+
+.animate-line-shadow {
+  animation: lineShadow 15s linear infinite;
+}
+
 /* Khmer script is Brahmic and does not support arbitrary letter-spacing (tracking).
    CSS letter-spacing pulls combining vowel signs and diacritics away from their base
    consonants, creating dotted circle placeholders (◌). We reset letter-spacing for Khmer. */

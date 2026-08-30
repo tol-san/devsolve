@@ -105,11 +105,7 @@ export default function Footer() {
        — so the page does not change language at the fold. The layout is
        untouched: brand and blurb left, three link columns right, backers, then
        the legal line. */
-    <footer className="relative w-full overflow-hidden border-t-4 border-blue-600 bg-white font-sans text-slate-700 dark:bg-neutral-950 dark:text-neutral-300">
-      {/* Calmer than a landing section: the paper and its drifting fields, but
-          no motes or scan beams rising behind the small print. */}
-      <SectionBackdrop seed={7} gridSize={88} particles={false} beams={false} />
-
+    <footer className="relative w-full overflow-hidden border-t border-slate-200/80 font-sans text-slate-700 dark:border-neutral-800 dark:text-neutral-300">
       <div className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-12 sm:px-6 sm:pt-16 lg:px-8">
         {/* Navigation leads, since that is what a footer is for: brand on the
             left, links on the right. The backers moved below it. */}

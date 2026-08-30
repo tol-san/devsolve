@@ -281,11 +281,8 @@ export function FeatureHighlights() {
     <section
       ref={sectionRef}
       id="how-it-works"
-      className="relative overflow-hidden bg-white py-20 sm:py-28 dark:bg-neutral-950"
+      className="relative overflow-hidden py-10 sm:py-16"
     >
-      {/* Editorial grid paper, drifting aurora and rising motes */}
-      <SectionBackdrop seed={1} gridSize={88} />
-
       <div className="relative z-10 mx-auto w-full max-w-7xl px-6 sm:px-12">
         {/* ── Masthead ── */}
         <header className="flex flex-col gap-6 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between dark:border-neutral-800">
