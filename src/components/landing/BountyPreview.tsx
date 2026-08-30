@@ -206,7 +206,7 @@ export function BountyPreview() {
                   </p>
                 </div>
               </div>
-              <span className="rounded-full bg-[#EFF6FF] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-300">
+              <span className="rounded-full bg-[#EFF6FF] px-2.5 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-300">
                 {t("sections.bounty.featured")}
               </span>
             </div>

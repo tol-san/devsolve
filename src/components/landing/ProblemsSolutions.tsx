@@ -318,7 +318,7 @@ export function ProblemsSolutions() {
                   <span className="flex items-center gap-1.5">
                     {/* Lifts off the near-black card in dark; the brand
                         secondary would all but vanish against it. */}
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1E293B] text-[10px] font-bold text-white dark:bg-neutral-700">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1E293B] text-xs font-bold text-white dark:bg-neutral-700">
                       {PROBLEM.author.slice(2, 3).toUpperCase()}
                     </span>
                     {PROBLEM.author}
@@ -362,7 +362,7 @@ export function ProblemsSolutions() {
                 <div className="mt-5 flex items-center gap-4 text-xs text-slate-400 dark:text-neutral-500">
                   <span className="flex items-center gap-1.5">
                     <span
-                      className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                      className="flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white"
                       style={{ backgroundColor: PRIMARY }}
                     >
                       {SOLUTION.author.slice(0, 1).toUpperCase()}

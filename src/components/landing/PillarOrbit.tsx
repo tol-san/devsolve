@@ -148,7 +148,7 @@ export function PillarOrbit({ className = "" }: { className?: string }) {
                 <span className="text-sm font-semibold tracking-tight text-[#1E293B] dark:text-white">
                   {p.label}
                 </span>
-                <span className="hidden text-[11px] text-slate-500 sm:block dark:text-neutral-400">
+                <span className="hidden text-xs text-slate-500 sm:block dark:text-neutral-400">
                   {p.caption}
                 </span>
               </span>

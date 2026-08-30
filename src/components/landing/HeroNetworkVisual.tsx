@@ -60,7 +60,7 @@ export function HeroNetworkVisual() {
             <span>Global Bug Triage</span>
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-neutral-400 font-mono">
+          <p className="text-xs text-slate-500 dark:text-neutral-400 font-mono">
             500+ Scopes Monitored
           </p>
         </div>
@@ -79,11 +79,11 @@ export function HeroNetworkVisual() {
         <div className="text-left text-xs">
           <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-neutral-100">
             <span>Verified Remediation</span>
-            <span className="rounded bg-emerald-500/15 px-1 py-0.2 text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="rounded bg-emerald-500/15 px-1 py-0.2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
               SOLVED
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-neutral-400 font-mono">
+          <p className="text-xs text-slate-500 dark:text-neutral-400 font-mono">
             Direct GitHub Patch Sync
           </p>
         </div>
@@ -93,7 +93,7 @@ export function HeroNetworkVisual() {
       <motion.div
         animate={reduce ? undefined : { y: [-6, 6, -6] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-16 left-[18%] hidden lg:flex items-center gap-1 rounded-md border border-slate-200/60 bg-white/60 px-2 py-1 text-[11px] font-mono text-slate-500 shadow-2xs backdrop-blur-xs dark:border-neutral-800/60 dark:bg-neutral-900/60 dark:text-neutral-400"
+        className="absolute top-16 left-[18%] hidden lg:flex items-center gap-1 rounded-md border border-slate-200/60 bg-white/60 px-2 py-1 text-xs font-mono text-slate-500 shadow-2xs backdrop-blur-xs dark:border-neutral-800/60 dark:bg-neutral-900/60 dark:text-neutral-400"
       >
         <span className="text-emerald-600 dark:text-emerald-400">200 OK</span>
         <span>·</span>
@@ -103,7 +103,7 @@ export function HeroNetworkVisual() {
       <motion.div
         animate={reduce ? undefined : { y: [6, -6, 6] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute top-20 right-[16%] hidden lg:flex items-center gap-1 rounded-md border border-slate-200/60 bg-white/60 px-2 py-1 text-[11px] font-mono text-slate-500 shadow-2xs backdrop-blur-xs dark:border-neutral-800/60 dark:bg-neutral-900/60 dark:text-neutral-400"
+        className="absolute top-20 right-[16%] hidden lg:flex items-center gap-1 rounded-md border border-slate-200/60 bg-white/60 px-2 py-1 text-xs font-mono text-slate-500 shadow-2xs backdrop-blur-xs dark:border-neutral-800/60 dark:bg-neutral-900/60 dark:text-neutral-400"
       >
         <span className="text-blue-600 dark:text-blue-400">PATCH</span>
         <span>·</span>

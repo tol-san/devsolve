@@ -320,7 +320,7 @@ export function FeatureHighlights() {
                     {t(`lifecycle.acts.${a.id}.tab`) || a.tab}
                   </span>
                   <span
-                    className={`mt-0.5 hidden text-[11px] font-medium sm:block ${
+                    className={`mt-0.5 hidden text-xs font-medium sm:block ${
                       on
                         ? "text-slate-300 dark:text-neutral-700"
                         : "text-slate-600 dark:text-neutral-400"
@@ -426,7 +426,7 @@ export function FeatureHighlights() {
                           step.title}
                         <span style={{ color: accent }}>.</span>
                       </h3>
-                      <span className="rounded-lg border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 dark:border-neutral-700 dark:text-neutral-500">
+                      <span className="rounded-lg border border-slate-200 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-400 dark:border-neutral-700 dark:text-neutral-500">
                         {t(`lifecycle.acts.${act.id}.steps.${step.n}.role`) ||
                           step.role}
                       </span>
@@ -457,7 +457,7 @@ export function FeatureHighlights() {
                     }`}
                   >
                     <span
-                      className="font-mono text-[11px] font-semibold tabular-nums"
+                      className="font-mono text-xs font-semibold tabular-nums"
                       style={{ color: on ? accent : muted }}
                     >
                       {s.n}
@@ -514,7 +514,7 @@ export function FeatureHighlights() {
 
           {/* RIGHT — the scanning dial */}
           <div className="relative mx-auto w-full max-w-136">
-            <div className="pointer-events-none absolute inset-x-0 -top-1 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-600">
+            <div className="pointer-events-none absolute inset-x-0 -top-1 flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-600">
               <span>[ {t("common.scanning")} ]</span>
               <span>
                 {pad2(steps.length)} {t("common.nodes")}
@@ -696,7 +696,7 @@ export function FeatureHighlights() {
               <circle cx={DIAL.cx} cy={DIAL.cy} r="3" fill={accent} />
             </svg>
 
-            <div className="pointer-events-none absolute inset-x-0 -bottom-1 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-600">
+            <div className="pointer-events-none absolute inset-x-0 -bottom-1 flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-600">
               <span>{t(`lifecycle.acts.${act.id}.tabSub`) || act.tabSub}</span>
               <span>
                 {t("common.step")} {pad2(stepIndex + 1)} / {pad2(steps.length)}

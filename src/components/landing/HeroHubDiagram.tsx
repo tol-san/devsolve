@@ -47,7 +47,7 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
   return (
     <div className={`relative mx-auto w-full max-w-6xl px-2 sm:px-4 select-none ${className}`}>
       {/* ── Ambient Radiant Bloom Behind Diagram ── */}
-      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[480px] w-[750px] max-w-full rounded-full bg-gradient-to-tr from-blue-500/15 via-sky-400/10 to-emerald-400/15 blur-[120px] dark:from-blue-500/25 dark:via-sky-600/20 dark:to-emerald-400/20" />
+      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[480px] w-[750px] max-w-full rounded-full bg-gradient-to-tr from-blue-500/15 via-sky-400/10 to-emerald-400/15 blur-[60px] sm:blur-[120px] dark:from-blue-500/25 dark:via-sky-600/20 dark:to-emerald-400/20" />
 
       {/* ── MAIN DIAGRAM CONTAINER ── */}
       <div className="relative flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-0 z-10">
@@ -90,7 +90,7 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     <p className="text-xs font-semibold text-slate-900 dark:text-neutral-100 truncate">
                       {item.label}
                     </p>
-                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-tight truncate">
+                    <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5 leading-tight truncate">
                       {item.sub}
                     </p>
                   </div>
@@ -168,7 +168,7 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
         <div className="relative flex items-center justify-center shrink-0 self-end my-4 lg:my-0">
           
           {/* Core Outer Orbit Ring Container */}
-          <div className="relative flex items-center justify-center h-76 w-76 sm:h-88 sm:w-88">
+          <div className="relative flex items-center justify-center h-64 w-64 sm:h-76 sm:w-76 md:h-88 md:w-88">
             
             {/* Outer Orbit Track with Orbiting Particles */}
             <motion.div
@@ -185,7 +185,7 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
             </motion.div>
 
             {/* Middle Concentric Ring Plate */}
-            <div className="relative flex items-center justify-center h-60 w-60 sm:h-70 sm:w-70 rounded-full border border-blue-200/90 bg-gradient-to-br from-blue-50/95 via-sky-50/90 to-indigo-50/95 shadow-[0_12px_36px_-8px_rgba(37,99,235,0.2)] backdrop-blur-xl dark:border-blue-500/30 dark:bg-gradient-to-br dark:from-slate-900/95 dark:via-blue-950/85 dark:to-slate-950/95 dark:shadow-[0_0_40px_rgba(37,99,235,0.3)]">
+            <div className="relative flex items-center justify-center h-52 w-52 sm:h-60 sm:w-60 md:h-70 md:w-70 rounded-full border border-blue-200/90 bg-gradient-to-br from-blue-50/95 via-sky-50/90 to-indigo-50/95 shadow-[0_12px_36px_-8px_rgba(37,99,235,0.2)] backdrop-blur-xl dark:border-blue-500/30 dark:bg-gradient-to-br dark:from-slate-900/95 dark:via-blue-950/85 dark:to-slate-950/95 dark:shadow-[0_0_40px_rgba(37,99,235,0.3)]">
               
               {/* ── SMOOTH ROTATING CIRCULAR TEXT AROUND LOGO ── */}
               <motion.div
@@ -217,8 +217,8 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
               </motion.div>
 
               {/* ── INNER GLOWING CORE WITH PROMINENT DEVSOLVE LOGO ── */}
-              <div className="relative flex items-center justify-center h-36 w-36 sm:h-42 sm:w-42 rounded-full border-2 border-blue-500/25 bg-white p-5 shadow-[0_10px_35px_-4px_rgba(37,99,235,0.25),inset_0_0_20px_rgba(37,99,235,0.08)] dark:border-blue-400/50 dark:bg-neutral-900/95 dark:shadow-[0_0_35px_rgba(37,99,235,0.4),inset_0_0_15px_rgba(37,99,235,0.12)]">
-                <div className="relative h-20 w-20 sm:h-26 sm:w-26">
+              <div className="relative flex items-center justify-center h-32 w-32 sm:h-36 sm:w-36 md:h-42 md:w-42 rounded-full border-2 border-blue-500/25 bg-white p-5 shadow-[0_10px_35px_-4px_rgba(37,99,235,0.25),inset_0_0_20px_rgba(37,99,235,0.08)] dark:border-blue-400/50 dark:bg-neutral-900/95 dark:shadow-[0_0_35px_rgba(37,99,235,0.4),inset_0_0_15px_rgba(37,99,235,0.12)]">
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20 md:h-26 md:w-26">
                   {/* Light Mode No-Text Logo */}
                   <Image
                     src="/devsolvewithouttext-lightmode.png"
@@ -336,7 +336,7 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     <p className="text-xs font-semibold text-slate-900 dark:text-neutral-100 truncate">
                       {item.label}
                     </p>
-                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-tight truncate">
+                    <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5 leading-tight truncate">
                       {item.sub}
                     </p>
                   </div>

@@ -25,7 +25,7 @@ export function HeroPlatform() {
   return (
     <section className="relative -mt-(--navbar-height) flex flex-col justify-between overflow-hidden pt-(--navbar-height) pb-8 sm:pb-12">
       {/* ── Ambient Radial Accent Glow ── */}
-      <div className="pointer-events-none absolute top-1/4 left-1/2 -z-10 h-[480px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-blue-500/15 via-sky-400/10 to-emerald-400/15 blur-[140px] dark:from-blue-500/25 dark:via-sky-600/20 dark:to-emerald-400/20" />
+      <div className="pointer-events-none absolute top-1/4 left-1/2 -z-10 h-[300px] w-[420px] sm:h-[480px] sm:w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-blue-500/15 via-sky-400/10 to-emerald-400/15 blur-[70px] sm:blur-[140px] dark:from-blue-500/25 dark:via-sky-600/20 dark:to-emerald-400/20" />
 
       {/* ── Top Headline, Subheadline & CTAs ── */}
       <div className="relative z-10 mx-auto w-full max-w-5xl px-4 sm:px-6 pt-6 sm:pt-10 text-center">
@@ -89,13 +89,13 @@ export function HeroPlatform() {
       </div>
 
       {/* ── Bottom Metric Ticker ── */}
-      <div className="relative z-10 mx-auto w-full max-w-5xl px-6 pt-6 sm:pt-8">
+      <div className="relative z-10 mx-auto w-full max-w-5xl px-4 pt-6 sm:px-6 sm:pt-8">
         <div className="grid grid-cols-2 gap-4 border-t border-slate-200/90 pt-5 sm:grid-cols-4 sm:gap-6 text-center dark:border-neutral-800">
           <div>
             <span className="font-mono text-xl sm:text-2xl font-bold text-[#2563EB] dark:text-blue-400">
               $120k+
             </span>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
               Active Bounty Pool
             </p>
           </div>
@@ -104,7 +104,7 @@ export function HeroPlatform() {
             <span className="font-mono text-xl sm:text-2xl font-bold text-slate-800 dark:text-neutral-200">
               &lt; 2h
             </span>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
               Average Triage SLA
             </p>
           </div>
@@ -113,7 +113,7 @@ export function HeroPlatform() {
             <span className="font-mono text-xl sm:text-2xl font-bold text-[#10B981] dark:text-emerald-400">
               500+
             </span>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
               Protected Scopes
             </p>
           </div>
@@ -122,7 +122,7 @@ export function HeroPlatform() {
             <span className="font-mono text-xl sm:text-2xl font-bold text-[#2563EB] dark:text-blue-400">
               12,000+
             </span>
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
               Engineers & Researchers
             </p>
           </div>

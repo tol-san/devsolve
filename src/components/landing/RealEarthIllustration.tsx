@@ -25,13 +25,13 @@ export function RealEarthIllustration() {
         className="absolute -inset-12 sm:-inset-16 rounded-full border border-dashed border-blue-500/20 dark:border-blue-400/30 pointer-events-none"
       >
         {/* Orbital Satellite Node A */}
-        <div className="absolute top-1/4 -left-3 flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-white/95 px-2.5 py-1 text-[10px] font-mono font-bold text-blue-600 shadow-md backdrop-blur-md dark:border-blue-400/40 dark:bg-neutral-900/95 dark:text-blue-400">
+        <div className="absolute top-1/4 -left-3 flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-white/95 px-2.5 py-1 text-xs font-mono font-bold text-blue-600 shadow-md backdrop-blur-md dark:border-blue-400/40 dark:bg-neutral-900/95 dark:text-blue-400">
           <span className="h-2 w-2 rounded-full bg-blue-500 animate-ping" />
           <span>CVE-2026-4402 [PAT]</span>
         </div>
 
         {/* Orbital Satellite Node B */}
-        <div className="absolute bottom-1/4 -right-3 flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-white/95 px-2.5 py-1 text-[10px] font-mono font-bold text-emerald-600 shadow-md backdrop-blur-md dark:border-emerald-400/40 dark:bg-neutral-900/95 dark:text-emerald-400">
+        <div className="absolute bottom-1/4 -right-3 flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-white/95 px-2.5 py-1 text-xs font-mono font-bold text-emerald-600 shadow-md backdrop-blur-md dark:border-emerald-400/40 dark:bg-neutral-900/95 dark:text-emerald-400">
           <span className="h-2 w-2 rounded-full bg-emerald-500" />
           <span>SLA &lt; 34m</span>
         </div>
@@ -43,7 +43,7 @@ export function RealEarthIllustration() {
         transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
         className="absolute -inset-6 sm:-inset-8 rounded-full border border-indigo-500/15 dark:border-indigo-400/20 pointer-events-none"
       >
-        <div className="absolute -top-3 left-1/3 flex items-center gap-1 rounded-full border border-indigo-500/40 bg-white/95 px-2.5 py-0.5 text-[10px] font-mono font-bold text-indigo-600 shadow-md backdrop-blur-md dark:border-indigo-400/40 dark:bg-neutral-900/95 dark:text-indigo-400">
+        <div className="absolute -top-3 left-1/3 flex items-center gap-1 rounded-full border border-indigo-500/40 bg-white/95 px-2.5 py-0.5 text-xs font-mono font-bold text-indigo-600 shadow-md backdrop-blur-md dark:border-indigo-400/40 dark:bg-neutral-900/95 dark:text-indigo-400">
           <span>500+ Scopes Active</span>
         </div>
       </motion.div>
