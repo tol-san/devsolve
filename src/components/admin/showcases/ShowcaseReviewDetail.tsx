@@ -334,26 +334,48 @@ function Cover({ url, title }: { url?: string; title: string }) {
   const shown = failed ? undefined : url;
 
   return (
-    <div className="relative h-52 w-full bg-slate-100 sm:h-64 dark:bg-slate-800">
+    <div className="relative h-60 w-full overflow-hidden bg-slate-950 sm:h-72 dark:bg-slate-950 flex items-center justify-center">
       {shown ? (
         isOptimizable(shown) ? (
-          <Image
-            src={shown}
-            alt={`${title} cover`}
-            fill
-            quality={90}
-            sizes="(max-width: 1024px) 100vw, 720px"
-            onError={() => setFailed(true)}
-            className="object-contain"
-          />
+          <>
+            {/* Ambient Blurred Background Fill */}
+            <Image
+              src={shown}
+              alt=""
+              fill
+              aria-hidden="true"
+              sizes="100px"
+              quality={30}
+              className="object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
+            />
+            {/* Main Crisp Image */}
+            <Image
+              src={shown}
+              alt={`${title} cover`}
+              fill
+              quality={90}
+              sizes="(max-width: 1024px) 100vw, 720px"
+              onError={() => setFailed(true)}
+              className="relative z-10 object-contain drop-shadow-md"
+            />
+          </>
         ) : (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={shown}
-            alt={`${title} cover`}
-            onError={() => setFailed(true)}
-            className="absolute inset-0 size-full object-contain"
-          />
+          <>
+            {/* Ambient Blurred Background Fill */}
+            <img
+              src={shown}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 size-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
+            />
+            {/* Main Crisp Image */}
+            <img
+              src={shown}
+              alt={`${title} cover`}
+              onError={() => setFailed(true)}
+              className="relative z-10 size-full object-contain drop-shadow-md"
+            />
+          </>
         )
       ) : (
         <div className="flex size-full flex-col items-center justify-center gap-1.5 text-slate-400">

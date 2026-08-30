@@ -192,7 +192,7 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
               </div>
 
               <div className="flex items-start justify-between gap-4">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-snug">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-snug break-words [word-break:break-word] min-w-0">
                   {showcase.title}
                 </h1>
 
@@ -209,15 +209,11 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
 
               {showcase.coverImageUrl && (
                 <div className="mt-5">
-                  {/* Contained, not cropped to fill: covers arrive at whatever
-                      size the author uploaded — often small and square — and
-                      stretching one across a banner is what makes it look
-                      soft. The frame caps the height so a tall upload cannot
-                      push the overview and tabs off the screen. */}
+                  {/* Ambient backdrop and increased frame height so portrait & landscape uploads look full and professional */}
                   <ShowcaseImage
                     url={showcase.coverImageUrl}
                     alt={`${showcase.title} cover`}
-                    heightClassName="h-52 sm:h-64 lg:h-72"
+                    heightClassName="h-64 sm:h-80 md:h-[420px]"
                   />
                 </div>
               )}
@@ -541,10 +537,10 @@ function ShowcaseImage({
   if (failed) return null;
 
   const frame = cn(
-    "relative w-full overflow-hidden",
+    "relative w-full overflow-hidden flex items-center justify-center",
     heightClassName,
     framed &&
-      "rounded-xl border border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900",
+      "rounded-2xl border border-slate-200/80 bg-slate-950 dark:border-neutral-800 dark:bg-neutral-950 shadow-md",
   );
 
   return (
@@ -553,30 +549,49 @@ function ShowcaseImage({
       target="_blank"
       rel="noreferrer noopener"
       title="Open the full-size image"
-      className={cn(frame, "block transition-opacity hover:opacity-95")}
+      className={cn(frame, "group block transition-opacity hover:opacity-98")}
     >
       {isOptimizable(url) ? (
-        /* q=90 rather than the default 75: these are screenshots and diagrams,
-           where compression artefacts land on text. `next.config.ts` has to
-           list the quality or the optimizer answers 400. */
-        <Image
-          src={url}
-          alt={alt}
-          fill
-          sizes={sizes}
-          quality={90}
-          onError={() => setFailed(true)}
-          className="object-contain"
-        />
+        <>
+          {/* Ambient Blurred Background Fill (eliminates empty letterbox spaces for portrait/custom images) */}
+          <Image
+            src={url}
+            alt=""
+            fill
+            aria-hidden="true"
+            sizes="100px"
+            quality={30}
+            className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
+          />
+          {/* Main Crisp Image */}
+          <Image
+            src={url}
+            alt={alt}
+            fill
+            sizes={sizes}
+            quality={90}
+            onError={() => setFailed(true)}
+            className="relative z-10 object-contain drop-shadow-md"
+          />
+        </>
       ) : (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={url}
-          alt={alt}
-          loading="lazy"
-          onError={() => setFailed(true)}
-          className="absolute inset-0 h-full w-full object-contain"
-        />
+        <>
+          {/* Ambient Blurred Background Fill */}
+          <img
+            src={url}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
+          />
+          {/* Main Crisp Image */}
+          <img
+            src={url}
+            alt={alt}
+            loading="lazy"
+            onError={() => setFailed(true)}
+            className="relative z-10 h-full w-full object-contain drop-shadow-md"
+          />
+        </>
       )}
     </a>
   );
