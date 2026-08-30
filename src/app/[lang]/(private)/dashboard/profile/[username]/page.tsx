@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
@@ -23,7 +23,13 @@ export default function ProfilePage() {
   /* Cached and shared with every other screen that asks, so this costs one
      request per session rather than one per profile viewed. */
   const { data: me } = useGetProfileByUsernameQuery("me", { skip: !session });
-  const [isEditing, setIsEditing] = useState(false);
+  /* `?edit=1` so the control can be reached from anywhere — the sidebar's
+     "Add your research bio", the banner on the public profile — and land in
+     the form rather than on a page the reader then has to find it on. */
+  const searchParams = useSearchParams();
+  const [isEditing, setIsEditing] = useState(
+    () => searchParams.get("edit") === "1",
+  );
 
   if (isLoading) {
     return <ProfileSkeleton />;

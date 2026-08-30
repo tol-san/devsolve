@@ -17,6 +17,13 @@ import FollowButton from "@/components/profile/FollowButton";
 import { isUuid } from "@/components/Leaderboard/leaderboard-ui";
 import { authClient } from "@/lib/auth/auth-client";
 
+/** Where "edit" goes: the profile form, opened directly. */
+function editProfileHref(username?: string) {
+  return username
+    ? `/dashboard/profile/${encodeURIComponent(username)}?edit=1`
+    : "/dashboard/profile";
+}
+
 interface ProfileHeroBannerProps {
   profile: Profile;
   onEdit?: () => void;
@@ -139,8 +146,12 @@ export default function ProfileHeroBanner({
                     <span>Edit profile</span>
                   </button>
                 ) : (
+                  /* No handler here means the public view, which has no form of
+                     its own — so this crosses to the dashboard and opens it.
+                     It used to point at account settings, which is 2FA and
+                     password: the one page that cannot edit a profile. */
                   <Link
-                    href="/dashboard/profile/settings"
+                    href={editProfileHref(username)}
                     className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-2xs transition-colors hover:bg-accent cursor-pointer"
                   >
                     <Pencil className="size-4" />

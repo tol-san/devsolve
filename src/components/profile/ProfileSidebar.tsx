@@ -31,6 +31,13 @@ function displayUrl(value: string): string {
   return value.replace(/^https?:\/\//i, "").replace(/\/$/, "");
 }
 
+/** Where "edit" goes: the profile form, opened directly. */
+function editProfileHref(username?: string) {
+  return username
+    ? `/dashboard/profile/${encodeURIComponent(username)}?edit=1`
+    : "/dashboard/profile";
+}
+
 export default function ProfileSidebar({
   profile,
   stats,
@@ -88,7 +95,7 @@ export default function ProfileSidebar({
               You haven&apos;t added a bio yet.
             </p>
             <Link
-              href="/dashboard/profile/settings"
+              href={editProfileHref(username)}
               className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
             >
               <span>Add your research bio</span>
@@ -162,7 +169,7 @@ export default function ProfileSidebar({
                 No links added
               </span>
               <Link
-                href="/dashboard/profile/settings"
+                href={editProfileHref(username)}
                 className="font-semibold text-primary hover:underline"
               >
                 Add links
