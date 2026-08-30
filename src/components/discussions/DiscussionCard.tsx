@@ -231,6 +231,9 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 src={post.thumbnailUrl}
                 alt={`${post.title} ${t("community.card.preview")}`}
                 fill
+                /* A card thumbnail: full width when the grid is one column,
+                   roughly a third once it is three. */
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 quality={90}
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.015]"
               />

@@ -57,6 +57,33 @@ const neverChanges = () => () => {};
 const onClient = () => true;
 const onServer = () => false;
 
+/* Phones pay for this backdrop differently to laptops: it is `fixed inset-0`
+   behind every route, so its cost is paid on every page, and a mid-range
+   handset is compositing it on a fraction of the GPU. Below this width the
+   layer keeps its character on a smaller budget. */
+const COMPACT_QUERY = "(max-width: 640px)";
+
+function subscribeToCompact(onStoreChange: () => void) {
+  const list = window.matchMedia(COMPACT_QUERY);
+  list.addEventListener("change", onStoreChange);
+  return () => list.removeEventListener("change", onStoreChange);
+}
+
+function getCompact() {
+  return window.matchMedia(COMPACT_QUERY).matches;
+}
+
+/**
+ * Whether this is a small viewport.
+ *
+ * `onServer` is the server snapshot, so the hydrating render matches the HTML
+ * and React swaps in the real value immediately afterwards — the same trick
+ * `useIsDark` uses, and the reason this cannot be a bare `matchMedia` read.
+ */
+function useCompactViewport() {
+  return useSyncExternalStore(subscribeToCompact, getCompact, onServer);
+}
+
 /**
  * Whether the dark theme is active.
  *
@@ -144,25 +171,29 @@ export function SectionBackdrop({
   className = "",
 }: SectionBackdropProps) {
   const reduce = useReducedMotion();
+  const compact = useCompactViewport();
   const rawId = useId();
   const uid = rawId.replace(/[^a-zA-Z0-9]/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
   const inView = useInView(containerRef, { margin: "200px 0px" });
 
+  /* Counts, not just sizes: each cell and mote is its own compositor layer
+     running an independent keyframe loop, so halving them halves the work
+     regardless of how small the viewport has made each one. */
   const cellSpecs = useMemo(() => {
     const rand = mulberry32(seed * 977 + 7);
-    return Array.from({ length: CELL_COUNT }, () => ({
+    return Array.from({ length: compact ? 4 : CELL_COUNT }, () => ({
       col: Math.floor(rand() * 22),
       row: Math.floor(rand() * 11),
       color: rand() > 0.5 ? "var(--ds-cell-primary)" : "var(--ds-cell-accent)",
       delay: rand() * 9,
       duration: 3.5 + rand() * 3,
     }));
-  }, [seed]);
+  }, [seed, compact]);
 
   const particleSpecs = useMemo(() => {
     const rand = mulberry32(seed * 5081 + 23);
-    return Array.from({ length: PARTICLE_COUNT }, () => ({
+    return Array.from({ length: compact ? 5 : PARTICLE_COUNT }, () => ({
       left: 4 + rand() * 92,
       size: 2 + rand() * 3,
       delay: rand() * 16,
@@ -170,7 +201,7 @@ export function SectionBackdrop({
       drift: (rand() - 0.5) * 70,
       color: rand() > 0.55 ? "var(--ds-mote-accent)" : "var(--ds-mote-primary)",
     }));
-  }, [seed]);
+  }, [seed, compact]);
 
   return (
     <div
@@ -187,7 +218,12 @@ export function SectionBackdrop({
         BLOBS.map((blob, i) => (
           <div
             key={i}
-            className={`absolute rounded-full blur-[110px] ${blob.className} ${blob.animClass}`}
+            /* A Gaussian blur costs roughly its radius against the area it
+               covers, and these are the largest moving things on the page —
+               110px over a drifting blob is the single most expensive item in
+               this layer on a phone. The narrower radius is proportionate on a
+               narrow viewport, so it reads the same. */
+            className={`absolute rounded-full blur-[48px] sm:blur-[110px] ${blob.className} ${blob.animClass}`}
             style={{ backgroundColor: blob.color }}
           />
         ))}

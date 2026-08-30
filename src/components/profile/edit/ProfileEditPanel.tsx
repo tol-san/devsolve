@@ -632,6 +632,8 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
                   src={values.avatarUrl}
                   alt=""
                   fill
+                  /* A fixed avatar well — never larger than this. */
+                  sizes="96px"
                   className="object-cover"
                   unoptimized
                 />

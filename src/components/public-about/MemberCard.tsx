@@ -121,6 +121,7 @@ export function MemberCard({ member }: { member: TeamMember }) {
           alt={member.name}
           quality={100}
           fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
           className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
