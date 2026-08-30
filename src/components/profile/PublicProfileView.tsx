@@ -4,20 +4,16 @@ import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "motion/react";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
+import ProfileHeroBanner from "@/components/profile/ProfileHeroBanner";
+import StatsCards from "@/components/profile/StatsCards";
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
-import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabsContainer from "@/components/profile/ProfileTabsContainer";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import ProfileNotFound from "@/components/profile/ProfileNotFound";
 import { isNotFoundError } from "@/lib/api/query-error";
 
 /**
- * A member's public profile.
- *
- * Lifted out of `app/(public)/profile/[username]/page.tsx` so that route can be
- * a server component and describe itself to crawlers — `generateMetadata` is
- * not available in a module marked "use client". The id still comes from
- * `useParams` rather than a prop, so nothing about the rendering changed.
+ * A member's public profile view.
  */
 export default function PublicProfileView() {
   const { username } = useParams<{ username: string }>();
@@ -47,18 +43,18 @@ export default function PublicProfileView() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="w-full space-y-6 pb-12"
+        className="w-full space-y-6 pb-16"
       >
-        {/* Top utility bar: breadcrumb + share */}
-        <ProfileHeader profile={profile} isPublicView />
+        {/* ── Top Hero Card / Banner ────────────────────────────────── */}
+        <ProfileHeroBanner profile={profile} />
 
-        {/* ── GitHub two-column layout ────────────────────────────────────
-             Mobile: sidebar stacks above the tabs.
-             lg+   : sidebar is a fixed-width sticky column, tabs fill the rest.
-        ──────────────────────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row lg:items-start">
-          {/* Left — sticky sidebar */}
-          <div className="w-full shrink-0 lg:sticky lg:top-24 lg:w-64 xl:w-72">
+        {/* ── Key Metrics Stat Strip ────────────────────────────────── */}
+        <StatsCards stats={stats} />
+
+        {/* ── Two-Column Main Content Layout ────────────────────────── */}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start xl:gap-8">
+          {/* Left Column: About & Network (sticky on desktop) */}
+          <div className="w-full shrink-0 lg:sticky lg:top-24 lg:w-80">
             <ProfileSidebar
               profile={profile}
               stats={stats}
@@ -66,7 +62,7 @@ export default function PublicProfileView() {
             />
           </div>
 
-          {/* Right — tabs + content */}
+          {/* Right Column: Tabbed Content (Overview, Hacktivity, Community, Thanks) */}
           <div className="min-w-0 flex-1">
             <Suspense fallback={null}>
               <ProfileTabsContainer

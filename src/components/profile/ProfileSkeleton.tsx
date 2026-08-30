@@ -3,8 +3,10 @@
 import { motion } from "motion/react";
 
 /**
- * Loading skeleton that mirrors the GitHub-style two-column profile layout:
- * sticky left sidebar card + right tab content area.
+ * Loading skeleton matching the upgraded profile layout:
+ * - Top hero cover & avatar bar
+ * - 5 Stats cards row
+ * - Two-column body (left about/network sidebar + right tabbed area)
  */
 export default function ProfileSkeleton() {
   return (
@@ -12,95 +14,84 @@ export default function ProfileSkeleton() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6 pb-12"
+      className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6 pb-16"
     >
-      {/* Share button bar */}
-      <div className="flex items-center justify-end">
-        <div className="h-9 w-28 animate-pulse rounded-xl bg-slate-200 dark:bg-neutral-800" />
+      {/* ── Hero Banner Skeleton ─────────────────────────────────── */}
+      <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+        <div className="h-36 sm:h-48 w-full bg-muted animate-pulse" />
+        <div className="px-5 pb-6 sm:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 sm:-mt-20">
+              <div className="size-28 sm:size-36 rounded-full border-4 border-card bg-muted animate-pulse shrink-0" />
+              <div className="space-y-2 pb-1">
+                <div className="h-7 w-48 rounded-lg bg-muted animate-pulse" />
+                <div className="h-4 w-32 rounded-md bg-muted animate-pulse" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <div className="h-9 w-28 rounded-xl bg-muted animate-pulse" />
+              <div className="h-9 w-20 rounded-xl bg-muted animate-pulse" />
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Two-column body */}
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        {/* Left sidebar skeleton card */}
-        <div className="w-full shrink-0 space-y-4 rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-2xs dark:border-neutral-800 dark:bg-neutral-900 lg:w-64 xl:w-72">
-          {/* Avatar circle */}
-          <div className="mx-auto aspect-square size-28 sm:size-36 lg:size-48 xl:size-56 animate-pulse rounded-full bg-slate-200 dark:bg-neutral-800 lg:mx-0" />
+      {/* ── Stats Cards Skeleton ─────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="h-28 rounded-2xl border border-border bg-card p-4 animate-pulse"
+          >
+            <div className="flex justify-between items-center">
+              <div className="h-3 w-16 rounded bg-muted" />
+              <div className="size-8 rounded-xl bg-muted" />
+            </div>
+            <div className="mt-4 h-7 w-20 rounded bg-muted" />
+          </div>
+        ))}
+      </div>
 
-          {/* Name + username */}
-          <div className="space-y-2 text-center lg:text-left">
-            <div className="mx-auto h-6 w-3/4 animate-pulse rounded-md bg-slate-200 dark:bg-neutral-800 lg:mx-0" />
-            <div className="mx-auto h-4 w-1/2 animate-pulse rounded-md bg-slate-200 dark:bg-neutral-800 lg:mx-0" />
+      {/* ── Two-Column Body Skeleton ─────────────────────────────── */}
+      <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row lg:items-start">
+        {/* Left Sidebar Skeleton */}
+        <div className="w-full shrink-0 space-y-5 lg:w-80">
+          <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+            <div className="h-4 w-28 rounded bg-muted animate-pulse" />
+            <div className="space-y-2">
+              <div className="h-3.5 w-full rounded bg-muted animate-pulse" />
+              <div className="h-3.5 w-4/5 rounded bg-muted animate-pulse" />
+              <div className="h-3.5 w-3/5 rounded bg-muted animate-pulse" />
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
+              <div className="h-14 rounded-xl bg-muted animate-pulse" />
+              <div className="h-14 rounded-xl bg-muted animate-pulse" />
+            </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="space-y-2 pt-1">
-            <div className="h-9 w-full animate-pulse rounded-xl bg-slate-200 dark:bg-neutral-800" />
-          </div>
-
-          {/* Bio */}
-          <div className="space-y-1.5">
-            <div className="h-3.5 w-full animate-pulse rounded bg-slate-200 dark:bg-neutral-800" />
-            <div className="h-3.5 w-5/6 animate-pulse rounded bg-slate-200 dark:bg-neutral-800" />
-            <div className="h-3.5 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-neutral-800" />
-          </div>
-
-          {/* Followers row */}
-          <div className="mx-auto h-4 w-40 animate-pulse rounded bg-slate-200 dark:bg-neutral-800 lg:mx-0" />
-
-          {/* Info rows */}
-          <div className="space-y-2.5 border-t border-slate-200/80 pt-4 dark:border-neutral-800">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="size-4 shrink-0 animate-pulse rounded bg-slate-200 dark:bg-neutral-800" />
-                <div
-                  className="h-3.5 animate-pulse rounded bg-slate-200 dark:bg-neutral-800"
-                  style={{ width: `${60 + i * 8}%` }}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Stats rows */}
-          <div className="space-y-2 border-t border-slate-200/80 pt-4 dark:border-neutral-800">
-            <div className="h-3 w-12 animate-pulse rounded bg-slate-200 dark:bg-neutral-800" />
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center justify-between">
-                <div className="h-3.5 w-28 animate-pulse rounded bg-slate-200 dark:bg-neutral-800" />
-                <div className="h-3.5 w-10 animate-pulse rounded bg-slate-200 dark:bg-neutral-800" />
-              </div>
-            ))}
+          <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
+            <div className="h-4 w-36 rounded bg-muted animate-pulse" />
+            <div className="h-9 w-full rounded-xl bg-muted animate-pulse" />
+            <div className="h-9 w-full rounded-xl bg-muted animate-pulse" />
           </div>
         </div>
 
-        {/* Right content skeleton */}
-        <div className="min-w-0 flex-1 space-y-5">
-          {/* Tab bar */}
-          <div className="flex gap-6 border-b border-slate-200/80 pb-3 dark:border-neutral-800">
+        {/* Right Content Skeleton */}
+        <div className="min-w-0 flex-1 space-y-6">
+          <div className="flex gap-6 border-b border-border pb-3">
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="h-4 animate-pulse rounded bg-slate-200 dark:bg-neutral-800"
-                style={{ width: `${48 + i * 12}px` }}
+                className="h-4 rounded bg-muted animate-pulse"
+                style={{ width: `${60 + i * 14}px` }}
               />
             ))}
           </div>
 
-          {/* Stats cards grid */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {[...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className="h-24 animate-pulse rounded-2xl bg-slate-200 dark:bg-neutral-800"
-              />
-            ))}
-          </div>
-
-          {/* Severity / badges placeholder */}
-          <div className="h-40 animate-pulse rounded-2xl bg-slate-200 dark:bg-neutral-800" />
-          <div className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-neutral-800" />
+          <div className="h-64 rounded-2xl border border-border bg-card animate-pulse" />
+          <div className="h-48 rounded-2xl border border-border bg-card animate-pulse" />
         </div>
       </div>
     </motion.div>
   );
 }
-

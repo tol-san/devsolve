@@ -17,21 +17,27 @@ export default function ThanksCard({ entry }: ThanksCardProps) {
     <motion.div
       whileHover={{ y: -2 }}
       transition={{ duration: 0.15 }}
-      className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs transition-shadow hover:shadow-xs dark:border-neutral-800 dark:bg-neutral-900"
+      className="rounded-2xl border border-border bg-card p-5 shadow-2xs transition-all duration-200 hover:border-border/80 hover:shadow-xs"
     >
       <div className="flex items-start gap-3.5">
         {entry.orgLogoUrl ? (
-          <Image src={entry.orgLogoUrl} alt={entry.orgName} width={40} height={40} className="h-10 w-10 shrink-0 rounded-2xl object-cover" />
+          <Image
+            src={entry.orgLogoUrl}
+            alt={entry.orgName}
+            width={40}
+            height={40}
+            className="size-10 shrink-0 rounded-2xl object-cover"
+          />
         ) : (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50 text-sm font-bold text-blue-600 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-sm font-bold text-primary">
             {entry.orgName.charAt(0)}
           </div>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-slate-900 dark:text-neutral-100">{entry.orgName}</p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-neutral-300">{entry.message}</p>
-          <p className="mt-2 text-xs font-medium text-slate-400 dark:text-neutral-500">{formatDate(entry.date)}</p>
+          <p className="text-sm font-bold text-foreground">{entry.orgName}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{entry.message}</p>
+          <p className="mt-2 text-xs font-medium text-muted-foreground">{formatDate(entry.date)}</p>
         </div>
       </div>
     </motion.div>
