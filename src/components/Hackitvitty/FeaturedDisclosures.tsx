@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { ShieldAlert, Award, Heart, Sparkles, ExternalLink } from "lucide-react";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 
 interface Disclosure {
   id: string;
@@ -60,8 +62,18 @@ export default function FeaturedDisclosures() {
     f3: 129,
   });
   const [userLiked, setUserLiked] = useState<Record<string, boolean>>({});
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
 
   const handleUpvote = (id: string) => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/hacktivity",
+      );
+      return;
+    }
     const isLiked = userLiked[id];
     setUserLiked((prev) => ({ ...prev, [id]: !isLiked }));
     setUpvotes((prev) => ({

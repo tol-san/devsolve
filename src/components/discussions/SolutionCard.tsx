@@ -39,6 +39,8 @@ import {
   useRemoveVoteMutation,
   useSetVoteMutation,
 } from "@/lib/redux/services/votesApi";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import {
   APPROACH_LABELS,
   RESOURCE_LABELS,
@@ -153,7 +155,18 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
     (file) => file.downloadUrl,
   );
 
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
+
   const castVote = async (value: 1 | -1) => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/problems/${solution.problemId || ""}`,
+      );
+      return;
+    }
     if (isVoting) return;
     const target = { type: "SOLUTION" as const, targetId: solution.id };
     const current = votes?.currentUserVote;
@@ -278,8 +291,18 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setReporting(true)}
-                  className="rounded-xl text-muted-foreground"
+                  onClick={() => {
+                    if (!session?.user) {
+                      void handleLogin(
+                        typeof window !== "undefined"
+                          ? `${window.location.pathname}${window.location.search}`
+                          : `/problems/${solution.problemId || ""}`,
+                      );
+                      return;
+                    }
+                    setReporting(true);
+                  }}
+                  className="rounded-xl text-muted-foreground cursor-pointer"
                 >
                   <Flag data-icon="inline-start" />
                   Report

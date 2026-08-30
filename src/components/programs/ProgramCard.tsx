@@ -9,6 +9,8 @@ import { Program } from "@/lib/types/programs/types";
 import { usePathname } from "next/navigation";
 import { splitLocale } from "@/lib/i18n/config";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import {
   useGetBookmarkStatusQuery,
   useAddBookmarkMutation,
@@ -45,8 +47,19 @@ export function ProgramCard({ program }: ProgramCardProps) {
   const [removeBookmark, { isLoading: isRemoving }] = useRemoveBookmarkMutation();
   const isToggling = isSaving || isRemoving;
 
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
+
   const toggleBookmark = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevents triggers if nested inside clickable elements
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/programs/${program.id}`,
+      );
+      return;
+    }
     if (isToggling) return;
     try {
       if (isBookmarked) {

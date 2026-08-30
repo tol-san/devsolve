@@ -39,6 +39,8 @@ import {
 import type { DiscussionPost } from "@/lib/types/dicussion/types";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { useRelativeTime } from "@/lib/i18n/relative-time";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import {
   MY_COMMUNITY_HREF,
   type MySolutionStatus,
@@ -96,9 +98,20 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   const upvoteCount = voteSummary?.upvotes ?? 0;
   const localBookmarked = bookmarkStatus ?? post.isBookmarked ?? false;
 
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
+
   /* The mutations take where the card is moving to, not a toggle, so the
      optimistic state and the request can never disagree about direction. */
   const handleVote = async (value: 1 | -1) => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/community",
+      );
+      return;
+    }
     if (isVoting) return;
 
     if (currentUserVote === value) {
@@ -117,6 +130,14 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   };
 
   const handleBookmark = async () => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/community",
+      );
+      return;
+    }
     if (isBookmarking) return;
 
     const result = localBookmarked

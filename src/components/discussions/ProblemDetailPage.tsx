@@ -78,6 +78,7 @@ import {
   useMySolutionStatus,
   type MySolutionStatus,
 } from "@/hooks/useMySolutionStatus";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 
 /**
  * One problem, read from the API — `GET /api/v1/problems/{id}` for the post,
@@ -292,7 +293,17 @@ function Loaded({
   const isResolved = problem.status === "RESOLVED";
   const answerCount = solutionPage?.totalElements ?? problem.solutionCount ?? 0;
 
+  const { handleLogin } = useKeycloakLogin();
+
   const onVote = async (value: 1 | -1) => {
+    if (!isSignedIn) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/problems/${id}`,
+      );
+      return;
+    }
     if (isVoting) return;
     const target = { type: "PROBLEM" as const, targetId: id };
     if (votes?.currentUserVote === value) await removeVote(target);
@@ -300,6 +311,14 @@ function Loaded({
   };
 
   const onBookmark = async () => {
+    if (!isSignedIn) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/problems/${id}`,
+      );
+      return;
+    }
     if (isBookmarking) return;
     if (isBookmarked) {
       await removeBookmark({ type: "PROBLEM", targetId: id });
@@ -636,8 +655,18 @@ function Loaded({
                   type="button"
                   variant="outline"
                   size="lg"
-                  onClick={() => setReportingProblem(true)}
-                  className="rounded-xl text-muted-foreground"
+                  onClick={() => {
+                    if (!isSignedIn) {
+                      void handleLogin(
+                        typeof window !== "undefined"
+                          ? `${window.location.pathname}${window.location.search}`
+                          : `/problems/${id}`,
+                      );
+                      return;
+                    }
+                    setReportingProblem(true);
+                  }}
+                  className="rounded-xl text-muted-foreground cursor-pointer"
                 >
                   <Flag data-icon="inline-start" />
                   Report
@@ -682,7 +711,7 @@ function Loaded({
                 </div>
               </div>
 
-              {canAnswer && (
+              {canAnswer ? (
                 <Link
                   href={`/community/${id}/solutions/create`}
                   className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-emerald-700"
@@ -690,7 +719,22 @@ function Loaded({
                   <Plus aria-hidden="true" className="size-4" />
                   {myAnswers.length > 0 ? "Post another" : "Post your solution"}
                 </Link>
-              )}
+              ) : !isSignedIn ? (
+                <Button
+                  type="button"
+                  onClick={() =>
+                    void handleLogin(
+                      typeof window !== "undefined"
+                        ? `${window.location.pathname}${window.location.search}`
+                        : `/problems/${id}`,
+                    )
+                  }
+                  className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-emerald-700 cursor-pointer"
+                >
+                  <Plus aria-hidden="true" className="size-4" />
+                  Post your solution
+                </Button>
+              ) : null}
             </div>
 
             {/* ── The reader's own answers on this problem ──
@@ -711,9 +755,23 @@ function Loaded({
               </p>
             )}
             {!isSignedIn && (
-              <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-                Sign in to post a solution to this problem.
-              </p>
+              <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+                <span>Sign in to post a solution to this problem.</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() =>
+                    void handleLogin(
+                      typeof window !== "undefined"
+                        ? `${window.location.pathname}${window.location.search}`
+                        : `/problems/${id}`,
+                    )
+                  }
+                  className="rounded-xl bg-blue-600 px-4 font-semibold text-white hover:bg-blue-700 cursor-pointer"
+                >
+                  Sign in
+                </Button>
+              </div>
             )}
 
             {isLoadingSolutions ? (

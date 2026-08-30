@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { parseApiError } from "@/lib/api/errors";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import { useCreateFlagMutation } from "@/lib/redux/services/flagsApi";
 import {
   FLAG_REASONS,
@@ -119,7 +121,18 @@ export function ReportContentDialog({
     reset({ description: "" });
   };
 
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
+
   const submit = handleSubmit(async ({ reason, description }) => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/",
+      );
+      return;
+    }
     try {
       await createFlag({
         flaggableType: contentType,

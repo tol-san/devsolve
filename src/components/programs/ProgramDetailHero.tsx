@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { Program, ProgramDetail } from "@/lib/types/programs/types";
 import { isPublished, isUnderReview } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import {
   useGetBookmarkStatusQuery,
   useAddBookmarkMutation,
@@ -56,7 +58,18 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
   const [removeBookmark, { isLoading: isRemoving }] = useRemoveBookmarkMutation();
   const isToggling = isSaving || isRemoving;
 
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
+
   const handleToggleSave = async () => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/programs/${program.id}`,
+      );
+      return;
+    }
     if (isToggling) return;
     try {
       if (isSaved) {

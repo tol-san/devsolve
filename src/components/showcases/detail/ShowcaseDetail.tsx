@@ -37,6 +37,8 @@ import {
   useSetVoteMutation,
 } from "@/lib/redux/services/votesApi";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import { cn } from "@/lib/utils";
 
 /**
@@ -85,6 +87,8 @@ function initialsOf(name: string) {
 export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const { data: showcase, isLoading } = useGetShowcaseByIdQuery(id);
   const [reporting, setReporting] = useState(false);
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
 
   /* The showcase response carries its steps; the dedicated endpoint is the
      fallback for when it comes back without them. */
@@ -110,6 +114,14 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const myVote = votes?.currentUserVote ?? 0;
 
   const vote = async (value: 1 | -1) => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/showcases/${id}`,
+      );
+      return;
+    }
     if (isVoting) return;
 
     try {
@@ -247,7 +259,17 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
                     type="button"
                     variant="ghost"
                     size="lg"
-                    onClick={() => setReporting(true)}
+                    onClick={() => {
+                      if (!session?.user) {
+                        void handleLogin(
+                          typeof window !== "undefined"
+                            ? `${window.location.pathname}${window.location.search}`
+                            : `/showcases/${id}`,
+                        );
+                        return;
+                      }
+                      setReporting(true);
+                    }}
                     className="rounded-xl text-muted-foreground"
                   >
                     <Flag data-icon="inline-start" />
