@@ -165,7 +165,7 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
         </div>
 
         {/* ── 3. CENTER CORE: CONCENTRIC CONVERGENCE HUB ── */}
-        <div className="relative flex items-center justify-center shrink-0 self-end my-4 lg:my-0">
+        <div className="relative flex items-center justify-center shrink-0 self-center lg:self-end mx-auto my-4 lg:my-0">
           
           {/* Core Outer Orbit Ring Container */}
           <div className="relative flex items-center justify-center h-64 w-64 sm:h-76 sm:w-76 md:h-88 md:w-88">
