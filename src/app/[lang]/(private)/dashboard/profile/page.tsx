@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { UserX } from "lucide-react";
 import { useGetEditProfileFormQuery } from "@/lib/redux/services/profileApi";
@@ -32,11 +32,20 @@ export default function MyProfilePage() {
   });
   const username = data?.username;
 
+  /* `/dashboard/profile` is a shorthand that resolves to the canonical
+     username URL, so anything asking it for something — `?edit=1` from an
+     edit control that had no handle to build a direct link with — has to
+     survive the hop. Dropping it landed the reader on their profile instead
+     of the form they asked for. */
+  const search = useSearchParams().toString();
+
   useEffect(() => {
     if (areRolesResolved && !isCompany && !isAdmin && username) {
-      router.replace(`/dashboard/profile/${username}`);
+      router.replace(
+        `/dashboard/profile/${username}${search ? `?${search}` : ""}`,
+      );
     }
-  }, [areRolesResolved, isCompany, isAdmin, username, router]);
+  }, [areRolesResolved, isCompany, isAdmin, username, search, router]);
 
   if (!areRolesResolved) {
     return <ProfileSkeleton />;
