@@ -1,28 +1,40 @@
 {
   "nav": {
     "home": "ទំព័រដើម",
-    "programs": "កម្មវិធី (Programs)",
+    "programs": "កម្មវិធី",
     "community": "សហគមន៍",
     "hacktivity": "Hacktivity",
-    "problem": "បញ្ហា / Error",
+    "problem": "បញ្ហា និង Error",
     "showcase": "Showcase ស្នាដៃ",
     "leaderboard": "តារាង Top Dev",
     "about": "អំពីពួកយើង",
-    "login": "Login ចូល",
-    "getStarted": "ចាប់ផ្ដើមលេងស្តាយ",
+    "login": "ចូលគណនី",
+    "getStarted": "ចាប់ផ្ដើមឥឡូវនេះ",
     "openMenu": "បើក Menu",
     "closeMenu": "បិទ Menu",
     "toggleTheme": "ដូរ Theme",
     "language": "ភាសា",
-    "connecting": "កំពុង Connect…",
-    "lightMode": "Light Mode ចាំងភ្នែក",
-    "darkMode": "Dark Mode ម៉្យាងដែរ"
+    "connecting": "កំពុងភ្ជាប់…",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode"
   },
   "hero": {
-    "kicker": "Platform តែមួយចប់",
-    "titleLine1": "DevSolve — ៤ មុខងារធំៗ",
-    "titleLine2": "លើ Platform តែមួយ",
-    "getStarted": "ចាប់ផ្ដើម Free ហ្មង",
+    "kicker": "DevSolve Platform",
+    "kickerSub": "មជ្ឈមណ្ឌល Bug Bounty និង Dev Hub រួមតែមួយ",
+    "titleLine1": "បង្វែរចន្លោះប្រហោងសុវត្ថិភាព",
+    "titleLine2": "ទៅជាដំណោះស្រាយដែលបានផ្ទៀងផ្ទាត់",
+    "subheadline": "Platform សុវត្ថិភាពបើកចំហដែលក្រុមវិស្វកម្មប្រកាសកម្មវិធី Bug Bounty ជាមួយ SLA តម្លាភាព វាយតម្លៃរបាយការណ៍ផ្ទាល់ៗ និង Devs ដោះស្រាយបញ្ហាបច្ចេកទេសស្មុគស្មាញ។",
+    "getStarted": "ចាប់ផ្ដើមដោយឥតគិតថ្លៃ",
+    "exploreBounties": "ស្វែងរក Bug Bounties",
+    "activeBountyPool": "Bounty សរុបកំពុងដំណើរការ",
+    "avgTriageSla": "រយៈពេលវាយតម្លៃជាមធ្យម",
+    "protectedScopes": "Scopes ត្រូវបានការពារ",
+    "researchersAndDevs": "អ្នកស្រាវជ្រាវ និង Devs",
+    "liveTriageStream": "ការវាយតម្លៃផ្ទាល់ៗ",
+    "realtime": "ពេលវេលាជាក់ស្ដែង",
+    "patchApplied": "បាន Patch រួចរាល់",
+    "inspectReport": "ពិនិត្យរបាយការណ៍",
+    "browseActivePrograms": "ស្វែងរក ៥០+ Programs កំពុងដំណើរការ",
     "platform": "Platform",
     "live": "Live ផ្ទាល់ៗ",
     "pillars": {
@@ -30,19 +42,19 @@
         "label": "ប្រមាញ់ Bug យក Bounty",
         "role": "ក្រុមហ៊ុន",
         "blurb": "ក្រុមហ៊ុនដាក់ Scope ច្បាស់ៗ កម្រិត Severity និងទំហំលុយ Bounty ជាមុន រួចវាយតម្លៃ Report យ៉ាងតម្លាភាព។ គ្មាន Drama លាក់លក្ខខណ្ឌ គ្មានការប្រកែកគ្នាក្រោយចប់ឡើយ។",
-        "link": "មើល Programs កំពុង Live"
+        "link": "មើល Programs កំពុងដំណើរការ"
       },
       "problems": {
-        "label": "បញ្ហា / Error",
+        "label": "បញ្ហា និង Error",
         "role": "អ្នកសរសេរ",
-        "blurb": "ទម្លាក់ Error មកត្រង់ៗ — ទាំង Tech Stack, Version និងវិធីដែលបានសាករួច។ ដាក់ Tag ត្រូវ គឺរត់ចំ Dev ដែលធ្លាប់ Fix បញ្ហាហ្នឹងច្បាស់ហ្មង។",
-        "link": "ឆែកមើល List បញ្ហាទាំងអស់"
+        "blurb": "ទម្លាក់ Error មកត្រង់ៗ — ទាំង Tech Stack, Version និងវិធីដែលបានសាករួច។ ដាក់ Tag ត្រូវ គឺរត់ចំ Dev ដែលធ្លាប់ដោះស្រាយបញ្ហានោះភ្លាមៗ។",
+        "link": "ឆែកមើលបញ្ហាទាំងអស់"
       },
       "solutions": {
         "label": "ដំណោះស្រាយ",
         "role": "សហគមន៍",
         "blurb": "ឆ្លើយមកជាមួយ Code ការ Setup និងមូលហេតុច្បាស់ៗ។ ម្ចាស់សំណួរជាអ្នករើសយកចម្លើយដែល Work ហើយវានឹងក្លាយជាគន្លឹះស្រាប់សម្រាប់អ្នកជួបលើកក្រោយ។",
-        "link": "ចូលមើល Community"
+        "link": "ចូលមើលសហគមន៍"
       },
       "showcases": {
         "label": "Showcase ស្នាដៃ",
@@ -53,26 +65,26 @@
     }
   },
   "footer": {
-    "tagline": "Platform ប្រមាញ់ Bug Bounty និងរាយការណ៍ចន្លោះប្រហោងសុវត្ថិភាព (Vulnerability) សម្រាប់ Devs, Security Engineers និងក្រុមហ៊ុននានា។ បង្កើតឡើងដើម្បីឆ្កឹះរក Bug មុន Hacker វាយលុក។",
+    "tagline": "Platform ប្រមាញ់ Bug Bounty និងរាយការណ៍ចន្លោះប្រហោងសុវត្ថិភាពសម្រាប់ Devs, Security Engineers និងក្រុមហ៊ុននានា។ បង្កើតឡើងដើម្បីស្វែងរក Bug មុនពេល Hacker វាយលុក។",
     "sponsors": "Sponsors និងអ្នករៀបចំ",
     "rights": "រក្សាសិទ្ធិគ្រប់យ៉ាង។",
-    "backToTop": "អូសឡើងលើវិញ",
+    "backToTop": "ត្រឡប់ឡើងលើវិញ",
     "home": "ទំព័រដើម DevSolve",
     "sections": {
       "platform": "Platform",
-      "explore": "Explore មើល",
-      "account": "Account"
+      "explore": "ស្វែងរក",
+      "account": "គណនី"
     },
     "links": {
-      "programs": "Programs",
-      "problems": "បញ្ហា / Error",
+      "programs": "កម្មវិធី",
+      "problems": "បញ្ហា និង Error",
       "showcases": "Showcases",
-      "community": "សហគមន៍ (Community)",
+      "community": "សហគមន៍",
       "hacktivity": "Hacktivity",
       "leaderboard": "តារាង Top Dev",
       "about": "អំពីពួកយើង",
-      "signIn": "Sign In ចូល",
-      "createAccount": "បង្កើត Account ថ្មី"
+      "signIn": "ចូលគណនី",
+      "createAccount": "បង្កើតគណនីថ្មី"
     }
   },
   "common": {
@@ -86,34 +98,34 @@
     "step": "Step",
     "last12": "១២ ខែ",
     "months": "ចុងក្រោយ",
-    "critical": "Critical ធ្ងន់ធ្ងរខ្លាំង",
-    "high": "High ខ្ពស់",
-    "medium": "Medium មធ្យម"
+    "critical": "ធ្ងន់ធ្ងរខ្លាំង",
+    "high": "ខ្ពស់",
+    "medium": "មធ្យម"
   },
   "stats": {
     "kicker": "សកម្មភាពលើ Platform",
     "title": "តួលេខជាក់ស្ដែង",
     "lede": "ទិន្នន័យសកម្មភាព ១២ ខែចុងក្រោយលើ Programs, Reports និងដំណោះស្រាយពី Community។ តួលេខខាងក្រោមជាទិន្នន័យប្រចាំខែ មិនមែនបូកសរុបទាំងអស់ពីដើមមកទេ។",
     "bountiesPaid": "Bounty បានបើកជូន",
-    "bountiesUnit": "ដុល្លារ ($) សរុប",
-    "researchers": "Security Researchers ដែលបាន Verify",
-    "researchersUnit": "Accounts កំពុង Active",
-    "livePrograms": "Programs កំពុង Live",
+    "bountiesUnit": "ដុល្លារសរុប",
+    "researchers": "Security Researchers ដែលបានផ្ទៀងផ្ទាត់",
+    "researchersUnit": "គណនីសកម្ម",
+    "livePrograms": "Programs កំពុងដំណើរការ",
     "liveUnit": "កំពុងទទួល Report",
-    "reports": "Reports ដែលបាន Verify រួច",
-    "reportsUnit": "បាន Review និងបិទរួចរាល់"
+    "reports": "Reports ដែលបានផ្ទៀងផ្ទាត់រួច",
+    "reportsUnit": "បានពិនិត្យនិងបិទរួចរាល់"
   },
   "lifecycle": {
     "kicker": "របៀបដំណើរការ",
-    "scroll": "កំពុង Scan…",
-    "steps": "Steps ដំណើរការ",
+    "scroll": "កំពុងដំណើរការ…",
+    "steps": "ដំណាក់កាលដំណើរការ",
     "acts": {
       "bounty": {
         "tab": "Bug Bounty",
-        "tabSub": "[ Program Lifecycle ]",
+        "tabSub": "[ ដំណើរការ Program ]",
         "title1": "ដំណើរការនៃ",
         "title2": "Bug Bounty",
-        "hrefLabel": "មើល Programs កំពុង Live",
+        "hrefLabel": "មើល Programs កំពុងដំណើរការ",
         "steps": {
           "01": {
             "title": "ប្រកាស Program",
@@ -128,7 +140,7 @@
           "03": {
             "title": "ទម្លាក់ Report",
             "role": "Security Researcher",
-            "body": "Submit ការរកឃើញជាមួយ Steps សម្រាប់ Replicate, ការវិភាគផលប៉ះពាល់ (Impact) និង Proof of Concept (PoC) ដែល Work ពិតប្រាកដ។ Report នឹងទទួលបាន Timestamp ភ្លាមៗ ដើម្បីធានាសិទ្ធិរកឃើញមុនគេ (First-come, first-served)។"
+            "body": "ដាក់ការរកឃើញជាមួយជំហានសម្រាប់ Replicate, ការវិភាគផលប៉ះពាល់ និង Proof of Concept ដែលដំណើរការជាក់ស្ដែង។ Report នឹងទទួលបាន Timestamp ភ្លាមៗ ដើម្បីធានាសិទ្ធិរកឃើញមុនគេ។"
           },
           "04": {
             "title": "Review វាយតម្លៃ",
@@ -143,11 +155,11 @@
         }
       },
       "community": {
-        "tab": "សហគមន៍ (Community)",
-        "tabSub": "[ Problems & Solutions ]",
+        "tab": "សហគមន៍",
+        "tabSub": "[ បញ្ហា និងដំណោះស្រាយ ]",
         "title1": "បញ្ហា និង Error",
         "title2": "ដោះស្រាយរួចរាល់",
-        "hrefLabel": "ឆែកមើល List បញ្ហាទាំងអស់",
+        "hrefLabel": "ឆែកមើលបញ្ហាទាំងអស់",
         "steps": {
           "01": {
             "title": "សួរចំៗ",
@@ -497,35 +509,35 @@
     "category": {
       "overview": "ទិដ្ឋភាពទូទៅ",
       "researcher": "អ្នកស្រាវជ្រាវ",
-      "organization": "អង្គភាព / ក្រុមហ៊ុន",
+      "organization": "អង្គភាព និងក្រុមហ៊ុន",
       "administration": "ការគ្រប់គ្រង Admin"
     },
     "nav": {
       "home": "ទំព័រដើម",
       "dashboard": "ផ្ទាំងគ្រប់គ្រង",
-      "programs": "កម្មវិធី (Programs)",
+      "programs": "កម្មវិធី",
       "community": "សហគមន៍",
       "my community": "សហគមន៍របស់ខ្ញុំ",
       "leaderboard": "តារាង Top Dev",
-      "invitations": "ការអញ្ជើញ (Invitations)",
+      "invitations": "ការអញ្ជើញ",
       "my team": "ក្រុមរបស់ខ្ញុំ",
-      "reports": "របាយការណ៍ (Reports)",
-      "rewards": "រង្វាន់ (Rewards)",
-      "bookmarks": "ចំណាំ (Bookmarks)",
-      "saved drafts": "ព្រាងទុក (Drafts)",
-      "my access": "សិទ្ធិចូលរបស់ខ្ញុំ (Access)",
-      "analytics": "ការវិភាគ (Analytics)",
+      "reports": "របាយការណ៍",
+      "rewards": "រង្វាន់",
+      "bookmarks": "ចំណាំ",
+      "saved drafts": "ព្រាងទុក",
+      "my access": "សិទ្ធិចូលរបស់ខ្ញុំ",
+      "analytics": "ការវិភាគ",
       "program management": "គ្រប់គ្រង Program",
       "create program": "បង្កើត Program",
       "report management": "គ្រប់គ្រង Report",
-      "team management": "គ្រប់គ្រងក្រុម (Team)",
-      "researcher access": "សិទ្ធិអ្នកស្រាវជ្រាវ (Researcher)",
+      "team management": "គ្រប់គ្រងក្រុម",
+      "researcher access": "សិទ្ធិអ្នកស្រាវជ្រាវ",
       "organization verification": "ផ្ទៀងផ្ទាត់ក្រុមហ៊ុន",
       "program review": "ពិនិត្យ Program",
-      "users": "អ្នកប្រើប្រាស់ (Users)",
+      "users": "អ្នកប្រើប្រាស់",
       "content management": "គ្រប់គ្រងមាតិកា",
-      "categories": "ជំពូក / ប្រភេទ",
-      "weaknesses": "ចំណុចខ្សោយ (CWE)"
+      "categories": "ជំពូក និងប្រភេទ",
+      "weaknesses": "ចំណុចខ្សោយ"
     },
     "settings": "ការកំណត់",
     "orgSettings": "ការកំណត់ក្រុមហ៊ុន",
@@ -594,10 +606,10 @@
     },
     "reportSeverity": {
       "title": "របាយការណ៍តាមកម្រិតធ្ងន់ធ្ងរ",
-      "critical": "Critical ធ្ងន់ធ្ងរខ្លាំង",
-      "high": "High ខ្ពស់",
-      "medium": "Medium មធ្យម",
-      "low": "Low ទាប"
+      "critical": "ធ្ងន់ធ្ងរខ្លាំង",
+      "high": "ខ្ពស់",
+      "medium": "មធ្យម",
+      "low": "ទាប"
     },
     "error": {
       "title": "ផ្ទាំងគ្រប់គ្រងមិនអាចបើកបានទេ",

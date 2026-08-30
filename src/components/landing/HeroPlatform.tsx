@@ -1,548 +1,533 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
-import Image from "next/image";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   AnimatePresence,
   motion,
-  useAnimationFrame,
-  useInView,
   useReducedMotion,
 } from "motion/react";
-import { ArrowUpRight, Bug, Lightbulb, MessagesSquare, Trophy } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Bug,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Code2,
+  DollarSign,
+  FileCode,
+  Globe,
+  Lock,
+  MessageSquare,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Terminal,
+  Trophy,
+  Users,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import SectionBackdrop, {
   ACCENT,
   PRIMARY,
   SECONDARY,
-  useIsDark,
+  useInk,
 } from "./SectionBackdrop";
 
 /* ════════════════════════════════════════════════════════════════════
-   HERO — the platform, stated four ways
-
-   Built in the same language as the lifecycle section below it: an editorial
-   split with the type on the left and a technical dial on the right, thin
-   line art, monospace micro-labels, one accent, and a rail whose active item
-   drives the drawing. The two sections should read as one publication rather
-   than two templates stacked.
-
-   Colour carries the argument. The pillars where work *arrives* — a bounty
-   programme, a problem someone is stuck on — are the brand primary; the ones
-   where it *resolves* are the accent. The dial cycles them so the page is
-   never showing a static diagram.
+   SCENARIOS FOR HERO INTERACTIVE CONSOLE
    ════════════════════════════════════════════════════════════════════ */
 
-type Pillar = {
-  n: string;
-  /** Catalogue branch under `hero.pillars`. */
-  key: string;
-  label: string;
-  blurb: string;
-  href: string;
-  linkLabel: string;
-  icon: LucideIcon;
-  /** Who the pillar belongs to — the badge beside its title. */
-  role: string;
-  /** Degrees, 0 = east, clockwise because y runs down. */
-  deg: number;
-  /** Arriving work takes the primary; resolving work takes the accent. */
-  inbound: boolean;
-};
+type ScenarioKey = "bounty" | "problem" | "showcase";
 
-const PILLARS: Pillar[] = [
+interface Scenario {
+  id: ScenarioKey;
+  tabLabel: string;
+  badge: string;
+  icon: LucideIcon;
+  targetOrg: string;
+  scope: string;
+  severity: "Critical" | "High" | "Solved";
+  severityChip: string;
+  title: string;
+  filePath: string;
+  diffOld: string;
+  diffNew: string;
+  payoutOrPoints: string;
+  author: string;
+  authorRole: string;
+  triageTime: string;
+  statusText: string;
+}
+
+const SCENARIOS: Scenario[] = [
   {
-    n: "01",
-    key: "bounty",
-    label: "Bug Bounty",
-    role: "Company",
-    blurb:
-      "Companies publish scope, severity tiers and reward bands up front, then triage against them in the open. No private rubric, no argument after the fact.",
-    href: "/programs",
-    linkLabel: "Browse live programs",
-    icon: Bug,
-    deg: -128,
-    inbound: true,
+    id: "bounty",
+    tabLabel: "Vulnerability Triage",
+    badge: "Live Bounty",
+    icon: ShieldAlert,
+    targetOrg: "Acme Cloud Infrastructure",
+    scope: "api.acme-cloud.io/v2/auth",
+    severity: "Critical",
+    severityChip: "bg-[#1E293B] text-white dark:bg-neutral-100 dark:text-neutral-900",
+    title: "Authentication Bypass via JWT Algorithm Confusion (CVE-2026-4402)",
+    filePath: "src/auth/jwt-verifier.ts",
+    diffOld: `- const decoded = jwt.verify(token, pubKey, { algorithms: ["RS256", "HS256"] });`,
+    diffNew: `+ const decoded = jwt.verify(token, pubKey, { algorithms: ["RS256"] }); // Enforce asymmetric only`,
+    payoutOrPoints: "+$5,000 Bounty Paid",
+    author: "@alex_sec",
+    authorRole: "Security Researcher",
+    triageTime: "Triaged in 34 mins",
+    statusText: "Verified & Rewarded",
   },
   {
-    n: "02",
-    key: "problems",
-    label: "Problems",
-    role: "Author",
-    blurb:
-      "Post the problem as it actually is — the error, the stack, the versions, what you already ruled out. Tagged threads reach people who have shipped in it.",
-    href: "/problems",
-    linkLabel: "Open the problems feed",
-    icon: MessagesSquare,
-    deg: -52,
-    inbound: true,
+    id: "problem",
+    tabLabel: "Production Code Fix",
+    badge: "Community Fix",
+    icon: Code2,
+    targetOrg: "Next.js App Router Stack",
+    scope: "github.com/org/saas-core",
+    severity: "Solved",
+    severityChip: "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-neutral-950",
+    title: "Hydration Mismatch & Session Stalling in Server Action Middleware",
+    filePath: "src/middleware/session.ts",
+    diffOld: `- const session = cookies().get("auth_token")?.value; // Sync read causes hydration error`,
+    diffNew: `+ const cookieStore = await cookies();\n+ const session = cookieStore.get("auth_token")?.value;`,
+    payoutOrPoints: "+250 Reputation Pts",
+    author: "@sarah_dev",
+    authorRole: "Fullstack Engineer",
+    triageTime: "Solved in 18 mins",
+    statusText: "Marked Solution",
   },
   {
-    n: "03",
-    key: "solutions",
-    label: "Solutions",
-    role: "Community",
-    blurb:
-      "Answers carry the code, the config and the reasoning. The author marks what worked, and the thread becomes something the next person can search for.",
-    href: "/community",
-    linkLabel: "See the community",
-    icon: Lightbulb,
-    deg: 52,
-    inbound: false,
-  },
-  {
-    n: "04",
-    key: "showcases",
-    label: "Showcases",
-    role: "Profile",
-    blurb:
-      "Every accepted report and marked solution lands on your profile with the severity, the programme and the date attached. One link, nothing to explain.",
-    href: "/showcases",
-    linkLabel: "See the showcases",
+    id: "showcase",
+    tabLabel: "Security Showcase",
+    badge: "Verified Proof",
     icon: Trophy,
-    deg: 128,
-    inbound: false,
+    targetOrg: "Supabase Realtime Engine",
+    scope: "realtime.supabase.co/socket",
+    severity: "High",
+    severityChip: "bg-slate-200 text-slate-700 dark:bg-neutral-700 dark:text-neutral-100",
+    title: "WebSocket Connection State Race Condition in Broadcast Channel",
+    filePath: "packages/realtime/broadcast.ts",
+    diffOld: `- channel.subscribe((status) => dispatch(status)); // Unlocked state mutation`,
+    diffNew: `+ const mutex = await acquireLock(channelId);\n+ channel.subscribeWithLock(mutex, (status) => dispatch(status));`,
+    payoutOrPoints: "+$3,200 Bounty + Badge",
+    author: "@marcus_k",
+    authorRole: "AppSec Lead",
+    triageTime: "Triaged in 52 mins",
+    statusText: "Public Disclosure",
   },
 ];
 
-/** How long the dial rests on each pillar before moving on. */
-const DWELL_MS = 4200;
+/* ── Live Disclosures Feed Data for Left Console ── */
+const LIVE_FEED = [
+  {
+    severity: "Critical",
+    severityChip: "bg-[#1E293B] text-white dark:bg-neutral-100 dark:text-neutral-900",
+    name: "Acme Cloud",
+    type: "Auth Bypass",
+    bounty: "$5,000",
+    time: "2m",
+  },
+  {
+    severity: "High",
+    severityChip: "bg-slate-200 text-slate-700 dark:bg-neutral-700 dark:text-neutral-100",
+    name: "Supabase Engine",
+    type: "Race Condition",
+    bounty: "$3,200",
+    time: "14m",
+  },
+  {
+    severity: "Medium",
+    severityChip: "border border-slate-200 text-slate-500 dark:border-neutral-700 dark:text-neutral-400",
+    name: "Vercel Functions",
+    type: "SSRF Endpoint",
+    bounty: "$1,200",
+    time: "48m",
+  },
+  {
+    severity: "Low",
+    severityChip: "border border-slate-200 text-slate-400 dark:border-neutral-800 dark:text-neutral-500",
+    name: "DevSolve Hub",
+    type: "CORS Misconfig",
+    bounty: "$400",
+    time: "1h",
+  },
+];
 
-/* ─── Dial geometry ─────────────────────────────────────────────────── */
-const BOX = 400;
-const MID = BOX / 2;
-const RIM = 176;
-const RINGS = [0.3, 0.54, 0.78, 1];
-/** Markers sit inside the rim; labels live in the padding beyond it. */
-const NODE_R = 132;
+/* ════════════════════════════════════════════════════════════════════
+   MAIN HERO PLATFORM COMPONENT
+   ════════════════════════════════════════════════════════════════════ */
 
-/* Rounded, because `Math.sin`/`Math.cos` are implementation-defined in their
-   last digit: Node and the browser disagree by an ULP, React compares the
-   serialised attribute, and an unrounded coordinate is a hydration mismatch. */
-const round = (v: number) => Math.round(v * 1000) / 1000;
-const polar = (deg: number, r: number) => ({
-  x: round(MID + r * Math.cos((deg * Math.PI) / 180)),
-  y: round(MID + r * Math.sin((deg * Math.PI) / 180)),
-});
-
-const TICKS = Array.from({ length: 72 }, (_, i) => {
-  const deg = i * 5;
-  const major = i % 6 === 0;
-  const outer = polar(deg, RIM);
-  const inner = polar(deg, RIM - (major ? 13 : 6));
-  return { major, x1: inner.x, y1: inner.y, x2: outer.x, y2: outer.y };
-});
-
-/** Points along the ring from the first node round to `deg`, clockwise. */
-function arcTo(deg: number) {
-  const from = PILLARS[0].deg;
-  const span = deg - from;
-  const steps = Math.max(2, Math.round(span / 4));
-  return Array.from({ length: steps + 1 }, (_, i) => {
-    const p = polar(from + (span * i) / steps, NODE_R);
-    return `${p.x},${p.y}`;
-  }).join(" ");
-}
-
-/* ─── Component ─────────────────────────────────────────────────────── */
 export function HeroPlatform() {
   const t = useT();
   const lp = useLocalePath();
+  const ink = useInk();
   const reduce = useReducedMotion();
-  const isDark = useIsDark();
-  const [active, setActive] = useState(0);
-  const sectionRef = useRef<HTMLElement>(null);
-  const dwellRef = useRef<HTMLSpanElement>(null);
-  /** Milliseconds spent on the current pillar; also drives the dwell bar. */
-  const elapsedRef = useRef(0);
-  const activeRef = useRef(0);
-  /* Off-screen the clock idles rather than advancing behind the fold. */
-  const inView = useInView(sectionRef, { margin: "-15% 0px -15% 0px" });
+  const [selectedScenario, setSelectedScenario] = useState<ScenarioKey>("bounty");
 
-  const pillar = PILLARS[active];
-  const tint = pillar.inbound ? PRIMARY : ACCENT;
-  const line = isDark ? "#FFFFFF" : SECONDARY;
-  const muted = isDark ? "#A3A3A3" : "#94A3B8";
-
-  useAnimationFrame((_, delta) => {
-    if (reduce || !inView) return;
-    elapsedRef.current += delta;
-    if (dwellRef.current) {
-      const t = Math.min(1, elapsedRef.current / DWELL_MS);
-      dwellRef.current.style.transform = `scaleX(${t.toFixed(3)})`;
-    }
-    if (elapsedRef.current >= DWELL_MS) {
-      elapsedRef.current = 0;
-      activeRef.current = (activeRef.current + 1) % PILLARS.length;
-      setActive(activeRef.current);
-    }
-  });
-
-  /* Picking a pillar restarts its dwell rather than stopping the cycle — the
-     drawing keeps moving, which is what the lifecycle section does too. */
-  const pick = useCallback((i: number) => {
-    elapsedRef.current = 0;
-    activeRef.current = i;
-    setActive(i);
-  }, []);
+  const currentScenario =
+    SCENARIOS.find((s) => s.id === selectedScenario) || SCENARIOS[0];
 
   return (
-    <section ref={sectionRef} className="relative -mt-(--navbar-height) overflow-hidden bg-white pb-16 pt-(--navbar-height) sm:pb-24 dark:bg-neutral-950">
-      <SectionBackdrop seed={0} gridSize={88} />
+    <section className="relative overflow-hidden pt-8 pb-20 sm:pb-28 lg:pt-14">
+      {/* Dynamic page backdrop */}
+      <SectionBackdrop seed={42} gridSize={88} />
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 sm:px-12">
-        <div className="grid grid-cols-1 items-center gap-10 pt-8 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:pt-12">
-          {/* ── LEFT — the claim ── */}
-          <div>
-            <div className="mb-4 flex items-center gap-2.5">
-              <span className="h-px w-8" style={{ backgroundColor: tint }} />
-              <span
-                className="text-xs font-bold uppercase tracking-[0.22em]"
-                style={{ color: tint }}
-              >
-                {t("hero.kicker")}
-              </span>
-            </div>
-
-            <h1
-              className="font-bold leading-[1.02] tracking-[-0.045em] text-[#1E293B] dark:text-neutral-100"
-              style={{ fontSize: "clamp(34px, 4.2vw, 60px)" }}
-            >
-              <span className="block">{t("hero.titleLine1")}</span>
-              <span className="block">
-                {t("hero.titleLine2")}
-                <span style={{ color: tint }}>.</span>
-              </span>
-            </h1>
-
-            {/* The pillar the dial is resting on, laid out the way the
-                lifecycle section lays out a step: numeral, title, role. */}
-            <div className="relative mt-8 min-h-52 sm:min-h-44">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={pillar.n}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.28, ease: "easeOut" }}
-                  className="grid grid-cols-[auto_1fr] items-start gap-5 sm:gap-7"
-                >
-                  <span
-                    className="block pt-1 text-right font-bold tabular-nums leading-none tracking-[-0.06em] text-slate-300 dark:text-neutral-700"
-                    style={{
-                      fontSize: "clamp(44px, 5.5vw, 78px)",
-                      width: "clamp(62px, 7.5vw, 108px)",
-                    }}
-                  >
-                    {pillar.n}
-                  </span>
-
-                  <div className="pt-1">
-                    <div className="mb-2 flex flex-wrap items-baseline gap-3">
-                      <h2 className="text-2xl font-bold tracking-tight text-[#1E293B] sm:text-3xl dark:text-neutral-100">
-                        {t(`hero.pillars.${pillar.key}.label`) || pillar.label}
-                        <span style={{ color: tint }}>.</span>
-                      </h2>
-                      <span className="rounded-lg border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400 dark:border-neutral-700 dark:text-neutral-500">
-                        {t(`hero.pillars.${pillar.key}.role`) || pillar.role}
-                      </span>
-                    </div>
-                    <p className="max-w-xl text-sm leading-[1.8] text-slate-500 sm:text-[15px] dark:text-neutral-400">
-                      {t(`hero.pillars.${pillar.key}.blurb`) || pillar.blurb}
-                    </p>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* Rail — the same pattern the lifecycle section uses for steps. */}
-            <div className="mt-7 flex flex-wrap gap-2">
-              {PILLARS.map((p, i) => {
-                const on = i === active;
-                const chip = p.inbound ? PRIMARY : ACCENT;
-                return (
-                  <button
-                    key={p.n}
-                    type="button"
-                    onClick={() => pick(i)}
-                    aria-current={on ? "true" : undefined}
-                    className={`relative flex items-center gap-2 overflow-hidden rounded-lg border px-3 py-2 transition-colors duration-200 ${
-                      on
-                        ? "border-slate-300 bg-white dark:border-neutral-700 dark:bg-neutral-900"
-                        : "border-slate-200 bg-transparent hover:bg-white dark:border-neutral-800 dark:hover:bg-neutral-900"
-                    }`}
-                  >
-                    <span
-                      className="font-mono text-[11px] font-semibold tabular-nums"
-                      style={{ color: on ? chip : muted }}
-                    >
-                      {p.n}
-                    </span>
-                    <span
-                      className={`text-sm font-semibold tracking-tight ${
-                        on
-                          ? "text-[#1E293B] dark:text-neutral-100"
-                          : "text-slate-400 dark:text-neutral-500"
-                      }`}
-                    >
-                      {t(`hero.pillars.${p.key}.label`) || p.label}
-                    </span>
-                    {on && (
-                      <span
-                        ref={dwellRef}
-                        className="absolute inset-x-0 bottom-0 h-0.5 origin-left"
-                        style={{ backgroundColor: chip, transform: "scaleX(0)" }}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-4">
-              <motion.div whileHover={{ y: -2 }} whileTap={{ y: 0, scale: 0.98 }}>
-                <Link
-                  href={lp("/account-type")}
-                  className="inline-flex items-center rounded-full px-7 py-3.5 text-sm font-semibold text-white transition-[filter] hover:brightness-110"
-                  style={{
-                    backgroundColor: PRIMARY,
-                    boxShadow: "0 14px 30px -14px rgba(37,99,235,0.85)",
-                  }}
-                >
-                  {t("hero.getStarted")}
-                </Link>
-              </motion.div>
-
-              <Link
-                href={lp(pillar.href)}
-                className="group inline-flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-70"
-                style={{ color: tint }}
-              >
-                {t(`hero.pillars.${pillar.key}.link`) || pillar.linkLabel}
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-            </div>
-          </div>
-
-          {/* ── RIGHT — the dial ── */}
-          <div className="relative mx-auto w-full max-w-136">
-            <div className="pointer-events-none absolute inset-x-0 -top-1 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-600">
-              <span>[ {t("hero.platform")} ]</span>
-              <span>
-                {pillar.n} / {String(PILLARS.length).padStart(2, "0")}
-              </span>
-            </div>
-
-            <svg
-              viewBox={`-34 -34 ${BOX + 68} ${BOX + 68}`}
-              className="mt-6 h-auto w-full"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <circle
-                cx={MID}
-                cy={MID}
-                r={RIM * 0.3}
-                fill={tint}
-                fillOpacity="0.05"
-                className="transition-all duration-500"
-              />
-
-              {RINGS.map((f, i) => (
-                <circle
-                  key={f}
-                  cx={MID}
-                  cy={MID}
-                  r={RIM * f}
-                  fill="none"
-                  stroke={line}
-                  strokeOpacity="0.13"
-                  strokeWidth="1"
-                  strokeDasharray={i === RINGS.length - 1 ? "3 7" : undefined}
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-
-              {[0, 45, 90, 135].map((deg) => {
-                const a = polar(deg, RIM);
-                const b = polar(deg + 180, RIM);
-                return (
-                  <line
-                    key={deg}
-                    x1={a.x}
-                    y1={a.y}
-                    x2={b.x}
-                    y2={b.y}
-                    stroke={line}
-                    strokeOpacity="0.08"
-                    strokeWidth="1"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                );
-              })}
-
-              {TICKS.map((t, i) => (
-                <line
-                  key={i}
-                  x1={t.x1}
-                  y1={t.y1}
-                  x2={t.x2}
-                  y2={t.y2}
-                  stroke={line}
-                  strokeOpacity={t.major ? 0.28 : 0.14}
-                  strokeWidth="1"
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-
-              {/* the walked arc, redrawn each time the dial moves on */}
-              <motion.polyline
-                key={`arc-${pillar.n}`}
-                points={arcTo(pillar.deg)}
-                fill="none"
-                stroke={tint}
-                strokeOpacity="0.5"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-                initial={reduce ? false : { pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              />
-
-              {PILLARS.map((p, i) => {
-                const at = polar(p.deg, NODE_R);
-                const on = i === active;
-                const chip = p.inbound ? PRIMARY : ACCENT;
-                const right = Math.cos((p.deg * Math.PI) / 180) >= 0;
-                const lx = at.x + (right ? 20 : -20);
-                const size = on ? 7 : 5;
-                return (
-                  <g
-                    key={p.n}
-                    className="cursor-pointer"
-                    onClick={() => pick(i)}
-                  >
-                    <line
-                      x1={MID}
-                      y1={MID}
-                      x2={at.x}
-                      y2={at.y}
-                      stroke={chip}
-                      strokeOpacity={on ? 0.5 : 0.2}
-                      strokeWidth="1"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                    <circle cx={at.x} cy={at.y} r="20" fill="transparent" />
-                    {on && (
-                      <circle
-                        cx={at.x}
-                        cy={at.y}
-                        r="14"
-                        fill="none"
-                        stroke={chip}
-                        strokeOpacity="0.4"
-                        strokeWidth="1"
-                        vectorEffect="non-scaling-stroke"
-                      />
-                    )}
-                    <rect
-                      x={at.x - size}
-                      y={at.y - size}
-                      width={size * 2}
-                      height={size * 2}
-                      transform={`rotate(45 ${at.x} ${at.y})`}
-                      fill={on ? chip : "none"}
-                      stroke={on ? chip : muted}
-                      strokeOpacity={on ? 1 : 0.75}
-                      strokeWidth="1.5"
-                      vectorEffect="non-scaling-stroke"
-                      className="transition-all duration-300"
-                    />
-                    <text
-                      x={lx}
-                      y={at.y - 3}
-                      textAnchor={right ? "start" : "end"}
-                      fill={on ? chip : muted}
-                      fontSize="11"
-                      fontWeight="700"
-                      letterSpacing="1"
-                      className="font-mono"
-                    >
-                      {p.n}
-                    </text>
-                    <text
-                      x={lx}
-                      y={at.y + 11}
-                      textAnchor={right ? "start" : "end"}
-                      fill={on ? chip : muted}
-                      fillOpacity={on ? 1 : 0.6}
-                      fontSize="10.5"
-                      fontWeight="600"
-                      letterSpacing="1.4"
-                      className="uppercase"
-                    >
-                      {t(`hero.pillars.${p.key}.label`) || p.label}
-                    </text>
-                  </g>
-                );
-              })}
-
-              {/* Contact ping — remounts whenever the dial moves on. */}
-              {!reduce && (
-                <motion.circle
-                  key={pillar.n}
-                  cx={polar(pillar.deg, NODE_R).x}
-                  cy={polar(pillar.deg, NODE_R).y}
-                  fill="none"
-                  stroke={tint}
-                  strokeWidth="1.5"
-                  vectorEffect="non-scaling-stroke"
-                  initial={{ r: 7, opacity: 0.8 }}
-                  animate={{ r: 32, opacity: 0 }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
-                />
-              )}
-            </svg>
-
-            {/* The mark sits at the hub the four pillars are anchored to. */}
-            <span className="pointer-events-none absolute left-1/2 top-1/2 mt-3 block h-11 w-40 -translate-x-1/2 -translate-y-1/2 sm:h-13 sm:w-48">
-              <Image
-                src="/devsolve-logo.png"
-                alt="DevSolve"
-                fill
-                priority
-                sizes="192px"
-                className="object-contain"
-              />
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* ── 1. HEADER, HEADLINE & CALL TO ACTION ── */}
+        <div className="mx-auto max-w-4xl text-center">
+          {/* Kicker with accent line matching other sections */}
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-4 flex items-center justify-center gap-2.5"
+          >
+            <span className="h-px w-8" style={{ backgroundColor: PRIMARY }} />
+            <span className="text-xs font-bold uppercase tracking-[0.22em] text-[#2563EB] dark:text-blue-400">
+              {t("hero.kicker") || "One Platform"}
             </span>
-          </div>
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-4xl font-bold tracking-[-0.04em] sm:text-6xl lg:text-7xl leading-[1.08]"
+            style={{ color: ink }}
+          >
+            {t("hero.titleLine1") || "Turn Found Vulnerabilities"}{" "}
+            <br className="hidden sm:inline" />
+            <span className="text-[#2563EB] dark:text-blue-400">
+              {t("hero.titleLine2") || "into Verified Solutions"}
+            </span>
+            <span className="text-[#2563EB] dark:text-blue-400">.</span>
+          </motion.h1>
+
+          {/* Subheadline */}
+          <motion.p
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mx-auto mt-6 max-w-2xl text-base text-slate-500 sm:text-lg dark:text-neutral-400 leading-relaxed"
+          >
+            {t("hero.subheadline") ||
+              "The open security platform where engineering teams launch bug bounties with transparent SLAs, triage disclosures in real-time, and developers resolve complex technical challenges."}
+          </motion.p>
+
+          {/* Primary Action Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="mt-8 flex flex-wrap items-center justify-center gap-4"
+          >
+            <Link
+              href={lp("/account-type")}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-semibold text-white shadow-[0_14px_30px_-14px_rgba(37,99,235,0.85)] transition-[filter] hover:brightness-110"
+              style={{ backgroundColor: PRIMARY }}
+            >
+              <span>{t("hero.getStarted") || "Get started free"}</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+
+            <Link
+              href={lp("/programs")}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-semibold text-slate-700 shadow-[0_0_0_1px_rgba(30,41,59,0.12)] transition-colors hover:bg-slate-100 dark:bg-neutral-900 dark:text-neutral-200 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] dark:hover:bg-neutral-800"
+              style={{ color: ink }}
+            >
+              <Shield className="h-4 w-4 text-[#2563EB] dark:text-blue-400" />
+              <span>{t("hero.exploreBounties") || "Browse live programs"}</span>
+            </Link>
+          </motion.div>
+
+          {/* ── METRICS & TRUST TICKER ── */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-12 grid grid-cols-2 gap-4 border-y border-slate-200 py-6 sm:grid-cols-4 sm:gap-6 text-left sm:text-center dark:border-neutral-800"
+          >
+            <div className="flex flex-col sm:items-center">
+              <span
+                className="text-2xl sm:text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400 font-mono"
+              >
+                $120k+
+              </span>
+              <span className="text-xs uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1">
+                <DollarSign className="h-3 w-3 text-amber-500 shrink-0" />
+                {t("hero.activeBountyPool") || "Active Bounty Pool"}
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:items-center">
+              <span
+                className="text-2xl sm:text-3xl font-bold tracking-tight font-mono"
+                style={{ color: ink }}
+              >
+                &lt; 2h
+              </span>
+              <span className="text-xs uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1">
+                <Clock className="h-3 w-3 text-blue-500 shrink-0" />
+                {t("hero.avgTriageSla") || "Average Triage SLA"}
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:items-center">
+              <span
+                className="text-2xl sm:text-3xl font-bold tracking-tight font-mono text-emerald-600 dark:text-emerald-400"
+              >
+                500+
+              </span>
+              <span className="text-xs uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1">
+                <ShieldCheck className="h-3 w-3 text-emerald-500 shrink-0" />
+                {t("hero.protectedScopes") || "Protected Scopes"}
+              </span>
+            </div>
+
+            <div className="flex flex-col sm:items-center">
+              <span
+                className="text-2xl sm:text-3xl font-bold tracking-tight font-mono text-indigo-600 dark:text-indigo-400"
+              >
+                12,000+
+              </span>
+              <span className="text-xs uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1">
+                <Users className="h-3 w-3 text-indigo-500 shrink-0" />
+                {t("hero.researchersAndDevs") || "Researchers & Devs"}
+              </span>
+            </div>
+          </motion.div>
         </div>
 
-        {/* ── Footline — the same readout the lifecycle section signs off with ── */}
-        <footer className="mt-10 flex items-center justify-between gap-4 border-t border-slate-200 pt-5 dark:border-neutral-800">
-          <span className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500">
-            <span className="relative flex h-1.5 w-1.5">
-              <span
-                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-                style={{ backgroundColor: tint }}
-              />
-              <span
-                className="relative inline-flex h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: tint }}
-              />
-            </span>
-            {t("hero.live")} · {t(`hero.pillars.${pillar.key}.label`) || pillar.label}
-          </span>
-          <span className="font-mono text-xs font-medium tracking-[0.2em] text-slate-300 dark:text-neutral-600">
-            01 — {String(PILLARS.length).padStart(2, "0")}
-          </span>
-        </footer>
+        {/* ── 2. INTERACTIVE DEVELOPER & SECURITY STUDIO CONSOLE ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.45 }}
+          className="relative mx-auto mt-12 max-w-5xl"
+        >
+          {/* Subtle Ambient Accent Glow Behind Card */}
+          <div className="pointer-events-none absolute -top-8 left-1/2 -z-10 h-40 w-3/4 -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-500/20 via-emerald-500/15 to-indigo-500/20 blur-3xl" />
+
+          {/* Main Card Frame using the exact landing section card shadow and border */}
+          <div className="relative rounded-2xl bg-white p-6 sm:p-8 shadow-[0_0_0_1px_rgba(30,41,59,0.08),0_2px_10px_rgba(30,41,59,0.05)] ring-1 ring-blue-500/10 dark:bg-neutral-900 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_2px_10px_rgba(0,0,0,0.5)] dark:ring-blue-400/20">
+            {/* Top Bar Header & Scenario Switcher */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-neutral-800">
+              {/* Window Dots & Identifier */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full bg-slate-300 dark:bg-neutral-700 inline-block" />
+                  <span className="h-3 w-3 rounded-full bg-slate-300 dark:bg-neutral-700 inline-block" />
+                  <span className="h-3 w-3 rounded-full bg-slate-300 dark:bg-neutral-700 inline-block" />
+                </div>
+                <span className="hidden sm:inline-block text-xs font-mono text-slate-400 dark:text-neutral-500">
+                  devsolve://triage-engine/v2
+                </span>
+              </div>
+
+              {/* Interactive Scenario Tabs */}
+              <div className="flex items-center gap-2 overflow-x-auto py-1">
+                {SCENARIOS.map((sc) => {
+                  const Icon = sc.icon;
+                  const isActive = sc.id === selectedScenario;
+                  return (
+                    <button
+                      key={sc.id}
+                      type="button"
+                      onClick={() => setSelectedScenario(sc.id)}
+                      className={`relative flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-[#2563EB] text-white shadow-[0_4px_12px_-2px_rgba(37,99,235,0.4)]"
+                          : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-100 hover:bg-slate-100 dark:hover:bg-neutral-800"
+                      }`}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      <span>{sc.tabLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Status Indicator */}
+              <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-neutral-500">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{t("hero.realtime") || "Live"}</span>
+              </div>
+            </div>
+
+            {/* Studio Workspace Split Grid */}
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+              {/* Left Column: Live Hacktivity Stream (4 cols) */}
+              <div className="lg:col-span-5 space-y-3">
+                <div className="flex items-center justify-between pb-1">
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500">
+                    {t("hero.liveTriageStream") || "Live Triage Stream"}
+                  </span>
+                  <span className="rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-300">
+                    {t("hero.realtime") || "Live"}
+                  </span>
+                </div>
+
+                {/* Stream Item List */}
+                <div className="space-y-2.5">
+                  {LIVE_FEED.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="group flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-3 text-xs transition-colors hover:border-slate-300 dark:border-neutral-800 dark:bg-neutral-950/50 dark:hover:border-neutral-700"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span
+                          className={`rounded-md px-2 py-0.5 font-bold uppercase text-[10px] tracking-wider ${item.severityChip}`}
+                        >
+                          {item.severity}
+                        </span>
+                        <div className="truncate">
+                          <p
+                            className="font-bold truncate"
+                            style={{ color: ink }}
+                          >
+                            {item.name}
+                          </p>
+                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">
+                            {item.type}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 pl-2">
+                        <p className="font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                          {item.bounty}
+                        </p>
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-500">
+                          {item.time} ago
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Triage SLA Note */}
+                <div className="rounded-xl border border-slate-200 p-3 text-xs text-slate-500 dark:border-neutral-800 dark:text-neutral-400 flex items-center gap-2.5">
+                  <Clock className="h-4 w-4 text-[#2563EB] dark:text-blue-400 shrink-0" />
+                  <span>
+                    Average triage speed &lt; 42 mins with public severity verification.
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Column: Active Remediation Console & Code Diff (7 cols) */}
+              <div className="lg:col-span-7 space-y-4">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentScenario.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-4"
+                  >
+                    {/* Header Details */}
+                    <div className="flex flex-wrap items-start justify-between gap-3 pb-3 border-b border-slate-200 dark:border-neutral-800">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`rounded-md px-2 py-0.5 font-bold uppercase text-[10px] tracking-wider ${currentScenario.severityChip}`}
+                          >
+                            {currentScenario.severity}
+                          </span>
+                          <span className="text-xs text-slate-400 dark:text-neutral-500 font-mono">
+                            {currentScenario.targetOrg}
+                          </span>
+                        </div>
+                        <h4
+                          className="mt-2 text-base font-bold tracking-tight"
+                          style={{ color: ink }}
+                        >
+                          {currentScenario.title}
+                        </h4>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="inline-block rounded-full bg-[#EFF6FF] px-3 py-1 font-bold font-mono text-xs text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-300">
+                          {currentScenario.payoutOrPoints}
+                        </span>
+                        <p className="mt-1 text-[11px] text-slate-400 dark:text-neutral-500 font-mono">
+                          {currentScenario.triageTime}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Syntax Highlighted Code Diff Box */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-xs text-slate-800 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 overflow-x-auto">
+                      <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-200/80 text-[11px] text-slate-400 dark:border-neutral-800 dark:text-neutral-500">
+                        <div className="flex items-center gap-1.5">
+                          <FileCode className="h-3.5 w-3.5 text-[#2563EB] dark:text-blue-400" />
+                          <span>{currentScenario.filePath}</span>
+                        </div>
+                        <span className="rounded bg-white px-2 py-0.5 text-[10px] shadow-[0_0_0_1px_rgba(30,41,59,0.08)] dark:bg-neutral-900 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
+                          {t("hero.patchApplied") || "Patch Applied"}
+                        </span>
+                      </div>
+
+                      {/* Vulnerable vs Remediation Lines */}
+                      <div className="space-y-1.5 leading-relaxed">
+                        <p className="text-rose-600 dark:text-rose-400 whitespace-pre-wrap">
+                          {currentScenario.diffOld}
+                        </p>
+                        <p className="text-emerald-700 dark:text-emerald-400 font-semibold whitespace-pre-wrap">
+                          {currentScenario.diffNew}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Author & Verification Footer */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-8 w-8 rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-xs shadow-[0_0_0_1px_rgba(37,99,235,0.2)] dark:bg-blue-500/15 dark:text-blue-400">
+                          {currentScenario.author.slice(1, 3).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-bold" style={{ color: ink }}>
+                            {currentScenario.author}
+                          </p>
+                          <p className="text-[11px] text-slate-400 dark:text-neutral-500">
+                            {currentScenario.authorRole}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="h-4 w-4" />
+                          {currentScenario.statusText}
+                        </span>
+                        <Link
+                          href={lp("/programs")}
+                          className="group inline-flex items-center gap-1 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-[0_0_0_1px_rgba(30,41,59,0.12)] hover:bg-slate-100 dark:bg-neutral-800 dark:text-neutral-200 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] dark:hover:bg-neutral-700 transition-colors"
+                          style={{ color: ink }}
+                        >
+                          <span>{t("hero.inspectReport") || "Inspect Report"}</span>
+                          <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
 }
 
 export default HeroPlatform;
+
+
+
