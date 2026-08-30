@@ -37,6 +37,7 @@ export function Globe({ className, config }: GlobeProps) {
   useEffect(() => {
     let width = 0;
     let phi = 0;
+    let animationFrameId: number;
 
     const onResize = () => {
       if (canvasRef.current) {
@@ -76,22 +77,30 @@ export function Globe({ className, config }: GlobeProps) {
         { location: [25.2048, 55.2708], size: 0.06 }, // Dubai
       ],
       ...config,
-      onRender: (state) => {
-        if (!pointerInteracting.current) {
-          phi += 0.0035;
-        }
-        state.phi = phi + r;
-        state.width = (width || 600) * 2;
-        state.height = (width || 600) * 2;
-        config?.onRender?.(state);
-      },
     };
 
     const globe = createGlobe(canvasRef.current, defaultConfig);
 
-    canvasRef.current.style.opacity = "1";
+    const animate = () => {
+      if (!pointerInteracting.current) {
+        phi += 0.0035;
+      }
+      globe.update({
+        phi: phi + r,
+        width: (width || 600) * 2,
+        height: (width || 600) * 2,
+      });
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    if (canvasRef.current) {
+      canvasRef.current.style.opacity = "1";
+    }
 
     return () => {
+      cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", onResize);
       globe.destroy();
     };
