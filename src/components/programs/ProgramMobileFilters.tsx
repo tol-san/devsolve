@@ -4,7 +4,6 @@ import { motion } from "motion/react";
 import { SlidersHorizontal, X } from "lucide-react";
 
 import { ProgramFiltersBar } from "@/components/programs/ProgramFiltersBar";
-import type { CountryFilterOption } from "@/components/programs/ProgramFiltersBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,10 +30,6 @@ interface ProgramMobileFiltersProps {
   onSeverityChange: (severity: ProgramSeverityFilter) => void;
   selectedIndustry: ProgramIndustryFilter;
   onIndustryChange: (industry: ProgramIndustryFilter) => void;
-  country: string;
-  onCountryChange: (country: string) => void;
-  countryOptions: CountryFilterOption[];
-  isLoadingCountries?: boolean;
   minReward: string;
   maxReward: string;
   onMinRewardChange: (value: string) => void;

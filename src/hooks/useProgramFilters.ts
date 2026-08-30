@@ -27,7 +27,6 @@ export function useProgramFilters() {
     useState<ProgramSeverityFilter>("All");
   const [selectedIndustry, setSelectedIndustry] =
     useState<ProgramIndustryFilter>("All");
-  const [country, setCountry] = useState("");
   const [minReward, setMinReward] = useState("");
   const [maxReward, setMaxReward] = useState("");
   const [sort, setSort] = useState<ProgramSort>("newest");
@@ -70,16 +69,10 @@ export function useProgramFilters() {
     setCurrentPage(1);
   };
 
-  const handleCountryChange = (value: string) => {
-    setCountry(value);
-    setCurrentPage(1);
-  };
-
   const handleResetExploreFilters = () => {
     setSelectedAsset("All");
     setSelectedSeverity("All");
     setSelectedIndustry("All");
-    setCountry("");
     setMinReward("");
     setMaxReward("");
     setCurrentPage(1);
@@ -91,7 +84,6 @@ export function useProgramFilters() {
     setSelectedAsset("All");
     setSelectedSeverity("All");
     setSelectedIndustry("All");
-    setCountry("");
     setMinReward("");
     setMaxReward("");
     setSort("newest");
@@ -102,7 +94,6 @@ export function useProgramFilters() {
     selectedAsset !== "All",
     selectedSeverity !== "All",
     selectedIndustry !== "All",
-    country.trim() !== "",
     minReward !== "" || maxReward !== "",
   ].filter(Boolean).length;
 
@@ -112,7 +103,6 @@ export function useProgramFilters() {
     selectedAsset,
     selectedSeverity,
     selectedIndustry,
-    country,
     minReward,
     setMinReward,
     maxReward,
@@ -128,7 +118,6 @@ export function useProgramFilters() {
     handleAssetChange,
     handleSeverityChange,
     handleIndustryChange,
-    handleCountryChange,
     handleResetExploreFilters,
     handleSortChange,
     handleResetFilters,

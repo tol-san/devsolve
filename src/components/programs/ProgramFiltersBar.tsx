@@ -43,10 +43,6 @@ interface ProgramFiltersBarProps {
   onSeverityChange: (severity: ProgramSeverityFilter) => void;
   selectedIndustry: ProgramIndustryFilter;
   onIndustryChange: (industry: ProgramIndustryFilter) => void;
-  country: string;
-  onCountryChange: (country: string) => void;
-  countryOptions: CountryFilterOption[];
-  isLoadingCountries?: boolean;
   minReward: string;
   maxReward: string;
   onMinRewardChange: (value: string) => void;
@@ -114,10 +110,6 @@ export function ProgramFiltersBar({
   onSeverityChange,
   selectedIndustry,
   onIndustryChange,
-  country,
-  onCountryChange,
-  countryOptions,
-  isLoadingCountries,
   minReward,
   maxReward,
   onMinRewardChange,
@@ -136,7 +128,6 @@ export function ProgramFiltersBar({
   const assetId = `${idPrefix}-asset`;
   const severityId = `${idPrefix}-severity`;
   const industryId = `${idPrefix}-industry`;
-  const countryId = `${idPrefix}-country`;
   const minimumId = `${idPrefix}-minimum`;
   const maximumId = `${idPrefix}-maximum`;
 
@@ -209,53 +200,6 @@ export function ProgramFiltersBar({
                 onIndustryChange(value as ProgramIndustryFilter)
               }
             />
-
-            <Field>
-              <FieldLabel htmlFor={countryId}>
-                {t("programs.filters.country")}
-              </FieldLabel>
-              <Select
-                value={country || "All"}
-                onValueChange={(value) =>
-                  value && onCountryChange(value === "All" ? "" : value)
-                }
-                disabled={isLoadingCountries}
-              >
-                <SelectTrigger
-                  id={countryId}
-                  className="h-10 w-full rounded-xl border-border bg-background text-base"
-                >
-                  <SelectValue>
-                    {(value: string) => {
-                      if (isLoadingCountries)
-                        return t("programs.filters.loadingCountries");
-                      if (value === "All")
-                        return t("programs.filters.allCountries");
-                      return (
-                        countryOptions.find((option) => option.value === value)
-                          ?.label ?? value
-                      );
-                    }}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent alignItemWithTrigger={false}>
-                  <SelectGroup>
-                    <SelectItem value="All" className="text-base">
-                      {t("programs.filters.allCountries")}
-                    </SelectItem>
-                    {countryOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="text-base"
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
 
             <div className="grid grid-cols-2 gap-3">
               <Field data-invalid={rangeInvalid}>
