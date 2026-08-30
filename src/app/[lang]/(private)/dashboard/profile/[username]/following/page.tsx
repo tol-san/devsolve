@@ -30,7 +30,11 @@ export default function FollowingPage() {
       </div>
     );
   }
-  if (isError || !overview || !followingUsers) return notFound();
+  /* Only the profile decides whether this page exists. The following list is a
+     separate request against a separate endpoint, and treating its failure as a
+     missing profile turned "we could not load the list" into "no such person"
+     — with the profile sitting loaded in memory the whole time. */
+  if (isError || !overview) return notFound();
 
   return (
     <motion.div
@@ -46,8 +50,8 @@ export default function FollowingPage() {
 
       <div>
         <FollowingList
-          totalUsers={followingUsers.totalElements}
-          items={followingUsers.content}
+          totalUsers={followingUsers?.totalElements ?? 0}
+          items={followingUsers?.content ?? []}
         />
       </div>
     </motion.div>

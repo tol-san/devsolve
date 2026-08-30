@@ -30,7 +30,11 @@ export default function PublicFollowingPage() {
       </div>
     );
   }
-  if (isError || !overview || !followingUsers) return notFound();
+  /* Only the profile decides whether this page exists. The following list is
+     a separate request against a separate endpoint, and treating its failure
+     as a missing profile turned "we could not load the list" into "no such
+     person" — with the profile sitting loaded in memory the whole time. */
+  if (isError || !overview) return notFound();
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 text-foreground sm:px-6 lg:px-8">
@@ -48,8 +52,8 @@ export default function PublicFollowingPage() {
 
         <div>
           <FollowingList
-            totalUsers={followingUsers.totalElements}
-            items={followingUsers.content}
+            totalUsers={followingUsers?.totalElements ?? 0}
+            items={followingUsers?.content ?? []}
             baseProfilePath="/profile"
           />
         </div>
