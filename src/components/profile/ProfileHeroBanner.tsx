@@ -6,12 +6,10 @@ import { motion } from "motion/react";
 import {
   CalendarDays,
   Check,
-  Copy,
   Pencil,
   Settings,
   Share2,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Profile } from "@/lib/types/profile/types";
@@ -57,12 +55,6 @@ export default function ProfileHeroBanner({
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.2),transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
-        
-        {/* Top-right badge chip */}
-        <div className="absolute top-4 right-4 hidden sm:flex items-center gap-1.5 rounded-full border border-border/40 bg-background/60 px-3 py-1 text-xs font-semibold backdrop-blur-md text-foreground">
-          <Sparkles className="size-3.5 text-blue-500" />
-          <span>Security Researcher</span>
-        </div>
       </div>
 
       {/* ── Profile Info Bar (Overlapping) ────────────────────────── */}
