@@ -57,7 +57,7 @@ export function SavedDraftEmptyState({
           href={createHref}
           className={cn(
             buttonVariants({ variant: "default" }),
-            "rounded-xl bg-[#2563EB] px-4 text-white hover:bg-[#1D4ED8]"
+            "rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90"
           )}
         >
           <Plus data-icon="inline-start" />

@@ -4,7 +4,7 @@ import { Globe, Mail, Shield } from "lucide-react";
 
 export function PublicProgramFooter() {
   return (
-    <footer className="border-t border-slate-200 bg-white dark:border-white/10 dark:bg-slate-950">
+    <footer className="border-t border-border bg-card">
       <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.2fr_0.8fr_0.8fr_1fr] lg:px-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
@@ -16,15 +16,15 @@ export function PublicProgramFooter() {
               className="size-11 object-contain"
             />
             <div>
-              <p className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+              <p className="text-lg font-bold tracking-tight text-foreground">
                 DevSolve
               </p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-muted-foreground">
                 Bug bounty marketplace
               </p>
             </div>
           </div>
-          <p className="max-w-xs text-sm leading-6 text-slate-500 dark:text-slate-400">
+          <p className="max-w-xs text-sm leading-6 text-muted-foreground">
             DevSolve helps security researchers discover programs, validate impact,
             and report responsibly across modern digital platforms.
           </p>
@@ -63,15 +63,15 @@ export function PublicProgramFooter() {
         />
 
         <div className="space-y-4">
-          <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+          <h3 className="text-base font-semibold text-foreground">
             Organized & Sponsored
           </h3>
-          <div className="space-y-3 rounded-[24px] border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-900">
+          <div className="space-y-3 rounded-[24px] border border-border bg-muted/40 p-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Organized by
               </p>
-              <div className="mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-slate-950">
+              <div className="mt-2 flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-2xs">
                 <Image
                   src="/devsolve.png"
                   alt="DevSolve Organizer"
@@ -80,24 +80,24 @@ export function PublicProgramFooter() {
                   className="size-10 object-contain"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                  <p className="text-sm font-semibold text-foreground">
                     DevSolve
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-muted-foreground">
                     Research operations team
                   </p>
                 </div>
               </div>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Sponsored by
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
+                <span className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-2xs">
                   iSTAD
                 </span>
-                <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 dark:border-white/10 dark:bg-slate-950 dark:text-slate-300">
+                <span className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-2xs">
                   Security Lab
                 </span>
               </div>
@@ -106,8 +106,8 @@ export function PublicProgramFooter() {
         </div>
       </div>
 
-      <div className="border-t border-slate-200 dark:border-white/10">
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-2 px-4 py-5 text-sm text-slate-500 dark:text-slate-400 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <div className="border-t border-border">
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-2 px-4 py-5 text-sm text-muted-foreground sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <p>(c) 2026 DevSolve. All rights reserved.</p>
           <p>Security programs, coordinated disclosure, and reward-driven research.</p>
         </div>
@@ -124,13 +124,13 @@ type FooterColumnProps = {
 function FooterColumn({ title, links }: FooterColumnProps) {
   return (
     <div className="space-y-4">
-      <h3 className="text-base font-semibold text-slate-900 dark:text-white">{title}</h3>
+      <h3 className="text-base font-semibold text-foreground">{title}</h3>
       <div className="space-y-3">
         {links.map((link) => (
           <Link
             key={link.label}
             href={link.href}
-            className="block text-sm text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             {link.label}
           </Link>
@@ -151,7 +151,7 @@ function SocialIcon({ children, href, label }: SocialIconProps) {
     <Link
       href={href}
       aria-label={label}
-      className="flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-white/20 dark:hover:text-white"
+      className="flex size-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground shadow-2xs"
     >
       {children}
     </Link>

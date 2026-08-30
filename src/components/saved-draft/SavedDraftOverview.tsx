@@ -18,7 +18,7 @@ export function SavedDraftOverview({
     <section className="overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1.2fr)_0.9fr]">
         <div className="relative overflow-hidden px-6 py-6 sm:px-7">
-          <div className="absolute inset-y-0 left-0 w-full bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.10),transparent_45%),linear-gradient(135deg,rgba(248,250,252,0.95),rgba(255,255,255,1))]" />
+          <div className="absolute inset-y-0 left-0 w-full bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.10),transparent_45%),linear-gradient(135deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] dark:bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.15),transparent_45%),linear-gradient(135deg,rgba(15,23,42,0.6),rgba(30,41,59,0.3))]" />
 
           <div className="relative flex h-full flex-col gap-6 lg:flex-row lg:items-center">
             <div className="relative flex h-[170px] w-full max-w-[280px] items-center justify-center overflow-hidden rounded-[22px] border border-blue-500/20 bg-blue-50/60 dark:bg-blue-500/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
@@ -35,14 +35,14 @@ export function SavedDraftOverview({
                 <TimerReset className="size-5 text-amber-500" />
               </div>
 
-              <div className="relative flex size-20 items-center justify-center rounded-[28px] bg-[#2563EB] text-white shadow-[0_16px_30px_rgba(37,99,235,0.28)]">
+              <div className="relative flex size-20 items-center justify-center rounded-[28px] bg-primary text-white shadow-[0_16px_30px_rgba(37,99,235,0.28)]">
                 <FileStack className="size-8" />
               </div>
 
-              <span className="absolute left-18 top-16 h-px w-20 border-t border-dashed border-blue-200" />
-              <span className="absolute right-17 top-16 h-px w-20 border-t border-dashed border-blue-200" />
-              <span className="absolute bottom-20 left-18 h-px w-18 border-t border-dashed border-blue-200" />
-              <span className="absolute bottom-20 right-17 h-px w-18 border-t border-dashed border-blue-200" />
+              <span className="absolute left-18 top-16 h-px w-20 border-t border-dashed border-blue-200 dark:border-blue-500/30" />
+              <span className="absolute right-17 top-16 h-px w-20 border-t border-dashed border-blue-200 dark:border-blue-500/30" />
+              <span className="absolute bottom-20 left-18 h-px w-18 border-t border-dashed border-blue-200 dark:border-blue-500/30" />
+              <span className="absolute bottom-20 right-17 h-px w-18 border-t border-dashed border-blue-200 dark:border-blue-500/30" />
             </div>
 
             <div className="relative max-w-xl space-y-3">
