@@ -43,6 +43,8 @@ interface UserProfileApiResponse {
   biography?: string;
   phone?: string;
   avatarUrl?: string;
+  /** The profile banner. */
+  coverImageUrl?: string;
   dateOfBirth?: string;
   gender?: "MALE" | "FEMALE" | "OTHER";
   country?: string;
@@ -328,6 +330,7 @@ function toProfileOverview(
     displayName,
     avatarInitials: initialsOf(displayName),
     avatarUrl: raw.avatarUrl,
+    coverUrl: raw.coverImageUrl,
     bio: raw.biography || "",
     location: raw.country || undefined,
     // Public profiles carry `joinedAt`; `/me` carries `createdAt`.
@@ -670,6 +673,7 @@ export const profileApi = baseApi.injectEndpoints({
           fullName,
           avatarInitials: initialsOf(fullName),
           avatarUrl: raw.avatarUrl || undefined,
+          coverUrl: raw.coverImageUrl || undefined,
           username: usernameOf(raw, mockEditProfileFormData.username),
           email: raw.email || mockEditProfileFormData.email,
           bio: raw.biography || mockEditProfileFormData.bio,

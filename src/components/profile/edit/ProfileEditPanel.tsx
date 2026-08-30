@@ -26,6 +26,8 @@ import { DatePicker } from "@/components/ui/date-picker";
 import {
   useGetEditProfileFormQuery,
   useUpdateProfileMutation,
+  useUploadCoverImageMutation,
+  useRemoveCoverImageMutation,
 } from "@/lib/redux/services/profileApi";
 import {
   useUploadAvatarMutation,
@@ -338,6 +340,11 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
   const [uploadAvatar, { isLoading: isUploading }] = useUploadAvatarMutation();
   const [removeAvatar, { isLoading: isRemoving }] = useRemoveAvatarMutation();
+  const [uploadCover, { isLoading: isUploadingCover }] =
+    useUploadCoverImageMutation();
+  const [removeCover, { isLoading: isRemovingCover }] =
+    useRemoveCoverImageMutation();
+  const [coverError, setCoverError] = useState<string | null>(null);
 
   const [form, setForm] = useState<EditProfileFormData | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -346,6 +353,7 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
   const [socialEntries, setSocialEntries] = useState<SocialEntry[] | null>(null);
 
   const isAvatarBusy = isUploading || isRemoving;
+  const isCoverBusy = isUploadingCover || isRemovingCover;
   const values = form ?? initialData ?? null;
 
   const resolvedEntries: SocialEntry[] = (() => {
@@ -405,6 +413,37 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
       toast.success("Photo removed.");
     } catch (err) {
       setAvatarError(parseApiError(err, "Could not remove photo.").message);
+    }
+  };
+
+  /* The banner is uploaded on its own, like the photo: both are multipart
+     endpoints of their own, and neither travels in the profile PATCH. */
+  const handleCoverPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const reason = validateAvatarFile(file);
+    if (reason) { setCoverError(reason); return; }
+    setCoverError(null);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const profile = await uploadCover(body).unwrap();
+      patch({ coverUrl: profile.coverImageUrl || undefined });
+      toast.success("Cover updated.");
+    } catch (err) {
+      setCoverError(parseApiError(err, "Upload failed.").message);
+    }
+  };
+
+  const handleCoverRemove = async () => {
+    setCoverError(null);
+    try {
+      await removeCover().unwrap();
+      patch({ coverUrl: undefined });
+      toast.success("Cover removed.");
+    } catch (err) {
+      setCoverError(parseApiError(err, "Could not remove cover.").message);
     }
   };
 
@@ -691,6 +730,78 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
 
             {avatarError && (
               <p className="text-center text-sm font-medium text-rose-600">{avatarError}</p>
+            )}
+          </div>
+
+          <label className="block text-lg font-bold text-slate-800 dark:text-neutral-200">
+            Cover image
+          </label>
+
+          <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
+            {/* Wide rather than square: this is the banner behind the profile
+                header, so the well is shaped like the thing it becomes. */}
+            <div className="relative aspect-[3/1] w-full overflow-hidden rounded-xl border border-slate-200/80 bg-slate-100 dark:border-neutral-700 dark:bg-neutral-800">
+              {values.coverUrl ? (
+                <Image
+                  src={values.coverUrl}
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 100vw, 320px"
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex size-full items-center justify-center bg-gradient-to-br from-blue-500/15 to-emerald-500/15 text-sm font-medium text-slate-500 dark:text-neutral-400">
+                  No cover yet
+                </div>
+              )}
+
+              {isCoverBusy && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs">
+                  <Loader2 className="size-7 animate-spin text-white" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex w-full flex-col gap-2">
+              <label
+                htmlFor="profile-cover-upload"
+                className={cn(
+                  "flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-base font-semibold text-slate-700 shadow-2xs transition hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700",
+                  isCoverBusy && "pointer-events-none opacity-60",
+                )}
+              >
+                <Camera size={18} />
+                <span>Upload cover</span>
+                <input
+                  id="profile-cover-upload"
+                  type="file"
+                  accept={AVATAR_ACCEPT_ATTR}
+                  disabled={isCoverBusy}
+                  className="hidden"
+                  onChange={handleCoverPick}
+                />
+              </label>
+
+              {values.coverUrl && (
+                <button
+                  type="button"
+                  onClick={handleCoverRemove}
+                  disabled={isCoverBusy}
+                  className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-base font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                >
+                  <Trash2 size={16} />
+                  Remove cover
+                </button>
+              )}
+            </div>
+
+            <p className="text-center text-sm font-medium text-slate-400 dark:text-neutral-500">
+              PNG, JPG or WebP · max 2 MB · shown at about 3:1
+            </p>
+
+            {coverError && (
+              <p className="text-center text-sm font-medium text-rose-600">{coverError}</p>
             )}
           </div>
         </div>

@@ -41,6 +41,7 @@ export default function ProfileHeroBanner({
     memberSince,
     isOwnProfile,
     id,
+    coverUrl,
   } = profile;
 
   const { data: session } = authClient.useSession();
@@ -70,10 +71,25 @@ export default function ProfileHeroBanner({
     <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
       {/* ── Cover Backdrop Banner ─────────────────────────────────── */}
       <div className="relative h-36 sm:h-48 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
+        {/* An uploaded cover replaces the decorative wash rather than sitting
+            under it — the grid and the two radial tints exist to give an empty
+            band some depth, and over a photograph they only muddy it. */}
+        {coverUrl ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={coverUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            {/* Keeps the avatar and the name legible against a bright photo. */}
+            <div className="absolute inset-0 bg-gradient-to-t from-card/70 to-transparent" />
+          </>
+        ) : null}
         {/* Subtle decorative grid and ambient blooms */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.2),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
+        {!coverUrl && <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />}
+        {!coverUrl && <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.2),transparent_50%)]" />}
+        {!coverUrl && <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />}
       </div>
 
       {/* ── Profile Info Bar (Overlapping) ────────────────────────── */}
