@@ -773,10 +773,41 @@ export const profileApi = baseApi.injectEndpoints({
     // followable target. Takes the target's real user id (from getProfileByUsername's
     // `profile.id`, itself sourced from /user-profiles/me) rather than a username,
     // since the backend has no username-based lookup.
+    /**
+     * Who follows this account.
+     *
+     * The page returns `FollowerResponse` — `userId`, `fullName`, `avatarUrl`,
+     * `followedAt` — which is not the shape of a `FollowRecord`. It used to be
+     * handed straight through under that name, so every field the list reads
+     * arrived `undefined`: React warned about missing keys, and the item
+     * crashed outright on `record.id.slice()` while building a fallback name.
+     *
+     * There is no username on this payload, so a follower is addressed by id.
+     * The profile route resolves a UUID as readily as a handle.
+     */
     getFollowers: builder.query<{ total: number; items: FollowRecord[] }, string>({
       query: (userId) => `/follows/USER/${userId}/followers?size=100`,
-      transformResponse: (raw: { content?: FollowRecord[]; totalElements?: number }) => {
-        const items = raw.content ?? [];
+      transformResponse: (raw: {
+        content?: {
+          userId?: string;
+          fullName?: string;
+          avatarUrl?: string | null;
+          followedAt?: string;
+        }[];
+        totalElements?: number;
+      }) => {
+        const items: FollowRecord[] = (raw.content ?? [])
+          /* A row with no id cannot be keyed, linked or followed back. */
+          .filter((follower) => Boolean(follower.userId))
+          .map((follower) => ({
+            id: follower.userId as string,
+            followableType: "USER",
+            followableId: follower.userId as string,
+            createdAt: follower.followedAt ?? "",
+            displayName: follower.fullName?.trim() || undefined,
+            avatarUrl: follower.avatarUrl || undefined,
+          }));
+
         return { total: raw.totalElements ?? items.length, items };
       },
       providesTags: ["Profile"],

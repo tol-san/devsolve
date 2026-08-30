@@ -67,10 +67,23 @@ export default function FollowerItem({ record, baseProfilePath = "/dashboard/pro
     }
   };
 
-  const displayName = record.displayName ?? (record.username ? record.username : `Follower #${record.id.slice(0, 8)}`);
-  const handle = record.username ? `@${record.username}` : `#${record.id.slice(0, 8)}`;
+  /* `targetId` rather than `record.id`: both name the same account, and one of
+     them is always present. Reading `record.id` directly threw here whenever a
+     payload arrived without it, taking the whole page down rather than
+     degrading one row. */
+  const shortId = targetId ? targetId.slice(0, 8) : "";
+
+  const displayName =
+    record.displayName ??
+    record.username ??
+    (shortId ? `Follower #${shortId}` : "Follower");
+  const handle = record.username ? `@${record.username}` : shortId ? `#${shortId}` : "";
   const initials = record.avatarInitials ?? displayName.slice(0, 2).toUpperCase();
-  const profileUrl = record.username ? `${baseProfilePath}/${record.username}` : "#";
+
+  /* Followers come back without a handle, so they are addressed by id — the
+     profile route takes either. */
+  const profileSegment = record.username ?? targetId;
+  const profileUrl = profileSegment ? `${baseProfilePath}/${profileSegment}` : "#";
 
   return (
     <motion.div

@@ -632,8 +632,10 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
                   src={values.avatarUrl}
                   alt=""
                   fill
-                  /* A fixed avatar well — never larger than this. */
-                  sizes="96px"
+                  /* The well is `w-full` up to 260px, so that is the widest it
+                     is ever painted — a smaller hint here makes Next serve a
+                     source too small for the box and the avatar renders soft. */
+                  sizes="260px"
                   className="object-cover"
                   unoptimized
                 />
