@@ -13,6 +13,18 @@ import {
 const LOCALE_COOKIE = "devsolve.locale";
 
 /**
+ * A request for a file rather than a page.
+ *
+ * Named extensions, not "contains a dot". A dot is legal in a username, and
+ * `/dashboard/profile/taing.sengkim3110` was read as a file here: the request
+ * skipped this middleware, never received its locale, and so matched no route
+ * at all — every profile whose handle carries a dot was unreachable, along
+ * with its followers and following pages.
+ */
+const STATIC_FILE =
+  /\.(?:ico|png|jpe?g|gif|svg|webp|avif|bmp|css|js|mjs|map|txt|xml|json|webmanifest|woff2?|ttf|otf|eot|mp4|webm|ogg|mp3|wav|pdf|zip)$/i;
+
+/**
  * Picks a locale for a request that arrived without one.
  *
  * Order is deliberate: an explicit choice the visitor made in the switcher
@@ -54,7 +66,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/originkit") ||
-    /\.[^/]+$/.test(pathname)
+    STATIC_FILE.test(pathname)
   ) {
     return NextResponse.next();
   }
@@ -121,5 +133,7 @@ export const config = {
   /* Every page path now needs to be seen, because any of them may arrive
      without a locale. The negative lookahead keeps assets and API routes out
      rather than matching them and returning early. */
-  matcher: ["/((?!api|_next/static|_next/image|originkit|.*\\..*).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|originkit|.*\\.(?:ico|png|jpe?g|gif|svg|webp|avif|bmp|css|js|mjs|map|txt|xml|json|webmanifest|woff2?|ttf|otf|eot|mp4|webm|ogg|mp3|wav|pdf|zip)$).*)",
+  ],
 };
