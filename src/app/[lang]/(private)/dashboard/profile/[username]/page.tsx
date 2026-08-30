@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Eye } from "lucide-react";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
 import ProfileHeroBanner from "@/components/profile/ProfileHeroBanner";
 import StatsCards from "@/components/profile/StatsCards";
@@ -73,6 +73,17 @@ export default function ProfilePage() {
 
   const profile = { ...rawProfile, isOwnProfile };
 
+  const router = useRouter();
+
+  const handleExitEdit = () => {
+    setIsEditing(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("edit");
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
+
   /* Edit mode — full-page settings form */
   if (isEditing) {
     return (
@@ -80,33 +91,48 @@ export default function ProfilePage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="w-full space-y-6 pb-16"
+        className="w-full space-y-6 pb-20"
       >
-        {/* Breadcrumb left, cancel right */}
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <nav
-            aria-label="Breadcrumb"
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
-          >
+        {/* Top Header & Breadcrumb Bar */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+          <div className="space-y-1">
+            <nav
+              aria-label="Breadcrumb"
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
+            >
+              <button
+                type="button"
+                onClick={handleExitEdit}
+                className="cursor-pointer transition-colors hover:text-foreground"
+              >
+                @{profile.username}
+              </button>
+              <ChevronRight className="size-3.5 text-muted-foreground/60" />
+              <span className="text-foreground font-semibold">
+                Edit profile
+              </span>
+            </nav>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Edit Researcher Profile
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your personal branding, research biography, contact info, and social connections.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setIsEditing(false)}
-              className="cursor-pointer transition-colors hover:text-foreground"
+              onClick={handleExitEdit}
+              className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground shadow-2xs transition hover:bg-muted cursor-pointer"
             >
-              @{profile.username}
+              <Eye className="size-4 text-muted-foreground" />
+              <span>View Profile</span>
             </button>
-            <ChevronRight className="size-3.5 text-muted-foreground/60" />
-            <span className="text-foreground font-semibold">
-              Edit profile
-            </span>
-          </nav>
+          </div>
+        </header>
 
-          <p className="text-sm text-muted-foreground">
-            Changes are saved section by section.
-          </p>
-        </div>
-
-        <ProfileEditPanel onDone={() => setIsEditing(false)} />
+        <ProfileEditPanel onDone={handleExitEdit} />
       </motion.div>
     );
   }
