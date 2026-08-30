@@ -13,7 +13,7 @@ import {
   X,
   ArrowRight,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion"; 
+import { AnimatePresence, motion } from "motion/react"; 
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
