@@ -106,10 +106,6 @@ const navLinks: NavLink[] = [
   { name: "About", tKey: "nav.about", href: "/about", guestOnly: true, icon: Info },
 ];
 
-// Scrolling down only retracts the island once the reader is past this much of
-// the page, so a short flick near the top never makes the nav flicker away.
-const HIDE_AFTER = 160;
-
 function getInitials(text: string): string {
   return text
     .split(" ")
@@ -165,7 +161,6 @@ const Navbar = () => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [communityMenuOpen, setCommunityMenuOpen] = useState(false);
   const [mobileCommunityOpen, setMobileCommunityOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -250,38 +245,13 @@ const Navbar = () => {
      contrast trade it accepts. */
   const logoSrc = "/devsolve-logo.png";
 
-  // The header is a fixed island with no backdrop band, so it always overlaps
-  // page content. To keep the screen clear it retracts while the reader moves
-  // down the page and springs back the moment they scroll up.
-  /* Re-armed on every navigation rather than installed once, so each page
-     starts measuring from where it opens. Sharing one listener across pages
-     meant the first reading on a new page was compared against the last offset
-     of the old one, and that difference is not a movement the reader made. */
+  // Track scroll for styling elevation / backdrop intensity
   useEffect(() => {
-    let previousY: number | null = null;
     let frame = 0;
 
     const update = () => {
       frame = 0;
-
-      const currentY = window.scrollY;
-
-      setScrolled(currentY > 4);
-
-      // The first reading of a page establishes the baseline, nothing more.
-      if (previousY === null) {
-        previousY = currentY;
-        return;
-      }
-
-      const delta = currentY - previousY;
-      previousY = currentY;
-
-      // Ignore sub-pixel jitter and rubber-band overscroll, and never retract
-      // over the first screenful — the island should be there on arrival.
-      if (Math.abs(delta) > 4 && currentY > 0) {
-        setHidden(delta > 0 && currentY > HIDE_AFTER);
-      }
+      setScrolled(window.scrollY > 4);
     };
 
     const handleScroll = () => {
@@ -301,11 +271,6 @@ const Navbar = () => {
       }
     };
   }, [pathname]);
-
-  // An open menu must never be dragged off-screen with the island. Derived
-  // rather than pushed back into `hidden` from an effect — that spent a whole
-  // extra render on something the render already knows.
-  const isRetracted = hidden && !mobileMenuOpen && !communityMenuOpen;
 
   // Prevent background scrolling when mobile menu is open
   useEffect(() => {
@@ -380,15 +345,6 @@ const Navbar = () => {
     setCommunityMenuOpen(false);
     setMobileMenuOpen(false);
     setMobileCommunityOpen(false);
-
-    /* The island retracts on the way down a page and is released by scrolling
-       back up — but a new page opens at the top, where there is no up. Carrying
-       the retracted state across a navigation is how the header went missing:
-       the reader arrives, finds no navigation, and nothing they can do at the
-       top of the page brings it back. Opening the mobile menu made it worse,
-       since the menu forces the island visible and closing it on navigate let
-       the stale state snap it away again. */
-    setHidden(false);
   }
 
   // An open panel covers the page, so the page must not scroll underneath it —
@@ -507,22 +463,16 @@ const Navbar = () => {
       {/* Fixed and out of flow: no full-width band, just the island floating
           over the page. `--navbar-height` reserves room for it in the layout. */}
       <motion.header
-      initial={reduce ? false : { y: -24, opacity: 0 }}
-      /* Retracting on scroll is motion for its own sake — with reduced motion
-         the island simply stays put. */
-      animate={
-        isRetracted && !reduce
-          ? { y: "-115%", opacity: 0 }
-          : { y: 0, opacity: 1 }
-      }
-      transition={
-        reduce
-          ? { duration: 0 }
-          : { type: "spring", stiffness: 380, damping: 34, mass: 0.9 }
-      }
-      ref={headerRef}
-      className="fixed inset-x-0 top-0 z-[100] w-full"
-    >
+        initial={reduce ? false : { y: -16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={
+          reduce
+            ? { duration: 0 }
+            : { type: "spring", stiffness: 380, damping: 34, mass: 0.9 }
+        }
+        ref={headerRef}
+        className="fixed inset-x-0 top-0 z-[100] w-full"
+      >
       {/* `isolate` keeps the z-indexes below scoped to the header. */}
       <div className="pointer-events-none isolate">
         {/* Scrim under the open mobile panel. It makes "tap anywhere to close"

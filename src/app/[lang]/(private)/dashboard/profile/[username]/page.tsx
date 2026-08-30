@@ -20,6 +20,9 @@ export default function ProfilePage() {
   const { data: session } = authClient.useSession();
   const { data, isLoading, isError, error, refetch } =
     useGetProfileByUsernameQuery(username);
+  /* Cached and shared with every other screen that asks, so this costs one
+     request per session rather than one per profile viewed. */
+  const { data: me } = useGetProfileByUsernameQuery("me", { skip: !session });
   const [isEditing, setIsEditing] = useState(false);
 
   if (isLoading) {
@@ -39,13 +42,23 @@ export default function ProfilePage() {
 
   const { profile: rawProfile, stats, severity, badges } = data;
 
-  const sessionUserId = session?.user?.id;
   const sessionEmail = session?.user?.email;
   const sessionUsername = sessionEmail ? sessionEmail.split("@")[0].toLowerCase() : "";
 
+  /* Whose profile this is, decided on ids from the same source.
+     `session.user.id` is better-auth's, which is not the id the profile API
+     keys on, and the email-derived name is a guess that stopped agreeing with
+     anything the day the backend began publishing real handles — someone whose
+     handle is not their email's local part failed every check here and lost
+     the edit controls on their own profile. `/user-profiles/me` answers with
+     the same id space as the profile being viewed, so the two can simply be
+     compared. The older guesses stay as a fallback for records with no id. */
   const isOwnProfile = Boolean(
     rawProfile.isOwnProfile ||
-    (sessionUserId && rawProfile.id && sessionUserId === rawProfile.id) ||
+    (me?.profile.id && rawProfile.id && me.profile.id === rawProfile.id) ||
+    (me?.profile.username &&
+      rawProfile.username &&
+      me.profile.username.toLowerCase() === rawProfile.username.toLowerCase()) ||
     (sessionUsername && (
       username?.toLowerCase() === sessionUsername ||
       rawProfile.username?.toLowerCase() === sessionUsername

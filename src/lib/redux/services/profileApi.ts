@@ -34,6 +34,8 @@ interface ProfileOverviewResponse {
 // endpoints — only the signed-in user's own profile.
 interface UserProfileApiResponse {
   id: string;
+  /** The published handle. Absent on records predating it. */
+  username?: string;
   email: string;
   firstName?: string;
   lastName?: string;
@@ -241,7 +243,17 @@ function fullNameOf(raw: UserProfileApiResponse, fallback: string): string {
  * the email. It is a display handle only — never send it anywhere the backend
  * expects a `userId`.
  */
+/**
+ * The account's handle.
+ *
+ * The backend publishes one now. Deriving it from the email is kept only for
+ * records written before that existed — and it was never more than a guess:
+ * two people whose addresses differ only by domain derive the same name, and
+ * the email is returned for the signed-in user alone, so everybody else came
+ * out blank.
+ */
 function usernameOf(raw: UserProfileApiResponse, fallback: string): string {
+  if (raw.username?.trim()) return raw.username.trim();
   return raw.email ? raw.email.split("@")[0] : fallback;
 }
 
@@ -379,9 +391,18 @@ export const profileApi = baseApi.injectEndpoints({
         const isMeRoute = !username || username === "me";
         const isUserId = !isMeRoute && UUID_PATTERN.test(username);
 
-        const profileResult = await fetchWithBQ(
-          isUserId ? `/user-profiles/${username}` : `/user-profiles/me`,
-        );
+        /* Three ways in, and each is a real lookup. The handle used to be the
+           odd one out: with no way to resolve it, the query fetched `/me` and
+           checked whether the segment matched a name derived from that
+           account's email — so a handle only ever resolved for the person
+           already signed in, and everybody else's URL answered 404. */
+        const path = isMeRoute
+          ? "/user-profiles/me"
+          : isUserId
+            ? `/user-profiles/${username}`
+            : `/user-profiles/by-username/${encodeURIComponent(username)}`;
+
+        const profileResult = await fetchWithBQ(path);
 
         /* Errors are passed through rather than answered with a stand-in
            profile. A 404 here means the backend has no record for that id, and
@@ -395,24 +416,11 @@ export const profileApi = baseApi.injectEndpoints({
 
         const raw = profileResult.data as UserProfileApiResponse;
 
-        // A derived name that is not the signed-in user's belongs to somebody
-        // else, and nothing in the API can look it up — returning `me` here
-        // would show the wrong person's profile under their URL.
-        if (
-          !isMeRoute &&
-          !isUserId &&
-          usernameOf(raw, "").toLowerCase() !== username.toLowerCase()
-        ) {
-          return {
-            error: {
-              status: 404,
-              data: { message: "Public user profile not found" },
-            },
-          };
-        }
-
-        // Either the `me` route, or a derived name that just matched it.
-        const isSelf = !isUserId;
+        /* `me` is the only route that is self by construction. A handle or an
+           id may well be the viewer's own, but proving it needs the session,
+           which the profile screens hold and this query does not — they widen
+           this before rendering owner controls. */
+        const isSelf = isMeRoute;
 
         /* Reports are confidential: `/reports/mine` is the only per-user report
            endpoint the API has, so there is nothing to fetch for anyone else.
