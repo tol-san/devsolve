@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import type { Metadata } from "next";
 import MarketplacePage from "@/components/programs/details/PublicProgramBrowsePage";
 import React from "react";
@@ -7,6 +5,7 @@ import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { listPrograms } from "@/lib/seo/content";
 
 /* Title and description come from the same catalogue the page renders from, so
    a Khmer URL is described in Khmer in the tab, the share card and the search
@@ -35,7 +34,10 @@ export default async function PublicProgramBrowse({
 }) {
   const { lang } = await params;
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
-  const dict = await getDictionary(locale);
+  const [dict, initialPrograms] = await Promise.all([
+    getDictionary(locale),
+    listPrograms(),
+  ]);
 
   return (
     <>
@@ -47,7 +49,8 @@ export default async function PublicProgramBrowse({
         })}
       />
 
-      <MarketplacePage />
+      <MarketplacePage initialPrograms={initialPrograms} />
     </>
   );
 }
+
