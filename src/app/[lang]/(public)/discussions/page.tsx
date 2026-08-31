@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { DiscussionsFeed } from "@/components/discussions/DiscussionsFeed";
-import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
@@ -14,7 +14,8 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
-  const dict = await getDictionary(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
   const copy = dict.community.pages.community;
 
   return pageMetadata({
@@ -31,7 +32,8 @@ export default async function DiscussionsPage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const dict = await getDictionary(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
   const copy = dict.community.pages.community;
 
   return (
@@ -40,7 +42,7 @@ export default async function DiscussionsPage({
         data={collectionSchema({
           name: copy.schemaName,
           description: copy.metaDescription,
-          path: "/discussions",
+          path: localise("/discussions", locale),
         })}
       />
 

@@ -29,8 +29,6 @@ const PRIVATE_PREFIXES = [
   "/community/*/edit",
   "/community/*/solutions/",
   "/profile/me",
-  // The old public program page, kept only as a redirect notice.
-  "/program",
 ];
 
 export default function robots(): MetadataRoute.Robots {

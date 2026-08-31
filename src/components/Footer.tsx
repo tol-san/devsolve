@@ -44,6 +44,7 @@ const footerNavSections = [
     links: [
       { name: "Hacktivity", tKey: "footer.links.hacktivity", href: "/hacktivity" },
       { name: "Leaderboard", tKey: "footer.links.leaderboard", href: "/leaderboard" },
+      { name: "For companies", tKey: "footer.links.company", href: "/company" },
       { name: "About", tKey: "footer.links.about", href: "/about" },
     ],
   },

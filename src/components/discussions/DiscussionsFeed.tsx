@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { DiscussionActiveFilters } from "@/components/discussions/DiscussionActiveFilters";
@@ -34,12 +34,15 @@ interface DiscussionsFeedProps {
    */
   feed: "community" | "problems" | "showcases";
   createHref: string;
+  /** Useful server-rendered context for a valid listing before its API feed loads. */
+  overview?: ReactNode;
 }
 
 export function DiscussionsFeed({
   defaultCategory,
   feed,
   createHref,
+  overview,
 }: DiscussionsFeedProps) {
   const t = useT();
   const copy = (field: string) => t(`community.pages.${feed}.${field}`);
@@ -112,6 +115,8 @@ export function DiscussionsFeed({
           createHref={createHref}
           createLabel={copy("createLabel")}
         />
+
+        {overview}
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
           <section

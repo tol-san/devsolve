@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import LeaderboardClient from "@/components/Leaderboard/LeaderboardClient";
 import PointsLegend from "@/components/Leaderboard/PointsLegend";
+import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
-
-const DESCRIPTION =
-  "Researchers ranked by reputation points earned from valid, critical and recognized reports.";
 
 /* The site name comes from the root layout's title template, so it is not
    repeated here — spelling it out produced `Leaderboard · DevSolve · DevSolve`. */
@@ -15,16 +14,27 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
+  const copy = dict.seoPages.leaderboard;
   return pageMetadata({
-    title: "Leaderboard",
-    description:
-      "Researchers ranked by reputation points earned from valid, critical and recognized reports.",
+    title: copy.metaTitle,
+    description: copy.metaDescription,
     path: "/leaderboard",
-    locale: lang,
+    locale,
   });
 }
 
-export default function LeaderboardPage() {
+export default async function LeaderboardPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
+  const copy = dict.seoPages.leaderboard;
+
   return (
     <div className="min-h-dvh text-foreground selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-500/30 dark:selection:text-blue-50">
       {/* CollectionPage schema: marks this as a ranked list of community
@@ -32,9 +42,9 @@ export default function LeaderboardPage() {
           it to the individual profile pages linked within. */}
       <JsonLd
         data={collectionSchema({
-          name: "DevSolve Leaderboard",
-          description: DESCRIPTION,
-          path: "/leaderboard",
+          name: copy.schemaName,
+          description: copy.metaDescription,
+          path: localise("/leaderboard", locale),
         })}
       />
 
@@ -46,18 +56,16 @@ export default function LeaderboardPage() {
             <div className="mb-1.5 flex items-center gap-2">
               <span className="h-px w-6 bg-blue-600" />
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
-                Community standing
+                {copy.eyebrow}
               </span>
             </div>
 
             <h1 className="text-2xl font-bold tracking-[-0.035em] text-foreground sm:text-3xl">
-              Leaderboard<span className="text-blue-600 dark:text-blue-400">.</span>
+              {copy.heading}<span className="text-blue-600 dark:text-blue-400">.</span>
             </h1>
 
             <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              Ranked on reputation points from valid findings and the
-              recognitions companies gave them — a Critical counts the same at a
-              two-person startup or a bank.
+              {copy.description}
             </p>
           </div>
 

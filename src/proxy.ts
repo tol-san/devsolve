@@ -3,11 +3,8 @@ import type { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import {
   DEFAULT_LOCALE,
-  LOCALES,
-  isLocale,
   localise,
   splitLocale,
-  type Locale,
 } from "@/lib/i18n/config";
 
 /** Remembers the visitor's choice so the switcher survives a fresh visit. */
@@ -24,39 +21,6 @@ const LOCALE_COOKIE = "devsolve.locale";
  */
 const STATIC_FILE =
   /\.(?:ico|png|jpe?g|gif|svg|webp|avif|bmp|css|js|mjs|map|txt|xml|json|webmanifest|woff2?|ttf|otf|eot|mp4|webm|ogg|mp3|wav|pdf|zip)$/i;
-
-/**
- * Picks a locale for a request that arrived without one.
- *
- * Order is deliberate: an explicit choice the visitor made in the switcher
- * beats what their browser happens to advertise, and both beat the default.
- * Parsed by hand rather than pulling in Negotiator — with two locales the
- * whole grammar we care about is `km` appearing with a higher q-value.
- */
-function detectLocale(request: NextRequest): Locale {
-  const chosen = request.cookies.get(LOCALE_COOKIE)?.value;
-  if (isLocale(chosen)) return chosen;
-
-  const header = request.headers.get("accept-language");
-  if (!header) return DEFAULT_LOCALE;
-
-  const ranked = header
-    .split(",")
-    .map((part) => {
-      const [tag, ...params] = part.trim().split(";");
-      const q = params.find((p) => p.trim().startsWith("q="));
-      return {
-        // `km-KH` and `km` both mean Khmer to us.
-        base: tag.trim().toLowerCase().split("-")[0],
-        q: q ? Number.parseFloat(q.split("=")[1]) || 0 : 1,
-      };
-    })
-    .filter((entry) => (LOCALES as readonly string[]).includes(entry.base))
-    .sort((a, b) => b.q - a.q);
-
-  const best = ranked[0]?.base;
-  return isLocale(best) ? best : DEFAULT_LOCALE;
-}
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -85,24 +49,11 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
 
-  /* An unprefixed request is the English canonical unless the visitor has
-     explicitly selected Khmer (or their browser strongly prefers it). English
-     is rewritten internally to the physical `[lang]` route, so the browser
-     and crawlers keep the clean URL without a redirect hop. */
+  /* An unprefixed request is always the stable English canonical. Language
+     negotiation must not make the same URL return English for one crawler and
+     redirect to Khmer for another; the language switcher links directly to
+     `/km/...`, while English is rewritten internally to the physical route. */
   if (!hadLocale) {
-    const picked = detectLocale(request);
-    if (picked !== DEFAULT_LOCALE) {
-      const url = request.nextUrl.clone();
-      url.pathname = localise(pathname, picked);
-      const redirect = NextResponse.redirect(url);
-      redirect.cookies.set(LOCALE_COOKIE, picked, {
-        path: "/",
-        maxAge: 60 * 60 * 24 * 365,
-        sameSite: "lax",
-      });
-      return redirect;
-    }
-
     locale = DEFAULT_LOCALE;
     rest = pathname;
     rewriteUrl = request.nextUrl.clone();
