@@ -1,77 +1,155 @@
 /**
  * The public disclosure stream — `GET /api/v1/hacktivity`.
  *
- * A row carries ids, names, a report severity and a timestamp: no bounty
- * amount and no reputation, so everything the feed shows is derived from
- * those fields alone.
+ * Two shapes live here: what the API sends, and what a card reads. The second
+ * exists because a card has to answer questions the payload only implies —
+ * whether a title may be printed, whether a reward is money or points, whether
+ * a noun is safe to link — and deciding that once, here, keeps it out of the
+ * markup.
  */
 
-/** One row as the API returns it. Every nested object may be absent. */
+export const SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"] as const;
+export type Severity = (typeof SEVERITIES)[number];
+
+/**
+ * `REPORT_DISCLOSED` and `REPORT_RESOLVED` are in the contract but nothing
+ * emits them yet, so the page offers the two that carry rows.
+ */
+export const EVENT_TYPES = ["RECOGNITION_AWARDED", "BOUNTY_AWARDED"] as const;
+export type EventType = (typeof EVENT_TYPES)[number];
+
+export type DisclosureStatus =
+  | "NOT_DISCLOSED"
+  | "PENDING_DISCLOSURE"
+  | "DISCLOSED";
+
+/** `createdAt` and `severity` are the only sortable fields; anything else 400s. */
+export const SORTS = [
+  "createdAt,DESC",
+  "createdAt,ASC",
+  "severity,DESC",
+  "severity,ASC",
+] as const;
+export type Sort = (typeof SORTS)[number];
+
+// ─── What the API sends ───────────────────────────────────────────────────────
+
 export interface HacktivityApiEntry {
   id: string;
-  user?: { id?: string; username?: string; avatarUrl?: string } | null;
-  organization?: { id?: string; name?: string } | null;
-  report?: { id?: string; title?: string; severity?: string } | null;
-  recognition?: { id?: string; title?: string; description?: string } | null;
-  program?: { id?: string; name?: string } | null;
+  eventType?: string;
   createdAt?: string;
+  user?: {
+    id?: string;
+    /** URL-safe handle, and what `/profile/{username}` resolves. */
+    username?: string;
+    fullName?: string;
+    avatarUrl?: string | null;
+    reputation?: number | null;
+  } | null;
+  organization?: {
+    id?: string;
+    name?: string;
+    slug?: string;
+    logoUrl?: string | null;
+  } | null;
+  program?: { id?: string; name?: string; handle?: string } | null;
+  report?: {
+    id?: string;
+    title?: string;
+    /** Null while a severity dispute is open. */
+    severity?: Severity | null;
+    disclosureStatus?: DisclosureStatus | null;
+    /** Null while unclassified. */
+    weakness?: { cweId?: string; name?: string } | null;
+  } | null;
+  recognition?: { id?: string; title?: string; description?: string } | null;
+  /** Null when the report was never paid. */
+  reward?: {
+    amount?: number | null;
+    currency?: string | null;
+    points?: number | null;
+  } | null;
 }
 
-/** `PageHacktivityResponse`, trimmed to the fields the feed reads. */
+/** `PageHacktivityResponse`, trimmed to what the feed reads. */
 export interface HacktivityApiPage {
   content?: HacktivityApiEntry[];
   totalElements?: number;
   totalPages?: number;
-  /** Zero-based index of the page that came back. */
   number?: number;
+  size?: number;
 }
 
-/** What the entry records: a disclosed finding, or a recognition awarded. */
-export type HacktivityLabel = "DISCLOSURE" | "RECOGNITION";
+export interface HacktivityStats {
+  disclosures: number;
+  researchers: number;
+  programsActive: number;
+  totalPaid: number;
+  currency: string;
+}
 
-export type HacktivitySeverity =
-  | "Critical"
-  | "High"
-  | "Medium"
-  | "Low"
-  | "None";
+// ─── What a card reads ────────────────────────────────────────────────────────
 
-/** One row, normalised for the cards. */
+/**
+ * Money and points are separate outcomes, not one number with a zero in it: a
+ * points-only award is a real result and printing it as `$0` would read as a
+ * refusal to pay.
+ */
+export type Reward =
+  | { kind: "cash"; amount: number; currency: string; points: number | null }
+  | { kind: "points"; points: number }
+  | { kind: "none" };
+
+export interface Researcher {
+  /** Absent only if the upstream sends a row with no user. */
+  username?: string;
+  name: string;
+  avatarUrl?: string;
+  reputation?: number;
+}
+
 export interface HacktivityActivity {
   id: string;
-  userId?: string;
-  handle: string;
-  avatarUrl?: string;
-  label: HacktivityLabel;
-  /** Reads into `program`: "disclosed a Critical severity finding in …". */
-  action: string;
-  /** The report headline, when the caller is allowed to see one. */
-  title?: string;
-  program: string;
-  organization?: string;
-  severity: HacktivitySeverity | null;
-  /** Only set when it says something the title does not repeat. */
-  recognition?: string;
-  timeAgo: string;
-  /** ISO timestamp, kept for sorting. */
+  eventType?: EventType | string;
+  /** ISO-8601, UTC. Formatted at render, where the locale is known. */
   createdAt?: string;
+  researcher: Researcher;
+  /** The program the work was done against; the card links it when it can. */
+  program?: { id?: string; name: string; handle?: string };
+  organization?: { id?: string; name: string; slug?: string; logoUrl?: string };
+  severity: Severity | null;
+  weakness?: { cweId?: string; name?: string };
+  /**
+   * Only set on a disclosed report. A row is on the feed because it was
+   * recognised or paid, which is not the same as its report being public, so
+   * an undisclosed title never reaches the markup.
+   */
+  title?: string;
+  disclosureStatus: DisclosureStatus;
+  isDisclosed: boolean;
+  /** The report behind the row, present whether or not it may be named. */
+  reportId?: string;
+  recognition?: string;
+  reward: Reward;
 }
 
-export interface HacktivityStat {
-  label: string;
-  value: string;
-}
-
-export interface HacktivityFeedResponse {
-  stats: HacktivityStat[];
+export interface HacktivityFeed {
   activities: HacktivityActivity[];
-  /** Across the whole stream, not just the page that came back. */
+  /** Across the whole stream, not the page that came back. */
   total: number;
   page: number;
   totalPages: number;
+  size: number;
 }
 
+/** Every parameter is optional; the endpoint defaults to newest first. */
 export interface HacktivityQueryParams {
+  q?: string;
+  severity?: Severity[];
+  eventType?: EventType[];
+  programId?: string;
+  organizationId?: string;
   page?: number;
   size?: number;
+  sort?: Sort;
 }

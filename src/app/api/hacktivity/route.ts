@@ -15,12 +15,28 @@ import {
  * theirs, since the upstream personalises what it will show them.
  */
 
-const ALLOWED_QUERY = ["page", "size", "sort"] as const;
+const ALLOWED_QUERY = [
+  "q",
+  "severity",
+  "eventType",
+  "programId",
+  "organizationId",
+  "page",
+  "size",
+  "sort",
+] as const;
+
+/** Both are multi-select on the page, and the upstream reads them as lists. */
+const REPEATABLE = ["severity", "eventType"] as const;
 
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
 
-  const query = forwardQuery(request.nextUrl.searchParams, ALLOWED_QUERY);
+  const query = forwardQuery(
+    request.nextUrl.searchParams,
+    ALLOWED_QUERY,
+    REPEATABLE,
+  );
 
   try {
     const upstream = await upstreamFetch(`/hacktivity${query}`, token);
