@@ -82,14 +82,14 @@ export function SubmitReportStep1Basics({
           scope. "Change" therefore leads back to the browser, and the chosen
           programme returns here through its own "Submit report" button. */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="text-sm font-semibold text-foreground whitespace-nowrap">
             Target Security Program <span className="text-red-500">*</span>
           </label>
           {selectedProgram && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Target Program Selected
+            <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-600 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 whitespace-nowrap shrink-0">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+              <span><span className="hidden sm:inline">Target Program </span>Selected</span>
             </span>
           )}
         </div>
@@ -221,9 +221,9 @@ export function SubmitReportStep1Basics({
 
       {/* Vulnerability Title */}
       <div className="space-y-2">
-        <label htmlFor="title" className="text-sm font-semibold text-foreground flex items-center justify-between">
-          <span>Vulnerability Title <span className="text-red-500">*</span></span>
-          <span className="text-xs text-muted-foreground font-normal">Clear & descriptive title</span>
+        <label htmlFor="title" className="text-sm font-semibold text-foreground flex flex-wrap items-center justify-between gap-2">
+          <span className="whitespace-nowrap">Vulnerability Title <span className="text-red-500">*</span></span>
+          <span className="text-xs text-muted-foreground font-normal shrink-0">Clear & descriptive title</span>
         </label>
         <Input
           id="title"

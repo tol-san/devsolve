@@ -59,15 +59,24 @@ export default function CommunityPostCard({ post }: CommunityPostCardProps) {
       )}
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-bold text-foreground hover:text-primary transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
+          <h3 className="text-base font-bold text-foreground hover:text-primary transition-colors order-2 sm:order-1">
             {post.title}
           </h3>
-          <span
-            className={`shrink-0 rounded-lg px-2.5 py-0.5 text-xs font-semibold ${TAG_STYLES[post.tag]}`}
-          >
-            {TAG_LABELS[post.tag]}
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5 self-end sm:self-start shrink-0 order-1 sm:order-2">
+            <span
+              className={`rounded-lg px-2.5 py-0.5 text-xs font-semibold ${TAG_STYLES[post.tag]}`}
+            >
+              {TAG_LABELS[post.tag]}
+            </span>
+            {post.status && (
+              <span
+                className={`rounded-lg px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[post.status.tone]}`}
+              >
+                {post.status.label}
+              </span>
+            )}
+          </div>
         </div>
 
         <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
@@ -85,13 +94,6 @@ export default function CommunityPostCard({ post }: CommunityPostCardProps) {
             <span className="inline-flex items-center gap-1.5">
               <Eye size={14} />
               {post.views.toLocaleString()}
-            </span>
-          )}
-          {post.status && (
-            <span
-              className={`rounded-lg px-2 py-0.5 font-semibold ${STATUS_STYLES[post.status.tone]}`}
-            >
-              {post.status.label}
             </span>
           )}
           <span className="ml-auto">{formatDate(post.date)}</span>
