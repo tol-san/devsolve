@@ -159,6 +159,51 @@ function statsOf(entries: LeaderboardEntry[]): LeaderboardStats {
   };
 }
 
+/**
+ * The window a ranking is measured over, as the API names it. Distinct from
+ * the `LeaderboardPeriod` the full leaderboard screen uses for its own copy.
+ */
+export const RANKING_PERIODS = ["DAY", "WEEK", "MONTH", "ALL_TIME"] as const;
+
+export type RankingPeriod = (typeof RANKING_PERIODS)[number];
+
+/**
+ * One ranked researcher.
+ *
+ * On a windowed period the API counts reputation, recognitions and criticals
+ * over that window and returns the lifetime totals as null — so those two are
+ * nullable here, and a widget renders them as absent rather than as zero.
+ */
+export interface TopResearcher {
+  rank: number;
+  id: string;
+  username?: string;
+  name: string;
+  avatarUrl?: string;
+  country?: string;
+  reputation: number;
+  recognitionCount: number;
+  criticalReports: number;
+  totalReports: number | null;
+  validReports: number | null;
+}
+
+function toTopResearcher(row: LeaderboardApiItem & { username?: string }): TopResearcher {
+  return {
+    rank: row.rank,
+    id: row.id,
+    username: row.username?.trim() || undefined,
+    name: row.fullName?.trim() || row.username?.trim() || "A researcher",
+    avatarUrl: row.avatarUrl?.trim() || undefined,
+    country: row.country?.trim() || undefined,
+    reputation: row.reputation ?? 0,
+    recognitionCount: row.recognitionCount ?? 0,
+    criticalReports: row.criticalReports ?? 0,
+    totalReports: typeof row.totalReports === "number" ? row.totalReports : null,
+    validReports: typeof row.validReports === "number" ? row.validReports : null,
+  };
+}
+
 export const leaderboardApi = proxyApi.injectEndpoints({
   endpoints: (builder) => ({
     getLeaderboard: builder.query<LeaderboardQueryResponse, LeaderboardQueryParams>({
@@ -229,8 +274,21 @@ export const leaderboardApi = proxyApi.injectEndpoints({
         };
       },
     }),
+    /**
+     * The head of the ranking for one window — the sidebar on `/hacktivity`.
+     * Asks for the page it shows rather than the whole board.
+     */
+    getTopResearchers: builder.query<
+      TopResearcher[],
+      { period: RankingPeriod; size?: number }
+    >({
+      query: ({ period, size = 5 }) =>
+        `/reputation/leaderboard?period=${period}&page=0&size=${size}`,
+      transformResponse: (response: LeaderboardApiPage) =>
+        (response.content ?? []).map(toTopResearcher),
+    }),
   }),
 });
 
-export const { useGetLeaderboardQuery } = leaderboardApi;
+export const { useGetLeaderboardQuery, useGetTopResearchersQuery } = leaderboardApi;
 export default leaderboardApi;

@@ -11,6 +11,7 @@ const leaderboardEntrySchema = z
   .object({
     rank: z.number().int().nonnegative(),
     id: z.uuid(),
+    username: z.string().nullish(),
     fullName: z.string().nullish(),
     avatarUrl: z.string().nullish(),
     country: z.string().nullish(),
@@ -42,9 +43,30 @@ type LeaderboardPage = z.infer<typeof leaderboardPageSchema>;
 
 const PAGE_SIZE = 100;
 
-async function fetchLeaderboardPage(page: number, token: string | null) {
+/**
+ * The window the ranking is measured over. Anything else is dropped rather
+ * than passed on, so a typo cannot turn into an upstream error.
+ */
+const PERIODS = ["DAY", "WEEK", "MONTH", "ALL_TIME"] as const;
+
+type Period = (typeof PERIODS)[number];
+
+function periodOf(params: URLSearchParams): Period | null {
+  const value = params.get("period");
+  return PERIODS.includes(value as Period) ? (value as Period) : null;
+}
+
+function windowed(period: Period | null): string {
+  return period ? `&period=${period}` : "";
+}
+
+async function fetchLeaderboardPage(
+  page: number,
+  token: string | null,
+  period: Period | null,
+) {
   const response = await upstreamFetch(
-    `/reputation/leaderboard?page=${page}&size=${PAGE_SIZE}`,
+    `/reputation/leaderboard?page=${page}&size=${PAGE_SIZE}${windowed(period)}`,
     token,
   );
 
@@ -63,9 +85,32 @@ async function fetchLeaderboardPage(page: number, token: string | null) {
 
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
+  const params = request.nextUrl.searchParams;
+  const period = periodOf(params);
+
+  /* A caller that names a page wants that page — the widget asking for the
+     top five has no use for every ranked researcher. Only the unpaged call,
+     which the leaderboard screen makes, is stitched together below. */
+  const page = params.get("page");
+  const size = params.get("size");
+  if (page !== null || size !== null) {
+    const query = new URLSearchParams({
+      page: String(Math.max(0, Number(page ?? 0) || 0)),
+      size: String(Math.min(100, Math.max(1, Number(size ?? 20) || 20))),
+    });
+    try {
+      const upstream = await upstreamFetch(
+        `/reputation/leaderboard?${query.toString()}${windowed(period)}`,
+        token,
+      );
+      return relay(upstream, "Unable to load the leaderboard.");
+    } catch {
+      return unreachable("leaderboard");
+    }
+  }
 
   try {
-    const firstPage = await fetchLeaderboardPage(0, token);
+    const firstPage = await fetchLeaderboardPage(0, token, period);
     if (!firstPage.response.ok) {
       return relay(firstPage.response, "Unable to load the leaderboard.");
     }
@@ -83,7 +128,7 @@ export async function GET(request: NextRequest) {
       totalPages > 1
         ? await Promise.all(
             Array.from({ length: totalPages - 1 }, (_, index) =>
-              fetchLeaderboardPage(index + 1, token),
+              fetchLeaderboardPage(index + 1, token, period),
             ),
           )
         : [];

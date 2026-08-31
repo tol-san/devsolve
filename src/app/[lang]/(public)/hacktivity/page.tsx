@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import HacktivityFeature from "@/components/Hackitvitty/HacktivityFeature";
+import { Suspense } from "react";
+import HacktivityFeature from "@/components/hacktivity/HacktivityFeature";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
@@ -42,10 +43,14 @@ export default async function HacktivityPage({
         })}
       />
 
-      <HacktivityFeature
-        heading={copy.heading}
-        description={copy.description}
-      />
+      {/* The feed reads its filters from the URL, which needs a boundary here
+          so the rest of the page can still render on the server. */}
+      <Suspense fallback={null}>
+        <HacktivityFeature
+          heading={copy.heading}
+          description={copy.description}
+        />
+      </Suspense>
     </>
   );
 }
