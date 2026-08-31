@@ -23,6 +23,7 @@ import { CustomSelect } from "@/components/auth/CustomSelect";
 import { CustomCountrySelect } from "@/components/auth/CustomCountrySelect";
 import { useAutoDetectCountry } from "@/hooks/useAutoDetectCountry";
 import { INDUSTRIES, COMPANY_SIZES, REASONS } from "@/lib/constants/auth";
+import { cn } from "@/lib/utils";
 
 import {
   type CompanyRegisterFormValues,
@@ -36,7 +37,6 @@ interface CompanyStep2FormProps {
   apiError?: string | null;
 }
 
-
 export function CompanyStep2Form({
   form,
   onBack,
@@ -44,7 +44,6 @@ export function CompanyStep2Form({
   isApiLoading,
   apiError,
 }: CompanyStep2FormProps) {
-
   const {
     register,
     handleSubmit,
@@ -60,7 +59,6 @@ export function CompanyStep2Form({
   const country = watch("country");
   const joiningReason = watch("joiningReason");
   const agreeTermsStep2 = watch("agreeTermsStep2");
-
 
   const handleCountryDetect = React.useCallback(
     (name: string) => {
@@ -81,7 +79,6 @@ export function CompanyStep2Form({
     Boolean(joiningReason) &&
     Boolean(agreeTermsStep2);
 
-
   return (
     <motion.form
       key="step2"
@@ -94,10 +91,10 @@ export function CompanyStep2Form({
     >
       {/* Header */}
       <div className="mb-6 text-center sm:text-left">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
           Tell us about your company
         </h2>
-        <p className="text-slate-500 text-sm sm:text-base mt-1 font-medium">
+        <p className="text-muted-foreground text-sm sm:text-base mt-1 font-medium">
           Set up your organization profile to start creating bounty programs
         </p>
       </div>
@@ -106,26 +103,27 @@ export function CompanyStep2Form({
       <div>
         <Label
           htmlFor="companyName"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          COMPANY NAME <span className="text-red-500">*</span>
+          COMPANY NAME <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Building2 className="w-4 h-4" />
-          </div>
           <Input
             id="companyName"
             type="text"
             placeholder="Battambang Security Inc."
             {...register("companyName")}
-            className={`w-full h-11 pl-10 pr-4 bg-white border ${
-              errors.companyName ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-            } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+            className={cn(
+              "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.companyName ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+            )}
           />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+            <Building2 className="size-4" />
+          </div>
         </div>
         {errors.companyName && (
-          <p className="text-xs text-red-500 mt-1">{errors.companyName.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.companyName.message}</p>
         )}
       </div>
 
@@ -133,26 +131,27 @@ export function CompanyStep2Form({
       <div>
         <Label
           htmlFor="companyWebsite"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          COMPANY WEBSITE <span className="text-red-500">*</span>
+          COMPANY WEBSITE <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Globe className="w-4 h-4" />
-          </div>
           <Input
             id="companyWebsite"
             type="url"
             placeholder="https://readme.org"
             {...register("companyWebsite")}
-            className={`w-full h-11 pl-10 pr-4 bg-white border ${
-              errors.companyWebsite ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-            } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+            className={cn(
+              "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.companyWebsite ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+            )}
           />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+            <Globe className="size-4" />
+          </div>
         </div>
         {errors.companyWebsite && (
-          <p className="text-xs text-red-500 mt-1">{errors.companyWebsite.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.companyWebsite.message}</p>
         )}
       </div>
 
@@ -161,9 +160,9 @@ export function CompanyStep2Form({
         <div>
           <Label
             htmlFor="industry"
-            className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+            className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
           >
-            INDUSTRY <span className="text-red-500">*</span>
+            INDUSTRY <span className="text-destructive">*</span>
           </Label>
           <CustomSelect
             value={industry}
@@ -174,16 +173,16 @@ export function CompanyStep2Form({
             onSelect={(val) => setValue("industry", val, { shouldValidate: true })}
           />
           {errors.industry && (
-            <p className="text-xs text-red-500 mt-1">{errors.industry.message}</p>
+            <p className="text-xs text-destructive mt-1">{errors.industry.message}</p>
           )}
         </div>
 
         <div>
           <Label
             htmlFor="companySize"
-            className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+            className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
           >
-            COMPANY SIZE <span className="text-red-500">*</span>
+            COMPANY SIZE <span className="text-destructive">*</span>
           </Label>
           <CustomSelect
             value={companySize}
@@ -194,7 +193,7 @@ export function CompanyStep2Form({
             onSelect={(val) => setValue("companySize", val, { shouldValidate: true })}
           />
           {errors.companySize && (
-            <p className="text-xs text-red-500 mt-1">{errors.companySize.message}</p>
+            <p className="text-xs text-destructive mt-1">{errors.companySize.message}</p>
           )}
         </div>
       </div>
@@ -203,9 +202,9 @@ export function CompanyStep2Form({
       <div>
         <Label
           htmlFor="country"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          COUNTRY / REGION <span className="text-red-500">*</span>
+          COUNTRY / REGION <span className="text-destructive">*</span>
         </Label>
         <CustomCountrySelect
           value={country || ""}
@@ -215,7 +214,7 @@ export function CompanyStep2Form({
           onSelect={(c) => handleSetCountry(c.name, c.code)}
         />
         {errors.country && (
-          <p className="text-xs text-red-500 mt-1">{errors.country.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.country.message}</p>
         )}
       </div>
 
@@ -223,9 +222,9 @@ export function CompanyStep2Form({
       <div>
         <Label
           htmlFor="joiningReason"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          WHY ARE YOU JOINING DEVSOLVE? <span className="text-red-500">*</span>
+          WHY ARE YOU JOINING DEVSOLVE? <span className="text-destructive">*</span>
         </Label>
         <CustomSelect
           value={joiningReason}
@@ -236,7 +235,7 @@ export function CompanyStep2Form({
           onSelect={(val) => setValue("joiningReason", val, { shouldValidate: true })}
         />
         {errors.joiningReason && (
-          <p className="text-xs text-red-500 mt-1">{errors.joiningReason.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.joiningReason.message}</p>
         )}
       </div>
 
@@ -246,21 +245,21 @@ export function CompanyStep2Form({
           <input
             type="checkbox"
             {...register("agreeTermsStep2")}
-            className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+            className="mt-0.5 w-4 h-4 rounded border-border bg-card text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
           />
-          <span className="text-xs text-slate-600 leading-snug">
+          <span className="text-xs text-muted-foreground leading-snug">
             I confirm that I am an authorized representative of this company and agree to DevSolve&apos;s{" "}
-            <Link href="#" className="text-blue-600 hover:text-blue-700 font-bold hover:underline">
+            <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="#" className="text-blue-600 hover:text-blue-700 font-bold hover:underline">
+            <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
               Privacy Policy
             </Link>
           </span>
         </label>
         {errors.agreeTermsStep2 && (
-          <p className="text-xs text-red-500 mt-1 pl-6.5">
+          <p className="text-xs text-destructive mt-1 pl-6.5">
             {errors.agreeTermsStep2.message}
           </p>
         )}
@@ -268,7 +267,7 @@ export function CompanyStep2Form({
 
       {/* API Error Banner */}
       {apiError && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
           <AlertCircle className="mt-0.5 w-4 h-4 shrink-0" />
           <p>{apiError}</p>
         </div>
@@ -280,7 +279,7 @@ export function CompanyStep2Form({
           type="button"
           variant="outline"
           onClick={onBack}
-          className="h-11 sm:h-12 px-5 border border-slate-300 text-slate-700 font-semibold rounded-xl text-sm hover:bg-slate-50 cursor-pointer"
+          className="h-11 sm:h-12 px-5 border border-border text-foreground font-semibold rounded-xl text-sm hover:bg-muted cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
           <span>Back</span>
@@ -289,7 +288,7 @@ export function CompanyStep2Form({
         <Button
           type="submit"
           disabled={!isStep2Complete || isSubmitting || isApiLoading}
-          className="flex-1 h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          className="flex-1 h-11 sm:h-12 bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {isSubmitting || isApiLoading ? (
             <>
@@ -307,3 +306,4 @@ export function CompanyStep2Form({
     </motion.form>
   );
 }
+

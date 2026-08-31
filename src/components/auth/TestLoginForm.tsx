@@ -47,10 +47,10 @@ export function TestLoginForm() {
     >
       {/* Main Title Header */}
       <motion.div variants={itemVariants} className="mb-6 text-center sm:text-left">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
           Welcome back
         </h2>
-        <p className="text-slate-500 text-sm sm:text-base mt-1 font-medium">
+        <p className="text-muted-foreground text-sm sm:text-base mt-1 font-medium">
           Sign in to keep hunting, keep building, and keep your streak going
         </p>
       </motion.div>
@@ -64,8 +64,7 @@ export function TestLoginForm() {
         <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
           <Button
             type="button"
-            variant="outline"
-            className="w-full h-11 sm:h-12 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer"
+            className="w-full h-11 sm:h-12 bg-card dark:bg-card hover:bg-muted/70 dark:hover:bg-muted/70 border border-border dark:border-border rounded-xl text-foreground font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -93,11 +92,10 @@ export function TestLoginForm() {
         <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
           <Button
             type="button"
-            variant="outline"
-            className="w-full h-11 sm:h-12 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer"
+            className="w-full h-11 sm:h-12 bg-card dark:bg-card hover:bg-muted/70 dark:hover:bg-muted/70 border border-border dark:border-border rounded-xl text-foreground font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer"
           >
             <svg
-              className="w-4 h-4 text-slate-900 fill-current"
+              className="w-4 h-4 text-foreground fill-current"
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
@@ -109,11 +107,11 @@ export function TestLoginForm() {
       </motion.div>
 
       {/* Divider */}
-      <motion.div variants={itemVariants} className="relative mb-6 text-center">
+      <motion.div variants={itemVariants} className="relative mb-6 flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200" />
+          <div className="w-full border-t border-border/60" />
         </div>
-        <span className="bg-white px-3.5 text-xs font-medium text-slate-400 relative z-10">
+        <span className="relative z-10 px-3.5 py-0.5 text-xs font-medium text-muted-foreground bg-card rounded-full border border-border">
           or Sign in with Email
         </span>
       </motion.div>
@@ -124,22 +122,22 @@ export function TestLoginForm() {
         <motion.div variants={itemVariants}>
           <Label
             htmlFor="identifier"
-            className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5"
+            className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5"
           >
-            Email or Username <span className="text-red-500">*</span>
+            Email or Username <span className="text-destructive">*</span>
           </Label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <User className="w-4 h-4" />
-            </div>
             <Input
               id="identifier"
               name="identifier"
               type="text"
               autoComplete="username"
               placeholder="you@gmail.com or tada122"
-              className="w-full h-11 pl-10 pr-4 bg-white border border-slate-300 focus:border-blue-500 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all"
+              className="w-full h-11 pl-10 pr-4 bg-card border border-border hover:border-muted-foreground/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all"
             />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+              <User className="size-4" />
+            </div>
           </div>
         </motion.div>
 
@@ -148,34 +146,34 @@ export function TestLoginForm() {
           <div className="flex items-baseline justify-between gap-3 mb-1.5">
             <Label
               htmlFor="password"
-              className="block text-xs sm:text-sm font-semibold text-slate-800"
+              className="block text-xs sm:text-sm font-semibold text-foreground"
             >
-              Password <span className="text-red-500">*</span>
+              Password <span className="text-destructive">*</span>
             </Label>
             <Link
               href="#"
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
             >
               Forgot password?
             </Link>
           </div>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <Key className="w-4 h-4" />
-            </div>
             <Input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="Enter your password"
-              className="w-full h-11 pl-10 pr-10 bg-white border border-slate-300 focus:border-blue-500 rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all"
+              className="w-full h-11 pl-10 pr-10 bg-card border border-border hover:border-muted-foreground/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all"
             />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+              <Key className="size-4" />
+            </div>
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               {/* Cross-fade the two icons rather than hard-swapping them. */}
               <AnimatePresence mode="wait" initial={false}>
@@ -204,9 +202,9 @@ export function TestLoginForm() {
             <input
               type="checkbox"
               name="remember"
-              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+              className="w-4 h-4 rounded border-border bg-card text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
             />
-            <span className="text-sm text-slate-600 leading-snug">
+            <span className="text-sm text-muted-foreground leading-snug">
               Keep me signed in
             </span>
           </label>
@@ -216,10 +214,10 @@ export function TestLoginForm() {
         <motion.div variants={itemVariants} className="pt-2">
           <Button
             type="submit"
-            className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+            className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 flex items-center justify-center gap-2 cursor-pointer transition-all"
           >
             <LogIn className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>Sign In</span>
+            Sign in
           </Button>
         </motion.div>
       </form>
@@ -227,12 +225,12 @@ export function TestLoginForm() {
       {/* Bottom Register Link */}
       <motion.div
         variants={itemVariants}
-        className="mt-6 text-center text-xs sm:text-sm text-slate-500"
+        className="mt-6 text-center text-xs sm:text-sm text-muted-foreground"
       >
         Don&apos;t have an account?{" "}
         <Link
           href="/account-type"
-          className="text-blue-600 hover:text-blue-700 font-bold hover:underline"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline"
         >
           Create one
         </Link>
@@ -240,3 +238,4 @@ export function TestLoginForm() {
     </motion.div>
   );
 }
+

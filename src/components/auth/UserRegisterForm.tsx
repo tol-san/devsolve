@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   User,
   Mail,
@@ -23,6 +22,7 @@ import { useKeycloakLogin, type IdpHint } from "@/hooks/useKeycloakLogin";
 import { useRegisterUserMutation } from "@/lib/redux/services/authApi";
 import { CustomCountrySelect } from "@/components/auth/CustomCountrySelect";
 import { useAutoDetectCountry } from "@/hooks/useAutoDetectCountry";
+import { cn } from "@/lib/utils";
 
 import {
   userRegisterSchema,
@@ -127,10 +127,10 @@ export function UserRegisterForm() {
     <div className="w-full max-w-xl lg:max-w-2xl mx-auto my-auto flex flex-col justify-center">
       {/* Main Title Header */}
       <div className="mb-6 text-center sm:text-left">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
           Create your User account
         </h2>
-        <p className="text-slate-500 text-sm sm:text-base mt-1 font-medium">
+        <p className="text-muted-foreground text-sm sm:text-base mt-1 font-medium">
           Fill in your details to get started as a security researcher
         </p>
       </div>
@@ -140,13 +140,12 @@ export function UserRegisterForm() {
         {/* Google */}
         <Button
           type="button"
-          variant="outline"
           onClick={() => handleSocialSignIn("google")}
           disabled={isSocialRedirecting}
-          className="w-full h-11 sm:h-12 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+          className="w-full h-11 sm:h-12 bg-card dark:bg-card hover:bg-muted/70 dark:hover:bg-muted/70 border border-border dark:border-border rounded-xl text-foreground font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
         >
           {pendingIdpHint === "google" ? (
-            <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
           ) : (
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path
@@ -173,15 +172,14 @@ export function UserRegisterForm() {
         {/* GitHub */}
         <Button
           type="button"
-          variant="outline"
           onClick={() => handleSocialSignIn("github")}
           disabled={isSocialRedirecting}
-          className="w-full h-11 sm:h-12 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+          className="w-full h-11 sm:h-12 bg-card dark:bg-card hover:bg-muted/70 dark:hover:bg-muted/70 border border-border dark:border-border rounded-xl text-foreground font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
         >
           {pendingIdpHint === "github" ? (
-            <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
           ) : (
-            <svg className="w-4 h-4 text-slate-900 fill-current" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-foreground fill-current" viewBox="0 0 24 24">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
             </svg>
           )}
@@ -190,11 +188,11 @@ export function UserRegisterForm() {
       </div>
 
       {/* Divider */}
-      <div className="relative mb-6 text-center">
+      <div className="relative mb-6 flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200" />
+          <div className="w-full border-t border-border/60" />
         </div>
-        <span className="bg-white px-3.5 text-xs font-medium text-slate-400 relative z-10">
+        <span className="relative z-10 px-3.5 py-0.5 text-xs font-medium text-muted-foreground bg-card rounded-full border border-border">
           or Sign up with Email
         </span>
       </div>
@@ -203,25 +201,26 @@ export function UserRegisterForm() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Row 1: Username */}
           <div>
-            <Label htmlFor="username" className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-              Username <span className="text-red-500">*</span>
+            <Label htmlFor="username" className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5">
+              Username <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <User className="w-4 h-4" />
-              </div>
               <Input
                 id="username"
                 type="text"
                 placeholder="e.g. tada122"
                 {...register("username")}
-                className={`w-full h-11 pl-10 pr-4 bg-white border ${
-                  errors.username ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-                } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+                className={cn(
+                  "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                  errors.username ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+                )}
               />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                <User className="size-4" />
+              </div>
             </div>
             {errors.username && (
-              <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>
+              <p className="text-xs text-destructive mt-1">{errors.username.message}</p>
             )}
           </div>
 
@@ -229,164 +228,170 @@ export function UserRegisterForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* First Name */}
             <div>
-              <Label htmlFor="firstName" className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-                First Name <span className="text-red-500">*</span>
+              <Label htmlFor="firstName" className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5">
+                First Name <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
-                </div>
                 <Input
                   id="firstName"
                   type="text"
                   placeholder="e.g. Data"
                   {...register("firstName")}
-                  className={`w-full h-11 pl-10 pr-4 bg-white border ${
-                    errors.firstName ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-                  } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+                  className={cn(
+                    "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                    errors.firstName ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+                  )}
                 />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                  <User className="size-4" />
+                </div>
               </div>
               {errors.firstName && (
-                <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>
+                <p className="text-xs text-destructive mt-1">{errors.firstName.message}</p>
               )}
             </div>
 
             {/* Last Name */}
             <div>
-              <Label htmlFor="lastName" className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-                Last Name <span className="text-red-500">*</span>
+              <Label htmlFor="lastName" className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5">
+                Last Name <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
-                </div>
                 <Input
                   id="lastName"
                   type="text"
                   placeholder="e.g. Battambang"
                   {...register("lastName")}
-                  className={`w-full h-11 pl-10 pr-4 bg-white border ${
-                    errors.lastName ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-                  } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+                  className={cn(
+                    "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                    errors.lastName ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+                  )}
                 />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                  <User className="size-4" />
+                </div>
               </div>
               {errors.lastName && (
-                <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>
+                <p className="text-xs text-destructive mt-1">{errors.lastName.message}</p>
               )}
             </div>
           </div>
 
-          {/* Row 2: Email */}
+          {/* Row 3: Email */}
           <div>
-            <Label htmlFor="email" className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-              Email <span className="text-red-500">*</span>
+            <Label htmlFor="email" className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5">
+              Email <span className="text-destructive">*</span>
             </Label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Mail className="w-4 h-4" />
-              </div>
               <Input
                 id="email"
                 type="email"
                 placeholder="you@gmail.com"
                 {...register("email")}
-                className={`w-full h-11 pl-10 pr-4 bg-white border ${
-                  errors.email ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-                } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+                className={cn(
+                  "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                  errors.email ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+                )}
               />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                <Mail className="size-4" />
+              </div>
             </div>
             {errors.email && (
-              <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+              <p className="text-xs text-destructive mt-1">{errors.email.message}</p>
             )}
           </div>
 
-          {/* Row 3: Password & Confirm Password */}
+          {/* Row 4: Password & Confirm Password */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Password */}
             <div>
-              <Label htmlFor="password" className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-                Password <span className="text-red-500">*</span>
+              <Label htmlFor="password" className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5">
+                Password <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Key className="w-4 h-4" />
-                </div>
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a password"
                   {...register("password")}
-                  className={`w-full h-11 pl-10 pr-10 bg-white border ${
-                    errors.password ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-                  } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+                  className={cn(
+                    "w-full h-11 pl-10 pr-10 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                    errors.password ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+                  )}
                 />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                  <Key className="size-4" />
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+                <p className="text-xs text-destructive mt-1">{errors.password.message}</p>
               )}
             </div>
 
             {/* Confirm Password */}
             <div>
-              <Label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-                Confirm Password <span className="text-red-500">*</span>
+              <Label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5">
+                Confirm Password <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
-                </div>
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Repeat password"
                   {...register("confirmPassword")}
-                  className={`w-full h-11 pl-10 pr-10 bg-white border ${
-                    errors.confirmPassword ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-                  } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+                  className={cn(
+                    "w-full h-11 pl-10 pr-10 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                    errors.confirmPassword ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+                  )}
                 />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+                  <User className="size-4" />
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>
+                <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>
               )}
             </div>
           </div>
 
-          {/* Row 4: Phone (optional) */}
+          {/* Row 5: Phone (optional) */}
           <div>
-            <Label htmlFor="phone" className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
-              Phone <span className="text-slate-400 font-normal">(optional)</span>
+            <Label htmlFor="phone" className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5">
+              Phone <span className="text-muted-foreground font-normal">(optional)</span>
             </Label>
             <Input
               id="phone"
               type="tel"
               placeholder="e.g. 866484857384"
               {...register("phone")}
-              className={`w-full h-11 px-4 bg-white border ${
-                errors.phone ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-              } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+              className={cn(
+                "w-full h-11 px-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                errors.phone ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+              )}
             />
             {errors.phone && (
-              <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>
+              <p className="text-xs text-destructive mt-1">{errors.phone.message}</p>
             )}
           </div>
 
-          {/* Row 5: Country / Region */}
+          {/* Row 6: Country / Region */}
           <div>
-            <Label htmlFor="country" className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5">
+            <Label htmlFor="country" className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5">
               Country / Region
             </Label>
             <CustomCountrySelect
@@ -400,27 +405,27 @@ export function UserRegisterForm() {
             />
           </div>
 
-          {/* Row 6: Checkbox Terms */}
+          {/* Row 7: Checkbox Terms */}
           <div className="pt-1">
             <label className="flex items-start gap-2.5 cursor-pointer group">
               <input
                 type="checkbox"
                 {...register("agreeTerms")}
-                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                className="mt-0.5 w-4 h-4 rounded border-border bg-card text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
               />
-              <span className="text-xs text-slate-600 leading-snug">
+              <span className="text-xs text-muted-foreground leading-snug">
                 I agree to DevSolve&apos;s{" "}
-                <Link href="#" className="text-blue-600 hover:text-blue-700 font-bold hover:underline">
+                <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link href="#" className="text-blue-600 hover:text-blue-700 font-bold hover:underline">
+                <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
                   Privacy Policy
                 </Link>
               </span>
             </label>
             {errors.agreeTerms && (
-              <p className="text-xs text-red-500 mt-1 pl-6.5">{errors.agreeTerms.message}</p>
+              <p className="text-xs text-destructive mt-1 pl-6.5">{errors.agreeTerms.message}</p>
             )}
           </div>
 
@@ -429,9 +434,9 @@ export function UserRegisterForm() {
             <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+              className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
             >
-              <span className="mt-px shrink-0 text-red-500">⚠</span>
+              <span className="mt-px shrink-0 text-destructive">⚠</span>
               <span>{apiError}</span>
             </motion.div>
           )}
@@ -441,7 +446,7 @@ export function UserRegisterForm() {
             <Button
               type="submit"
               disabled={!isFormComplete || isSubmitting || isApiLoading}
-              className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {isSubmitting || isApiLoading ? (
                 <>
@@ -459,12 +464,13 @@ export function UserRegisterForm() {
         </form>
 
       {/* Bottom Login Link */}
-      <div className="mt-6 text-center text-xs sm:text-sm text-slate-500">
+      <div className="mt-6 text-center text-xs sm:text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/account-type" className="text-blue-600 hover:text-blue-700 font-bold hover:underline">
+        <Link href="/account-type" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
           Log in
         </Link>
       </div>
     </div>
   );
 }
+

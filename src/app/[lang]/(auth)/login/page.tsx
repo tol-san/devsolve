@@ -158,10 +158,9 @@ export default function LoginPage() {
           <div className="mb-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <Button
               type="button"
-              variant="outline"
               disabled={isLoggingIn}
               onClick={() => handleSocialSignIn("google")}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-input bg-card text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-accent sm:h-12 sm:text-sm"
+              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-border dark:border-border bg-card dark:bg-card text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-muted/70 dark:hover:bg-muted/70 sm:h-12 sm:text-sm"
             >
               {pendingIdpHint === "google" ? (
                 <Loader2 className="size-4 animate-spin text-blue-600" />
@@ -190,10 +189,9 @@ export default function LoginPage() {
 
             <Button
               type="button"
-              variant="outline"
               disabled={isLoggingIn}
               onClick={() => handleSocialSignIn("github")}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-input bg-card text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-accent sm:h-12 sm:text-sm"
+              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-border dark:border-border bg-card dark:bg-card text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-muted/70 dark:hover:bg-muted/70 sm:h-12 sm:text-sm"
             >
               {pendingIdpHint === "github" ? (
                 <Loader2 className="size-4 animate-spin text-foreground" />
@@ -211,11 +209,11 @@ export default function LoginPage() {
           </div>
 
           {/* Divider */}
-          <div className="relative mb-6 text-center">
+          <div className="relative mb-6 flex items-center justify-center">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
+              <div className="w-full border-t border-border/60" />
             </div>
-            <span className="relative z-10 bg-background px-3.5 text-xs font-medium text-muted-foreground">
+            <span className="relative z-10 px-3.5 py-0.5 text-xs font-medium text-muted-foreground bg-card rounded-full border border-border">
               or sign in with Keycloak
             </span>
           </div>
@@ -229,17 +227,17 @@ export default function LoginPage() {
                 Email or username
               </Label>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
-                  <User className="size-4" />
-                </div>
                 <Input
                   id="identifier"
                   name="identifier"
                   type="text"
                   autoComplete="username"
                   placeholder="you@example.com or tada122"
-                  className="h-11 w-full rounded-xl border border-input bg-card pl-10 pr-4 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-blue-500"
+                  className="h-11 w-full rounded-xl border border-border bg-card hover:border-muted-foreground/40 pl-10 pr-4 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
+                  <User className="size-4" />
+                </div>
               </div>
             </div>
 
@@ -259,17 +257,17 @@ export default function LoginPage() {
                 </Link>
               </div>
               <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
-                  <Key className="size-4" />
-                </div>
                 <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="h-11 w-full rounded-xl border border-input bg-card pl-10 pr-11 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-blue-500"
+                  className="h-11 w-full rounded-xl border border-border bg-card hover:border-muted-foreground/40 pl-10 pr-11 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
+                  <Key className="size-4" />
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
@@ -299,7 +297,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoggingIn}
-              className="mt-2 flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-xs transition-all hover:bg-blue-700 sm:text-base"
+              className="mt-2 flex h-11 sm:h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 text-sm sm:text-base font-semibold text-white shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 transition-all active:scale-[0.99]"
             >
               {isLoggingIn && !pendingIdpHint ? (
                 <>

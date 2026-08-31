@@ -41,24 +41,24 @@ export function CustomSelect({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
-          "w-full h-11 px-3.5 bg-white hover:bg-slate-50 border rounded-xl text-slate-900 text-sm flex items-center justify-between transition-all cursor-pointer outline-none",
+          "w-full h-11 px-3.5 bg-card hover:bg-muted/70 border rounded-xl text-foreground text-sm flex items-center justify-between transition-all cursor-pointer outline-none focus:ring-2 focus:ring-blue-500/20",
           error
-            ? "border-red-400 focus:ring-2 focus:ring-red-400"
-            : "border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-          isOpen && "border-blue-500 ring-2 ring-blue-500/20 bg-white"
+            ? "border-destructive focus:ring-destructive/30"
+            : "border-border hover:border-muted-foreground/40 focus:border-blue-500",
+          isOpen && "border-blue-500 ring-2 ring-blue-500/20"
         )}
       >
         <div className="flex items-center gap-2.5 overflow-hidden">
-          {icon && <span className="text-slate-400 shrink-0">{icon}</span>}
-          <span className={cn("truncate font-medium", !value && "text-slate-400 font-normal")}>
+          {icon && <span className="text-muted-foreground shrink-0">{icon}</span>}
+          <span className={cn("truncate font-medium", !value && "text-muted-foreground font-normal")}>
             {value || placeholder}
           </span>
         </div>
 
         <ChevronDown
           className={cn(
-            "w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200",
-            isOpen && "rotate-180 text-blue-600"
+            "w-4 h-4 text-muted-foreground shrink-0 ml-2 transition-transform duration-200",
+            isOpen && "rotate-180 text-blue-600 dark:text-blue-400"
           )}
         />
       </button>
@@ -69,7 +69,7 @@ export function CustomSelect({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.98 }}
           transition={{ duration: 0.15 }}
-          className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-slate-200/90 rounded-2xl shadow-xl p-1.5 max-h-60 overflow-y-auto space-y-0.5"
+          className="absolute z-50 left-0 right-0 mt-1.5 bg-popover/95 backdrop-blur-md border border-border rounded-2xl shadow-xl p-1.5 max-h-60 overflow-y-auto space-y-0.5 text-popover-foreground"
         >
           {options.map((opt) => {
             const isSelected = value === opt;
@@ -84,12 +84,12 @@ export function CustomSelect({
                 className={cn(
                   "w-full px-3 py-2 text-xs sm:text-sm rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer",
                   isSelected
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "hover:bg-slate-50 text-slate-700 font-medium"
+                    ? "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-semibold"
+                    : "hover:bg-muted text-foreground font-medium"
                 )}
               >
                 <span className="truncate">{opt}</span>
-                {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0 ml-2" />}
+                {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 ml-2" />}
               </button>
             );
           })}
@@ -98,3 +98,4 @@ export function CustomSelect({
     </div>
   );
 }
+

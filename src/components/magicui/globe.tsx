@@ -76,6 +76,7 @@ export function Globe({ className, config }: GlobeProps) {
         { location: [28.6139, 77.209], size: 0.08 }, // New Delhi
         { location: [25.2048, 55.2708], size: 0.06 }, // Dubai
       ],
+      onRender: () => {},
       ...config,
     };
 
