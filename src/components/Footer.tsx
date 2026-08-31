@@ -35,7 +35,7 @@ const footerNavSections = [
       { name: "Programs", tKey: "footer.links.programs", href: "/programs" },
       { name: "Problems", tKey: "footer.links.problems", href: "/problems" },
       { name: "Showcases", tKey: "footer.links.showcases", href: "/showcases" },
-      { name: "Community", tKey: "footer.links.community", href: "/community" },
+      { name: "Discussions", tKey: "footer.links.community", href: "/discussions" },
     ],
   },
   {
@@ -44,6 +44,7 @@ const footerNavSections = [
     links: [
       { name: "Hacktivity", tKey: "footer.links.hacktivity", href: "/hacktivity" },
       { name: "Leaderboard", tKey: "footer.links.leaderboard", href: "/leaderboard" },
+      { name: "For companies", tKey: "footer.links.company", href: "/company" },
       { name: "About", tKey: "footer.links.about", href: "/about" },
     ],
   },

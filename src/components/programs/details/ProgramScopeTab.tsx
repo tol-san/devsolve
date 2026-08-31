@@ -26,13 +26,13 @@ console.log("TOTAL COUNT:", program.assets?.length)
   return (
     <div className="space-y-6">
       {/* IN-SCOPE ASSETS */}
-      <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 sm:p-6 space-y-4 overflow-hidden">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             {/* <Shield className="w-5 h-5 text-emerald-600" /> */}
-            <h3 className="text-2xl font-bold text-foreground">In-Scope Targets</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground">In-Scope Targets</h3>
           </div>
-          <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 rounded-lg dark:bg-emerald-500/15 dark:text-emerald-300 dark:hover:bg-emerald-500/15">
+          <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 rounded-lg dark:bg-emerald-500/15 dark:text-emerald-300 dark:hover:bg-emerald-500/15 shrink-0">
             {inScope.length} Targets
           </Badge>
         </div>
@@ -42,26 +42,24 @@ console.log("TOTAL COUNT:", program.assets?.length)
         ) : (
           <div className="divide-y divide-border">
             {inScope.map((asset) => (
-              <div key={asset.id} className="py-3 flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-mono text-sm font-semibold text-foreground">
-                      {asset.identifier}
-                    </span>
-                  </div>
-                  {asset.description && (
-                    <p className="text-xs text-muted-foreground">{asset.description}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs rounded-md">
+              <div key={asset.id} className="py-3 space-y-1">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="font-mono text-sm font-semibold text-foreground truncate min-w-0">
+                    {asset.identifier}
+                  </span>
+                  <Badge variant="outline" className="text-xs rounded-md shrink-0">
                     {asset.assetType}
                   </Badge>
-                  <Badge variant="secondary" className="text-xs rounded-md">
+                  <Badge variant="secondary" className="text-xs rounded-md shrink-0">
                     Max: {asset.maxSeverity}
                   </Badge>
                 </div>
+                {asset.description && (
+                  <p className="text-xs text-muted-foreground break-words pl-6">
+                    {asset.description}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -70,18 +68,22 @@ console.log("TOTAL COUNT:", program.assets?.length)
 
       {/* OUT-OF-SCOPE ASSETS */}
       {outOfScope.length > 0 && (
-        <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 space-y-4">
+        <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 sm:p-6 space-y-4 overflow-hidden">
           <div className="flex items-center gap-2">
             {/* <AlertTriangle className="w-5 h-5 text-amber-500" /> */}
-            <h3 className="text-2xl font-bold text-foreground">Out-of-Scope Targets</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground">Out-of-Scope Targets</h3>
           </div>
           <div className="divide-y divide-border">
             {outOfScope.map((asset) => (
-              <div key={asset.id} className="py-3 flex items-center justify-between">
-                <span className="font-mono text-sm text-muted-foreground">{asset.identifier}</span>
-                <Badge variant="outline" className="text-xs rounded-md text-muted-foreground">
-                  {asset.assetType}
-                </Badge>
+              <div key={asset.id} className="py-3 space-y-1">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <span className="font-mono text-sm text-muted-foreground truncate min-w-0">
+                    {asset.identifier}
+                  </span>
+                  <Badge variant="outline" className="text-xs rounded-md text-muted-foreground shrink-0">
+                    {asset.assetType}
+                  </Badge>
+                </div>
               </div>
             ))}
           </div>

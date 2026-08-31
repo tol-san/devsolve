@@ -1,9 +1,9 @@
 /**
  * The locales the site is served in.
  *
- * Both are addressed by sub-path — `/en/programs` and `/km/programs` — so each
- * language is a real, indexable, shareable URL rather than a cookie-dependent
- * view of one. `en` is the fallback whenever a request cannot be matched.
+ * English uses the clean, unprefixed URL (`/programs`) and Khmer uses its own
+ * sub-path (`/km/programs`). Each language therefore has a stable, indexable,
+ * shareable URL without making `/en/...` compete with the primary URL.
  */
 export const LOCALES = ["en", "km"] as const;
 
@@ -51,9 +51,13 @@ export function splitLocale(pathname: string): {
   return { locale: DEFAULT_LOCALE, rest: pathname, hadLocale: false };
 }
 
-/** Prefixes a path with a locale, without doubling an existing one. */
+/**
+ * Produces the public URL for a locale without doubling an existing prefix.
+ * The default language owns the unprefixed path; non-default languages carry
+ * their locale explicitly.
+ */
 export function localise(pathname: string, locale: Locale): string {
   const { rest } = splitLocale(pathname);
   const clean = rest === "/" ? "" : rest;
-  return `/${locale}${clean}`;
+  return locale === DEFAULT_LOCALE ? clean || "/" : `/${locale}${clean}`;
 }

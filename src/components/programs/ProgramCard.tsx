@@ -73,7 +73,9 @@ export function ProgramCard({ program }: ProgramCardProps) {
   };
 
   // Determine if this is a Bounty vs Response program
-  const isBounty = program.offersBounties || program.engagementType === "BOUNTY";
+  const isBounty = program.engagementType
+    ? program.engagementType === "BOUNTY"
+    : program.offersBounties;
 
   // Badge Styling: Blue for Bounty, Soft Green for Response
   const badgeStyle = isBounty

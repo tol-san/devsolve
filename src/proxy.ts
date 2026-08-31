@@ -3,10 +3,8 @@ import type { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import {
   DEFAULT_LOCALE,
-  LOCALES,
-  isLocale,
+  localise,
   splitLocale,
-  type Locale,
 } from "@/lib/i18n/config";
 
 /** Remembers the visitor's choice so the switcher survives a fresh visit. */
@@ -24,39 +22,6 @@ const LOCALE_COOKIE = "devsolve.locale";
 const STATIC_FILE =
   /\.(?:ico|png|jpe?g|gif|svg|webp|avif|bmp|css|js|mjs|map|txt|xml|json|webmanifest|woff2?|ttf|otf|eot|mp4|webm|ogg|mp3|wav|pdf|zip)$/i;
 
-/**
- * Picks a locale for a request that arrived without one.
- *
- * Order is deliberate: an explicit choice the visitor made in the switcher
- * beats what their browser happens to advertise, and both beat the default.
- * Parsed by hand rather than pulling in Negotiator — with two locales the
- * whole grammar we care about is `km` appearing with a higher q-value.
- */
-function detectLocale(request: NextRequest): Locale {
-  const chosen = request.cookies.get(LOCALE_COOKIE)?.value;
-  if (isLocale(chosen)) return chosen;
-
-  const header = request.headers.get("accept-language");
-  if (!header) return DEFAULT_LOCALE;
-
-  const ranked = header
-    .split(",")
-    .map((part) => {
-      const [tag, ...params] = part.trim().split(";");
-      const q = params.find((p) => p.trim().startsWith("q="));
-      return {
-        // `km-KH` and `km` both mean Khmer to us.
-        base: tag.trim().toLowerCase().split("-")[0],
-        q: q ? Number.parseFloat(q.split("=")[1]) || 0 : 1,
-      };
-    })
-    .filter((entry) => (LOCALES as readonly string[]).includes(entry.base))
-    .sort((a, b) => b.q - a.q);
-
-  const best = ranked[0]?.base;
-  return isLocale(best) ? best : DEFAULT_LOCALE;
-}
-
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -71,22 +36,28 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const { locale, rest, hadLocale } = splitLocale(pathname);
+  const parsed = splitLocale(pathname);
+  let { locale, rest } = parsed;
+  const { hadLocale } = parsed;
+  let rewriteUrl: URL | null = null;
 
-  /* A request with no locale gets sent to one. Every page therefore lives at
-     exactly one canonical URL, which is what makes the Khmer version
-     indexable and shareable rather than a cookie-dependent view. */
-  if (!hadLocale) {
-    const picked = detectLocale(request);
+  /* `/en/...` was the old English URL shape. Consolidate it permanently onto
+     the unprefixed canonical while preserving the query string. */
+  if (hadLocale && locale === DEFAULT_LOCALE) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${picked}${pathname === "/" ? "" : pathname}`;
-    const redirect = NextResponse.redirect(url);
-    redirect.cookies.set(LOCALE_COOKIE, picked, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-    });
-    return redirect;
+    url.pathname = rest || "/";
+    return NextResponse.redirect(url, 308);
+  }
+
+  /* An unprefixed request is always the stable English canonical. Language
+     negotiation must not make the same URL return English for one crawler and
+     redirect to Khmer for another; the language switcher links directly to
+     `/km/...`, while English is rewritten internally to the physical route. */
+  if (!hadLocale) {
+    locale = DEFAULT_LOCALE;
+    rest = pathname;
+    rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = `/${DEFAULT_LOCALE}${pathname === "/" ? "" : pathname}`;
   }
 
   /* Presence only. `getSessionCookie` reads the cookie jar — it does not
@@ -101,11 +72,19 @@ export function proxy(request: NextRequest) {
     // visit. Arriving from inside the app (a Home link) leaves a Referer on
     // this origin — let them through.
     const referer = request.headers.get("referer");
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-    const isInternalNav = referer?.startsWith(siteUrl) ?? false;
+    let isInternalNav = false;
+    if (referer) {
+      try {
+        isInternalNav = new URL(referer).origin === request.nextUrl.origin;
+      } catch {
+        // Invalid Referer headers are treated as external navigation.
+      }
+    }
 
     if (sessionCookie && !isInternalNav) {
-      return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
+      return NextResponse.redirect(
+        new URL(localise("/dashboard", locale), request.url),
+      );
     }
   }
 
@@ -123,7 +102,17 @@ export function proxy(request: NextRequest) {
       }
     }
 
-    return NextResponse.redirect(new URL(`/${locale}`, request.url));
+    return NextResponse.redirect(new URL(localise("/", locale), request.url));
+  }
+
+  if (rewriteUrl) {
+    const rewrite = NextResponse.rewrite(rewriteUrl);
+    rewrite.cookies.set(LOCALE_COOKIE, DEFAULT_LOCALE, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+    return rewrite;
   }
 
   return NextResponse.next();

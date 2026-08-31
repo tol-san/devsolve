@@ -4,12 +4,12 @@
 
 ## Platform Sections
 
-- [Bug Bounty Programs](https://www.devsolve.app/en/programs): Browse verified public security programs, vulnerability scopes, and reward tiers.
-- [Community Problems & Solutions](https://www.devsolve.app/en/problems): Developer discussions, troubleshooting threads, and verified answers.
-- [Hacktivity](https://www.devsolve.app/en/hacktivity): Real-time security disclosures and community activity feed.
-- [Showcases](https://www.devsolve.app/en/showcases): Developer portfolios, proof of work, and project highlights.
-- [Leaderboard](https://www.devsolve.app/en/leaderboard): Rankings of top security researchers and developers based on reputation and bounty rewards.
-- [About DevSolve](https://www.devsolve.app/en/about): Platform mission, security disclosure standards, and team.
+- [Bug Bounty Programs](https://devsolve.app/programs): Browse verified public security programs, vulnerability scopes, and reward tiers.
+- [Discussions](https://devsolve.app/discussions): Developer discussions, troubleshooting threads, and verified answers.
+- [Hacktivity](https://devsolve.app/hacktivity): Real-time security disclosures and community activity feed.
+- [Showcases](https://devsolve.app/showcases): Developer portfolios, proof of work, and project highlights.
+- [Leaderboard](https://devsolve.app/leaderboard): Rankings of top security researchers and developers based on reputation and bounty rewards.
+- [About DevSolve](https://devsolve.app/about): Platform mission, security disclosure standards, and team.
 
 ## Key Features
 

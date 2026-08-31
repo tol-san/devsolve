@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import MarketplacePage from "@/components/programs/details/PublicProgramBrowsePage";
 import React from "react";
-import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
@@ -17,7 +17,8 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
-  const dict = await getDictionary(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
 
   return pageMetadata({
     title: dict.programs.metaTitle,
@@ -33,7 +34,8 @@ export default async function PublicProgramBrowse({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  const dict = await getDictionary(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
 
   return (
     <>
@@ -41,7 +43,7 @@ export default async function PublicProgramBrowse({
         data={collectionSchema({
           name: dict.programs.metaTitle,
           description: dict.programs.metaDescription,
-          path: "/programs",
+          path: localise("/programs", locale),
         })}
       />
 

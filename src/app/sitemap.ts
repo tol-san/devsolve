@@ -1,8 +1,19 @@
 import type { MetadataRoute } from "next";
 import { isoDateTime } from "@/lib/seo/dates";
-import { listProblems, listPrograms, listShowcases } from "@/lib/seo/content";
+import {
+  isUuid,
+  listProblems,
+  listPrograms,
+  listPublicProfiles,
+  listShowcases,
+} from "@/lib/seo/content";
 import { absoluteUrl } from "@/lib/seo/site";
-import { LOCALES, LOCALE_TAGS, localise } from "@/lib/i18n/config";
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  LOCALE_TAGS,
+  localise,
+} from "@/lib/i18n/config";
 
 /**
  * The public map of the site, served at `/sitemap.xml`.
@@ -12,8 +23,9 @@ import { LOCALES, LOCALE_TAGS, localise } from "@/lib/i18n/config";
  * and invisible to a crawler. Listing them here is what gets them discovered.
  *
  * Only content an anonymous visitor can open is listed: published problems,
- * approved showcases, public programs. Anything the backend would refuse never
- * reaches the loop, since the fetches carry no session.
+ * approved showcases, public programs and public profiles. Anything the
+ * backend would refuse never reaches the loop, since the fetches carry no
+ * session.
  */
 
 /** Rebuilt hourly; new content is discoverable within the hour without a deploy. */
@@ -26,7 +38,7 @@ const STATIC_ROUTES: {
   changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
 }[] = [
   { path: "/", priority: 1, changeFrequency: "daily" },
-  { path: "/community", priority: 0.9, changeFrequency: "hourly" },
+  { path: "/discussions", priority: 0.9, changeFrequency: "hourly" },
   { path: "/problems", priority: 0.8, changeFrequency: "hourly" },
   { path: "/showcases", priority: 0.8, changeFrequency: "daily" },
   { path: "/programs", priority: 0.8, changeFrequency: "daily" },
@@ -40,10 +52,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   /* One slow listing should not hold up the others, and any of them may come
      back empty when the backend is unreachable — the static routes below are
      always emitted, so the sitemap is never served empty. */
-  const [problems, showcases, programs] = await Promise.all([
+  const [problems, showcases, programs, profiles] = await Promise.all([
     listProblems(),
     listShowcases(),
     listPrograms(),
+    listPublicProfiles(),
   ]);
 
   const now = new Date();
@@ -80,6 +93,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
+  const profileEntries: MetadataRoute.Sitemap = profiles
+    .filter((profile) => isUuid(profile.id) && Boolean(profile.fullName))
+    .map((profile) => ({
+      url: absoluteUrl(`/profile/${profile.id}`),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    }));
+
   /* Static pages do not change on every crawl — `lastModified` is omitted so
      Google relies on its own change-detection rather than being told these
      pages were just modified at every sitemap fetch. */
@@ -92,6 +113,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...problemEntries,
     ...showcaseEntries,
     ...programEntries,
+    ...profileEntries,
   ];
 
   /* Every URL is emitted once per locale, and each entry declares the others
@@ -107,10 +129,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: absoluteUrl(localise(path, locale)),
         alternates: {
           languages: Object.fromEntries(
-            LOCALES.map((code) => [
-              LOCALE_TAGS[code],
-              absoluteUrl(localise(path, code)),
-            ]),
+            [
+              ...LOCALES.map(
+                (code) =>
+                  [
+                    LOCALE_TAGS[code],
+                    absoluteUrl(localise(path, code)),
+                  ] as const,
+              ),
+              [
+                "x-default",
+                absoluteUrl(localise(path, DEFAULT_LOCALE)),
+              ] as const,
+            ],
           ),
         },
       };

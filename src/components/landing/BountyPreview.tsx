@@ -115,8 +115,8 @@ function RewardBar({ max, delay = 0 }: { max: number; delay?: number }) {
 function LivePill() {
   const t = useT();
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-neutral-400">
-      <span className="relative flex h-1.5 w-1.5">
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-neutral-400 whitespace-nowrap">
+      <span className="relative flex h-1.5 w-1.5 shrink-0">
         <span
           className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-70"
           style={{ backgroundColor: ACCENT }}
@@ -292,7 +292,7 @@ export function BountyPreview() {
               <LivePill />
               <Link
                 href="/programs"
-                className="group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110"
+                className="group inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110"
                 style={{ backgroundColor: PRIMARY }}
               >
                 {t("sections.bounty.viewProgram")}

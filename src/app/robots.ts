@@ -29,11 +29,18 @@ const PRIVATE_PREFIXES = [
   "/community/*/edit",
   "/community/*/solutions/",
   "/profile/me",
-  // The old public program page, kept only as a redirect notice.
-  "/program",
 ];
 
 export default function robots(): MetadataRoute.Robots {
+  const privatePaths = Array.from(
+    new Set(
+      PRIVATE_PREFIXES.flatMap((path) => [
+        path,
+        ...LOCALES.map((locale) => localise(path, locale)),
+      ]),
+    ),
+  );
+
   return {
     rules: [
       {
@@ -47,10 +54,7 @@ export default function robots(): MetadataRoute.Robots {
              Each is expanded across the locales, and the unprefixed form is
              kept too — the proxy still answers those with a redirect, and a
              stale link may point at one. */
-          ...PRIVATE_PREFIXES.flatMap((path) => [
-            path,
-            ...LOCALES.map((locale) => localise(path, locale)),
-          ]),
+          ...privatePaths,
         ],
       },
     ],

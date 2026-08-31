@@ -5,10 +5,10 @@ import { StatsSection } from "@/components/landing/StatsSection";
 import { BountyPreview } from "@/components/landing/BountyPreview";
 import { ProblemsSolutions } from "@/components/landing/ProblemsSolutions";
 import { ShowcaseSection } from "@/components/landing/ShowcaseSection";
-import { CTABanner } from "@/components/landing/CTABanner";
 import { JsonLd, organizationSchema, websiteSchema } from "@/lib/seo/jsonld";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { pageMetadata } from "@/lib/seo/metadata";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/seo/site";
 
 export async function generateMetadata({
   params,
@@ -16,12 +16,14 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
   return pageMetadata({
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    title: dict.seoPages.home.title,
     absoluteTitle: true,
-    description: SITE_DESCRIPTION,
+    description: dict.seoPages.home.description,
     path: "/",
-    locale: lang,
+    locale,
   });
 }
 
