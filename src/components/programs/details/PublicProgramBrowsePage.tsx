@@ -61,21 +61,9 @@ export default function MarketplacePage() {
 
   const queryProps = useMemo<GetProgramsParams>(
     () => ({
-      page: currentPage,
-      size: rowsPerPage,
+      page: 1,
+      size: 100,
       q: deferredSearch.slice(0, 100) || undefined,
-      engagementType:
-        selectedType === "Bounty"
-          ? "BOUNTY"
-          : selectedType === "Response"
-            ? "RESPONSE"
-            : undefined,
-      minimumBounty: requestedMinimum ?? undefined,
-      maximumBounty: requestedMaximum ?? undefined,
-      assetType: selectedAsset === "All" ? undefined : selectedAsset,
-      maxSeverity:
-        selectedSeverity === "All" ? undefined : selectedSeverity,
-      industry: selectedIndustry === "All" ? undefined : selectedIndustry,
       sort:
         sort === "reward-high"
           ? "maximumBounty,DESC"
@@ -83,18 +71,7 @@ export default function MarketplacePage() {
             ? "name,ASC"
             : "publishedAt,DESC",
     }),
-    [
-      currentPage,
-      deferredSearch,
-      requestedMaximum,
-      requestedMinimum,
-      rowsPerPage,
-      selectedAsset,
-      selectedIndustry,
-      selectedSeverity,
-      selectedType,
-      sort,
-    ],
+    [deferredSearch, sort],
   );
 
   const {
@@ -105,9 +82,85 @@ export default function MarketplacePage() {
     refetch,
   } = useGetProgramsQuery(queryProps, { skip: rangeInvalid });
 
-  const programs = responseData?.content ?? [];
-  const totalPages = Math.max(1, responseData?.totalPages ?? 1);
-  const totalCount = responseData?.totalElements ?? 0;
+  const rawPrograms = responseData?.content ?? [];
+
+  const filteredPrograms = useMemo(() => {
+    let list = rawPrograms;
+
+    // Filter by Type
+    if (selectedType === "Bounty") {
+      list = list.filter((p) =>
+        p.engagementType ? p.engagementType === "BOUNTY" : p.offersBounties,
+      );
+    } else if (selectedType === "Response") {
+      list = list.filter((p) =>
+        p.engagementType ? p.engagementType === "RESPONSE" : !p.offersBounties,
+      );
+    }
+
+    // Filter by Asset Type
+    if (selectedAsset !== "All") {
+      list = list.filter((p) =>
+        p.inScopeAssets?.some((a) => a.assetType === selectedAsset),
+      );
+    }
+
+    // Filter by Severity
+    if (selectedSeverity !== "All") {
+      list = list.filter(
+        (p) =>
+          p.inScopeAssets?.some((a) => a.maxSeverity === selectedSeverity) ||
+          p.rewards?.some((r) => r.severity === selectedSeverity),
+      );
+    }
+
+    // Filter by Industry
+    if (selectedIndustry !== "All") {
+      list = list.filter(
+        (p) => p.organization?.industry === selectedIndustry,
+      );
+    }
+
+    // Filter by Min/Max Reward
+    if (requestedMinimum !== null) {
+      list = list.filter((p) => (p.maximumBounty ?? 0) >= requestedMinimum);
+    }
+    if (requestedMaximum !== null) {
+      list = list.filter((p) => (p.minimumBounty ?? 0) <= requestedMaximum);
+    }
+
+    // Sort
+    if (sort === "reward-high") {
+      list = [...list].sort(
+        (a, b) => (b.maximumBounty ?? 0) - (a.maximumBounty ?? 0),
+      );
+    } else if (sort === "name") {
+      list = [...list].sort((a, b) =>
+        (a.name || "").localeCompare(b.name || ""),
+      );
+    }
+
+    return list;
+  }, [
+    rawPrograms,
+    selectedType,
+    selectedAsset,
+    selectedSeverity,
+    selectedIndustry,
+    requestedMinimum,
+    requestedMaximum,
+    sort,
+  ]);
+
+  const totalCount = filteredPrograms.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / rowsPerPage));
+  const currentPageSafe = Math.min(currentPage, totalPages);
+
+  const paginatedPrograms = useMemo(() => {
+    const start = (currentPageSafe - 1) * rowsPerPage;
+    return filteredPrograms.slice(start, start + rowsPerPage);
+  }, [filteredPrograms, currentPageSafe, rowsPerPage]);
+
   const isInitialLoading = !responseData && (isLoading || isFetching);
   const isSearchPending =
     searchTerm.trim() !== deferredSearch ||
@@ -219,7 +272,7 @@ export default function MarketplacePage() {
                 onAction={() => void refetch()}
                 isAlert
               />
-            ) : programs.length === 0 ? (
+            ) : paginatedPrograms.length === 0 ? (
               <ProgramMessage
                 title={t(
                   rangeInvalid
@@ -244,14 +297,14 @@ export default function MarketplacePage() {
               >
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
-                    key={`${selectedType}-${selectedAsset}-${selectedSeverity}-${selectedIndustry}-${deferredSearch}-${minReward}-${maxReward}-${sort}-${currentPage}-${rowsPerPage}`}
+                    key={`${selectedType}-${selectedAsset}-${selectedSeverity}-${selectedIndustry}-${deferredSearch}-${minReward}-${maxReward}-${sort}-${currentPageSafe}-${rowsPerPage}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15 }}
                     className="grid grid-cols-1 gap-5 md:grid-cols-2"
                   >
-                    {programs.map((program) => (
+                    {paginatedPrograms.map((program) => (
                       <ProgramCard key={program.id} program={program} />
                     ))}
                   </motion.div>
@@ -259,12 +312,12 @@ export default function MarketplacePage() {
               </div>
             )}
 
-            {!isInitialLoading && !isError && programs.length > 0 ? (
+            {!isInitialLoading && !isError && paginatedPrograms.length > 0 ? (
               <ProgramPagination
-                currentPage={currentPage}
+                currentPage={currentPageSafe}
                 totalPages={totalPages}
                 totalCount={totalCount}
-                displayedCount={programs.length}
+                displayedCount={paginatedPrograms.length}
                 rowsPerPage={rowsPerPage}
                 onRowsPerPageChange={(rows) => {
                   setRowsPerPage(rows);
