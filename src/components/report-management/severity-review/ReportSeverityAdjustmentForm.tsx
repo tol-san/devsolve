@@ -27,6 +27,8 @@ import {
   X,
 } from "lucide-react";
 
+import { toast } from "sonner";
+import { apiErrorMessage } from "@/lib/api/error-message";
 import type { ReportManagementDetail } from "@/components/report-management/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -147,11 +149,14 @@ export function ReportSeverityAdjustmentForm({
       setApprovalSuccess(true);
       onOutcomeChange?.("approved");
     } catch (err) {
+      /* No "fallback success". Announcing an approval the upstream refused
+         left the reviewer believing a researcher had been paid, and the report
+         sitting untriaged behind a confirmation screen. */
       console.error("Failed to approve report:", err);
-      // fallback success
       setShowApprovalModal(false);
-      setApprovalSuccess(true);
-      onOutcomeChange?.("approved");
+      toast.error(
+        apiErrorMessage(err, "The report could not be approved. Try again."),
+      );
     }
   };
 
@@ -171,8 +176,9 @@ export function ReportSeverityAdjustmentForm({
     } catch (err) {
       console.error("Failed to reject report:", err);
       setShowRejectModal(false);
-      setRejectionSuccess(true);
-      onOutcomeChange?.("rejected");
+      toast.error(
+        apiErrorMessage(err, "The report could not be rejected. Try again."),
+      );
     }
   };
 

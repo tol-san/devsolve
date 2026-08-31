@@ -644,32 +644,54 @@ export const reportsApi = baseApi.injectEndpoints({
       }
     >({
       async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        /* PATCH, not POST — the upstream answers 405 to a POST here, and the
+           reward call that follows then failed too with "a final severity is
+           required", because the severity this call sets had never landed. */
         const triageResult = await fetchWithBQ({
           url: `/reports/${payload.id}/triage`,
-          method: "POST",
+          method: "PATCH",
+          /* Exactly what TriageReportRequest accepts. The extra keys this used
+             to send — status, severity, companyReasoning, triageNotes,
+             rewardAmount — are not fields of it, and the reasoning among them
+             was never being recorded anywhere. */
           body: {
-            status: "APPROVED",
-            state: "VALID_CONFIRMED",
-            severity: payload.severity,
             triageSeverity: payload.severity.toUpperCase(),
-            companyReasoning: payload.explanation || payload.decisionReason,
-            triageNotes: payload.findingsSummary,
-            rewardAmount: payload.bountyAmount,
+            state: "VALID_CONFIRMED",
           },
         });
+
+        /* The result was read and then ignored: the mutation reported success
+           whatever came back, so a company saw "approved" over a report the
+           upstream had refused to triage. */
+        if (triageResult.error) {
+          return { error: triageResult.error };
+        }
 
         if (payload.bountyAmount) {
           const numericAmount = parseFloat(payload.bountyAmount.replace(/[^0-9.]/g, ""));
           if (!isNaN(numericAmount) && numericAmount > 0) {
-            await fetchWithBQ({
+            const rewardResult = await fetchWithBQ({
               url: `/reports/${payload.id}/rewards`,
               method: "POST",
+              /* RewardReportRequest is amount, points and note. `currency` and
+                 `rewardAmount` were invented. */
               body: {
                 amount: numericAmount,
-                rewardAmount: payload.bountyAmount,
-                currency: "USD",
+                ...(payload.reputationPoints
+                  ? { points: payload.reputationPoints }
+                  : {}),
+                ...(payload.explanation || payload.decisionReason
+                  ? { note: payload.explanation || payload.decisionReason }
+                  : {}),
               },
             });
+
+            /* The report is triaged either way, but the reward is the part the
+               researcher is owed — saying it was paid when it was not is the
+               one outcome worth failing over. */
+            if (rewardResult.error) {
+              return { error: rewardResult.error };
+            }
           }
         }
 
@@ -695,16 +717,21 @@ export const reportsApi = baseApi.injectEndpoints({
       }
     >({
       async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
-        await fetchWithBQ({
+        const triageResult = await fetchWithBQ({
           url: `/reports/${payload.id}/triage`,
-          method: "POST",
+          method: "PATCH",
           body: {
-            status: "REJECTED",
+            /* Required on every triage, including this one. A rejected report
+               is not rated, so it carries no severity — which is what NONE is
+               for. Without it the call is refused outright. */
+            triageSeverity: "NONE",
             state: "REJECTED",
-            companyReasoning: payload.explanation || payload.reason || payload.decisionReason,
-            triageNotes: payload.decisionReason,
           },
         });
+
+        if (triageResult.error) {
+          return { error: triageResult.error };
+        }
 
         return {
           data: {
