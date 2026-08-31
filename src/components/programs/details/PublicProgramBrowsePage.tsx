@@ -19,10 +19,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProgramFilters } from "@/hooks/useProgramFilters";
 import { useT } from "@/lib/i18n/I18nProvider";
 import { useGetProgramsQuery } from "@/lib/redux/services/program/programsApi";
-import type { GetProgramsParams } from "@/lib/types/programs/types";
+import type { GetProgramsParams, Program } from "@/lib/types/programs/types";
 import { cn } from "@/lib/utils";
 
-export default function MarketplacePage() {
+interface MarketplacePageProps {
+  initialPrograms?: Program[] | null;
+}
+
+export default function MarketplacePage({
+  initialPrograms,
+}: MarketplacePageProps = {}) {
   const t = useT();
   const {
     searchTerm,
@@ -78,11 +84,13 @@ export default function MarketplacePage() {
     data: responseData,
     isLoading,
     isFetching,
-    isError,
+    isError: isRemoteError,
     refetch,
   } = useGetProgramsQuery(queryProps, { skip: rangeInvalid });
 
-  const rawPrograms = responseData?.content ?? [];
+  const rawPrograms = responseData?.content ?? initialPrograms ?? [];
+  const isError = isRemoteError && rawPrograms.length === 0;
+  const isInitialLoading = isLoading && !responseData && !initialPrograms;
 
   const filteredPrograms = useMemo(() => {
     let list = rawPrograms;
@@ -161,7 +169,6 @@ export default function MarketplacePage() {
     return filteredPrograms.slice(start, start + rowsPerPage);
   }, [filteredPrograms, currentPageSafe, rowsPerPage]);
 
-  const isInitialLoading = !responseData && (isLoading || isFetching);
   const isSearchPending =
     searchTerm.trim() !== deferredSearch ||
     (isFetching && !isInitialLoading);
@@ -223,6 +230,7 @@ export default function MarketplacePage() {
               sort={sort}
               onSortChange={handleSortChange}
               totalCount={totalCount}
+              isLoading={isInitialLoading}
             />
             <ProgramMobileFilters
               {...filterPanelProps}

@@ -22,6 +22,8 @@ import { useGetMyProfileQuery } from "@/lib/redux/services/solutionsApi";
 import type {
   DiscussionCategory,
 } from "@/lib/types/dicussion/types";
+import type { DiscussionsResponse } from "@/lib/redux/services/discussionsApi";
+import type { InitialDiscussionsData } from "@/lib/seo/content";
 import { cn } from "@/lib/utils";
 
 interface DiscussionsFeedProps {
@@ -36,6 +38,8 @@ interface DiscussionsFeedProps {
   createHref: string;
   /** Useful server-rendered context for a valid listing before its API feed loads. */
   overview?: ReactNode;
+  /** Pre-rendered discussion items from the server to guarantee rich crawlable HTML. */
+  initialData?: InitialDiscussionsData | DiscussionsResponse | null;
 }
 
 export function DiscussionsFeed({
@@ -43,6 +47,7 @@ export function DiscussionsFeed({
   feed,
   createHref,
   overview,
+  initialData,
 }: DiscussionsFeedProps) {
   const t = useT();
   const copy = (field: string) => t(`community.pages.${feed}.${field}`);
@@ -72,10 +77,11 @@ export function DiscussionsFeed({
   } = useDiscussionFilters(defaultCategory);
 
   const {
-    data: discussions,
+    data: remoteDiscussions,
     isLoading: isLoadingFeed,
     isFetching,
   } = discussionsResult;
+  const discussions = remoteDiscussions ?? initialData ?? undefined;
   const { data: topics = [], isLoading: isLoadingTopics } = topicsResult;
   const { data: tags = [], isLoading: isLoadingTags } = tagsResult;
   const { data: stats, isLoading: isLoadingStats } = statsResult;
@@ -104,7 +110,7 @@ export function DiscussionsFeed({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="min-h-[100dvh] text-foreground"
+      className="min-h-dvh text-foreground"
     >
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <DiscussionHeader
@@ -135,6 +141,7 @@ export function DiscussionsFeed({
               sort={sort}
               onSortChange={setSort}
               totalCount={discussions?.totalCount ?? 0}
+              isLoading={isInitialLoading}
             />
             <DiscussionMobileFilters
               topics={topics}

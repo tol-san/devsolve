@@ -3,6 +3,8 @@ import type { ProblemResponse } from "@/lib/redux/services/problemsApi";
 import type { ShowcaseResponse } from "@/lib/redux/services/showcasesApi";
 import type { SolutionResponse } from "@/lib/redux/services/solutionsApi";
 import type { Program } from "@/lib/types/programs/types";
+import type { DiscussionPost } from "@/lib/types/dicussion/types";
+import { authorNameOf } from "@/lib/discussions/format";
 
 /**
  * Server-side reads of public content, for the two things that cannot go
@@ -157,7 +159,9 @@ export const listShowcases = cache(async () =>
   }),
 );
 
-export const listPrograms = cache(async () => collectPages<Program>("/programs"));
+export const listPrograms = cache(async () =>
+  collectPages<Program>("/programs"),
+);
 
 export const listPublicProfiles = cache(async () =>
   collectPages<PublicProfile>("/user-profiles", {
@@ -165,3 +169,148 @@ export const listPublicProfiles = cache(async () =>
     sizeParam: "pageSize",
   }),
 );
+
+function toRelativeDate(iso?: string): string {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  const diffHrs = (Date.now() - date.getTime()) / 3_600_000;
+  if (diffHrs < 1) return "Just now";
+  if (diffHrs < 24) {
+    const hrs = Math.floor(diffHrs);
+    return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+  }
+  const days = Math.floor(diffHrs / 24);
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function problemToDiscussionPost(raw: ProblemResponse): DiscussionPost {
+  const timestamp = raw.publishedAt || raw.createdAt;
+  const id = raw.id ?? "";
+  return {
+    id,
+    title: raw.title ?? "",
+    category: "Problems",
+    topic: raw.category?.name ?? "General",
+    description: raw.description ?? "",
+    tags: (raw.tags ?? []).map((t) => t.name).filter(Boolean) as string[],
+    votes: raw.voteScore ?? 0,
+    answersCount: raw.solutionCount ?? 0,
+    viewsCount: raw.viewCount ?? 0,
+    status: raw.status === "RESOLVED" ? "Solved" : "Open",
+    author: {
+      name: authorNameOf(raw.author, "Community Member"),
+      avatarUrl:
+        raw.author?.avatarUrl ||
+        `https://api.dicebear.com/7.x/bottts/svg?seed=${id}`,
+    },
+    createdAt: toRelativeDate(timestamp),
+    sortTimestamp: timestamp,
+    isBookmarked: false,
+    isUpvoted: false,
+  };
+}
+
+export function showcaseToDiscussionPost(
+  raw: ShowcaseResponse,
+): DiscussionPost {
+  const id = raw.id ?? "";
+  return {
+    id,
+    title: raw.title ?? "",
+    category: "Showcase",
+    topic: raw.categoryName ?? "General",
+    description: raw.overview ?? "",
+    tags: (raw.tags ?? []).flatMap((tag) => (tag.name ? [tag.name] : [])),
+    votes: 0,
+    answersCount: 0,
+    viewsCount: raw.viewCount ?? 0,
+    thumbnailUrl: raw.coverImageUrl,
+    author: {
+      name: raw.authorName || "Community Member",
+      avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${id}`,
+    },
+    createdAt: toRelativeDate(raw.createdAt),
+    sortTimestamp: raw.createdAt,
+    isBookmarked: false,
+    isUpvoted: false,
+  };
+}
+
+export interface InitialDiscussionsData {
+  data: DiscussionPost[];
+  totalCount: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export const getInitialDiscussions = cache(
+  async (
+    feed: "community" | "problems" | "showcases",
+    limit = 10,
+  ): Promise<InitialDiscussionsData | null> => {
+    try {
+      if (feed === "problems") {
+        const problems = await listProblems();
+        const valid = (problems ?? []).filter((p) => p.id && !p.deletedAt);
+        if (valid.length === 0) return null;
+        return {
+          data: valid.slice(0, limit).map(problemToDiscussionPost),
+          totalCount: valid.length,
+          page: 1,
+          limit,
+          totalPages: Math.max(1, Math.ceil(valid.length / limit)),
+        };
+      }
+
+      if (feed === "showcases") {
+        const showcases = await listShowcases();
+        const valid = (showcases ?? []).filter(
+          (s) => s.id && s.reviewStatus === "APPROVED",
+        );
+        if (valid.length === 0) return null;
+        return {
+          data: valid.slice(0, limit).map(showcaseToDiscussionPost),
+          totalCount: valid.length,
+          page: 1,
+          limit,
+          totalPages: Math.max(1, Math.ceil(valid.length / limit)),
+        };
+      }
+
+      const [problems, showcases] = await Promise.all([
+        listProblems(),
+        listShowcases(),
+      ]);
+      const validProblems = (problems ?? [])
+        .filter((p) => p.id && !p.deletedAt)
+        .map(problemToDiscussionPost);
+      const validShowcases = (showcases ?? [])
+        .filter((s) => s.id && s.reviewStatus === "APPROVED")
+        .map(showcaseToDiscussionPost);
+      const combined = [...validProblems, ...validShowcases].sort((a, b) => {
+        const timeA = Date.parse(a.sortTimestamp ?? a.createdAt) || 0;
+        const timeB = Date.parse(b.sortTimestamp ?? b.createdAt) || 0;
+        return timeB - timeA;
+      });
+      if (combined.length === 0) return null;
+      return {
+        data: combined.slice(0, limit),
+        totalCount: combined.length,
+        page: 1,
+        limit,
+        totalPages: Math.max(1, Math.ceil(combined.length / limit)),
+      };
+    } catch {
+      return null;
+    }
+  },
+);
+
+

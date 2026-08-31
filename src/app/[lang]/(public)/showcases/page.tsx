@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { Sparkles } from "lucide-react";
 import { DiscussionsFeed } from "@/components/discussions/DiscussionsFeed";
+import { DiscussionOverview } from "@/components/discussions/ProblemsOverview";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getInitialDiscussions } from "@/lib/seo/content";
 
 /* Title, description and schema name come from the same catalogue the feed
    renders from, so a Khmer URL is described in Khmer everywhere a crawler or a
@@ -33,7 +36,10 @@ export default async function ShowcasesPage({
 }) {
   const { lang } = await params;
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
-  const dict = await getDictionary(locale);
+  const [dict, initialData] = await Promise.all([
+    getDictionary(locale),
+    getInitialDiscussions("showcases"),
+  ]);
   const copy = dict.community.pages.showcases;
 
   return (
@@ -50,7 +56,20 @@ export default async function ShowcasesPage({
         defaultCategory="Showcase"
         feed="showcases"
         createHref="/community/create/showcase"
+        initialData={initialData}
+        overview={
+          <DiscussionOverview
+            title={copy.overviewTitle}
+            description={copy.overviewDescription}
+            browseLabel={copy.overviewBrowse}
+            discussionsHref={localise("/discussions", locale)}
+            icon={Sparkles}
+            id="showcases-overview-title"
+          />
+        }
       />
     </>
   );
 }
+
+

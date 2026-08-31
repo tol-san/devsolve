@@ -40,6 +40,7 @@ interface DiscussionCategoryTabsProps {
   sort: DiscussionSort;
   onSortChange: (sort: DiscussionSort) => void;
   totalCount: number;
+  isLoading?: boolean;
 }
 
 export function DiscussionCategoryTabs({
@@ -48,6 +49,7 @@ export function DiscussionCategoryTabs({
   sort,
   onSortChange,
   totalCount,
+  isLoading = false,
 }: DiscussionCategoryTabsProps) {
   const t = useT();
 
@@ -95,22 +97,32 @@ export function DiscussionCategoryTabs({
 
       <div className="flex items-center justify-between gap-3 px-1 sm:justify-end">
         <AnimatePresence mode="wait">
-          <motion.p
-            key={totalCount}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.2 }}
-            aria-live="polite"
-            className="text-sm font-medium text-muted-foreground"
-          >
-            <span className="font-bold tabular-nums text-foreground">
-              {totalCount}
-            </span>{" "}
-            {totalCount === 1
-              ? t("community.result")
-              : t("community.results")}
-          </motion.p>
+          {isLoading && totalCount === 0 ? (
+            <motion.div
+              key="loading-count"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-5 w-18 animate-pulse rounded-md bg-muted"
+            />
+          ) : (
+            <motion.p
+              key={totalCount}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
+              aria-live="polite"
+              className="text-sm font-medium text-muted-foreground"
+            >
+              <span className="font-bold tabular-nums text-foreground">
+                {totalCount}
+              </span>{" "}
+              {totalCount === 1
+                ? t("community.result")
+                : t("community.results")}
+            </motion.p>
+          )}
         </AnimatePresence>
 
         <Select

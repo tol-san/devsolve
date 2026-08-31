@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { MessagesSquare } from "lucide-react";
 import { DiscussionsFeed } from "@/components/discussions/DiscussionsFeed";
+import { DiscussionOverview } from "@/components/discussions/ProblemsOverview";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getInitialDiscussions } from "@/lib/seo/content";
 
 /* Title, description and schema name come from the same catalogue the feed
    renders from, so a Khmer URL is described in Khmer everywhere a crawler or a
@@ -33,7 +36,10 @@ export default async function DiscussionsPage({
 }) {
   const { lang } = await params;
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
-  const dict = await getDictionary(locale);
+  const [dict, initialData] = await Promise.all([
+    getDictionary(locale),
+    getInitialDiscussions("community"),
+  ]);
   const copy = dict.community.pages.community;
 
   return (
@@ -50,7 +56,20 @@ export default async function DiscussionsPage({
         defaultCategory="All"
         feed="community"
         createHref="/community/create"
+        initialData={initialData}
+        overview={
+          <DiscussionOverview
+            title={copy.overviewTitle}
+            description={copy.overviewDescription}
+            browseLabel={copy.overviewBrowse}
+            discussionsHref={localise("/problems", locale)}
+            icon={MessagesSquare}
+            id="community-overview-title"
+          />
+        }
       />
     </>
   );
 }
+
+
