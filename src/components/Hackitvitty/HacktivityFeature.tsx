@@ -1,13 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useGetHacktivityFeedQuery } from "@/lib/redux/services/hacktivityApi";
+import {
+  useGetHacktivityFeedQuery,
+  type HacktivityActivity,
+} from "@/lib/redux/services/hacktivityApi";
 import { authClient } from "@/lib/auth/auth-client";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import SearchBar from "@/components/shared/SearchBar";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import FeaturedDisclosures from "./FeaturedDisclosures";
 import {
   ShieldAlert,
@@ -19,6 +22,31 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+/** Shown while a researcher has no avatar set, which many will not. */
+function initialsOf(handle: string) {
+  return handle.slice(0, 2).toUpperCase();
+}
+
+/** The only cuts a row of the stream can actually answer. */
+const FILTERS = ["Critical", "High", "Recognized"] as const;
+type Filter = (typeof FILTERS)[number];
+
+function matchesFilter(activity: HacktivityActivity, filter: Filter) {
+  if (filter === "Recognized") return activity.label === "RECOGNITION";
+  return activity.severity === filter;
+}
+
+function matchesQuery(activity: HacktivityActivity, term: string) {
+  return [
+    activity.handle,
+    activity.title,
+    activity.program,
+    activity.organization,
+    activity.recognition,
+    activity.severity,
+  ].some((field) => field?.toLowerCase().includes(term));
+}
+
 export default function HacktivityFeature({
   heading,
   description,
@@ -27,28 +55,23 @@ export default function HacktivityFeature({
   description: string;
 }) {
   const [query, setQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<Filter | null>(null);
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
 
-  const searchParams = useMemo(
-    () => (query.trim() ? { search: query.trim() } : undefined),
-    [query],
-  );
-
-  const { data, isLoading, isError } = useGetHacktivityFeedQuery(searchParams);
+  const { data, isLoading, isError } = useGetHacktivityFeedQuery();
   const activityStats = data?.stats ?? [];
   const activities = useMemo(() => data?.activities ?? [], [data?.activities]);
 
+  /* Searching and filtering stay on the client: the endpoint takes neither,
+     so a term in the query would refetch the same page on every keystroke. */
   const filteredActivities = useMemo(() => {
-    if (!selectedFilter) return activities;
+    const term = query.trim().toLowerCase();
 
     return activities.filter((activity) => {
-      if (selectedFilter === "Bounty") {
-        return Boolean(activity.bounty && activity.bounty !== "None");
-      }
-      return activity.severity === selectedFilter;
+      if (selectedFilter && !matchesFilter(activity, selectedFilter)) return false;
+      return term ? matchesQuery(activity, term) : true;
     });
-  }, [activities, selectedFilter]);
+  }, [activities, selectedFilter, query]);
 
   const { data: session } = authClient.useSession();
   const { handleLogin } = useKeycloakLogin();
@@ -124,7 +147,7 @@ export default function HacktivityFeature({
 
               {/* Severity Filter Buttons */}
               <div className="flex flex-wrap items-center gap-2">
-                {(["Critical", "High", "Bounty"] as const).map((option) => {
+                {FILTERS.map((option) => {
                   const isActive = selectedFilter === option;
                   return (
                     <button
@@ -183,6 +206,10 @@ export default function HacktivityFeature({
                 <div className="rounded-xl border border-red-200 bg-red-50/50 p-8 text-center text-sm font-medium text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
                   Failed to load hacktivity feed. Please try again later.
                 </div>
+              ) : activities.length === 0 ? (
+                <div className="rounded-xl bg-muted/40 p-8 text-center text-sm text-muted-foreground">
+                  No public disclosures have been published yet.
+                </div>
               ) : filteredActivities.length === 0 ? (
                 <div className="rounded-xl bg-muted/40 p-8 text-center text-sm text-muted-foreground">
                   No activity matches your search or filter.
@@ -205,15 +232,15 @@ export default function HacktivityFeature({
                         className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl bg-card p-4 ring-1 ring-foreground/5 dark:ring-foreground/10 transition-all hover:ring-foreground/10 dark:hover:ring-foreground/20 hover:shadow-xs"
                       >
                         <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                          <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-2 ring-border">
-                            <Image
+                          <Avatar size="lg" className="shrink-0">
+                            <AvatarImage
                               src={activity.avatarUrl}
                               alt={`${activity.handle} avatar`}
-                              width={40}
-                              height={40}
-                              className="h-full w-full object-cover"
                             />
-                          </div>
+                            <AvatarFallback>
+                              {initialsOf(activity.handle)}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="text-sm font-bold text-foreground truncate">
@@ -223,7 +250,9 @@ export default function HacktivityFeature({
                                 variant="secondary"
                                 className="rounded-full bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20 text-xs font-semibold px-2.5 py-0.5"
                               >
-                                {activity.label}
+                                {activity.label === "RECOGNITION"
+                                  ? "Recognition"
+                                  : "Disclosure"}
                               </Badge>
                             </div>
 
@@ -233,6 +262,12 @@ export default function HacktivityFeature({
                                 {activity.program}
                               </span>
                             </p>
+
+                            {activity.title && (
+                              <p className="mt-1 text-sm font-semibold text-foreground leading-snug">
+                                {activity.title}
+                              </p>
+                            )}
 
                             {/* Tags & Metadata */}
                             <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -251,10 +286,10 @@ export default function HacktivityFeature({
                                 </span>
                               )}
 
-                              {activity.bounty && (
+                              {activity.recognition && (
                                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20 px-2 py-0.5 font-semibold">
                                   <Award size={12} />
-                                  {activity.bounty}
+                                  {activity.recognition}
                                 </span>
                               )}
 
@@ -283,7 +318,9 @@ export default function HacktivityFeature({
                                 isLiked ? "fill-rose-600 text-rose-600" : ""
                               }
                             />
-                            <span>{isLiked ? 19 : 18}</span>
+                            {/* No count: a stream row is not a votable target
+                                upstream, so only the viewer mark is shown. */}
+                            <span>{isLiked ? "Liked" : "Like"}</span>
                           </button>
 
                           <button
