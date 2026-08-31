@@ -69,8 +69,8 @@ export function ReportDetailProofOfConcept({
           />
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
+        <div className="space-y-3 font-sans">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Attachments
@@ -80,8 +80,8 @@ export function ReportDetailProofOfConcept({
               </p>
             </div>
 
-            <span className="inline-flex h-7 items-center rounded-full border border-border bg-card px-2.5 text-xs font-medium text-muted-foreground">
-              {detail.attachments.length} files
+            <span className="inline-flex h-7 items-center rounded-full border border-border bg-card px-3 text-xs font-semibold text-muted-foreground whitespace-nowrap shrink-0">
+              {detail.attachments.length} {detail.attachments.length === 1 ? "file" : "files"}
             </span>
           </div>
 

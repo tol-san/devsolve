@@ -8,9 +8,6 @@ import {
   Upload,
   Loader2,
   Image as ImageIcon,
-  Sparkles,
-  Info,
-  CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -103,7 +100,7 @@ export default function MediaBrandingSection({
         )}
       >
         {/* Cover Banner Area */}
-        <div className="relative h-44 sm:h-52 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
+        <div className="relative h-36 sm:h-52 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
           {coverUrl ? (
             <>
               <Image
@@ -116,14 +113,15 @@ export default function MediaBrandingSection({
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
             </>
           ) : (
-            <div className="flex size-full flex-col items-center justify-center p-6 text-center">
-              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-2">
-                <Upload className="size-5" />
+            <div className="flex size-full flex-col items-center justify-center p-4 sm:p-6 text-center">
+              <div className="flex size-8 sm:size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-1.5 sm:mb-2">
+                <Upload className="size-4 sm:size-5" />
               </div>
-              <p className="text-sm font-semibold text-foreground">
-                Drag & drop a banner image here, or click to upload
+              <p className="text-xs sm:text-sm font-semibold text-foreground">
+                <span className="hidden sm:inline">Drag & drop a banner image here, or click to upload</span>
+                <span className="sm:hidden">Tap to upload cover banner</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
                 Recommended 1200×400px (3:1) · PNG, JPG or WebP up to 2MB
               </p>
             </div>
@@ -146,7 +144,7 @@ export default function MediaBrandingSection({
               variant="secondary"
               disabled={isCoverBusy}
               onClick={() => coverInputRef.current?.click()}
-              className="h-9 gap-1.5 rounded-xl border border-border/80 bg-background/90 px-3.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md transition hover:bg-background"
+              className="h-8 sm:h-9 gap-1.5 rounded-xl border border-border/80 bg-background/90 px-3 sm:px-3.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md transition hover:bg-background"
             >
               {isCoverBusy ? (
                 <Loader2 className="size-3.5 animate-spin" />
@@ -163,7 +161,7 @@ export default function MediaBrandingSection({
                 variant="destructive"
                 disabled={isCoverBusy}
                 onClick={onCoverRemove}
-                className="h-9 rounded-xl px-3 text-xs font-semibold shadow-sm transition"
+                className="h-8 sm:h-9 rounded-xl px-2.5 sm:px-3 text-xs font-semibold shadow-sm transition"
                 title="Remove cover banner"
               >
                 <Trash2 className="size-3.5" />
@@ -184,11 +182,13 @@ export default function MediaBrandingSection({
         </div>
 
         {/* Overlapping Avatar Area & Quick Action Details */}
-        <div className="relative px-6 pb-6 pt-2 bg-card">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            {/* Avatar Circle with Hover Overlay */}
-            <div className="flex items-end gap-5 -mt-16 sm:-mt-20">
-              <div className="group/avatar relative size-28 sm:size-32 shrink-0 rounded-full border-4 border-card bg-muted shadow-xl overflow-hidden ring-2 ring-primary/20">
+        <div className="relative px-4 sm:px-6 pb-5 sm:pb-6 pt-2 bg-card">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
+            
+            {/* Avatar Circle + Quick Info */}
+            <div className="flex items-end gap-3 sm:gap-5">
+              {/* Avatar Circle - ONLY THIS has negative top margin */}
+              <div className="group/avatar relative size-20 sm:size-28 shrink-0 rounded-full border-4 border-card bg-muted shadow-xl overflow-hidden ring-2 ring-primary/20 -mt-10 sm:-mt-16 z-10">
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
@@ -198,7 +198,7 @@ export default function MediaBrandingSection({
                     unoptimized
                   />
                 ) : (
-                  <div className="flex size-full items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-3xl sm:text-4xl font-extrabold text-white">
+                  <div className="flex size-full items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-xl sm:text-3xl font-extrabold text-white">
                     {avatarInitials || "DS"}
                   </div>
                 )}
@@ -211,28 +211,29 @@ export default function MediaBrandingSection({
                   className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/50 opacity-0 backdrop-blur-xs transition-opacity duration-200 group-hover/avatar:opacity-100 cursor-pointer disabled:pointer-events-none"
                   title="Click to change photo"
                 >
-                  <Camera className="size-6 text-white" />
-                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">
+                  <Camera className="size-5 text-white" />
+                  <span className="text-[10px] font-bold text-white uppercase tracking-wider hidden sm:inline">
                     Change
                   </span>
                 </button>
 
                 {isAvatarBusy && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-xs">
-                    <Loader2 className="size-6 animate-spin text-white" />
+                    <Loader2 className="size-5 animate-spin text-white" />
                   </div>
                 )}
               </div>
 
-              {/* Avatar Quick Buttons */}
-              <div className="space-y-1.5 pb-1">
-                <h3 className="text-base font-bold text-foreground">
+              {/* Avatar Controls */}
+              <div className="space-y-1 pb-0.5">
+                <h3 className="text-sm sm:text-base font-bold text-foreground">
                   Profile Avatar
                 </h3>
-                <p className="text-xs text-muted-foreground">
+                {/* Unnecessary recommendation subtext hidden on mobile size */}
+                <p className="hidden sm:block text-xs text-muted-foreground">
                   Square photo recommended (min 200×200px) · Max 2MB
                 </p>
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-0.5 sm:pt-1">
                   <input
                     ref={avatarInputRef}
                     id="profile-avatar-upload-input"
@@ -260,15 +261,17 @@ export default function MediaBrandingSection({
                       variant="ghost"
                       disabled={isAvatarBusy}
                       onClick={onAvatarRemove}
-                      className="h-8 gap-1 rounded-lg px-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-500/10 hover:text-rose-600 dark:text-rose-400"
+                      className="h-8 size-8 p-0 rounded-lg text-rose-600 hover:bg-rose-500/10 hover:text-rose-600 dark:text-rose-400"
+                      title="Remove photo"
                     >
-                      <Trash2 className="size-3" />
-                      <span>Remove</span>
+                      <Trash2 className="size-4" />
+                      <span className="sr-only">Remove photo</span>
                     </Button>
                   )}
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>

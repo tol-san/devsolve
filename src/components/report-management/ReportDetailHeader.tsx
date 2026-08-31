@@ -57,7 +57,8 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
   const severityTone = getSeverityTone(detail.severity);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-sans">
+      {/* Navigation Bar */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <nav className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <Link href="/dashboard" className="transition-colors hover:text-foreground">
@@ -86,6 +87,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
         </Link>
       </div>
 
+      {/* Top Key Metrics Row */}
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           icon={<UserRound className="size-5" />}
@@ -107,88 +109,91 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
         />
       </div>
 
-      <Card className="rounded-[24px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs">
-        <CardContent className="px-5 py-5 sm:px-6 sm:py-6">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex min-w-0 items-start gap-4">
-                <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
-                  {detail.programLogo ? (
-                    <Image
-                      src={detail.programLogo}
-                      alt={`${detail.title} logo`}
-                      width={48}
-                      height={48}
-                      className="size-11 object-contain"
-                    />
-                  ) : (
-                    <span className="text-sm font-semibold text-foreground">
-                      {detail.submitterInitials}
-                    </span>
-                  )}
-                </div>
-
-                <div className="min-w-0 space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-                      <span className="font-semibold text-foreground">{detail.title}</span>
-                      <span className="text-muted-foreground/60">by</span>
-                      <span className="font-medium text-foreground">{detail.submitter}</span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="h-6 rounded-full bg-blue-600 px-2.5 text-[11px] font-medium text-white hover:bg-blue-600 dark:bg-blue-600 dark:text-white">
-                        {detail.type}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "h-6 rounded-full px-2.5 text-[11px] font-medium",
-                          getStatusBadgeClass(detail.status)
-                        )}
-                      >
-                        <ShieldCheck className="size-3.5 mr-1" />
-                        {detail.status}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="h-6 rounded-full border-border bg-muted px-2.5 text-[11px] font-medium text-muted-foreground"
-                      >
-                        Report ID: #{detail.reportId}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <p className="text-base sm:text-lg leading-relaxed text-muted-foreground">
-                    {detail.summary}
-                  </p>
-                </div>
-              </div>
-
-              <div className="shrink-0 text-left lg:text-right">
-                <p className="text-base font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
-                  {detail.bountyRange}
-                </p>
-              </div>
+      {/* Main Overview Card - Clean & Space-Efficient */}
+      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-border p-5 sm:p-6 shadow-xs space-y-5">
+        {/* Header Metadata Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/80">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted text-sm font-bold text-foreground">
+              {detail.programLogo ? (
+                <Image
+                  src={detail.programLogo}
+                  alt={`${detail.title} logo`}
+                  width={44}
+                  height={44}
+                  className="size-10 object-contain"
+                />
+              ) : (
+                <span>{detail.submitterInitials}</span>
+              )}
             </div>
 
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                In-scope assets
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {detail.assets.map((asset) => (
-                  <span
-                    key={asset}
-                    className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-foreground"
-                  >
-                    {asset}
-                  </span>
-                ))}
+            <div className="min-w-0 space-y-0.5">
+              <div className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-foreground">
+                <span className="truncate max-w-[200px] sm:max-w-none">{detail.submitter}</span>
+                <span className="text-xs font-normal text-muted-foreground">submitted finding</span>
               </div>
+              <p className="text-xs text-muted-foreground font-mono">
+                Report ID: #{detail.reportId}
+              </p>
             </div>
           </div>
-        </CardContent>
+
+          <div className="flex flex-col sm:flex-row-reverse sm:items-center gap-2 sm:gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="h-6.5 rounded-full bg-blue-600 px-3 text-xs font-semibold text-white hover:bg-blue-600 dark:bg-blue-600 dark:text-white">
+                {detail.type}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "h-6.5 rounded-full px-3 text-xs font-semibold",
+                  getStatusBadgeClass(detail.status)
+                )}
+              >
+                <ShieldCheck className="size-3.5 mr-1" />
+                {detail.status}
+              </Badge>
+            </div>
+
+            {detail.bountyRange && (
+              <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                {detail.bountyRange}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Full-Width Title & Summary Section */}
+        <div className="space-y-2.5">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground break-words leading-snug">
+            {detail.title}
+          </h2>
+          {detail.summary && (
+            <p className="text-sm sm:text-base leading-relaxed text-muted-foreground break-words">
+              {detail.summary}
+            </p>
+          )}
+        </div>
+
+        {/* In-Scope Assets Chips */}
+        {detail.assets && detail.assets.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-border/70">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              In-scope assets
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {detail.assets.map((asset) => (
+                <span
+                  key={asset}
+                  className="inline-flex items-center rounded-lg border border-border bg-muted/50 px-3 py-1 text-xs font-mono font-medium text-foreground transition hover:bg-muted"
+                >
+                  {asset}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );
@@ -223,17 +228,17 @@ function MetricCard({
       : tone;
 
   return (
-    <Card className="rounded-[20px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs">
-      <CardContent className="flex items-center gap-4 px-5 py-5">
-        <div className={cn("flex size-11 items-center justify-center rounded-2xl", toneClass.card)}>
+    <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-border py-0 shadow-xs">
+      <CardContent className="flex items-center gap-4 px-5 py-4">
+        <div className={cn("flex size-11 items-center justify-center rounded-2xl shrink-0", toneClass.card)}>
           {icon}
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-0.5 min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {label}
           </p>
-          <p className={cn("text-lg font-bold tracking-tight", toneClass.text)}>{value}</p>
+          <p className={cn("text-base sm:text-lg font-bold tracking-tight truncate", toneClass.text)}>{value}</p>
         </div>
       </CardContent>
     </Card>
