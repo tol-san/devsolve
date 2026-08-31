@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import PublicOrganizationProfileView from "@/components/company/PublicOrganizationProfileView";
-import { DEFAULT_LOCALE, LOCALE_TAGS, isLocale } from "@/lib/i18n/config";
+import { CompanyLanding } from "@/components/company/CompanyLanding";
+import { DEFAULT_LOCALE, LOCALE_TAGS, isLocale, localise } from "@/lib/i18n/config";
 import { JsonLd } from "@/lib/seo/jsonld";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { pageMetadata } from "@/lib/seo/metadata";
-import { SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/seo/site";
-
-const DESCRIPTION =
-  "Run a bug bounty or vulnerability disclosure program on DevSolve: publish your scope, set your reward ranges, and work with researchers who report findings you can act on.";
+import { SITE_URL, absoluteUrl } from "@/lib/seo/site";
 
 export async function generateMetadata({
   params,
@@ -14,21 +13,29 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const copy = (await getDictionary(locale)).seoPages.company;
   return pageMetadata({
-    title: "For companies",
-    description: DESCRIPTION,
+    title: copy.metaTitle,
+    description: copy.metaDescription,
     path: "/company",
-    locale: lang,
+    locale,
   });
 }
 
 export default async function PublicOrganizationProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { lang } = await params;
+  const query = await searchParams;
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const pagePath = localise("/company", locale);
+  const hasOrganization = Boolean(query.id || query.orgId);
+  const copy = (await getDictionary(locale)).seoPages.company;
 
   return (
     <>
@@ -43,10 +50,10 @@ export default async function PublicOrganizationProfilePage({
         data={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "@id": `${absoluteUrl("/company")}#webpage`,
-          url: absoluteUrl("/company"),
-          name: `${SITE_NAME} for companies`,
-          description: DESCRIPTION,
+          "@id": `${absoluteUrl(pagePath)}#webpage`,
+          url: absoluteUrl(pagePath),
+          name: copy.schemaName,
+          description: copy.metaDescription,
           inLanguage: LOCALE_TAGS[locale],
           isPartOf: { "@id": `${SITE_URL}/#website` },
           publisher: { "@id": `${SITE_URL}/#organization` },
@@ -57,7 +64,7 @@ export default async function PublicOrganizationProfilePage({
         }}
       />
 
-      <PublicOrganizationProfileView />
+      {hasOrganization ? <PublicOrganizationProfileView /> : <CompanyLanding />}
     </>
   );
 }

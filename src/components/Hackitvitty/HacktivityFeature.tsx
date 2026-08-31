@@ -17,11 +17,15 @@ import {
   Activity,
   Trophy,
   CheckCircle2,
-  List,
-  LayoutGrid,
 } from "lucide-react";
 
-export default function HacktivityFeature() {
+export default function HacktivityFeature({
+  heading,
+  description,
+}: {
+  heading: string;
+  description: string;
+}) {
   const [query, setQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
@@ -33,7 +37,7 @@ export default function HacktivityFeature() {
 
   const { data, isLoading, isError } = useGetHacktivityFeedQuery(searchParams);
   const activityStats = data?.stats ?? [];
-  const activities = data?.activities ?? [];
+  const activities = useMemo(() => data?.activities ?? [], [data?.activities]);
 
   const filteredActivities = useMemo(() => {
     if (!selectedFilter) return activities;
@@ -74,11 +78,10 @@ export default function HacktivityFeature() {
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              Hacktivity Stream
+              {heading}
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl">
-              Real-time feed of resolved vulnerabilities, hacker milestones, and
-              public disclosure reports.
+              {description}
             </p>
           </div>
 

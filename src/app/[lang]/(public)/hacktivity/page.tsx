@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import HacktivityFeature from "@/components/Hackitvitty/HacktivityFeature";
+import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
-
-const DESCRIPTION =
-  "A live feed of disclosed security findings on DevSolve — what researchers reported, which programs resolved them, and the severity each one was rated.";
 
 export async function generateMetadata({
   params,
@@ -12,26 +11,41 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
   const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
+  const copy = dict.seoPages.hacktivity;
   return pageMetadata({
-    title: "Hacktivity",
-    description: DESCRIPTION,
+    title: copy.metaTitle,
+    description: copy.metaDescription,
     path: "/hacktivity",
-    locale: lang,
+    locale,
   });
 }
 
-export default function HacktivityPage() {
+export default async function HacktivityPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const dict = await getDictionary(locale);
+  const copy = dict.seoPages.hacktivity;
+
   return (
     <>
       <JsonLd
         data={collectionSchema({
-          name: "Hacktivity",
-          description: DESCRIPTION,
-          path: "/hacktivity",
+          name: copy.schemaName,
+          description: copy.metaDescription,
+          path: localise("/hacktivity", locale),
         })}
       />
 
-      <HacktivityFeature />
+      <HacktivityFeature
+        heading={copy.heading}
+        description={copy.description}
+      />
     </>
   );
 }

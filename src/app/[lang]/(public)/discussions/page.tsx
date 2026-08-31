@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { DiscussionsFeed } from "@/components/discussions/DiscussionsFeed";
-import { ProblemsOverview } from "@/components/discussions/ProblemsOverview";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
@@ -17,17 +16,17 @@ export async function generateMetadata({
   const { lang } = await params;
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
   const dict = await getDictionary(locale);
-  const copy = dict.community.pages.problems;
+  const copy = dict.community.pages.community;
 
   return pageMetadata({
     title: copy.metaTitle,
     description: copy.metaDescription,
-    path: "/problems",
+    path: "/discussions",
     locale: lang,
   });
 }
 
-export default async function ProblemsPage({
+export default async function DiscussionsPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
@@ -35,7 +34,7 @@ export default async function ProblemsPage({
   const { lang } = await params;
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
   const dict = await getDictionary(locale);
-  const copy = dict.community.pages.problems;
+  const copy = dict.community.pages.community;
 
   return (
     <>
@@ -43,22 +42,14 @@ export default async function ProblemsPage({
         data={collectionSchema({
           name: copy.schemaName,
           description: copy.metaDescription,
-          path: localise("/problems", locale),
+          path: localise("/discussions", locale),
         })}
       />
 
       <DiscussionsFeed
-        defaultCategory="Problems"
-        feed="problems"
-        createHref="/community/create/problem"
-        overview={
-          <ProblemsOverview
-            title={copy.overviewTitle}
-            description={copy.overviewDescription}
-            browseLabel={copy.overviewBrowse}
-            discussionsHref={localise("/discussions", locale)}
-          />
-        }
+        defaultCategory="All"
+        feed="community"
+        createHref="/community/create"
       />
     </>
   );

@@ -85,14 +85,24 @@ async function backendJson<T>(
  */
 async function collectPages<T>(
   path: string,
-  { pageSize = 100, maxPages = 20 }: { pageSize?: number; maxPages?: number } = {},
+  {
+    pageSize = 100,
+    maxPages = 20,
+    pageParam = "page",
+    sizeParam = "size",
+  }: {
+    pageSize?: number;
+    maxPages?: number;
+    pageParam?: "page" | "pageNumber";
+    sizeParam?: "size" | "pageSize";
+  } = {},
 ): Promise<T[]> {
   const collected: T[] = [];
 
   for (let page = 0; page < maxPages; page += 1) {
     const separator = path.includes("?") ? "&" : "?";
     const envelope = await backendJson<PageEnvelope<T>>(
-      `${path}${separator}page=${page}&size=${pageSize}`,
+      `${path}${separator}${pageParam}=${page}&${sizeParam}=${pageSize}`,
       LISTING_TTL_SECONDS,
     );
 
@@ -138,7 +148,17 @@ export const listProblems = cache(async () =>
 );
 
 export const listShowcases = cache(async () =>
-  collectPages<ShowcaseResponse>("/showcases"),
+  collectPages<ShowcaseResponse>("/showcases", {
+    pageParam: "pageNumber",
+    sizeParam: "pageSize",
+  }),
 );
 
 export const listPrograms = cache(async () => collectPages<Program>("/programs"));
+
+export const listPublicProfiles = cache(async () =>
+  collectPages<PublicProfile>("/user-profiles", {
+    pageParam: "pageNumber",
+    sizeParam: "pageSize",
+  }),
+);

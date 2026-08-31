@@ -8,11 +8,11 @@ import { SITE_NAME } from '@/lib/seo/site'
 import { describe, humanizeEnum } from '@/lib/seo/text'
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ lang: string; id: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { lang, id } = await params;
   const path = `/programs/${id}`;
   const program = await getProgram(id);
 
@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: 'Bug bounty program',
       description: `This program is not available on ${SITE_NAME}.`,
       path,
+      locale: lang,
       noIndex: true,
     });
   }
@@ -39,6 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       `${humanizeEnum(program.engagementType) || 'Bug bounty'} program on ${SITE_NAME}.${bounty}`,
     ),
     path,
+    locale: lang,
   });
 }
 

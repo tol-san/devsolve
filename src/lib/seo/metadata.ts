@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import {
-  DEFAULT_LOCALE,
   SITE_NAME,
   TWITTER_HANDLE,
   absoluteUrl,
@@ -77,6 +76,11 @@ export const INDEX_RICH: Metadata["robots"] = {
   },
 };
 
+const OPEN_GRAPH_LOCALES: Record<Locale, string> = {
+  en: "en_US",
+  km: "km_KH",
+};
+
 export function pageMetadata(input: PageSeoInput): Metadata {
   const {
     title,
@@ -101,6 +105,10 @@ export function pageMetadata(input: PageSeoInput): Metadata {
   /* The document title gets the site name from the root template; a social
      card has no template, so it is spelled out here. */
   const socialTitle = absoluteTitle ? title : `${title} · ${SITE_NAME}`;
+  const openGraphLocale = OPEN_GRAPH_LOCALES[locale];
+  const alternateLocale = LOCALES.filter((code) => code !== locale).map(
+    (code) => OPEN_GRAPH_LOCALES[code],
+  );
 
   const openGraph: Metadata["openGraph"] =
     type === "article"
@@ -110,7 +118,8 @@ export function pageMetadata(input: PageSeoInput): Metadata {
           description,
           url,
           siteName: SITE_NAME,
-          locale: DEFAULT_LOCALE,
+          locale: openGraphLocale,
+          alternateLocale,
           publishedTime,
           modifiedTime,
           authors,
@@ -122,7 +131,8 @@ export function pageMetadata(input: PageSeoInput): Metadata {
           description,
           url,
           siteName: SITE_NAME,
-          locale: DEFAULT_LOCALE,
+          locale: openGraphLocale,
+          alternateLocale,
         };
 
   return {

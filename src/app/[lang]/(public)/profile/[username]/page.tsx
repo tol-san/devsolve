@@ -7,7 +7,7 @@ import { SITE_NAME } from "@/lib/seo/site";
 import { describe } from "@/lib/seo/text";
 
 interface PageProps {
-  params: Promise<{ username: string }>;
+  params: Promise<{ lang: string; username: string }>;
 }
 
 /**
@@ -19,7 +19,7 @@ interface PageProps {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { username } = await params;
+  const { lang, username } = await params;
   const path = `/profile/${username}`;
 
   if (!isUuid(username)) {
@@ -27,6 +27,7 @@ export async function generateMetadata({
       title: "Profile",
       description: `A member profile on ${SITE_NAME}.`,
       path,
+      locale: lang,
       noIndex: true,
     });
   }
@@ -38,6 +39,7 @@ export async function generateMetadata({
       title: "Profile",
       description: `This profile is not available on ${SITE_NAME}.`,
       path,
+      locale: lang,
       noIndex: true,
     });
   }
@@ -53,6 +55,7 @@ export async function generateMetadata({
       } valid reports, plus the problems and solutions they have posted.`,
     ),
     path,
+    locale: lang,
     type: "profile",
   });
 }

@@ -22,6 +22,43 @@
     "lightMode": "Light mode",
     "darkMode": "Dark mode"
   },
+  "seoPages": {
+    "home": {
+      "title": "DevSolve — Solve problems. Ship solutions. Earn reputation.",
+      "description": "DevSolve is where developers work through real engineering problems together — post a bug or blocker, share the solution that worked, showcase what you built, and hunt vulnerabilities in public security programs."
+    },
+    "hacktivity": {
+      "metaTitle": "Hacktivity",
+      "metaDescription": "A live feed of disclosed security findings on DevSolve — what researchers reported, which programs resolved them, and the severity each one was rated.",
+      "schemaName": "DevSolve Hacktivity",
+      "heading": "Hacktivity Stream",
+      "description": "Real-time feed of resolved vulnerabilities, researcher milestones, and public disclosure reports."
+    },
+    "leaderboard": {
+      "metaTitle": "Leaderboard",
+      "metaDescription": "Researchers ranked by reputation points earned from valid, critical and recognized reports.",
+      "schemaName": "DevSolve Leaderboard",
+      "eyebrow": "Community standing",
+      "heading": "Leaderboard",
+      "description": "Ranked on reputation points from valid findings and company recognition — a Critical counts the same at a two-person startup or a bank."
+    },
+    "about": {
+      "metaTitle": "About",
+      "metaDescription": "Who builds DevSolve and why: a platform where developers solve real engineering problems together, publish what they ship, and get paid for the vulnerabilities they find.",
+      "schemaName": "About DevSolve",
+      "eyebrow": "About DevSolve",
+      "titleLineOne": "The team that turns",
+      "titleLineTwo": "findings into fixes",
+      "description": "DevSolve connects organizations with security researchers and developers to resolve vulnerabilities and build resilient software.",
+      "actionLabel": "Explore programs",
+      "imageAlt": "The DevSolve engineering and security team"
+    },
+    "company": {
+      "metaTitle": "For companies",
+      "metaDescription": "Run a bug bounty or vulnerability disclosure program on DevSolve: publish your scope, set reward ranges, and work with researchers who report actionable findings.",
+      "schemaName": "DevSolve for companies"
+    }
+  },
   "notifications": {
     "title": "Notifications",
     "all": "All",
@@ -129,6 +166,7 @@
       "community": "Community",
       "hacktivity": "Hacktivity",
       "leaderboard": "Leaderboard",
+      "company": "For companies",
       "about": "About",
       "signIn": "Sign in",
       "createAccount": "Create an account"
@@ -415,6 +453,28 @@
       "resetFilters": "Reset filters"
     }
   },
+  "companyLanding": {
+    "eyebrow": "For organizations",
+    "title": "Turn responsible disclosure into a repeatable security program",
+    "description": "Publish a clear scope, receive actionable vulnerability reports, and work with researchers in one public program directory. DevSolve gives organizations a durable place to explain what can be tested and how valid findings are recognized.",
+    "primaryAction": "Register an organization",
+    "secondaryAction": "Explore public programs",
+    "benefitsLabel": "How DevSolve supports organizations",
+    "benefits": {
+      "scope": {
+        "title": "Publish a clear scope",
+        "description": "Document eligible assets, testing rules, severity expectations, and reward ranges before research begins."
+      },
+      "triage": {
+        "title": "Triage with context",
+        "description": "Keep reports, evidence, status changes, and remediation decisions connected throughout the review process."
+      },
+      "recognition": {
+        "title": "Recognize useful work",
+        "description": "Give researchers visible credit for valid findings and build trust through consistent program responses."
+      }
+    }
+  },
   "community": {
     "pages": {
       "community": {
@@ -437,7 +497,10 @@
         "empty": "No problems found",
         "metaTitle": "Problems",
         "metaDescription": "Real bugs, blockers and architecture questions posted by developers — each with the stack it happened on, the steps to reproduce it, and the solutions that worked.",
-        "schemaName": "Developer problems"
+        "schemaName": "Developer problems",
+        "overviewTitle": "Technical problems, documented for reuse",
+        "overviewDescription": "This public directory collects reproducible bugs, engineering blockers, and architecture questions. Each thread gives developers a durable place to compare the environment, attempts already tried, and solutions contributed by the community—even when the newest-post feed is still loading or temporarily empty.",
+        "overviewBrowse": "Browse every community discussion"
       },
       "showcases": {
         "breadcrumb": "Showcases",
