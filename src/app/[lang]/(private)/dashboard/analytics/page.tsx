@@ -398,9 +398,9 @@ export default function OrganizationAnalyticsPage() {
           </h3>
 
           <div className="space-y-4">
-            <div className="p-4 bg-muted/40 rounded-xl border border-border flex items-center justify-between">
+            <div className="p-4 bg-muted/40 rounded-xl border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                   <DollarSign className="w-5 h-5" />
                 </div>
                 <div>
@@ -411,9 +411,9 @@ export default function OrganizationAnalyticsPage() {
               <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">$42,500</span>
             </div>
 
-            <div className="p-4 bg-muted/40 rounded-xl border border-border flex items-center justify-between">
+            <div className="p-4 bg-muted/40 rounded-xl border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
@@ -427,7 +427,7 @@ export default function OrganizationAnalyticsPage() {
         </div>
 
         {/* MOST TESTED ASSETS */}
-        <div className="lg:col-span-2 bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-5">
+        <div className="lg:col-span-2 bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-5 overflow-hidden">
           <div>
             <h3 className="text-lg font-bold text-foreground">
               Most Vulnerable Scope Targets
@@ -437,52 +437,54 @@ export default function OrganizationAnalyticsPage() {
             </p>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="h-auto px-0 pb-3">
-                  Asset Target
-                </TableHead>
-                <TableHead className="h-auto px-0 pb-3">
-                  Type
-                </TableHead>
-                <TableHead className="h-auto px-0 pb-3">
-                  Total Reports
-                </TableHead>
-                <TableHead className="h-auto px-0 pb-3 text-right">
-                  Critical Findings
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {topAssets.map((asset) => (
-                <TableRow key={asset.name}>
-                  <TableCell className="px-0 py-3.5 font-mono font-medium text-foreground">
-                    <span className="px-2 py-1 bg-muted rounded-lg text-xs">
-                      {asset.name}
-                    </span>
-                  </TableCell>
-                  <TableCell className="px-0 py-3.5 text-muted-foreground font-medium text-xs">
-                    {asset.type}
-                  </TableCell>
-                  <TableCell className="px-0 py-3.5 font-bold text-foreground">
-                    {asset.reports}
-                  </TableCell>
-                  <TableCell className="px-0 py-3.5 text-right">
-                    {asset.critical > 0 ? (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/20">
-                        {asset.critical} Critical
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground font-medium">
-                        0
-                      </span>
-                    )}
-                  </TableCell>
+          <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+            <Table className="min-w-[520px]">
+              <TableHeader>
+                <TableRow className="border-border/80 hover:bg-transparent">
+                  <TableHead className="px-3 pb-3 text-left font-bold text-xs uppercase tracking-wider text-muted-foreground">
+                    Asset Target
+                  </TableHead>
+                  <TableHead className="px-3 pb-3 text-left font-bold text-xs uppercase tracking-wider text-muted-foreground">
+                    Type
+                  </TableHead>
+                  <TableHead className="px-3 pb-3 text-left font-bold text-xs uppercase tracking-wider text-muted-foreground">
+                    Total Reports
+                  </TableHead>
+                  <TableHead className="px-3 pb-3 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground">
+                    Critical Findings
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {topAssets.map((asset) => (
+                  <TableRow key={asset.name} className="border-border/60 hover:bg-muted/30">
+                    <TableCell className="px-3 py-3.5 font-mono font-medium text-foreground">
+                      <span className="inline-block px-2.5 py-1 bg-muted rounded-lg text-xs truncate max-w-[200px] sm:max-w-none" title={asset.name}>
+                        {asset.name}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-3 py-3.5 text-muted-foreground font-medium text-xs whitespace-nowrap">
+                      {asset.type}
+                    </TableCell>
+                    <TableCell className="px-3 py-3.5 font-bold text-foreground whitespace-nowrap">
+                      {asset.reports}
+                    </TableCell>
+                    <TableCell className="px-3 py-3.5 text-right whitespace-nowrap">
+                      {asset.critical > 0 ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/20">
+                          {asset.critical} Critical
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground font-medium">
+                          0
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </motion.div>

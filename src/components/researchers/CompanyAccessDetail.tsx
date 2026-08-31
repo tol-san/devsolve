@@ -325,16 +325,17 @@ export function CompanyAccessDetail({
             {programs.map((program) => (
               <li
                 key={program.id}
-                className="flex flex-col justify-between gap-3 rounded-2xl border border-border bg-card p-4"
+                className="flex flex-col justify-between gap-3 rounded-2xl border border-border bg-card p-4 overflow-hidden"
               >
                 <div className="min-w-0 space-y-1">
                   <Link
                     href={lp(`/dashboard/programs/${program.id}`)}
-                    className="truncate text-sm font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400"
+                    className="block truncate text-sm font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400"
+                    title={program.name}
                   >
                     {program.name}
                   </Link>
-                  <p className="line-clamp-2 text-sm text-muted-foreground">
+                  <p className="line-clamp-2 text-sm text-muted-foreground break-words">
                     {program.description || "No description provided."}
                   </p>
                 </div>

@@ -241,23 +241,25 @@ export default function BioMarkdownEditor({
         </div>
 
         {/* Bottom Helper Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <span>Styling tips:</span>
-            <code className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-mono text-foreground font-semibold">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-border bg-muted/30 px-3.5 sm:px-4 py-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="whitespace-nowrap shrink-0 font-medium text-muted-foreground/80">
+              Styling tips:
+            </span>
+            <code className="rounded-md bg-muted/80 px-1.5 py-0.5 text-[11px] font-mono text-foreground font-semibold shrink-0">
               **bold**
             </code>
-            <code className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-mono text-foreground font-semibold">
+            <code className="rounded-md bg-muted/80 px-1.5 py-0.5 text-[11px] font-mono text-foreground font-semibold shrink-0">
               _italic_
             </code>
-            <code className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-mono text-foreground font-semibold">
+            <code className="rounded-md bg-muted/80 px-1.5 py-0.5 text-[11px] font-mono text-foreground font-semibold shrink-0">
               `code`
             </code>
-            <code className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-mono text-foreground font-semibold">
+            <code className="rounded-md bg-muted/80 px-1.5 py-0.5 text-[11px] font-mono text-foreground font-semibold shrink-0">
               [title](url)
             </code>
           </div>
-          <span className="text-muted-foreground/70">
+          <span className="text-muted-foreground/70 text-[11px] font-mono whitespace-nowrap shrink-0 self-end sm:self-auto">
             {maxLength - value.length} characters left
           </span>
         </div>
