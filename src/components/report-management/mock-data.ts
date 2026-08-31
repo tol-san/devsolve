@@ -22,7 +22,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Bounty",
     status: "Open",
     severity: "Critical",
-    submittedAt: "Jan 12, 2026",
+    submittedAt: "Jan 12, 2026, 09:15:32 AM",
     summary:
       "Find security vulnerabilities across TikTok's web platform, mobile apps, and creator APIs with a focus on authentication, payment, and media upload flows.",
     assets: ["api.tiktok.com", "Android App"],
@@ -37,7 +37,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Response",
     status: "Closed",
     severity: "High",
-    submittedAt: "Jan 18, 2026",
+    submittedAt: "Jan 18, 2026, 02:40:18 PM",
     summary:
       "Review a vulnerability report tied to internal moderation tooling and evaluate whether the escalation path can be abused outside the trusted staff environment.",
     assets: ["moderation.tiktok.com", "Internal Dashboard"],
@@ -52,7 +52,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Response",
     status: "Open",
     severity: "Medium",
-    submittedAt: "Feb 03, 2026",
+    submittedAt: "Feb 03, 2026, 11:22:45 AM",
     summary:
       "Assess report triage findings for commerce APIs handling creator shop inventory sync, discount code application, and partner account permissions.",
     assets: ["commerce-api.tiktok.com", "Partner Portal"],
@@ -67,7 +67,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Response",
     status: "Closed",
     severity: "Low",
-    submittedAt: "Feb 14, 2026",
+    submittedAt: "Feb 14, 2026, 04:05:12 PM",
     summary:
       "Validate whether stream session reuse findings can reproduce against current production infrastructure after the identity service patch was deployed.",
     assets: ["live.tiktok.com", "iOS App"],
@@ -82,7 +82,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Response",
     status: "Closed",
     severity: "High",
-    submittedAt: "Mar 02, 2026",
+    submittedAt: "Mar 02, 2026, 08:30:50 AM",
     summary:
       "Investigate a partner-access permission report affecting shared advertiser workspaces, seat management, and billing account role inheritance.",
     assets: ["ads.tiktok.com", "Billing Console"],
@@ -97,7 +97,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Bounty",
     status: "Open",
     severity: "Critical",
-    submittedAt: "Mar 17, 2026",
+    submittedAt: "Mar 17, 2026, 01:14:28 PM",
     summary:
       "Prioritize mobile token exchange flaws impacting sign-in refresh flows, device trust signals, and cross-account session persistence on Android.",
     assets: ["Android App", "auth.tiktok.com"],
@@ -112,7 +112,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Bounty",
     status: "Open",
     severity: "Medium",
-    submittedAt: "Apr 04, 2026",
+    submittedAt: "Apr 04, 2026, 10:48:19 AM",
     summary:
       "Investigate whether draft upload endpoints expose unintended asset access through orphaned media references and insufficient ownership checks.",
     assets: ["studio.tiktok.com", "Media Upload API"],
@@ -127,7 +127,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Response",
     status: "Closed",
     severity: "Critical",
-    submittedAt: "Apr 22, 2026",
+    submittedAt: "Apr 22, 2026, 03:55:04 PM",
     summary:
       "Confirm remediation of a cookie scope report affecting session isolation between creator, business, and personal account surfaces on web.",
     assets: ["www.tiktok.com", "Creator Center"],
@@ -142,7 +142,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Bounty",
     status: "Open",
     severity: "High",
-    submittedAt: "May 09, 2026",
+    submittedAt: "May 09, 2026, 07:18:36 AM",
     summary:
       "Review sandbox escape findings reported through the partner program and verify whether test credentials can pivot into production-linked resources.",
     assets: ["sandbox-api.tiktok.com", "Partner Sandbox"],
@@ -157,7 +157,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Response",
     status: "Closed",
     severity: "Medium",
-    submittedAt: "May 28, 2026",
+    submittedAt: "May 28, 2026, 12:02:41 PM",
     summary:
       "Check whether delayed role synchronization could let removed collaborators retain temporary access to finance and campaign administration flows.",
     assets: ["business.tiktok.com", "Role Sync Worker"],
@@ -172,7 +172,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Bounty",
     status: "Open",
     severity: "Critical",
-    submittedAt: "Jun 11, 2026",
+    submittedAt: "Jun 11, 2026, 05:27:15 PM",
     summary:
       "Examine identity recovery flows involving phone reset, fallback email verification, and MFA downgrade requests for cross-channel abuse.",
     assets: ["identity.tiktok.com", "Recovery Service"],
@@ -187,7 +187,7 @@ export const MANAGED_REPORTS: ManagedReport[] = [
     type: "Response",
     status: "Closed",
     severity: "High",
-    submittedAt: "Jul 14, 2026",
+    submittedAt: "Jul 14, 2026, 09:39:52 AM",
     summary:
       "Triage a report about merchant API access boundaries across storefront management, order export, and staff invitation endpoints.",
     assets: ["merchant-api.tiktok.com", "Merchant Portal"],
@@ -206,7 +206,7 @@ export const REPORT_DETAIL: ReportManagementDetail = {
   status: "Open",
   severity: "Critical",
   cvssScore: "8.1",
-  submittedDate: "Jan 15, 2026",
+  submittedDate: "Jan 15, 2026, 10:14:22 AM",
   bountyRange: "$500 - $14,900, 15 - 60 pts",
   summary:
     "Find security vulnerabilities across TikTok's web platform, mobile apps, and creator APIs. The report focuses on sensitive object access in billing and document retrieval workflows tied to authenticated business accounts.",
@@ -242,8 +242,62 @@ export const REPORT_DETAIL: ReportManagementDetail = {
   expectedResult: "403 Forbidden / 404 Not Found",
   actualResult: "200 OK (full invoice body returned)",
   attachments: [
-    { name: "screenshot_01.png", kind: "image" },
-    { name: "burp_log.xml", kind: "file" },
+    {
+      name: "screenshot_01.png",
+      kind: "image",
+      size: "1.4 MB",
+      url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      name: "burp_log.xml",
+      kind: "file",
+      size: "24.8 KB",
+      content: `<?xml version="1.0" encoding="UTF-8"?>
+<burp_export version="2.0">
+  <item>
+    <time>2026-08-31 10:14:22 UTC</time>
+    <url>https://app.example.com/v1/invoices/1337</url>
+    <host ip="192.0.2.42">app.example.com</host>
+    <port>443</port>
+    <protocol>https</protocol>
+    <method>GET</method>
+    <path>/v1/invoices/1337</path>
+    <request base64="false"><![CDATA[GET /v1/invoices/1337 HTTP/1.1
+Host: app.example.com
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+Accept: application/json
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+
+]]></request>
+    <status>200</status>
+    <responselength>4128</responselength>
+    <mimetype>JSON</mimetype>
+    <response base64="false"><![CDATA[HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 4128
+Access-Control-Allow-Origin: *
+
+{
+  "invoice_id": 1337,
+  "organization_id": "org_victim_9921",
+  "client_name": "Target Enterprise Corp",
+  "billing_email": "finance@target-enterprise.com",
+  "amount_due": 45000.00,
+  "currency": "USD",
+  "items": [
+    { "desc": "Enterprise Cloud License 2026", "price": 45000.00 }
+  ],
+  "payment_vault_token": "tok_sec_993418820129"
+}]]></response>
+  </item>
+</burp_export>`,
+    },
+    {
+      name: "network_capture.har",
+      kind: "file",
+      size: "82.4 KB",
+      content: `{\n  "log": {\n    "version": "1.2",\n    "creator": { "name": "DevSolve DevTools", "version": "1.0" },\n    "entries": [\n      {\n        "startedDateTime": "2026-08-31T10:14:22.000Z",\n        "time": 48,\n        "request": {\n          "method": "GET",\n          "url": "https://app.example.com/v1/invoices/1337",\n          "httpVersion": "HTTP/2.0"\n        },\n        "response": {\n          "status": 200,\n          "statusText": "OK",\n          "content": { "mimeType": "application/json" }\n        }\n      }\n    ]\n  }\n}`,
+    },
   ],
   externalDocumentation: "Google Drive: Full Reproduction Logs",
   internalAssetLink: "Internal Asset: api.example.com/v1/docs",

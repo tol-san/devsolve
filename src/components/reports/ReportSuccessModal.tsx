@@ -19,12 +19,14 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { formatDateTime } from "@/lib/format/datetime";
 
 interface ReportSuccessModalProps {
   isOpen: boolean;
   reportId: string;
   programName: string;
   title: string;
+  submittedAt?: string;
   onReset: () => void;
 }
 
@@ -33,6 +35,7 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
   reportId,
   programName,
   title,
+  submittedAt,
   onReset,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -107,6 +110,16 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
             </span>
             <span className="col-span-2 text-sm font-semibold text-foreground line-clamp-2 leading-snug">
               {title || "Vulnerability Report"}
+            </span>
+          </div>
+
+          {/* Submitted At */}
+          <div className="grid grid-cols-3 gap-2 items-center pt-2 border-t border-border/60">
+            <span className="text-xs font-semibold text-muted-foreground">
+              Submitted At
+            </span>
+            <span className="col-span-2 text-sm font-semibold text-foreground truncate">
+              {formatDateTime(submittedAt || new Date().toISOString())}
             </span>
           </div>
         </div>

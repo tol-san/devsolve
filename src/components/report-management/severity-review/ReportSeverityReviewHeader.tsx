@@ -91,9 +91,13 @@ export function ReportSeverityReviewHeader({
                 <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   Submitter
                 </span>
-                <span className="text-base font-semibold text-foreground">
-                  {detail.submitter}
-                </span>
+                <Link
+                  href={`/profile/${encodeURIComponent(detail.submitterId || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_"))}`}
+                  className="text-base font-semibold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline inline-flex items-center gap-1 group"
+                  title={`View ${detail.submitter}'s public profile`}
+                >
+                  <span>{detail.submitter}</span>
+                </Link>
               </div>
             </div>
           </div>

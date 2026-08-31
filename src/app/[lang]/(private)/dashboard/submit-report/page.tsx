@@ -211,6 +211,7 @@ function SubmitReportContent() {
         reportId={successModalData.reportId}
         programName={successModalData.programName}
         title={successModalData.title}
+        submittedAt={successModalData.submittedAt}
         onReset={handleResetForm}
       />
     </motion.div>

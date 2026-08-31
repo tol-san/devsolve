@@ -30,6 +30,7 @@ export interface ReportSuccessModalData {
   reportId: string;
   programName: string;
   title: string;
+  submittedAt?: string;
 }
 
 export function useSubmitReportForm() {
@@ -78,6 +79,7 @@ export function useSubmitReportForm() {
       reportId: "",
       programName: "",
       title: "",
+      submittedAt: "",
     });
 
   const { data: programsData, isLoading: isProgramsLoading } =
@@ -405,6 +407,7 @@ export function useSubmitReportForm() {
       reportId: "",
       programName: "",
       title: "",
+      submittedAt: "",
     });
   };
 
@@ -458,6 +461,7 @@ export function useSubmitReportForm() {
           reportId: res.reportId,
           programName,
           title: values.title,
+          submittedAt: res.createdAt || new Date().toISOString(),
         });
       }
     } catch (err: unknown) {

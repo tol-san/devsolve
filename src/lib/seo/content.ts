@@ -138,9 +138,12 @@ export const getProgram = cache(async (id: string) =>
   isUuid(id) ? backendJson<Program>(`/programs/${id}`) : null,
 );
 
-export const getPublicProfile = cache(async (id: string) =>
-  isUuid(id) ? backendJson<PublicProfile>(`/user-profiles/${id}`) : null,
-);
+export const getPublicProfile = cache(async (id: string) => {
+  if (!id) return null;
+  return isUuid(id)
+    ? backendJson<PublicProfile>(`/user-profiles/${id}`)
+    : backendJson<PublicProfile>(`/user-profiles/by-username/${encodeURIComponent(id)}`);
+});
 
 /** Every published problem, newest first — the sitemap's largest section. */
 export const listProblems = cache(async () =>

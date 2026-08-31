@@ -105,6 +105,7 @@ export default function ReportDetailPage() {
         reportId={report.reportId}
         program={report.program}
         submittedAgo={report.submittedAgo}
+        submittedAt={report.submittedAt}
         isRejected={isRejected}
         onBack={handleBack}
         onToggleDemoView={(rejected) => setIsForceRejected(rejected)}

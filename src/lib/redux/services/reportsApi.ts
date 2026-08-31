@@ -302,6 +302,7 @@ function toReportItem(
     ...toBountyDisplay(report, status),
     lastActivityDate: toLastActivityDate(report),
     lastActivityBadge: toActivityBadge(status),
+    submittedAt: report.submittedAt || report.createdAt,
   };
 }
 
@@ -316,9 +317,10 @@ function toReportDetail(
      the UTC it is; `new Date` alone treated it as local time, which moved the
      age of a report by the reader's own offset — and rounded a report filed
      hours ago up to a whole day. */
-  const submittedDate = toDate(report.submittedAt || report.createdAt);
+  const submittedRaw = report.submittedAt || report.createdAt;
+  const submittedDate = toDate(submittedRaw);
   const submittedAgo = submittedDate
-    ? `${Math.max(1, Math.floor((Date.now() - submittedDate.getTime()) / (1000 * 60 * 60 * 24)))} days ago`
+    ? formatDateTime(submittedRaw)
     : "Recently";
 
   /* No stand-in file. An attachment list that invents "poc-evidence.png,
@@ -493,6 +495,20 @@ export const reportsApi = baseApi.injectEndpoints({
           );
         }
 
+        if (params?.program && params.program !== "All" && params.program !== "All programs") {
+          results = results.filter(
+            (item) =>
+              item.program.toLowerCase() === params.program?.toLowerCase() ||
+              item.programId === params.program
+          );
+        }
+
+        if (params?.programId && params.programId !== "All") {
+          results = results.filter(
+            (item) => item.programId === params.programId
+          );
+        }
+
         return { data: results };
       },
       providesTags: ["Report"],
@@ -612,6 +628,94 @@ export const reportsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["Report"],
     }),
+
+    approveReport: builder.mutation<
+      { success: boolean; message: string; reportId?: string },
+      {
+        id: string;
+        severity: "Critical" | "High" | "Medium" | "Low" | "Info";
+        explanation?: string;
+        findingsSummary?: string;
+        decisionReason?: string;
+        improvementSuggestions?: string;
+        bountyAmount?: string;
+        reputationPoints?: number;
+        files?: string[];
+      }
+    >({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        const triageResult = await fetchWithBQ({
+          url: `/reports/${payload.id}/triage`,
+          method: "POST",
+          body: {
+            status: "APPROVED",
+            state: "VALID_CONFIRMED",
+            severity: payload.severity,
+            triageSeverity: payload.severity.toUpperCase(),
+            companyReasoning: payload.explanation || payload.decisionReason,
+            triageNotes: payload.findingsSummary,
+            rewardAmount: payload.bountyAmount,
+          },
+        });
+
+        if (payload.bountyAmount) {
+          const numericAmount = parseFloat(payload.bountyAmount.replace(/[^0-9.]/g, ""));
+          if (!isNaN(numericAmount) && numericAmount > 0) {
+            await fetchWithBQ({
+              url: `/reports/${payload.id}/rewards`,
+              method: "POST",
+              body: {
+                amount: numericAmount,
+                rewardAmount: payload.bountyAmount,
+                currency: "USD",
+              },
+            });
+          }
+        }
+
+        return {
+          data: {
+            success: true,
+            message: `Report #${payload.id} successfully approved and severity set to ${payload.severity}.`,
+            reportId: payload.id,
+          },
+        };
+      },
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Report", id }, "Report"],
+    }),
+
+    rejectReport: builder.mutation<
+      { success: boolean; message: string; reportId?: string },
+      {
+        id: string;
+        reason?: string;
+        explanation?: string;
+        decisionReason?: string;
+        files?: string[];
+      }
+    >({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        await fetchWithBQ({
+          url: `/reports/${payload.id}/triage`,
+          method: "POST",
+          body: {
+            status: "REJECTED",
+            state: "REJECTED",
+            companyReasoning: payload.explanation || payload.reason || payload.decisionReason,
+            triageNotes: payload.decisionReason,
+          },
+        });
+
+        return {
+          data: {
+            success: true,
+            message: `Report #${payload.id} has been rejected.`,
+            reportId: payload.id,
+          },
+        };
+      },
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Report", id }, "Report"],
+    }),
   }),
 });
 
@@ -621,4 +725,6 @@ export const {
   useGetReportByIdQuery,
   useAddReportCommentMutation,
   useSubmitReportMutation,
+  useApproveReportMutation,
+  useRejectReportMutation,
 } = reportsApi;
