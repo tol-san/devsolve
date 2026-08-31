@@ -39,7 +39,7 @@ export function ResearcherArt() {
     <div className="flex w-full flex-col items-center">
       {/* ── The person the account belongs to ── */}
       <div className="flex items-center gap-2">
-        <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white text-blue-700 shadow-[0_0_0_1px_rgba(37,99,235,0.35)]">
+        <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-neutral-800 text-blue-700 dark:text-blue-400 shadow-[0_0_0_1px_rgba(37,99,235,0.35)]">
           {/* Slow halo, so the persona reads as the live element */}
           {!reduce && (
             <motion.span
@@ -52,24 +52,24 @@ export function ResearcherArt() {
           <UserRound className="h-4.5 w-4.5" aria-hidden />
         </span>
 
-        <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700">
+        <span className="rounded-md bg-blue-50 dark:bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300">
           You
         </span>
       </div>
 
       {/* Drop from the persona into the track below */}
-      <span aria-hidden className="h-3 w-px bg-slate-200" />
+      <span aria-hidden className="h-3 w-px bg-slate-200 dark:bg-neutral-700" />
 
       {/* ── The four pillars, lit in sequence ── */}
       <div className="relative w-full max-w-62">
         <span
           aria-hidden
-          className="absolute left-6 right-6 top-4.5 h-px bg-slate-200"
+          className="absolute left-6 right-6 top-4.5 h-px bg-slate-200 dark:bg-neutral-700"
         />
         {!reduce && (
           <motion.span
             aria-hidden
-            className="absolute left-6 right-6 top-4.5 h-px origin-left bg-blue-600"
+            className="absolute left-6 right-6 top-4.5 h-px origin-left bg-blue-600 dark:bg-blue-500"
             initial={{ scaleX: 0, opacity: 0 }}
             animate={{ scaleX: [0, 1, 1], opacity: [0, 0.9, 0] }}
             transition={{
@@ -93,7 +93,7 @@ export function ResearcherArt() {
                   delay: i * 0.6,
                   ease: "easeInOut",
                 }}
-                className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white shadow-[0_0_0_1px_rgba(30,41,59,0.08)]"
+                className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white dark:bg-neutral-800 shadow-[0_0_0_1px_rgba(30,41,59,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
               >
                 {/* Accent hairline fades in on the beat — opacity only, so the
                     resting shadow underneath never repaints. */}
@@ -114,23 +114,13 @@ export function ResearcherArt() {
                 )}
 
                 <motion.span
-                  animate={
-                    reduce ? undefined : { color: ["#64748B", "#2563EB", "#64748B"] }
-                  }
-                  transition={{
-                    duration: BEAT,
-                    repeat: Infinity,
-                    repeatDelay: CYCLE - BEAT,
-                    delay: i * 0.6,
-                    ease: "easeInOut",
-                  }}
-                  style={{ color: "#64748B" }}
+                  className="text-slate-500 dark:text-neutral-400"
                 >
                   <pillar.icon className="h-4 w-4" aria-hidden />
                 </motion.span>
               </motion.span>
 
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-neutral-400">
                 {pillar.label}
               </span>
             </li>
@@ -158,10 +148,10 @@ export function OrganizationArt() {
 
   return (
     <div className="flex w-full items-center justify-center px-3">
-      <div className="w-full max-w-62 rounded-xl bg-white p-3 shadow-[0_0_0_1px_rgba(30,41,59,0.08)]">
+      <div className="w-full max-w-62 rounded-xl bg-white dark:bg-neutral-850 dark:bg-neutral-900 p-3 shadow-[0_0_0_1px_rgba(30,41,59,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
         {/* ── The company the account belongs to ── */}
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
-          <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+        <div className="flex items-center gap-2 border-b border-slate-100 dark:border-neutral-800 pb-2.5">
+          <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
             {!reduce && (
               <motion.span
                 aria-hidden
@@ -174,8 +164,8 @@ export function OrganizationArt() {
           </span>
 
           <span className="flex flex-col gap-1">
-            <span className="h-1.5 w-16 rounded-full bg-slate-300" />
-            <span className="h-1 w-10 rounded-full bg-slate-200" />
+            <span className="h-1.5 w-16 rounded-full bg-slate-300 dark:bg-neutral-600" />
+            <span className="h-1 w-10 rounded-full bg-slate-200 dark:bg-neutral-700" />
           </span>
 
           <span className="ml-auto flex items-center gap-1">
@@ -184,7 +174,7 @@ export function OrganizationArt() {
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               className="h-1.5 w-1.5 rounded-full bg-emerald-500"
             />
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
               Live
             </span>
           </span>
@@ -205,8 +195,8 @@ export function OrganizationArt() {
               className="flex items-center gap-2"
             >
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${row.dot}`} />
-              <span className={`h-1.5 rounded-full bg-slate-200 ${row.width}`} />
-              <span className="ml-auto text-[10px] font-semibold text-slate-400">
+              <span className={`h-1.5 rounded-full bg-slate-200 dark:bg-neutral-700 ${row.width}`} />
+              <span className="ml-auto text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
                 {row.label}
               </span>
             </motion.li>
@@ -214,25 +204,25 @@ export function OrganizationArt() {
         </ul>
 
         {/* ── The team triaging them ── */}
-        <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-2.5">
+        <div className="mt-3 flex items-center gap-2 border-t border-slate-100 dark:border-neutral-800 pt-2.5">
           <span className="flex -space-x-1.5">
             {TEAM.map((initial) => (
               <span
                 key={initial}
-                className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[9px] font-bold text-slate-600 ring-2 ring-white"
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 dark:bg-neutral-800 text-[9px] font-bold text-slate-600 dark:text-neutral-300 ring-2 ring-white dark:ring-neutral-900"
               >
                 {initial}
               </span>
             ))}
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 ring-2 ring-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 ring-2 ring-white dark:ring-neutral-900">
               <Inbox className="h-2.5 w-2.5" aria-hidden />
             </span>
           </span>
 
-          <BarChart3 className="h-3 w-3 shrink-0 text-slate-400" aria-hidden />
+          <BarChart3 className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" aria-hidden />
 
           {/* Triage progress — scaleX on a fixed track, so nothing reflows */}
-          <span className="ml-auto h-1.5 w-14 overflow-hidden rounded-full bg-slate-100">
+          <span className="ml-auto h-1.5 w-14 overflow-hidden rounded-full bg-slate-100 dark:bg-neutral-800">
             <motion.span
               className="block h-full w-full origin-left rounded-full bg-emerald-500/70"
               initial={{ scaleX: 0.2 }}

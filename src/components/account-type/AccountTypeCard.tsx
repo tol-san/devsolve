@@ -22,24 +22,24 @@ const ACCENTS: Record<
   }
 > = {
   blue: {
-    chip: "bg-blue-50 text-blue-700",
-    mark: "bg-blue-50 text-blue-700",
-    cta: "bg-blue-600 hover:bg-blue-700",
-    media: "group-hover:bg-blue-50/60",
+    chip: "bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
+    mark: "bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
+    cta: "bg-blue-600 hover:bg-blue-700 text-white",
+    media: "",
     ring: "hover:shadow-[0_0_0_1px_rgba(37,99,235,0.4),0_18px_40px_-20px_rgba(37,99,235,0.45)] focus-visible:shadow-[0_0_0_1px_rgba(37,99,235,0.4),0_18px_40px_-20px_rgba(37,99,235,0.45)]",
   },
   emerald: {
-    chip: "bg-emerald-50 text-emerald-700",
-    mark: "bg-emerald-50 text-emerald-700",
-    cta: "bg-emerald-600 hover:bg-emerald-700",
-    media: "group-hover:bg-emerald-50/60",
+    chip: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+    mark: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+    cta: "bg-emerald-600 hover:bg-emerald-700 text-white",
+    media: "",
     ring: "hover:shadow-[0_0_0_1px_rgba(5,150,105,0.4),0_18px_40px_-20px_rgba(5,150,105,0.45)] focus-visible:shadow-[0_0_0_1px_rgba(5,150,105,0.4),0_18px_40px_-20px_rgba(5,150,105,0.45)]",
   },
 };
 
 /** Shadow-as-border at rest, per design.md. */
 const RESTING_SHADOW =
-  "shadow-[0_0_0_1px_rgba(30,41,59,0.08),0_8px_24px_-18px_rgba(30,41,59,0.4)]";
+  "shadow-[0_0_0_1px_rgba(30,41,59,0.08),0_8px_24px_-18px_rgba(30,41,59,0.4)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_8px_24px_-18px_rgba(0,0,0,0.6)]";
 
 export interface AccountTypeCardProps {
   eyebrow: string;
@@ -81,29 +81,28 @@ export function AccountTypeCard({
         <Link
           href={href}
           aria-label={`${title} — ${ctaLabel}`}
-          className={`group flex h-full flex-col rounded-2xl bg-white p-6 outline-none transition-shadow duration-200 sm:p-7 ${RESTING_SHADOW} ${tone.ring}`}
+          className={`group flex h-full flex-col rounded-2xl bg-card dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-6 outline-none transition-all duration-200 sm:p-7 ${RESTING_SHADOW} ${tone.ring}`}
         >
-          {/* ── Illustration, boxed so it supports the copy instead of
-                 dominating the card ── */}
+          {/* ── Illustration ── */}
           <div
-            className={`relative flex h-36 items-center justify-center overflow-hidden rounded-xl bg-slate-50 pt-6 ring-1 ring-slate-100 transition-colors duration-300 ${tone.media}`}
+            className={`relative flex h-36 items-end justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-neutral-800/60 pb-2.5 pt-8 ring-1 ring-slate-100 dark:ring-neutral-800 transition-colors duration-300 ${tone.media}`}
           >
             {art}
 
             <span
-              className={`absolute left-3 top-3 rounded-lg px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${tone.chip}`}
+              className={`absolute left-3 top-2.5 z-10 rounded-lg px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${tone.chip}`}
             >
               {eyebrow}
             </span>
           </div>
 
           {/* ── Copy ── */}
-          <h2 className="mt-6 text-xl font-bold tracking-tight text-[#1E293B] sm:text-2xl">
+          <h2 className="mt-6 text-xl font-bold tracking-tight text-foreground dark:text-neutral-100 sm:text-2xl">
             {title}
           </h2>
 
 
-          <ul className="mt-6 space-y-3 border-t border-slate-100 pt-6">
+          <ul className="mt-6 space-y-3 border-t border-slate-100 dark:border-neutral-800 pt-6">
             {features.map((item) => (
               <li key={item.text} className="flex items-start gap-3">
                 <span
@@ -111,7 +110,7 @@ export function AccountTypeCard({
                 >
                   <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
                 </span>
-                <span className="text-sm leading-relaxed text-slate-700">
+                <span className="text-sm leading-relaxed text-slate-700 dark:text-neutral-300">
                   {item.text}
                 </span>
               </li>
@@ -131,7 +130,7 @@ export function AccountTypeCard({
             </span>
 
             {note && (
-              <p className="mt-3 text-center text-xs leading-relaxed text-slate-400">
+              <p className="mt-3 text-center text-xs leading-relaxed text-slate-400 dark:text-neutral-500">
                 {note}
               </p>
             )}

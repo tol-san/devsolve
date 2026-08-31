@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, type Variants } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { USER_FEATURES, COMPANY_FEATURES } from "@/lib/constants/auth";
 import { AccountTypeCard } from "@/components/account-type/AccountTypeCard";
 import {
@@ -51,16 +52,7 @@ export default function AccountTypeSelectionPage() {
             aria-label="Go to DevSolve homepage"
             className="group flex shrink-0 items-center transition-opacity hover:opacity-85"
           >
-            <span className="relative block h-10 w-36">
-              <Image
-                src="/devsolve-logo.png"
-                alt="DevSolve"
-                fill
-                priority
-                sizes="150px"
-                className="origin-left object-contain object-left scale-[1.15]"
-              />
-            </span>
+            <BrandLogo priority />
           </Link>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
