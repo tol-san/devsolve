@@ -8,7 +8,7 @@ import { pageMetadata } from "@/lib/seo/metadata";
 import { SITE_NAME } from "@/lib/seo/site";
 import { describe, humanizeEnum } from "@/lib/seo/text";
 
-type PageProps = { params: Promise<{ id: string }> };
+type PageProps = { params: Promise<{ lang: string; id: string }> };
 
 /**
  * The problem is fetched twice on paper — once for the title tag, once for the
@@ -19,7 +19,7 @@ type PageProps = { params: Promise<{ id: string }> };
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { lang, id } = await params;
   const path = `/community/${id}`;
   const problem = await getProblem(id);
 
@@ -31,6 +31,7 @@ export async function generateMetadata({
       title: "Problem",
       description: `This problem is not available on ${SITE_NAME}.`,
       path,
+      locale: lang,
       noIndex: true,
     });
   }
@@ -44,6 +45,7 @@ export async function generateMetadata({
       `A ${kind.toLowerCase()} problem posted on ${SITE_NAME}, with solutions from the community.`,
     ),
     path,
+    locale: lang,
     type: "article",
     publishedTime: isoDateTime(problem.publishedAt ?? problem.createdAt),
     modifiedTime: isoDateTime(problem.updatedAt),

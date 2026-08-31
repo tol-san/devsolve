@@ -35,7 +35,7 @@ const footerNavSections = [
       { name: "Programs", tKey: "footer.links.programs", href: "/programs" },
       { name: "Problems", tKey: "footer.links.problems", href: "/problems" },
       { name: "Showcases", tKey: "footer.links.showcases", href: "/showcases" },
-      { name: "Community", tKey: "footer.links.community", href: "/community" },
+      { name: "Discussions", tKey: "footer.links.community", href: "/discussions" },
     ],
   },
   {

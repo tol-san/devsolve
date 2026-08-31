@@ -5,6 +5,7 @@ import {
   DEFAULT_LOCALE,
   LOCALES,
   isLocale,
+  localise,
   splitLocale,
   type Locale,
 } from "@/lib/i18n/config";
@@ -71,22 +72,41 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const { locale, rest, hadLocale } = splitLocale(pathname);
+  const parsed = splitLocale(pathname);
+  let { locale, rest } = parsed;
+  const { hadLocale } = parsed;
+  let rewriteUrl: URL | null = null;
 
-  /* A request with no locale gets sent to one. Every page therefore lives at
-     exactly one canonical URL, which is what makes the Khmer version
-     indexable and shareable rather than a cookie-dependent view. */
+  /* `/en/...` was the old English URL shape. Consolidate it permanently onto
+     the unprefixed canonical while preserving the query string. */
+  if (hadLocale && locale === DEFAULT_LOCALE) {
+    const url = request.nextUrl.clone();
+    url.pathname = rest || "/";
+    return NextResponse.redirect(url, 308);
+  }
+
+  /* An unprefixed request is the English canonical unless the visitor has
+     explicitly selected Khmer (or their browser strongly prefers it). English
+     is rewritten internally to the physical `[lang]` route, so the browser
+     and crawlers keep the clean URL without a redirect hop. */
   if (!hadLocale) {
     const picked = detectLocale(request);
-    const url = request.nextUrl.clone();
-    url.pathname = `/${picked}${pathname === "/" ? "" : pathname}`;
-    const redirect = NextResponse.redirect(url);
-    redirect.cookies.set(LOCALE_COOKIE, picked, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-    });
-    return redirect;
+    if (picked !== DEFAULT_LOCALE) {
+      const url = request.nextUrl.clone();
+      url.pathname = localise(pathname, picked);
+      const redirect = NextResponse.redirect(url);
+      redirect.cookies.set(LOCALE_COOKIE, picked, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: "lax",
+      });
+      return redirect;
+    }
+
+    locale = DEFAULT_LOCALE;
+    rest = pathname;
+    rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = `/${DEFAULT_LOCALE}${pathname === "/" ? "" : pathname}`;
   }
 
   /* Presence only. `getSessionCookie` reads the cookie jar — it does not
@@ -101,11 +121,19 @@ export function proxy(request: NextRequest) {
     // visit. Arriving from inside the app (a Home link) leaves a Referer on
     // this origin — let them through.
     const referer = request.headers.get("referer");
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-    const isInternalNav = referer?.startsWith(siteUrl) ?? false;
+    let isInternalNav = false;
+    if (referer) {
+      try {
+        isInternalNav = new URL(referer).origin === request.nextUrl.origin;
+      } catch {
+        // Invalid Referer headers are treated as external navigation.
+      }
+    }
 
     if (sessionCookie && !isInternalNav) {
-      return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
+      return NextResponse.redirect(
+        new URL(localise("/dashboard", locale), request.url),
+      );
     }
   }
 
@@ -123,7 +151,17 @@ export function proxy(request: NextRequest) {
       }
     }
 
-    return NextResponse.redirect(new URL(`/${locale}`, request.url));
+    return NextResponse.redirect(new URL(localise("/", locale), request.url));
+  }
+
+  if (rewriteUrl) {
+    const rewrite = NextResponse.rewrite(rewriteUrl);
+    rewrite.cookies.set(LOCALE_COOKIE, DEFAULT_LOCALE, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: "lax",
+    });
+    return rewrite;
   }
 
   return NextResponse.next();

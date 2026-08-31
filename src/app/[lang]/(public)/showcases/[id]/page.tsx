@@ -8,13 +8,13 @@ import { SITE_NAME } from "@/lib/seo/site";
 import { describe } from "@/lib/seo/text";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ lang: string; id: string }>;
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { lang, id } = await params;
   const path = `/showcases/${id}`;
   const showcase = await getShowcase(id);
 
@@ -26,6 +26,7 @@ export async function generateMetadata({
       title: "Showcase",
       description: `This showcase is not available on ${SITE_NAME}.`,
       path,
+      locale: lang,
       noIndex: true,
     });
   }
@@ -37,6 +38,7 @@ export async function generateMetadata({
       `A project built by ${showcase.authorName} and written up on ${SITE_NAME}.`,
     ),
     path,
+    locale: lang,
     type: "article",
     publishedTime: isoDateTime(showcase.createdAt),
     modifiedTime: isoDateTime(showcase.updatedAt),

@@ -8,9 +8,26 @@
  */
 
 /** The domain the app is served from in production. */
-const PRODUCTION_URL = "https://www.devsolve.app";
+const PRODUCTION_URL = "https://devsolve.app";
+const LEGACY_PRODUCTION_HOST = "www.devsolve.app";
 
 const withoutTrailingSlash = (url: string) => url.replace(/\/+$/, "");
+
+/**
+ * Keeps every DevSolve-owned production signal on the HTTPS apex origin even
+ * if a stale Vercel environment variable still names the old www host.
+ * Non-production origins (for example a staging domain) are left intact.
+ */
+function canonicalOrigin(value: string): string {
+  const url = new URL(value);
+  const hostname = url.hostname.toLowerCase();
+
+  if (hostname === "devsolve.app" || hostname === LEGACY_PRODUCTION_HOST) {
+    return PRODUCTION_URL;
+  }
+
+  return url.origin;
+}
 
 /**
  * The origin canonical URLs are built from.
@@ -26,9 +43,11 @@ function resolveSiteUrl(): string {
 
   if (configured) {
     try {
-      const { origin, hostname } = new URL(configured);
+      const { hostname } = new URL(configured);
       const isLoopback = hostname === "localhost" || hostname === "127.0.0.1";
-      if (!isLoopback || process.env.NODE_ENV !== "production") return origin;
+      if (!isLoopback || process.env.NODE_ENV !== "production") {
+        return canonicalOrigin(configured);
+      }
     } catch {
       // Malformed value — treated as unset.
     }
@@ -37,7 +56,18 @@ function resolveSiteUrl(): string {
   /* Vercel injects this on every deployment, so a preview or a domain change
      still produces reachable URLs without a redeploy of the env var. */
   const vercel = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
-  if (vercel) return `https://${withoutTrailingSlash(vercel)}`;
+  if (vercel) {
+    try {
+      const value = withoutTrailingSlash(vercel);
+      return canonicalOrigin(
+        value.startsWith("http://") || value.startsWith("https://")
+          ? value
+          : `https://${value}`,
+      );
+    } catch {
+      // Malformed Vercel value — use the known production origin below.
+    }
+  }
 
   return PRODUCTION_URL;
 }

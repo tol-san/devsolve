@@ -73,7 +73,7 @@ const navLinks: NavLink[] = [
   {
     name: "Community",
     tKey: "nav.community",
-    href: "/community",
+    href: "/discussions",
     icon: MessageSquare,
     items: [
       {
@@ -589,11 +589,11 @@ const Navbar = () => {
                                 : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
                             )}
                           >
-                            {/* The label navigates straight to /community;
+                            {/* The label navigates straight to /discussions;
                                 the chevron is the only thing that toggles
                                 the flyout, so a click never fights a nav. */}
                             <Link
-                              href={lp(link.href ?? "/community")}
+                              href={lp(link.href ?? "/discussions")}
                               aria-current={isActive ? "page" : undefined}
                               onClick={() => {
                                 setCommunityMenuOpen(false);
@@ -909,7 +909,7 @@ const Navbar = () => {
                             {/* Same split as desktop: label navigates, the
                                 chevron only expands the submenu. */}
                             <Link
-                              href={link.href ?? "/community"}
+                              href={lp(link.href ?? "/discussions")}
                               onClick={() => setMobileMenuOpen(false)}
                               aria-current={isActive ? "page" : undefined}
                               className="flex min-h-10 flex-1 items-center gap-3 pl-3"
