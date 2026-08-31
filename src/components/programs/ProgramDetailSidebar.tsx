@@ -40,7 +40,7 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
   return (
     <aside className="space-y-6">
       {/* Widget 1: Program Timeline */}
-      <section className="bg-card p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-4">
+      <section className="bg-card p-4 sm:p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-4">
         <h3 className="text-base font-bold text-foreground flex items-center gap-2">
           <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           Program Timeline
@@ -66,7 +66,7 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
       </section>
 
       {/* Widget 2: Quick Stats */}
-      <section className="bg-card p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-4">
+      <section className="bg-card p-4 sm:p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-4">
         <h3 className="text-base font-bold text-foreground flex items-center gap-2">
           <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           Quick Stats
