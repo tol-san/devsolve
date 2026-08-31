@@ -249,6 +249,15 @@ export function CreateShowcaseForm({
 
   const { data: categories = [], isLoading: loadingCategories } =
     useGetActiveCategoriesQuery("SHOWCASE");
+
+  const categoryItems = React.useMemo(
+    () =>
+      categories.map((category) => ({
+        value: category.id,
+        label: category.name,
+      })),
+    [categories],
+  );
   const [createShowcase] = useCreateShowcaseMutation();
   const [updateShowcase] = useUpdateShowcaseMutation();
   const [createStep] = useCreateShowcaseStepMutation();
@@ -720,8 +729,9 @@ export function CreateShowcaseForm({
                   name="categoryId"
                   render={({ field }) => (
                     <Select
-                      value={field.value || undefined}
-                      onValueChange={field.onChange}
+                      items={categoryItems}
+                      value={field.value || null}
+                      onValueChange={(val) => field.onChange(val ?? "")}
                       disabled={loadingCategories}
                     >
                       <SelectTrigger
@@ -732,7 +742,9 @@ export function CreateShowcaseForm({
                           placeholder={
                             loadingCategories
                               ? "Loading categories…"
-                              : "Choose a category"
+                              : categoryItems.length === 0
+                                ? "No categories available"
+                                : "Choose a category"
                           }
                         />
                       </SelectTrigger>
@@ -741,13 +753,13 @@ export function CreateShowcaseForm({
                           {/* The value is the id, not the name: `categoryId` is
                               a UUID upstream and the proxy rejects anything
                               else. */}
-                          {categories.map((category) => (
+                          {categoryItems.map((category) => (
                             <SelectItem
-                              key={category.id}
-                              value={category.id}
+                              key={category.value}
+                              value={category.value}
                               className="cursor-pointer rounded-lg py-2.5 text-base font-medium"
                             >
-                              {category.name}
+                              {category.label}
                             </SelectItem>
                           ))}
                         </SelectGroup>

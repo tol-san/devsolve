@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
+import { useForm, Controller, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectTrigger,
@@ -25,6 +29,7 @@ import {
   Ban,
   RotateCcw,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateModerationActionMutation } from "@/lib/redux/services/admin/moderationActionsApi";
@@ -53,6 +58,75 @@ interface ModerationActionDialogProps {
   onSuccess?: () => void;
   onConfirm?: (id: string, action: ModerationActionType, note?: string) => void;
 }
+
+const ACTION_OPTIONS: {
+  value: ModerationActionType;
+  label: string;
+  description: string;
+}[] = [
+  { value: "WARN", label: "WARN", description: "Issue a formal warning" },
+  { value: "SUSPEND", label: "SUSPEND", description: "Temporarily suspend account access" },
+  { value: "REMOVE", label: "REMOVE", description: "Remove content or target" },
+  { value: "BAN", label: "BAN", description: "Permanently ban account" },
+  { value: "REINSTATE", label: "REINSTATE", description: "Restore full account access" },
+];
+
+const ACTION_SELECT_ITEMS = ACTION_OPTIONS.map((opt) => ({
+  value: opt.value,
+  label: opt.label,
+}));
+
+const REASON_PRESETS: Record<ModerationActionType, string[]> = {
+  REINSTATE: [
+    "Account review completed — restrictions lifted.",
+    "False positive report resolved.",
+    "Appealed by user and verified compliant.",
+    "Temporary suspension period completed.",
+  ],
+  WARN: [
+    "First warning for community guidelines violation.",
+    "Inappropriate content or comments detected.",
+    "Please adhere to respectful collaboration standards.",
+  ],
+  SUSPEND: [
+    "Repeated violations of community guidelines.",
+    "Suspicious activity requiring investigation.",
+    "Harassment or abusive conduct reported.",
+  ],
+  BAN: [
+    "Severe or persistent terms of service violations.",
+    "Confirmed malicious actor or fraudulent activity.",
+  ],
+  REMOVE: [
+    "Content violates platform quality or safety guidelines.",
+    "Flagged by community as spam or inappropriate.",
+  ],
+};
+
+const moderationActionSchema = z
+  .object({
+    action: z.enum(["WARN", "SUSPEND", "REMOVE", "BAN", "REINSTATE"]),
+    reason: z
+      .string()
+      .trim()
+      .min(1, "Moderation reason is required.")
+      .max(2000, "Reason cannot exceed 2000 characters."),
+    expiresAt: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.action === "SUSPEND" && (!data.expiresAt || !data.expiresAt.trim())) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Action expiration date is required for suspension.",
+      path: ["expiresAt"],
+    },
+  );
+
+type ModerationActionFormValues = z.infer<typeof moderationActionSchema>;
 
 export function ModerationActionDialog({
   report,
@@ -97,16 +171,43 @@ function ModerationActionForm({
   onConfirm?: (id: string, action: ModerationActionType, note?: string) => void;
 }) {
   const defaultAction = initialActionType || "WARN";
-  const [action, setAction] = useState<ModerationActionType>(defaultAction);
-  const [reason, setReason] = useState("");
-  const [expiresAt, setExpiresAt] = useState(() => {
+
+  const isTargetRemoved =
+    (report?.status as string) === "REMOVED" ||
+    target?.status === "REMOVED";
+  const isTargetSuspended =
+    (report?.status as string) === "SUSPENDED" ||
+    target?.status === "SUSPENDED";
+  const isTargetActive =
+    (report?.status as string) === "ACTIVE" ||
+    target?.status === "ACTIVE";
+
+  const getDefaultExpiresAt = () => {
     if (defaultAction === "SUSPEND") {
       const d = new Date();
       d.setDate(d.getDate() + 30);
       return d.toISOString().slice(0, 16);
     }
     return "";
+  };
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<ModerationActionFormValues>({
+    resolver: zodResolver(moderationActionSchema),
+    defaultValues: {
+      action: defaultAction,
+      reason: "",
+      expiresAt: getDefaultExpiresAt(),
+    },
   });
+
+  const action = useWatch({ control, name: "action" }) ?? defaultAction;
+  const reasonValue = useWatch({ control, name: "reason" }) ?? "";
 
   const [createModerationAction, { isLoading: isCreatingAction }] =
     useCreateModerationActionMutation();
@@ -120,18 +221,18 @@ function ModerationActionForm({
   const targetTitle = report?.title || target?.subtitle || target?.type || "";
 
   const handleActionChange = (newAction: ModerationActionType) => {
-    setAction(newAction);
-    if (newAction === "SUSPEND" && !expiresAt) {
+    setValue("action", newAction, { shouldValidate: true });
+    if (newAction === "SUSPEND") {
       const d = new Date();
       d.setDate(d.getDate() + 30);
-      setExpiresAt(d.toISOString().slice(0, 16));
+      setValue("expiresAt", d.toISOString().slice(0, 16), { shouldValidate: true });
     }
   };
 
   const setPresetDays = (days: number) => {
     const d = new Date();
     d.setDate(d.getDate() + days);
-    setExpiresAt(d.toISOString().slice(0, 16));
+    setValue("expiresAt", d.toISOString().slice(0, 16), { shouldValidate: true });
   };
 
   const getActionColorClass = (act: ModerationActionType) => {
@@ -181,60 +282,43 @@ function ModerationActionForm({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reason.trim()) {
-      toast.error("Moderation reason is required.");
-      return;
-    }
-
-    if (action === "SUSPEND" && !expiresAt) {
-      toast.error("Action expiration date is required for suspension.");
-      return;
-    }
-
+  const onSubmit = async (values: ModerationActionFormValues) => {
     try {
       const formattedExpiresAt =
-        action === "SUSPEND" && expiresAt
-          ? new Date(expiresAt).toISOString()
+        values.action === "SUSPEND" && values.expiresAt
+          ? new Date(values.expiresAt).toISOString()
           : undefined;
 
       if (report) {
-        // A report ID is a content-flag ID, not a user-profile ID. The backend
-        // resolves flagged content through /admin/flags/{flagId}/resolve and
-        // removes the underlying target when removeContent is true.
         await updateContentReport({
           id: report.id,
-          action,
-          resolutionNote: reason.trim(),
-          removeContent: action === "REMOVE",
+          action: values.action,
+          resolutionNote: values.reason.trim(),
+          removeContent: values.action === "REMOVE",
         }).unwrap();
       } else {
         const targetType =
           (target?.type as ModerationActionTargetType) || "USER";
 
-        // Direct moderation from the Users page still targets a user profile.
         await createModerationAction({
           id: targetId,
           body: {
             targetType,
             targetId,
-            action,
-            reason: reason.trim(),
+            action: values.action,
+            reason: values.reason.trim(),
             expiresAt: formattedExpiresAt,
           },
         }).unwrap();
       }
 
-      toast.success(`Moderation action '${action}' applied successfully.`);
+      toast.success(`Moderation action '${values.action}' applied successfully.`);
       if (onConfirm) {
-        onConfirm(targetId, action, reason);
+        onConfirm(targetId, values.action, values.reason.trim());
       }
       if (onSuccess) {
         onSuccess();
       }
-      setReason("");
-      setExpiresAt("");
       onClose();
     } catch (err: unknown) {
       const message =
@@ -243,6 +327,11 @@ function ModerationActionForm({
       toast.error(message);
     }
   };
+
+  const availableReasonPresets = useMemo(
+    () => REASON_PRESETS[action] ?? [],
+    [action]
+  );
 
   return (
     <DialogContent className="sm:max-w-md rounded-2xl bg-card border border-border text-card-foreground p-6 shadow-xl space-y-4">
@@ -285,77 +374,127 @@ function ModerationActionForm({
       )}
 
       {/* Moderation Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form noValidate onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="space-y-4">
         {/* Action Select */}
-        {(() => {
-          const isTargetRemoved =
-            (report?.status as string) === "REMOVED" ||
-            target?.status === "REMOVED";
-          const isTargetSuspended =
-            (report?.status as string) === "SUSPENDED" ||
-            target?.status === "SUSPENDED";
-          const isTargetActive =
-            (report?.status as string) === "ACTIVE" ||
-            target?.status === "ACTIVE";
-          return (
-            <div className="space-y-2">
-              <Label className="text-xs font-bold text-foreground">
-                Select Action Type
-              </Label>
+        <div className="space-y-2">
+          <Label className="text-xs font-bold text-foreground">
+            Select Action Type
+          </Label>
+          <Controller
+            control={control}
+            name="action"
+            render={({ field }) => (
               <Select
-                value={action}
+                items={ACTION_SELECT_ITEMS}
+                value={field.value}
                 onValueChange={(val: string | null) => {
                   if (val) handleActionChange(val as ModerationActionType);
                 }}
               >
-                <SelectTrigger className="w-full h-10 rounded-xl bg-card border-border text-sm text-foreground">
+                <SelectTrigger className="w-full h-11 rounded-xl bg-background border-border text-sm text-foreground">
                   <SelectValue placeholder="Select action" />
                 </SelectTrigger>
-                <SelectContent className="border-border bg-card text-card-foreground">
-                  <SelectItem value="WARN" disabled={isTargetRemoved}>
-                    {isTargetRemoved ? "WARN (User Removed)" : "WARN"}
-                  </SelectItem>
-                  <SelectItem
-                    value="SUSPEND"
-                    disabled={isTargetSuspended || isTargetRemoved}
-                  >
-                    {isTargetRemoved
-                      ? "SUSPEND (User Removed)"
-                      : isTargetSuspended
-                      ? "SUSPEND (Already suspended)"
-                      : "SUSPEND"}
-                  </SelectItem>
-                  <SelectItem value="REMOVE" disabled={isTargetRemoved}>
-                    {isTargetRemoved ? "REMOVE (Already removed)" : "REMOVE"}
-                  </SelectItem>
-                  <SelectItem value="BAN" disabled={isTargetRemoved}>
-                    {isTargetRemoved ? "BAN (User Removed)" : "BAN"}
-                  </SelectItem>
-                  <SelectItem value="REINSTATE" disabled={isTargetActive}>
-                    {isTargetActive
-                      ? "REINSTATE (User account is already active)"
-                      : "REINSTATE"}
-                  </SelectItem>
+                <SelectContent className="border-border bg-popover text-popover-foreground rounded-xl">
+                  {ACTION_OPTIONS.map((opt) => {
+                    let disabled = false;
+                    let badgeText = "";
+                    if (opt.value === "WARN" && isTargetRemoved) {
+                      disabled = true;
+                      badgeText = "(User Removed)";
+                    } else if (opt.value === "SUSPEND") {
+                      if (isTargetRemoved) {
+                        disabled = true;
+                        badgeText = "(User Removed)";
+                      } else if (isTargetSuspended) {
+                        disabled = true;
+                        badgeText = "(Already suspended)";
+                      }
+                    } else if (opt.value === "REMOVE" && isTargetRemoved) {
+                      disabled = true;
+                      badgeText = "(Already removed)";
+                    } else if (opt.value === "BAN" && isTargetRemoved) {
+                      disabled = true;
+                      badgeText = "(User Removed)";
+                    } else if (opt.value === "REINSTATE" && isTargetActive) {
+                      disabled = true;
+                      badgeText = "(Already active)";
+                    }
+
+                    return (
+                      <SelectItem
+                        key={opt.value}
+                        value={opt.value}
+                        disabled={disabled}
+                        className="cursor-pointer rounded-lg py-2 text-sm"
+                      >
+                        <div className="flex items-center justify-between w-full gap-2">
+                          <span className="font-semibold">{opt.label}</span>
+                          {badgeText && (
+                            <span className="text-xs text-muted-foreground font-normal">
+                              {badgeText}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
-            </div>
-          );
-        })()}
+            )}
+          />
+        </div>
 
         {/* Reason Input */}
         <div className="space-y-2">
-          <Label className="text-xs font-bold text-foreground">
-            Moderation Reason <span className="text-rose-500">*</span>
-          </Label>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="moderation-reason" className="text-xs font-bold text-foreground">
+              Moderation Reason <span className="text-destructive">*</span>
+            </Label>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {reasonValue.length}/2000
+            </span>
+          </div>
+
+          {/* Quick reason suggestions */}
+          {availableReasonPresets.length > 0 && (
+            <div className="space-y-1.5 pb-1">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <Sparkles className="size-3.5 text-primary" />
+                <span>Quick reason suggestions</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {availableReasonPresets.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() =>
+                      setValue("reason", preset, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
+                    className="rounded-lg border border-border bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-foreground text-left cursor-pointer"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Textarea
+            id="moderation-reason"
+            {...register("reason")}
             placeholder="Detailed reason for this moderation action..."
             rows={3}
-            required
             maxLength={2000}
-            className="w-full p-3 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+            className="rounded-xl border-border bg-background text-sm text-foreground focus-visible:border-ring focus-visible:ring-2"
           />
+          {errors.reason?.message && (
+            <p className="text-xs font-medium text-destructive">
+              {errors.reason.message}
+            </p>
+          )}
         </div>
 
         {/* Required Expiration Date (ONLY for SUSPEND) */}
@@ -363,7 +502,7 @@ function ModerationActionForm({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs font-bold text-foreground">
-                Action Expiration Date <span className="text-rose-500">*</span>
+                Action Expiration Date <span className="text-destructive">*</span>
               </Label>
               <div className="flex items-center gap-1">
                 {[
@@ -376,18 +515,29 @@ function ModerationActionForm({
                     key={preset.label}
                     type="button"
                     onClick={() => setPresetDays(preset.days)}
-                    className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
+                    className="px-2 py-0.5 text-xs font-bold rounded-md bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
                   >
                     {preset.label}
                   </button>
                 ))}
               </div>
             </div>
-            <DateTimePicker
-              value={expiresAt}
-              onChange={setExpiresAt}
-              placeholder="Select expiration date & time"
+            <Controller
+              control={control}
+              name="expiresAt"
+              render={({ field }) => (
+                <DateTimePicker
+                  value={field.value ?? ""}
+                  onChange={(val) => field.onChange(val)}
+                  placeholder="Select expiration date & time"
+                />
+              )}
             />
+            {errors.expiresAt?.message && (
+              <p className="text-xs font-medium text-destructive">
+                {errors.expiresAt.message}
+              </p>
+            )}
           </div>
         )}
 
@@ -396,7 +546,8 @@ function ModerationActionForm({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="rounded-xl h-10 text-xs font-semibold border-border bg-card text-foreground cursor-pointer hover:bg-muted"
+            disabled={isSubmitting}
+            className="rounded-xl h-10 text-xs font-semibold border-border bg-background text-foreground cursor-pointer hover:bg-muted"
           >
             Cancel
           </Button>
@@ -419,5 +570,3 @@ function ModerationActionForm({
     </DialogContent>
   );
 }
-
-

@@ -42,6 +42,11 @@ export const CODE_LANGUAGES = [
   { id: "markdown", label: "Markdown" },
 ] as const;
 
+const CODE_LANGUAGE_ITEMS = CODE_LANGUAGES.map((lang) => ({
+  value: lang.id,
+  label: lang.label,
+}));
+
 interface CodeSnippetFieldProps {
   value: string;
   language: string;
@@ -66,6 +71,7 @@ export function CodeSnippetField({
         </span>
 
         <Select
+          items={CODE_LANGUAGE_ITEMS}
           value={language}
           onValueChange={(value) => value && onLanguageChange(value)}
         >
