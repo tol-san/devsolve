@@ -192,23 +192,19 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
           <div className="lg:col-span-3 space-y-6">
             {/* Main Title Header Card */}
             <div className={`${CARD} p-6`}>
-              <div className="flex items-center space-x-2 mb-3">
-                <span className="inline-flex items-center space-x-1.5 rounded-full bg-blue-100 dark:bg-blue-500/15 px-3 py-1 text-xs font-bold text-blue-700 dark:text-blue-300">
-                  <LayoutTemplate className="h-3.5 w-3.5" />
-                  <span>Showcase</span>
-                </span>
-
-                {showcase.categoryName && (
-                  <span className="rounded-md bg-slate-100 dark:bg-neutral-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-neutral-300">
-                    {showcase.categoryName}
+              <div className="flex items-center justify-between gap-4 mb-3">
+                <div className="flex items-center space-x-2">
+                  <span className="inline-flex items-center space-x-1.5 rounded-full bg-blue-100 dark:bg-blue-500/15 px-3 py-1 text-xs font-bold text-blue-700 dark:text-blue-300">
+                    <LayoutTemplate className="h-3.5 w-3.5" />
+                    <span>Showcase</span>
                   </span>
-                )}
-              </div>
 
-              <div className="flex items-start justify-between gap-4">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-snug break-words [word-break:break-word] min-w-0">
-                  {showcase.title}
-                </h1>
+                  {showcase.categoryName && (
+                    <span className="rounded-md bg-slate-100 dark:bg-neutral-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-neutral-300">
+                      {showcase.categoryName}
+                    </span>
+                  )}
+                </div>
 
                 <VoteControl
                   voteCount={upvoteCount}
@@ -220,6 +216,10 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
                   className="shrink-0"
                 />
               </div>
+
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-snug break-words [word-break:break-word] min-w-0">
+                {showcase.title}
+              </h1>
 
               {showcase.coverImageUrl && (
                 <div className="mt-5">
