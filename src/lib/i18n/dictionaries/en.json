@@ -486,7 +486,10 @@
         "empty": "No discussions found",
         "metaTitle": "Community",
         "metaDescription": "Browse everything the DevSolve community is working on: problems people are stuck on, the solutions that fixed them, and the projects members have shipped.",
-        "schemaName": "DevSolve Community"
+        "schemaName": "DevSolve Community",
+        "overviewTitle": "An open engineering community for real problem solving",
+        "overviewDescription": "DevSolve brings developers, security researchers, and engineering teams together. Explore debugging threads, verified code solutions, and live project architectures contributed across the ecosystem—even while newest community discussions are updating.",
+        "overviewBrowse": "Explore open technical problems"
       },
       "problems": {
         "breadcrumb": "Problems",
@@ -511,7 +514,10 @@
         "empty": "No showcases found",
         "metaTitle": "Showcases",
         "metaDescription": "Projects built by DevSolve members, written up step by step: the stack behind each one, the decisions that made it work, and links to the running thing.",
-        "schemaName": "Project showcases"
+        "schemaName": "Project showcases",
+        "overviewTitle": "Verified developer builds and proof of work",
+        "overviewDescription": "Discover apps, services, and security tools built by the community. Each showcase details the architectural decisions, tech stack components, lessons learned, and live demos—giving you practical references before the newest submissions finish loading.",
+        "overviewBrowse": "Browse every community discussion"
       }
     },
     "searchRegion": "Search and sort discussions",

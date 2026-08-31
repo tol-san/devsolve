@@ -135,6 +135,7 @@ export function DiscussionsFeed({
               sort={sort}
               onSortChange={setSort}
               totalCount={discussions?.totalCount ?? 0}
+              isLoading={isInitialLoading}
             />
             <DiscussionMobileFilters
               topics={topics}
