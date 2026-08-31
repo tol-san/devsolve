@@ -129,6 +129,31 @@ export const problemsApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: "Discussion", id: "LIST" }],
     }),
 
+    /** Creates an editable draft so files can be scanned before moderation. */
+    createProblemDraft: builder.mutation<ProblemResponse, CreateProblemRequest>({
+      query: (body) => ({ url: "/problems/drafts", method: "POST", body }),
+      invalidatesTags: [{ type: "Problem", id: "MINE" }],
+    }),
+
+    uploadProblemAttachment: builder.mutation<
+      ProblemResponse,
+      { problemId: string; file: File }
+    >({
+      query: ({ problemId, file }) => {
+        const body = new FormData();
+        body.append("file", file, file.name);
+        return {
+          url: `/problems/${problemId}/attachments`,
+          method: "POST",
+          body,
+        };
+      },
+      invalidatesTags: (_result, _error, { problemId }) => [
+        { type: "Problem", id: problemId },
+        { type: "Problem", id: "MINE" },
+      ],
+    }),
+
     /** GET /api/problems/{id} -> GET /api/v1/problems/{id}. */
     getProblemById: builder.query<ProblemResponse, string>({
       query: (id) => `/problems/${id}`,
@@ -267,6 +292,8 @@ export const problemsApi = baseApi.injectEndpoints({
 
 export const {
   useCreateProblemMutation,
+  useCreateProblemDraftMutation,
+  useUploadProblemAttachmentMutation,
   useUpdateProblemMutation,
   useSubmitProblemMutation,
   useGetProblemByIdQuery,

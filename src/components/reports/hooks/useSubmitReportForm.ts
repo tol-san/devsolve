@@ -1,12 +1,19 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useGetProgramsQuery, useGetProgramByIdQuery } from "@/lib/redux/services/program/programsApi";
-import { useSubmitReportMutation } from "@/lib/redux/services/reportsApi";
+import {
+  useSubmitReportMutation,
+  useUploadReportAttachmentMutation,
+} from "@/lib/redux/services/reportsApi";
 import { useGetReportingAccessQuery } from "@/lib/redux/services/researcherAccessApi";
 import type { ResearcherAccessStatus } from "@/lib/validations/researcher-access";
-import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
+import {
+  apiErrorMessage,
+  apiErrorStatus,
+  contentScanErrorMessage,
+} from "@/lib/api/error-message";
 import {
   submitReportSchema,
   SubmitReportFormValues,
@@ -31,6 +38,7 @@ export interface ReportSuccessModalData {
   programName: string;
   title: string;
   submittedAt?: string;
+  attachmentWarning?: string;
 }
 
 export function useSubmitReportForm() {
@@ -87,9 +95,12 @@ export function useSubmitReportForm() {
   const { data: specificProgram } = useGetProgramByIdQuery(preselectedProgramId, {
     skip: !preselectedProgramId,
   });
-  const [submitReport, { isLoading: isSubmitting }] = useSubmitReportMutation();
+  const [submitReport, { isLoading: isCreatingReport }] = useSubmitReportMutation();
+  const [uploadReportAttachment, { isLoading: isUploadingAttachment }] =
+    useUploadReportAttachmentMutation();
+  const isSubmitting = isCreatingReport || isUploadingAttachment;
 
-  const programs = programsData?.content || [];
+  const programs = useMemo(() => programsData?.content ?? [], [programsData?.content]);
 
   const form = useForm<SubmitReportFormValues>({
     resolver: zodResolver(submitReportSchema),
@@ -127,7 +138,7 @@ export function useSubmitReportForm() {
     },
   });
 
-  const { setValue, watch, reset, trigger } = form;
+  const { setValue, reset, trigger, getValues } = form;
 
   /* What the draft endpoint models, built from what is on screen.
 
@@ -137,7 +148,7 @@ export function useSubmitReportForm() {
      from. Fields the draft schema has no column for (HTTP method, vulnerable
      parameter, expected/actual result, the checklist) do not survive a round
      trip; see the note in the review. */
-  const watched = watch();
+  const watched = useWatch({ control: form.control });
   const draftBody = useMemo<SaveReportDraftValues>(() => {
     const score = Number(watched.cvssScore);
     const steps = (reproduceStepsList ?? []).map((s) => s.trim()).filter(Boolean);
@@ -226,14 +237,17 @@ export function useSubmitReportForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [linkedDraft]);
 
-  const selectedProgramId = watch("programId");
-  const selectedSeverity = watch("severity");
+  const selectedProgramId = watched.programId ?? "";
+  const selectedSeverity = watched.severity;
 
-  const selectedProgram: any =
-    specificProgram ||
-    programs.find((p: any) => p.id === selectedProgramId) ||
-    programs[0] ||
-    null;
+  const selectedProgram = specificProgram
+    ? {
+        ...specificProgram,
+        inScopeAssets: specificProgram.inScopeAssets ?? [],
+      }
+    : programs.find((program) => program.id === selectedProgramId) ||
+      programs[0] ||
+      null;
 
   /* Asked up front rather than discovered on the way out.
 
@@ -361,7 +375,7 @@ export function useSubmitReportForm() {
   };
 
   const handleInsertTemplate = (templateText: string) => {
-    const currentPoC = watch("summaryPoC");
+    const currentPoC = getValues("summaryPoC");
     if (currentPoC && currentPoC.trim() !== "") {
       setValue("summaryPoC", `${currentPoC}\n\n${templateText}`);
     } else {
@@ -408,13 +422,14 @@ export function useSubmitReportForm() {
       programName: "",
       title: "",
       submittedAt: "",
+      attachmentWarning: undefined,
     });
   };
 
   const onSubmit = async (values: SubmitReportFormValues) => {
     setSubmitError(null);
     setAccessRefusal(null);
-    const selectedProg = programs.find((p: any) => p.id === values.programId);
+    const selectedProg = programs.find((program) => program.id === values.programId);
     const programName = selectedProg
       ? selectedProg.organizationName
       : "CloudVault Security Program";
@@ -443,16 +458,27 @@ export function useSubmitReportForm() {
         pocPayload: values.pocPayload,
         expectedResult: values.expectedResult,
         actualResult: values.actualResult,
-        attachments: attachedFiles.map((f) => ({
-          name: f.name,
-          size: f.size,
-          type: f.type,
-        })),
         externalLinks: externalLinks.filter((l) => l.trim() !== ""),
         agreeTerms: values.checklistAgreeTerms,
       }).unwrap();
 
       if (res.success) {
+        let attachmentWarning: string | undefined;
+        for (const attached of attachedFiles) {
+          try {
+            await uploadReportAttachment({
+              reportId: res.id,
+              file: attached.file,
+            }).unwrap();
+          } catch (uploadError) {
+            attachmentWarning = contentScanErrorMessage(
+              uploadError,
+              attached.name,
+            );
+            break;
+          }
+        }
+
         /* Submitted: the draft has served its purpose, and leaving it would
            offer the reporter their own filed report back as unfinished work. */
         void draft.clear();
@@ -462,6 +488,7 @@ export function useSubmitReportForm() {
           programName,
           title: values.title,
           submittedAt: res.createdAt || new Date().toISOString(),
+          attachmentWarning,
         });
       }
     } catch (err: unknown) {
@@ -485,7 +512,10 @@ export function useSubmitReportForm() {
       }
 
       setSubmitError(
-        "Failed to submit vulnerability report. Please verify inputs and try again.",
+        contentScanErrorMessage(
+          err,
+          "A submitted link or report field",
+        ),
       );
     }
   };

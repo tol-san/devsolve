@@ -29,3 +29,24 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
   }
   return fallback;
 }
+
+/** Friendly, actionable copy for the statuses returned by content scanning. */
+export function contentScanErrorMessage(
+  error: unknown,
+  subject = "This content",
+): string {
+  const backendMessage = apiErrorMessage(error, "");
+  switch (apiErrorStatus(error)) {
+    case 422:
+      return `${subject} was flagged as unsafe and was not accepted.`;
+    case 429:
+      return "VirusTotal is rate-limited right now. Wait a minute, then try again.";
+    case 502:
+    case 503:
+      return "The security scanning service is temporarily unavailable. Your content was not accepted; try again shortly.";
+    case 504:
+      return "VirusTotal did not return a final verdict in time. Your content was not accepted; try again shortly.";
+    default:
+      return backendMessage || `${subject} could not be checked or uploaded.`;
+  }
+}

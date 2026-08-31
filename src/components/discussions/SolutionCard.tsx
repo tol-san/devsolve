@@ -429,7 +429,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                 const isImg =
                   file.mimeType?.startsWith("image/") ||
                   /\.(png|jpe?g|webp|gif|svg)$/i.test(
-                    file.originalFileName || file.downloadUrl || "",
+                    file.fileName || file.downloadUrl || "",
                   );
 
                 return isImg ? (
@@ -439,19 +439,19 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                     onClick={() =>
                       setPreviewImage({
                         src: file.downloadUrl!,
-                        alt: file.originalFileName ?? "Attachment",
-                        title: file.originalFileName ?? "Attachment Preview",
+                        alt: file.fileName ?? "Attachment",
+                        title: file.fileName ?? "Attachment Preview",
                       })
                     }
                     className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 cursor-pointer"
                   >
                     <ZoomIn aria-hidden="true" className="size-3.5 shrink-0" />
                     <span className="truncate">
-                      {file.originalFileName ?? "Attachment"}
+                      {file.fileName ?? "Attachment"}
                     </span>
-                    {file.sizeBytes !== undefined && (
+                    {file.fileSize !== undefined && (
                       <span className="shrink-0 font-medium text-slate-400">
-                        {formatBytes(file.sizeBytes)}
+                        {formatBytes(file.fileSize)}
                       </span>
                     )}
                   </button>
@@ -465,11 +465,11 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                   >
                     <Download aria-hidden="true" className="size-3.5 shrink-0" />
                     <span className="truncate">
-                      {file.originalFileName ?? "Attachment"}
+                      {file.fileName ?? "Attachment"}
                     </span>
-                    {file.sizeBytes !== undefined && (
+                    {file.fileSize !== undefined && (
                       <span className="shrink-0 font-medium text-slate-400">
-                        {formatBytes(file.sizeBytes)}
+                        {formatBytes(file.fileSize)}
                       </span>
                     )}
                   </a>

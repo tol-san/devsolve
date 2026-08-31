@@ -156,7 +156,6 @@ function SubmitReportContent() {
                     register={register}
                     control={control}
                     errors={errors}
-                    watch={watch}
                     attachedFiles={attachedFiles}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
@@ -212,6 +211,7 @@ function SubmitReportContent() {
         programName={successModalData.programName}
         title={successModalData.title}
         submittedAt={successModalData.submittedAt}
+        attachmentWarning={successModalData.attachmentWarning}
         onReset={handleResetForm}
       />
     </motion.div>

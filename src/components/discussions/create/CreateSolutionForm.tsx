@@ -42,6 +42,7 @@ import {
 import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import {
   useCreateSolutionMutation,
+  useUploadSolutionAttachmentMutation,
   useUpdateSolutionMutation,
   type SolutionResponse,
 } from "@/lib/redux/services/solutionsApi";
@@ -59,6 +60,12 @@ import {
   type SolutionFormInput,
   type SolutionFormValues,
 } from "@/lib/validations/solution";
+import {
+  FileUploadDropzone,
+  type AttachedFile,
+} from "@/components/reports/FileUploadDropzone";
+import { ContentScanStatus } from "@/components/security/ContentScanStatus";
+import { contentScanErrorMessage } from "@/lib/api/error-message";
 
 /**
  * Answering a problem, on its own page.
@@ -114,10 +121,13 @@ export function CreateSolutionForm({
   const router = useRouter();
   const [createSolution, { isLoading: creating }] = useCreateSolutionMutation();
   const [updateSolution, { isLoading: saving }] = useUpdateSolutionMutation();
+  const [uploadSolutionAttachment, { isLoading: uploading }] =
+    useUploadSolutionAttachmentMutation();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
 
   const isEdit = Boolean(solution);
-  const submitting = creating || saving;
+  const submitting = creating || saving || uploading;
 
   const back = cancelHref ?? `/community/${problemId}`;
   const done = successHref ?? `/community/${problemId}`;
@@ -210,25 +220,42 @@ export function CreateSolutionForm({
     };
 
     try {
+      let savedSolution: SolutionResponse;
       if (solution) {
-        await updateSolution({
+        savedSolution = await updateSolution({
           id: solution.id,
           version: solution.version ?? 0,
           problemId,
           body,
         }).unwrap();
-
-        toast.success("Solution updated", {
-          description: "Your changes go back through review before publishing.",
-        });
       } else {
-        await createSolution({ problemId, body }).unwrap();
-
-        toast.success("Solution posted", {
-          description: "It goes live on this problem once a moderator approves it.",
-        });
+        savedSolution = await createSolution({ problemId, body }).unwrap();
       }
 
+      let version = savedSolution.version ?? solution?.version ?? 0;
+      for (const attached of attachedFiles) {
+        try {
+          const uploaded = await uploadSolutionAttachment({
+            solutionId: savedSolution.id,
+            version,
+            file: attached.file,
+          }).unwrap();
+          version = uploaded.version ?? version + 1;
+        } catch (uploadError) {
+          toast.warning(
+            isEdit ? "Changes saved without one attachment" : "Solution posted without one attachment",
+            { description: contentScanErrorMessage(uploadError, attached.name) },
+          );
+          router.push(done);
+          return;
+        }
+      }
+
+      toast.success(isEdit ? "Solution updated" : "Solution posted", {
+        description: isEdit
+          ? "Your changes go back through review before publishing."
+          : "It goes live on this problem once a moderator approves it.",
+      });
       router.push(done);
     } catch (caught) {
       /* A 412 is the concurrency guard, not a validation failure: someone
@@ -779,6 +806,40 @@ export function CreateSolutionForm({
                     Add resource
                   </Button>
                 </fieldset>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.08, ease: "easeOut" }}
+          >
+            <Card className={CARD_CLASS} aria-labelledby="solution-attachments-heading">
+              <CardHeader className="border-b border-slate-100 dark:border-neutral-800">
+                <CardTitle>
+                  <h2 id="solution-attachments-heading" className="text-lg font-bold">
+                    Supporting files
+                  </h2>
+                </CardTitle>
+                <CardDescription>
+                  Optional evidence is scanned before it is stored with your answer.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                <FileUploadDropzone
+                  files={attachedFiles}
+                  onAddFiles={(files) => setAttachedFiles((current) => [...current, ...files])}
+                  onRemoveFile={(fileId) =>
+                    setAttachedFiles((current) => current.filter((file) => file.id !== fileId))
+                  }
+                  disabled={submitting}
+                  maxFiles={Math.max(0, 10 - (solution?.attachments?.length ?? 0))}
+                />
+                <ContentScanStatus
+                  active={uploading}
+                  fileCount={attachedFiles.length}
+                  compact
+                />
               </CardContent>
             </Card>
           </motion.div>

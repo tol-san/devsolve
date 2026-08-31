@@ -55,7 +55,10 @@ import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import { parseApiError } from "@/lib/api/errors";
 import { useGetActiveCategoriesQuery } from "@/lib/redux/services/categoriesApi";
 import {
+  useCreateProblemDraftMutation,
   useCreateProblemMutation,
+  useSubmitProblemMutation,
+  useUploadProblemAttachmentMutation,
   useUpdateProblemMutation,
   type ProblemResponse,
 } from "@/lib/redux/services/problemsApi";
@@ -71,6 +74,12 @@ import {
   type ProblemType,
 } from "@/lib/validations/problem";
 import { cn } from "@/lib/utils";
+import {
+  FileUploadDropzone,
+  type AttachedFile,
+} from "@/components/reports/FileUploadDropzone";
+import { ContentScanStatus } from "@/components/security/ContentScanStatus";
+import { contentScanErrorMessage } from "@/lib/api/error-message";
 
 type ProblemFormInput = z.input<typeof createProblemFormSchema>;
 type ProblemFormValues = z.output<typeof createProblemFormSchema>;
@@ -173,6 +182,8 @@ export function CreateProblemForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [tagDraft, setTagDraft] = useState("");
   const [tagDraftError, setTagDraftError] = useState<string | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  const [preparedDraft, setPreparedDraft] = useState<ProblemResponse | null>(null);
 
   const {
     data: categories = [],
@@ -180,8 +191,15 @@ export function CreateProblemForm({
     isError: categoriesFailed,
   } = useGetActiveCategoriesQuery("PROBLEM");
   const [createProblem, { isLoading: creating }] = useCreateProblemMutation();
+  const [createProblemDraft, { isLoading: creatingDraft }] =
+    useCreateProblemDraftMutation();
   const [updateProblem, { isLoading: saving }] = useUpdateProblemMutation();
-  const mutationLoading = creating || saving;
+  const [uploadProblemAttachment, { isLoading: uploading }] =
+    useUploadProblemAttachmentMutation();
+  const [submitProblem, { isLoading: submittingDraft }] =
+    useSubmitProblemMutation();
+  const mutationLoading =
+    creating || creatingDraft || saving || uploading || submittingDraft;
 
   const categoryItems = useMemo(
     () =>
@@ -394,8 +412,10 @@ export function CreateProblemForm({
     /* On an edit, emptied collections are sent as `[]` rather than dropped:
        PATCH reads an absent field as "leave it alone", so omitting a list the
        author just cleared would silently restore the old rows. */
+    const workingProblem = preparedDraft ?? problem;
+    const updatingExisting = Boolean(workingProblem?.id);
     const listOrUndefined = <T,>(list: T[]) =>
-      isEdit ? list : list.length ? list : undefined;
+      updatingExisting ? list : list.length ? list : undefined;
 
     const body = {
       ...values,
@@ -416,14 +436,74 @@ export function CreateProblemForm({
     };
 
     try {
-      if (problem?.id) {
-        await updateProblem({
-          id: problem.id,
-          version: problem.version ?? 0,
+      if (workingProblem?.id) {
+        let saved = await updateProblem({
+          id: workingProblem.id,
+          version: workingProblem.version ?? 0,
           body,
         }).unwrap();
 
-        toast.success("Problem updated.");
+        setPreparedDraft(saved);
+        for (const attached of attachedFiles) {
+          try {
+            saved = await uploadProblemAttachment({
+              problemId: saved.id!,
+              file: attached.file,
+            }).unwrap();
+            setAttachedFiles((current) =>
+              current.filter((file) => file.id !== attached.id),
+            );
+          } catch (uploadError) {
+            const message = contentScanErrorMessage(uploadError, attached.name);
+            setSubmitError(
+              `${message} Your other changes are saved; remove or replace that file and submit again.`,
+            );
+            toast.error("Attachment not added", { description: message });
+            return;
+          }
+        }
+
+        if (!problem) {
+          saved = await submitProblem(saved.id!).unwrap();
+        }
+
+        setPreparedDraft(null);
+        toast.success(problem ? "Problem updated." : "Problem submitted for review.");
+        router.push(successHref);
+        return;
+      }
+
+      if (attachedFiles.length) {
+        let draftProblem = await createProblemDraft(body).unwrap();
+        setPreparedDraft(draftProblem);
+
+        for (const attached of attachedFiles) {
+          try {
+            draftProblem = await uploadProblemAttachment({
+              problemId: draftProblem.id!,
+              file: attached.file,
+            }).unwrap();
+            setPreparedDraft(draftProblem);
+            setAttachedFiles((current) =>
+              current.filter((file) => file.id !== attached.id),
+            );
+          } catch (uploadError) {
+            const message = contentScanErrorMessage(uploadError, attached.name);
+            setSubmitError(
+              `${message} Your problem is saved as a draft; remove or replace that file and submit again.`,
+            );
+            toast.error("Attachment not added", { description: message });
+            return;
+          }
+        }
+
+        const submitted = await submitProblem(draftProblem.id!).unwrap();
+        setPreparedDraft(null);
+        toast.success(
+          submitted.status === "PENDING_APPROVAL"
+            ? "Problem submitted for review."
+            : "Problem submitted successfully.",
+        );
         router.push(successHref);
         return;
       }
@@ -1162,6 +1242,40 @@ export function CreateProblemForm({
                     </FieldError>
                   </Field>
                 </FieldGroup>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.18, ease: "easeOut" }}
+          >
+            <Card className={CARD_CLASS} aria-labelledby="problem-attachments-heading">
+              <CardHeader className="border-b border-slate-100 dark:border-neutral-800">
+                <CardTitle>
+                  <h2 id="problem-attachments-heading" className="text-lg font-bold">
+                    Logs and evidence
+                  </h2>
+                </CardTitle>
+                <CardDescription>
+                  Optional files are security-scanned before the problem is sent to review.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-6">
+                <FileUploadDropzone
+                  files={attachedFiles}
+                  onAddFiles={(files) => setAttachedFiles((current) => [...current, ...files])}
+                  onRemoveFile={(fileId) =>
+                    setAttachedFiles((current) => current.filter((file) => file.id !== fileId))
+                  }
+                  disabled={submitting}
+                  maxFiles={Math.max(0, 10 - (problem?.attachments?.length ?? 0))}
+                />
+                <ContentScanStatus
+                  active={uploading}
+                  fileCount={attachedFiles.length}
+                  compact
+                />
               </CardContent>
             </Card>
           </motion.div>

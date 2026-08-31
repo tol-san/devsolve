@@ -15,7 +15,6 @@ import {
   SubmitReportResponse,
 } from "@/lib/types/reports/types";
 import type { ManagedReport } from "@/components/report-management/types";
-import { MOCK_REPORTS } from "@/lib/types/reports/mock-data";
 
 export * from "@/lib/types/reports/types";
 export * from "@/lib/types/reports/mock-data";
@@ -69,12 +68,16 @@ interface ReportApiResponse {
   };
   attachments?: Array<{
     id?: string;
+    fileName?: string;
     filename?: string;
     name?: string;
+    sizeBytes?: number;
     fileSize?: number;
     size?: number;
+    mimeType?: string;
     contentType?: string;
     type?: string;
+    downloadUrl?: string;
     createdAt?: string;
   }>;
   /* The fields `ReportResponse` grew when the submission form stopped folding
@@ -236,17 +239,6 @@ function composeVulnerabilityInformation(payload: SubmitReportPayload): string {
     sections.push(`## Classification\n${classificationLines.join("\n")}`);
   }
 
-  /* Attachment bytes need `POST /reports/{id}/attachments`, which happens
-     after the report exists and is not wired yet — so what the reader picked
-     is at least named, rather than vanishing without a word. */
-  if (payload.attachments?.length) {
-    sections.push(
-      `## Attachments the reporter prepared\n${payload.attachments
-        .map((a) => `- ${a.name} (${a.size}, ${a.type})`)
-        .join("\n")}`
-    );
-  }
-
   return sections.join("\n\n");
 }
 
@@ -328,9 +320,12 @@ function toReportDetail(
      open, and there is not. Sizes and types are only stated when the response
      carries them. */
   const attachments = (report.attachments ?? []).map((att) => ({
-    name: att.filename || att.name || "Attachment",
-    size: att.fileSize ? `${Math.round(att.fileSize / 1024)} KB` : undefined,
-    type: att.contentType || att.type || "file",
+    name: att.fileName || att.filename || att.name || "Attachment",
+    size:
+      att.sizeBytes || att.fileSize || att.size
+        ? `${Math.round((att.sizeBytes || att.fileSize || att.size || 0) / 1024)} KB`
+        : undefined,
+    type: att.mimeType || att.contentType || att.type || "file",
   }));
 
   const description =
@@ -629,6 +624,25 @@ export const reportsApi = baseApi.injectEndpoints({
       invalidatesTags: ["Report"],
     }),
 
+    uploadReportAttachment: builder.mutation<
+      unknown,
+      { reportId: string; file: File }
+    >({
+      query: ({ reportId, file }) => {
+        const body = new FormData();
+        body.append("file", file, file.name);
+        return {
+          url: `/reports/${reportId}/attachments`,
+          method: "POST",
+          body,
+        };
+      },
+      invalidatesTags: (_result, _error, { reportId }) => [
+        { type: "Report", id: reportId },
+        "Report",
+      ],
+    }),
+
     approveReport: builder.mutation<
       { success: boolean; message: string; reportId?: string },
       {
@@ -752,6 +766,7 @@ export const {
   useGetReportByIdQuery,
   useAddReportCommentMutation,
   useSubmitReportMutation,
+  useUploadReportAttachmentMutation,
   useApproveReportMutation,
   useRejectReportMutation,
 } = reportsApi;

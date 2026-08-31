@@ -27,6 +27,7 @@ interface ReportSuccessModalProps {
   programName: string;
   title: string;
   submittedAt?: string;
+  attachmentWarning?: string;
   onReset: () => void;
 }
 
@@ -36,6 +37,7 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
   programName,
   title,
   submittedAt,
+  attachmentWarning,
   onReset,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -123,6 +125,16 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
             </span>
           </div>
         </div>
+
+        {attachmentWarning && (
+          <div
+            role="alert"
+            className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-medium text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200"
+          >
+            <p className="font-semibold">Report saved, but an attachment was not added</p>
+            <p className="mt-1 leading-relaxed">{attachmentWarning}</p>
+          </div>
+        )}
 
         {/* Dialog Actions */}
         <DialogFooter className="flex flex-col sm:flex-row items-center gap-3 pt-1">
