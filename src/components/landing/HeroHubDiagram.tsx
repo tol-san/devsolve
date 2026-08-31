@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion } from "motion/react";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { ACCENT, PRIMARY, SECONDARY } from "./SectionBackdrop";
 
 interface HeroHubDiagramProps {
@@ -10,21 +11,46 @@ interface HeroHubDiagramProps {
 }
 
 export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
+  const t = useT();
   const reduce = useReducedMotion();
   const [hoveredCard, setHoveredCard] = useState<{ side: "left" | "right"; index: number } | null>(null);
 
   const researcherFeatures = [
-    { label: "Guaranteed Payouts & Fast SLAs", sub: "Instant bounty escrow on triage" },
-    { label: "Real-Time Vulnerability Triage", sub: "Direct sync with core maintainers" },
-    { label: "Community Solution Engine", sub: "Collaborative patch development" },
-    { label: "CLI & GitHub Integrations", sub: "Submit reports right from your terminal" },
+    {
+      label: t("hero.diagram.researchers.payoutsLabel") || "Guaranteed Payouts & Fast SLAs",
+      sub: t("hero.diagram.researchers.payoutsSub") || "Instant bounty escrow on triage",
+    },
+    {
+      label: t("hero.diagram.researchers.triageLabel") || "Real-Time Vulnerability Triage",
+      sub: t("hero.diagram.researchers.triageSub") || "Direct sync with core maintainers",
+    },
+    {
+      label: t("hero.diagram.researchers.communityLabel") || "Community Solution Engine",
+      sub: t("hero.diagram.researchers.communitySub") || "Collaborative patch development",
+    },
+    {
+      label: t("hero.diagram.researchers.cliLabel") || "CLI & GitHub Integrations",
+      sub: t("hero.diagram.researchers.cliSub") || "Submit reports right from your terminal",
+    },
   ];
 
   const organizationFeatures = [
-    { label: "Centralized Scope & Asset Control", sub: "Define precise public & private boundaries" },
-    { label: "Automated SLA & Policy Rules", sub: "Enforce strict resolution timelines" },
-    { label: "Verified Patch Verification", sub: "Zero regression with live proof-of-concept" },
-    { label: "Team Permissions & Audit Logs", sub: "Role-based access & compliance tracking" },
+    {
+      label: t("hero.diagram.organizations.scopeLabel") || "Centralized Scope & Asset Control",
+      sub: t("hero.diagram.organizations.scopeSub") || "Define precise public & private boundaries",
+    },
+    {
+      label: t("hero.diagram.organizations.slaLabel") || "Automated SLA & Policy Rules",
+      sub: t("hero.diagram.organizations.slaSub") || "Enforce strict resolution timelines",
+    },
+    {
+      label: t("hero.diagram.organizations.patchLabel") || "Verified Patch Verification",
+      sub: t("hero.diagram.organizations.patchSub") || "Zero regression with live proof-of-concept",
+    },
+    {
+      label: t("hero.diagram.organizations.teamLabel") || "Team Permissions & Audit Logs",
+      sub: t("hero.diagram.organizations.teamSub") || "Role-based access & compliance tracking",
+    },
   ];
 
   // Exact vertical centers for each of the 4 card boxes:
@@ -57,10 +83,10 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
           <div className="mb-3">
             <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-[#2563EB] shadow-[0_0_8px_#2563EB] animate-pulse" />
-              <span>Developers & Hunters</span>
+              <span>{t("hero.diagram.devHuntersTitle") || "Developers & Hunters"}</span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-neutral-400 font-mono mt-0.5">
-              [ Bounty Researchers ]
+              {t("hero.diagram.devHuntersSubtitle") || "[ Bounty Researchers ]"}
             </p>
           </div>
 
@@ -165,7 +191,7 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
         </div>
 
         {/* ── 3. CENTER CORE: CONCENTRIC CONVERGENCE HUB ── */}
-        <div className="relative flex items-center justify-center shrink-0 self-end my-4 lg:my-0">
+        <div className="relative flex items-center justify-center shrink-0 self-center lg:self-end mx-auto my-4 lg:my-0">
           
           {/* Core Outer Orbit Ring Container */}
           <div className="relative flex items-center justify-center h-64 w-64 sm:h-76 sm:w-76 md:h-88 md:w-88">
@@ -302,11 +328,11 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
         <div className="w-full lg:w-[290px] shrink-0 flex flex-col text-left lg:text-right">
           <div className="mb-3">
             <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center lg:justify-end gap-2">
-              <span>Security & DevOps</span>
+              <span>{t("hero.diagram.secDevOpsTitle") || "Security & DevOps"}</span>
               <span className="h-2.5 w-2.5 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981] animate-pulse" />
             </h3>
             <p className="text-xs text-slate-500 dark:text-neutral-400 font-mono mt-0.5">
-              [ Engineering Teams ]
+              {t("hero.diagram.secDevOpsSubtitle") || "[ Engineering Teams ]"}
             </p>
           </div>
 

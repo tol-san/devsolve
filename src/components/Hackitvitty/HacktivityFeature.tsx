@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useGetHacktivityFeedQuery } from "@/lib/redux/services/hacktivityApi";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import SearchBar from "@/components/shared/SearchBar";
 import { Badge } from "@/components/ui/badge";
 import FeaturedDisclosures from "./FeaturedDisclosures";
@@ -44,7 +46,18 @@ export default function HacktivityFeature() {
     });
   }, [activities, selectedFilter]);
 
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
+
   const toggleLike = (id: string) => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/hacktivity",
+      );
+      return;
+    }
     setLikedPosts((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 

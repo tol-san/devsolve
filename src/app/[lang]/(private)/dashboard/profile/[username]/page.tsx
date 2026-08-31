@@ -1,23 +1,35 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Eye } from "lucide-react";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
+import ProfileHeroBanner from "@/components/profile/ProfileHeroBanner";
+import StatsCards from "@/components/profile/StatsCards";
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
-import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileTabsContainer from "@/components/profile/ProfileTabsContainer";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import ProfileNotFound from "@/components/profile/ProfileNotFound";
 import ProfileEditPanel from "@/components/profile/edit/ProfileEditPanel";
 import { isNotFoundError } from "@/lib/api/query-error";
+import { authClient } from "@/lib/auth/auth-client";
 
 export default function ProfilePage() {
   const { username } = useParams<{ username: string }>();
+  const { data: session } = authClient.useSession();
   const { data, isLoading, isError, error, refetch } =
     useGetProfileByUsernameQuery(username);
-  const [isEditing, setIsEditing] = useState(false);
+  /* Cached and shared with every other screen that asks, so this costs one
+     request per session rather than one per profile viewed. */
+  const { data: me } = useGetProfileByUsernameQuery("me", { skip: !session });
+  /* `?edit=1` so the control can be reached from anywhere — the sidebar's
+     "Add your research bio", the banner on the public profile — and land in
+     the form rather than on a page the reader then has to find it on. */
+  const searchParams = useSearchParams();
+  const [isEditing, setIsEditing] = useState(
+    () => searchParams.get("edit") === "1",
+  );
 
   if (isLoading) {
     return <ProfileSkeleton />;
@@ -36,43 +48,91 @@ export default function ProfilePage() {
 
   const { profile: rawProfile, stats, severity, badges } = data;
 
-  const isOwnProfile = profileMatchesRoute(rawProfile.username, username);
+  const sessionEmail = session?.user?.email;
+  const sessionUsername = sessionEmail ? sessionEmail.split("@")[0].toLowerCase() : "";
+
+  /* Whose profile this is, decided on ids from the same source.
+     `session.user.id` is better-auth's, which is not the id the profile API
+     keys on, and the email-derived name is a guess that stopped agreeing with
+     anything the day the backend began publishing real handles — someone whose
+     handle is not their email's local part failed every check here and lost
+     the edit controls on their own profile. `/user-profiles/me` answers with
+     the same id space as the profile being viewed, so the two can simply be
+     compared. The older guesses stay as a fallback for records with no id. */
+  const isOwnProfile = Boolean(
+    rawProfile.isOwnProfile ||
+    (me?.profile.id && rawProfile.id && me.profile.id === rawProfile.id) ||
+    (me?.profile.username &&
+      rawProfile.username &&
+      me.profile.username.toLowerCase() === rawProfile.username.toLowerCase()) ||
+    (sessionUsername && (
+      username?.toLowerCase() === sessionUsername ||
+      rawProfile.username?.toLowerCase() === sessionUsername
+    ))
+  );
+
   const profile = { ...rawProfile, isOwnProfile };
 
-  /* Edit mode — full-page GitHub-style settings form */
+  const router = useRouter();
+
+  const handleExitEdit = () => {
+    setIsEditing(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("edit");
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
+
+  /* Edit mode — full-page settings form */
   if (isEditing) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="w-full space-y-6 pb-16"
+        className="w-full space-y-6 pb-20"
       >
-        {/* Slim utility bar: breadcrumb left, cancel right */}
-        <div className="flex items-center justify-between border-b border-slate-200/80 pb-4 dark:border-neutral-800">
-          <nav
-            aria-label="Breadcrumb"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-500"
-          >
+        {/* Top Header & Breadcrumb Bar */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+          <div className="space-y-1">
+            <nav
+              aria-label="Breadcrumb"
+              className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
+            >
+              <button
+                type="button"
+                onClick={handleExitEdit}
+                className="cursor-pointer transition-colors hover:text-foreground"
+              >
+                @{profile.username}
+              </button>
+              <ChevronRight className="size-3.5 text-muted-foreground/60" />
+              <span className="text-foreground font-semibold">
+                Edit profile
+              </span>
+            </nav>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Edit Researcher Profile
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your personal branding, research biography, contact info, and social connections.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setIsEditing(false)}
-              className="cursor-pointer transition-colors hover:text-slate-900 dark:hover:text-neutral-200"
+              onClick={handleExitEdit}
+              className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground shadow-2xs transition hover:bg-muted cursor-pointer"
             >
-              @{profile.username}
+              <Eye className="size-4 text-muted-foreground" />
+              <span>View Profile</span>
             </button>
-            <ChevronRight className="size-3.5 text-slate-300 dark:text-neutral-700" />
-            <span className="text-slate-900 dark:text-neutral-200">
-              Edit profile
-            </span>
-          </nav>
+          </div>
+        </header>
 
-          <p className="text-sm text-slate-400 dark:text-neutral-500">
-            Changes are saved section by section.
-          </p>
-        </div>
-
-        <ProfileEditPanel onDone={() => setIsEditing(false)} />
+        <ProfileEditPanel onDone={handleExitEdit} />
       </motion.div>
     );
   }
@@ -84,24 +144,26 @@ export default function ProfilePage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="w-full space-y-6 pb-12"
     >
-      {/* Slim utility bar: breadcrumb + share */}
-      <ProfileHeader profile={profile} />
+      {/* ── Top Hero Card / Banner ──────────────────────────────────── */}
+      <ProfileHeroBanner
+        profile={profile}
+        onEdit={() => setIsEditing(true)}
+      />
 
-      {/* ── GitHub two-column layout ────────────────────────────────────
-           Mobile: sidebar stacks above the tabs.
-           lg+   : sidebar is a fixed-width sticky column, tabs fill the rest.
-      ──────────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        {/* Left — sticky sidebar */}
-        <div className="w-full shrink-0 lg:sticky lg:top-6 lg:w-64 xl:w-72">
+      {/* ── Key Metrics Stat Strip ──────────────────────────────────── */}
+      <StatsCards stats={stats} />
+
+      {/* ── Two-Column Main Content Layout ──────────────────────────── */}
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start xl:gap-8">
+        {/* Left Column: About & Network (sticky on desktop) */}
+        <div className="w-full shrink-0 lg:sticky lg:top-6 lg:w-80">
           <ProfileSidebar
             profile={profile}
             stats={stats}
-            onEdit={() => setIsEditing(true)}
           />
         </div>
 
-        {/* Right — tabs + content */}
+        {/* Right Column: Tabbed Content (Overview, Hacktivity, Community, Thanks) */}
         <div className="min-w-0 flex-1">
           <Suspense fallback={null}>
             <ProfileTabsContainer

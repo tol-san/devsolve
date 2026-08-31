@@ -4,24 +4,22 @@ import Link from "next/link";
 import {
   Building2,
   CalendarDays,
+  ExternalLink,
+  Globe,
   Link2,
-  Pencil,
-  Settings,
+  Mail,
+  Quote,
+  Shield,
   Users,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { Profile, ProfileStats } from "@/lib/types/profile/types";
-import FollowButton from "@/components/profile/FollowButton";
-
 import ReactMarkdown from "react-markdown";
-
-import { isUuid } from "@/components/Leaderboard/leaderboard-ui";
+import { Profile, ProfileStats } from "@/lib/types/profile/types";
+import { authClient } from "@/lib/auth/auth-client";
 
 interface ProfileSidebarProps {
   profile: Profile;
-  stats: ProfileStats;
-  /** Switches the page into edit mode. Absent on pages that don't host one. */
-  onEdit?: () => void;
+  stats?: ProfileStats;
   baseProfilePath?: string;
 }
 
@@ -33,224 +31,201 @@ function displayUrl(value: string): string {
   return value.replace(/^https?:\/\//i, "").replace(/\/$/, "");
 }
 
-const infoIconClass = "size-4 shrink-0 text-slate-500 dark:text-neutral-400";
-const infoLinkClass =
-  "flex min-w-0 items-center gap-2 text-sm text-slate-600 hover:text-blue-600 dark:text-neutral-300 dark:hover:text-blue-400 transition-colors";
-const infoTextClass =
-  "flex min-w-0 items-center gap-2 text-sm text-slate-600 dark:text-neutral-300";
+/** Where "edit" goes: the profile form, opened directly. */
+function editProfileHref(username?: string) {
+  return username
+    ? `/dashboard/profile/${encodeURIComponent(username)}?edit=1`
+    : "/dashboard/profile";
+}
 
 export default function ProfileSidebar({
   profile,
   stats,
-  onEdit,
   baseProfilePath,
 }: ProfileSidebarProps) {
   const {
-    avatarUrl,
-    avatarInitials,
-    displayName,
-    username,
     bio,
     memberSince,
-    socialLinks,
-    followers,
-    following,
+    socialLinks = {},
+    followers = 0,
+    following = 0,
+    username,
     isOwnProfile,
+    id,
   } = profile;
+
+  const { data: session } = authClient.useSession();
+  const sessionUserId = session?.user?.id;
+  const sessionEmail = session?.user?.email;
+  const sessionUsername = sessionEmail ? sessionEmail.split("@")[0].toLowerCase() : "";
+
+  const isOwn = Boolean(
+    isOwnProfile ||
+    (sessionUserId && id && sessionUserId === id) ||
+    (sessionUsername && username && username.toLowerCase() === sessionUsername)
+  );
 
   const profileBasePath = baseProfilePath ?? `/dashboard/profile/${username}`;
 
+  const validSocialLinks = Object.entries(socialLinks).filter(
+    ([, url]) => Boolean(url && url.trim().length > 0)
+  );
+
   return (
     <motion.aside
-      initial={{ opacity: 0, x: -8 }}
+      initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut", delay: 0.05 }}
-      className="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-2xs dark:border-neutral-800 dark:bg-neutral-900"
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="space-y-5"
     >
-      {/* ── Avatar ───────────────────────────────────── */}
-      <div className="relative flex justify-center lg:justify-start">
-        <div className="relative aspect-square size-28 sm:size-36 lg:size-48 xl:size-56 overflow-hidden rounded-full border-2 border-slate-200/80 bg-slate-100 shadow-xs ring-4 ring-white dark:border-neutral-700 dark:bg-neutral-800 dark:ring-neutral-950 shrink-0">
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-blue-700 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-              {avatarInitials}
-            </div>
-          )}
-        </div>
-      </div>
+      {/* ── About / Bio Card ────────────────────────────────────── */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs">
+        <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <Quote className="size-3.5 text-primary" />
+          <span>{isOwn ? "About You" : "About Researcher"}</span>
+        </h2>
 
-      {/* ── Name & Bio ───────────────────────────────── */}
-      <div className="space-y-1 text-center lg:text-left">
-        <h1 className="text-xl sm:text-2xl font-bold leading-tight tracking-tight text-slate-900 wrap-break-word dark:text-neutral-100">
-          {displayName}
-        </h1>
-        {/* The API carries no username: it is derived from the email, which
-            only the signed-in user's own profile returns. So it is blank for
-            everyone else, and a bare "@" is worse than no line at all. */}
-        {username && !isUuid(username) && (
-          <p className="text-sm sm:text-base font-medium text-slate-500 dark:text-neutral-400">
-            @{username}
+        {bio && bio.trim().length > 0 ? (
+          <div className="prose prose-sm prose-slate dark:prose-invert mt-3 max-w-none text-sm leading-relaxed text-foreground/90 wrap-break-word">
+            <ReactMarkdown>{bio}</ReactMarkdown>
+          </div>
+        ) : isOwn ? (
+          <div className="mt-3 rounded-xl border border-dashed border-border bg-muted/20 p-3.5 text-center space-y-1.5">
+            <p className="text-xs text-muted-foreground">
+              You haven&apos;t added a bio yet.
+            </p>
+            <Link
+              href={editProfileHref(username)}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            >
+              <span>Add your research bio</span>
+            </Link>
+          </div>
+        ) : (
+          <p className="mt-3 text-sm italic text-muted-foreground">
+            No bio provided yet.
           </p>
         )}
+
+        {/* ── Community Network Stats ───────────────────────────── */}
+        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4">
+          <Link
+            href={`${profileBasePath}/followers`}
+            className="group flex flex-col items-center justify-center rounded-xl border border-border/60 bg-muted/40 p-3 transition-colors hover:bg-muted"
+          >
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground group-hover:text-foreground">
+              <Users className="size-3.5" />
+              <span>Followers</span>
+            </div>
+            <span className="mt-1 text-lg font-bold tabular-nums text-foreground">
+              {followers.toLocaleString()}
+            </span>
+          </Link>
+
+          <Link
+            href={`${profileBasePath}/following`}
+            className="group flex flex-col items-center justify-center rounded-xl border border-border/60 bg-muted/40 p-3 transition-colors hover:bg-muted"
+          >
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground group-hover:text-foreground">
+              <Shield className="size-3.5" />
+              <span>Following</span>
+            </div>
+            <span className="mt-1 text-lg font-bold tabular-nums text-foreground">
+              {following.toLocaleString()}
+            </span>
+          </Link>
+        </div>
       </div>
 
+      {/* ── Contact & Web Presence Card ─────────────────────────── */}
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          Online Presence & Details
+        </h2>
 
-      {/* ── Actions ──────────────────────────────────── */}
-      <div className="flex flex-col gap-2 pt-1">
-        {isOwnProfile ? (
-          <>
-            {onEdit && (
-              <button
-                type="button"
-                id="profile-edit-btn"
-                onClick={onEdit}
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        <div className="mt-3.5 space-y-2.5">
+          {validSocialLinks.length > 0 ? (
+            validSocialLinks.map(([platform, url]) => (
+              <a
+                key={platform}
+                href={toHref(url!)}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-muted"
               >
-                <Pencil size={14} />
-                Edit profile
-              </button>
-            )}
-            <Link
-              href="/dashboard/profile/settings"
-              id="profile-settings-link"
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-2xs transition-colors hover:bg-slate-50 hover:text-slate-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
-            >
-              <Settings size={14} />
-              Account settings
-            </Link>
-          </>
-        ) : (
-          <FollowButton type="USER" targetId={profile.id} className="w-full" />
-        )}
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <Globe className="size-4 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <span className="truncate text-sm font-medium">
+                    {displayUrl(url!)}
+                  </span>
+                </div>
+                <ExternalLink className="size-3.5 shrink-0 text-muted-foreground opacity-60 transition-opacity group-hover:opacity-100" />
+              </a>
+            ))
+          ) : isOwn ? (
+            <div className="flex items-center justify-between text-xs text-muted-foreground py-1 px-1">
+              <span className="flex items-center gap-1.5">
+                <Link2 className="size-3.5" />
+                No links added
+              </span>
+              <Link
+                href={editProfileHref(username)}
+                className="font-semibold text-primary hover:underline"
+              >
+                Add links
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Link2 className="size-4 shrink-0" />
+              <span>No external links linked</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2.5 px-2.5 py-1 text-sm text-muted-foreground">
+            <CalendarDays className="size-4 shrink-0" />
+            <span>Member since {memberSince || "Recently"}</span>
+          </div>
+
+          <div className="flex items-center gap-2.5 px-2.5 py-1 text-sm text-muted-foreground">
+            <Building2 className="size-4 shrink-0" />
+            <span>Independent Security Researcher</span>
+          </div>
+        </div>
       </div>
 
-      {bio && (
-        <div className="prose prose-sm prose-slate dark:prose-invert max-w-none text-sm leading-relaxed text-slate-600 dark:text-neutral-300 wrap-break-word">
-          <ReactMarkdown>{bio}</ReactMarkdown>
+      {/* ── Security Trust Metrics (if stats provided) ───────────── */}
+      {stats && (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Reliability & Trust
+          </h2>
+
+          <div className="mt-4 space-y-3">
+            <div>
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="text-muted-foreground">Acceptance Accuracy</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                  {stats.acceptedRate}%
+                </span>
+              </div>
+              <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.max(0, stats.acceptedRate))}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-border text-xs">
+              <span className="text-muted-foreground">Total Valid Findings</span>
+              <span className="font-bold text-foreground">
+                {stats.accepted.toLocaleString()}
+              </span>
+            </div>
+          </div>
         </div>
       )}
-
-      {/* ── Followers / Following ─────────────────────── */}
-      <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-1 pt-1">
-        <Link
-          href={`${profileBasePath}/followers`}
-          id="profile-followers-link"
-          className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 transition-colors hover:text-blue-600 dark:text-neutral-200 dark:hover:text-blue-400"
-        >
-          <Users size={15} className="text-slate-500 dark:text-neutral-400" />
-          <span>
-            <span className="font-bold text-slate-900 dark:text-neutral-100">
-              {followers.toLocaleString()}
-            </span>{" "}
-            <span className="text-slate-500 dark:text-neutral-400">followers</span>
-          </span>
-        </Link>
-        <span className="text-slate-300 dark:text-neutral-700">·</span>
-        <Link
-          href={`${profileBasePath}/following`}
-          id="profile-following-link"
-          className="text-sm font-semibold transition-colors hover:text-blue-600 dark:text-neutral-200 dark:hover:text-blue-400"
-        >
-          <span className="font-bold text-slate-900 dark:text-neutral-100">
-            {following.toLocaleString()}
-          </span>{" "}
-          <span className="text-slate-500 dark:text-neutral-400">following</span>
-        </Link>
-      </div>
-
-      {/* ── Info rows ────────────────────────────────── */}
-      <div className="space-y-2.5 border-t border-slate-200/80 pt-4 dark:border-neutral-800">
-        {/* All non-empty social links, rendered as generic link rows */}
-        {Object.values(socialLinks)
-          .filter(Boolean)
-          .map((url) => (
-            <a
-              key={url}
-              href={toHref(url!)}
-              target="_blank"
-              rel="noreferrer"
-              className={infoLinkClass}
-            >
-              <Link2 className={infoIconClass} />
-              <span className="truncate">{displayUrl(url!)}</span>
-            </a>
-          ))}
-
-        <span className={infoTextClass}>
-          <CalendarDays className={infoIconClass} />
-          <span>Joined {memberSince}</span>
-        </span>
-
-        {/* Placeholder for org — renders NA just like GitHub when no org */}
-        <span className={infoTextClass}>
-          <Building2 className={infoIconClass} />
-          <span className="text-slate-400 dark:text-neutral-500">NA</span>
-        </span>
-      </div>
-
-      {/* ── Stats ────────────────────────────────────── */}
-      <div className="space-y-2 border-t border-slate-200/80 pt-4 dark:border-neutral-800">
-        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-          Stats
-        </p>
-
-        <StatRow
-          label="Reputation"
-          value={stats.reputation.toLocaleString()}
-          tone="blue"
-        />
-        <StatRow
-          label="Reports Submitted"
-          value={stats.reportsSubmitted.toLocaleString()}
-        />
-        <StatRow
-          label="Accepted"
-          value={`${stats.accepted} (${stats.acceptedRate}%)`}
-          tone="green"
-        />
-        {stats.totalEarned > 0 && (
-          <StatRow
-            label="Total Earned"
-            value={`$${stats.totalEarned.toLocaleString()}`}
-            tone="green"
-          />
-        )}
-        {stats.globalRank !== undefined && (
-          <StatRow label="Global Rank" value={`#${stats.globalRank}`} />
-        )}
-      </div>
     </motion.aside>
-  );
-}
-
-function StatRow({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "green" | "blue";
-}) {
-  const valueClass =
-    tone === "green"
-      ? "text-emerald-600 dark:text-emerald-400"
-      : tone === "blue"
-        ? "text-blue-600 dark:text-blue-400"
-        : "text-slate-900 dark:text-neutral-100";
-
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-sm text-slate-600 dark:text-neutral-400">{label}</span>
-      <span className={`text-sm font-bold tabular-nums ${valueClass}`}>
-        {value}
-      </span>
-    </div>
   );
 }

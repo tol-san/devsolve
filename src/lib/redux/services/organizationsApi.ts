@@ -502,6 +502,46 @@ export const organizationsApi = proxyApi.injectEndpoints({
       }),
       invalidatesTags: ["OrganizationMembers"],
     }),
+    uploadOrganizationCover: builder.mutation<Organization, FormData>({
+      query: (body) => ({
+        url: "/organizations/me/cover",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Organization"],
+    }),
+    removeOrganizationCover: builder.mutation<Organization, void>({
+      query: () => ({
+        url: "/organizations/me/cover",
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Organization"],
+    }),
+    getOrganizationHacktivity: builder.query<
+      any,
+      { id: string; page?: number; size?: number; sort?: string }
+    >({
+      query: ({ id, page = 0, size = 20, sort }) => ({
+        url: `/organizations/${id}/hacktivity`,
+        params: { page, size, ...(sort ? { sort } : {}) },
+      }),
+      providesTags: ["Organization"],
+    }),
+    getMyOrganizationHacktivity: builder.query<
+      any,
+      { organizationId?: string; page?: number; size?: number; sort?: string } | void
+    >({
+      query: (params) => ({
+        url: `/organizations/me/hacktivity`,
+        params: {
+          ...(params?.organizationId ? { organizationId: params.organizationId } : {}),
+          page: params?.page ?? 0,
+          size: params?.size ?? 20,
+          ...(params?.sort ? { sort: params.sort } : {}),
+        },
+      }),
+      providesTags: ["Organization"],
+    }),
   }),
   overrideExisting: true,
 });
@@ -512,6 +552,10 @@ export const {
   useUpdateMyOrganizationMutation,
   useUploadOrganizationLogoMutation,
   useRemoveOrganizationLogoMutation,
+  useUploadOrganizationCoverMutation,
+  useRemoveOrganizationCoverMutation,
+  useGetOrganizationHacktivityQuery,
+  useGetMyOrganizationHacktivityQuery,
   useDeleteMyOrganizationMutation,
   useGetOrganizationVerificationQuery,
   useSendVerificationEmailMutation,

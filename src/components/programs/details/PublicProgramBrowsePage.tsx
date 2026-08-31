@@ -18,11 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProgramFilters } from "@/hooks/useProgramFilters";
 import { useT } from "@/lib/i18n/I18nProvider";
-import { useGetCountriesQuery } from "@/lib/redux/services/geoApi";
-import {
-  useGetProgramCountryValuesQuery,
-  useGetProgramsQuery,
-} from "@/lib/redux/services/program/programsApi";
+import { useGetProgramsQuery } from "@/lib/redux/services/program/programsApi";
 import type { GetProgramsParams } from "@/lib/types/programs/types";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +30,6 @@ export default function MarketplacePage() {
     selectedAsset,
     selectedSeverity,
     selectedIndustry,
-    country,
     minReward,
     setMinReward,
     maxReward,
@@ -50,7 +45,6 @@ export default function MarketplacePage() {
     handleAssetChange,
     handleSeverityChange,
     handleIndustryChange,
-    handleCountryChange,
     handleSortChange,
     handleResetExploreFilters,
     handleResetFilters,
@@ -82,7 +76,6 @@ export default function MarketplacePage() {
       maxSeverity:
         selectedSeverity === "All" ? undefined : selectedSeverity,
       industry: selectedIndustry === "All" ? undefined : selectedIndustry,
-      country: country.slice(0, 100) || undefined,
       sort:
         sort === "reward-high"
           ? "maximumBounty,DESC"
@@ -92,7 +85,6 @@ export default function MarketplacePage() {
     }),
     [
       currentPage,
-      country,
       deferredSearch,
       requestedMaximum,
       requestedMinimum,
@@ -112,37 +104,6 @@ export default function MarketplacePage() {
     isError,
     refetch,
   } = useGetProgramsQuery(queryProps, { skip: rangeInvalid });
-  const { data: allCountries = [], isLoading: isLoadingCountryList } =
-    useGetCountriesQuery();
-  const {
-    data: programCountryValues = [],
-    isLoading: isLoadingProgramCountries,
-  } = useGetProgramCountryValuesQuery();
-
-  const countryOptions = useMemo(
-    () =>
-      programCountryValues
-        .map((storedValue) => {
-          const normalized = storedValue.toLowerCase();
-          const countryMatch = allCountries.find(
-            (option) =>
-              option.name.toLowerCase() === normalized ||
-              option.code.toLowerCase() === normalized,
-          );
-          if (!countryMatch) return null;
-
-          return {
-            value: storedValue,
-            label: countryMatch.name,
-            code: countryMatch.code,
-          };
-        })
-        .filter((option): option is NonNullable<typeof option> => Boolean(option))
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    [allCountries, programCountryValues],
-  );
-  const selectedCountryLabel =
-    countryOptions.find((option) => option.value === country)?.label ?? country;
 
   const programs = responseData?.content ?? [];
   const totalPages = Math.max(1, responseData?.totalPages ?? 1);
@@ -168,11 +129,6 @@ export default function MarketplacePage() {
     onSeverityChange: handleSeverityChange,
     selectedIndustry,
     onIndustryChange: handleIndustryChange,
-    country,
-    onCountryChange: handleCountryChange,
-    countryOptions,
-    isLoadingCountries:
-      isLoadingCountryList || isLoadingProgramCountries,
     minReward,
     maxReward,
     onMinRewardChange: (value: string) => {
@@ -225,7 +181,6 @@ export default function MarketplacePage() {
               asset={selectedAsset}
               severity={selectedSeverity}
               industry={selectedIndustry}
-              country={selectedCountryLabel}
               minReward={minReward}
               maxReward={maxReward}
               sort={sort}
@@ -234,7 +189,6 @@ export default function MarketplacePage() {
               onClearAsset={() => handleAssetChange("All")}
               onClearSeverity={() => handleSeverityChange("All")}
               onClearIndustry={() => handleIndustryChange("All")}
-              onClearCountry={() => handleCountryChange("")}
               onClearReward={() => {
                 setMinReward("");
                 setMaxReward("");
@@ -290,7 +244,7 @@ export default function MarketplacePage() {
               >
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
-                    key={`${selectedType}-${selectedAsset}-${selectedSeverity}-${selectedIndustry}-${country}-${deferredSearch}-${minReward}-${maxReward}-${sort}-${currentPage}-${rowsPerPage}`}
+                    key={`${selectedType}-${selectedAsset}-${selectedSeverity}-${selectedIndustry}-${deferredSearch}-${minReward}-${maxReward}-${sort}-${currentPage}-${rowsPerPage}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}

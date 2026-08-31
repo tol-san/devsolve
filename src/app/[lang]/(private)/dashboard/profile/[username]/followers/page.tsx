@@ -24,7 +24,8 @@ export default function FollowersPage() {
       </div>
     );
   }
-  if (isError || !overview || !followers) return notFound();
+  /* As on the following page: the roster failing is not the profile missing. */
+  if (isError || !overview) return notFound();
 
   return (
     <motion.div
@@ -38,7 +39,7 @@ export default function FollowersPage() {
       </div>
 
       <div>
-        <FollowersList total={followers.total} items={followers.items} />
+        <FollowersList total={followers?.total ?? 0} items={followers?.items ?? []} />
       </div>
     </motion.div>
   );

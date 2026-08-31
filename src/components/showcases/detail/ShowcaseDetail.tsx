@@ -16,8 +16,10 @@ import {
   Network,
   Share2,
   Terminal,
+  ZoomIn,
 } from "lucide-react";
 
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,8 @@ import {
   useSetVoteMutation,
 } from "@/lib/redux/services/votesApi";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import { cn } from "@/lib/utils";
 
 /**
@@ -83,6 +87,8 @@ function initialsOf(name: string) {
 export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const { data: showcase, isLoading } = useGetShowcaseByIdQuery(id);
   const [reporting, setReporting] = useState(false);
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
 
   /* The showcase response carries its steps; the dedicated endpoint is the
      fallback for when it comes back without them. */
@@ -108,6 +114,14 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const myVote = votes?.currentUserVote ?? 0;
 
   const vote = async (value: 1 | -1) => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/showcases/${id}`,
+      );
+      return;
+    }
     if (isVoting) return;
 
     try {
@@ -192,7 +206,7 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
               </div>
 
               <div className="flex items-start justify-between gap-4">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-snug">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-snug break-words [word-break:break-word] min-w-0">
                   {showcase.title}
                 </h1>
 
@@ -209,15 +223,11 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
 
               {showcase.coverImageUrl && (
                 <div className="mt-5">
-                  {/* Contained, not cropped to fill: covers arrive at whatever
-                      size the author uploaded — often small and square — and
-                      stretching one across a banner is what makes it look
-                      soft. The frame caps the height so a tall upload cannot
-                      push the overview and tabs off the screen. */}
+                  {/* Ambient backdrop and increased frame height so portrait & landscape uploads look full and professional */}
                   <ShowcaseImage
                     url={showcase.coverImageUrl}
                     alt={`${showcase.title} cover`}
-                    heightClassName="h-52 sm:h-64 lg:h-72"
+                    heightClassName="h-64 sm:h-80 md:h-[420px]"
                   />
                 </div>
               )}
@@ -249,7 +259,17 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
                     type="button"
                     variant="ghost"
                     size="lg"
-                    onClick={() => setReporting(true)}
+                    onClick={() => {
+                      if (!session?.user) {
+                        void handleLogin(
+                          typeof window !== "undefined"
+                            ? `${window.location.pathname}${window.location.search}`
+                            : `/showcases/${id}`,
+                        );
+                        return;
+                      }
+                      setReporting(true);
+                    }}
                     className="rounded-xl text-muted-foreground"
                   >
                     <Flag data-icon="inline-start" />
@@ -538,47 +558,86 @@ function ShowcaseImage({
   framed?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   if (failed) return null;
 
   const frame = cn(
-    "relative w-full overflow-hidden",
+    "relative w-full overflow-hidden flex items-center justify-center cursor-pointer",
     heightClassName,
     framed &&
-      "rounded-xl border border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900",
+      "rounded-2xl border border-slate-200/80 bg-slate-950 dark:border-neutral-800 dark:bg-neutral-950 shadow-md",
   );
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer noopener"
-      title="Open the full-size image"
-      className={cn(frame, "block transition-opacity hover:opacity-95")}
-    >
-      {isOptimizable(url) ? (
-        /* q=90 rather than the default 75: these are screenshots and diagrams,
-           where compression artefacts land on text. `next.config.ts` has to
-           list the quality or the optimizer answers 400. */
-        <Image
-          src={url}
-          alt={alt}
-          fill
-          sizes={sizes}
-          quality={90}
-          onError={() => setFailed(true)}
-          className="object-contain"
-        />
-      ) : (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          src={url}
-          alt={alt}
-          loading="lazy"
-          onError={() => setFailed(true)}
-          className="absolute inset-0 h-full w-full object-contain"
-        />
-      )}
-    </a>
+    <>
+      <button
+        type="button"
+        onClick={() => setIsPreviewOpen(true)}
+        title="Click to view full image"
+        aria-label={`View full image: ${alt}`}
+        className={cn(
+          frame,
+          "group block w-full text-left transition-all hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+        )}
+      >
+        {isOptimizable(url) ? (
+          <>
+            {/* Ambient Blurred Background Fill (eliminates empty letterbox spaces for portrait/custom images) */}
+            <Image
+              src={url}
+              alt=""
+              fill
+              aria-hidden="true"
+              sizes="100px"
+              quality={30}
+              className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
+            />
+            {/* Main Crisp Image */}
+            <Image
+              src={url}
+              alt={alt}
+              fill
+              sizes={sizes}
+              quality={90}
+              onError={() => setFailed(true)}
+              className="relative z-10 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+            />
+          </>
+        ) : (
+          <>
+            {/* Ambient Blurred Background Fill */}
+            <img
+              src={url}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
+            />
+            {/* Main Crisp Image */}
+            <img
+              src={url}
+              alt={alt}
+              loading="lazy"
+              onError={() => setFailed(true)}
+              className="relative z-10 h-full w-full object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+            />
+          </>
+        )}
+
+        {/* Hover zoom overlay badge */}
+        <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/60 px-2.5 py-1 text-xs font-semibold text-white opacity-0 backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 shadow-md">
+          <ZoomIn className="size-3.5" />
+          <span>Preview</span>
+        </div>
+      </button>
+
+      <ImagePreviewModal
+        src={url}
+        alt={alt}
+        title={alt}
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+      />
+    </>
   );
 }
 

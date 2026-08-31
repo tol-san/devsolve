@@ -24,7 +24,8 @@ export default function PublicFollowersPage() {
       </div>
     );
   }
-  if (isError || !overview || !followers) return notFound();
+  /* As on the following page: the roster failing is not the profile missing. */
+  if (isError || !overview) return notFound();
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -43,7 +44,7 @@ export default function PublicFollowersPage() {
         </div>
 
         <div>
-          <FollowersList total={followers.total} items={followers.items} baseProfilePath="/profile" />
+          <FollowersList total={followers?.total ?? 0} items={followers?.items ?? []} baseProfilePath="/profile" />
         </div>
       </motion.div>
     </div>

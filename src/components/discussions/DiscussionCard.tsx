@@ -39,6 +39,8 @@ import {
 import type { DiscussionPost } from "@/lib/types/dicussion/types";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { useRelativeTime } from "@/lib/i18n/relative-time";
+import { authClient } from "@/lib/auth/auth-client";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import {
   MY_COMMUNITY_HREF,
   type MySolutionStatus,
@@ -96,9 +98,20 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   const upvoteCount = voteSummary?.upvotes ?? 0;
   const localBookmarked = bookmarkStatus ?? post.isBookmarked ?? false;
 
+  const { data: session } = authClient.useSession();
+  const { handleLogin } = useKeycloakLogin();
+
   /* The mutations take where the card is moving to, not a toggle, so the
      optimistic state and the request can never disagree about direction. */
   const handleVote = async (value: 1 | -1) => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/community",
+      );
+      return;
+    }
     if (isVoting) return;
 
     if (currentUserVote === value) {
@@ -117,6 +130,14 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   };
 
   const handleBookmark = async () => {
+    if (!session?.user) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/community",
+      );
+      return;
+    }
     if (isBookmarking) return;
 
     const result = localBookmarked
@@ -211,32 +232,42 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
             )}
           </div>
 
-          <CardTitle>
+          <CardTitle className="min-w-0">
             <h3
               id={titleId}
-              className="line-clamp-2 text-lg font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-xl"
+              className="line-clamp-2 text-lg font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-xl break-words [word-break:break-word] min-w-0"
             >
               {post.title}
             </h3>
           </CardTitle>
-          <CardDescription className="mt-1.5 line-clamp-2 text-base leading-relaxed text-muted-foreground">
+          <CardDescription className="mt-1.5 line-clamp-2 text-base leading-relaxed text-muted-foreground break-words [word-break:break-word]">
             {post.description}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="pointer-events-none relative flex flex-col gap-4 px-5 py-4 sm:px-6">
           {isShowcase && post.thumbnailUrl && (
-            <div className="relative h-64 w-full overflow-hidden">
+            <div className="relative w-full max-h-[360px] overflow-hidden rounded-xl bg-slate-950/80 dark:bg-neutral-950/90 border border-slate-200/80 dark:border-neutral-800 flex items-center justify-center">
+              {/* Ambient Blurred Background Fill (prevents cropping or letterboxing) */}
               <Image
                 src={post.thumbnailUrl}
-                alt={`${post.title} ${t("community.card.preview")}`}
+                alt=""
                 fill
-                /* A card thumbnail: full width when the grid is one column,
-                   roughly a third once it is three. */
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                quality={90}
-                className="object-cover transition-transform duration-300 group-hover:scale-[1.015]"
+                aria-hidden="true"
+                sizes="100px"
+                quality={30}
+                className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
               />
+              <div className="relative z-10 w-full h-[220px] sm:h-[280px] flex items-center justify-center">
+                <Image
+                  src={post.thumbnailUrl}
+                  alt={`${post.title} ${t("community.card.preview")}`}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  quality={90}
+                  className="object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
+                />
+              </div>
             </div>
           )}
 

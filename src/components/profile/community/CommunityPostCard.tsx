@@ -11,9 +11,9 @@ interface CommunityPostCardProps {
 }
 
 const TAG_STYLES: Record<CommunityPost["tag"], string> = {
-  Problem: "border border-red-100 bg-red-50 text-red-600 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-300",
-  Solutions: "border border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300",
-  Showcase: "border border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-500/25 dark:bg-blue-500/10 dark:text-blue-300",
+  Problem: "border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400",
+  Solutions: "border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  Showcase: "border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400",
 };
 
 const TAG_LABELS: Record<CommunityPost["tag"], string> = {
@@ -23,8 +23,8 @@ const TAG_LABELS: Record<CommunityPost["tag"], string> = {
 };
 
 const STATUS_STYLES: Record<"positive" | "pending", string> = {
-  positive: "border border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300",
-  pending: "border border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300",
+  positive: "border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  pending: "border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400",
 };
 
 function formatDate(iso: string) {
@@ -40,15 +40,13 @@ function formatDate(iso: string) {
 export default function CommunityPostCard({ post }: CommunityPostCardProps) {
   const body = (
     <div className="flex items-start gap-4">
-      <div className="flex w-8 shrink-0 flex-col items-center gap-0.5 pt-1 text-blue-600">
+      <div className="flex w-8 shrink-0 flex-col items-center gap-0.5 pt-1 text-primary">
         <ChevronUp size={18} />
-        <span className="text-sm font-semibold tabular-nums">{post.votes}</span>
+        <span className="text-sm font-bold tabular-nums">{post.votes}</span>
       </div>
 
-      {/* Only a showcase carries a cover, and it is what makes it recognisable
-          in a list of otherwise text-only posts. */}
       {post.thumbnailUrl && (
-        <div className="relative hidden h-20 w-32 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 sm:block dark:border-neutral-700 dark:bg-neutral-800">
+        <div className="relative hidden h-20 w-32 shrink-0 overflow-hidden rounded-xl border border-border bg-muted sm:block">
           <Image
             src={post.thumbnailUrl}
             alt=""
@@ -62,7 +60,7 @@ export default function CommunityPostCard({ post }: CommunityPostCardProps) {
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-semibold text-slate-900 dark:text-neutral-100">
+          <h3 className="text-base font-bold text-foreground hover:text-primary transition-colors">
             {post.title}
           </h3>
           <span
@@ -72,11 +70,11 @@ export default function CommunityPostCard({ post }: CommunityPostCardProps) {
           </span>
         </div>
 
-        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-600 dark:text-neutral-400">
+        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
           {post.description}
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-medium text-slate-400 dark:text-neutral-500">
+        <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground">
           {post.answers !== undefined && (
             <span className="inline-flex items-center gap-1.5">
               <MessageSquare size={14} />
@@ -103,7 +101,7 @@ export default function CommunityPostCard({ post }: CommunityPostCardProps) {
   );
 
   const surface =
-    "block rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs transition-shadow hover:shadow-xs dark:border-neutral-800 dark:bg-neutral-900";
+    "block rounded-2xl border border-border bg-card p-5 shadow-2xs transition-all duration-200 hover:border-border/80 hover:shadow-xs";
 
   return (
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>

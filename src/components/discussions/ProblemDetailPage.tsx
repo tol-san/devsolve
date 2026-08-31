@@ -27,8 +27,10 @@ import {
   TerminalSquare,
   Wrench,
   XCircle,
+  ZoomIn,
 } from "lucide-react";
 
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { SolutionCard } from "@/components/discussions/SolutionCard";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { Button } from "@/components/ui/button";
@@ -76,6 +78,7 @@ import {
   useMySolutionStatus,
   type MySolutionStatus,
 } from "@/hooks/useMySolutionStatus";
+import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 
 /**
  * One problem, read from the API — `GET /api/v1/problems/{id}` for the post,
@@ -216,6 +219,11 @@ function Loaded({
     useRemoveAcceptedSolutionMutation();
   const isAccepting = isSettingAccepted || isRemovingAccepted;
   const isBookmarking = isAddingBookmark || isRemovingBookmark;
+  const [previewImage, setPreviewImage] = useState<{
+    src: string;
+    alt?: string;
+    title?: string;
+  } | null>(null);
 
   /* The problem owns the list of accepted answers, so it is the authority when
      it and a solution's own `isAccepted` disagree — which they do between a
@@ -285,7 +293,17 @@ function Loaded({
   const isResolved = problem.status === "RESOLVED";
   const answerCount = solutionPage?.totalElements ?? problem.solutionCount ?? 0;
 
+  const { handleLogin } = useKeycloakLogin();
+
   const onVote = async (value: 1 | -1) => {
+    if (!isSignedIn) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/problems/${id}`,
+      );
+      return;
+    }
     if (isVoting) return;
     const target = { type: "PROBLEM" as const, targetId: id };
     if (votes?.currentUserVote === value) await removeVote(target);
@@ -293,6 +311,14 @@ function Loaded({
   };
 
   const onBookmark = async () => {
+    if (!isSignedIn) {
+      void handleLogin(
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : `/problems/${id}`,
+      );
+      return;
+    }
     if (isBookmarking) return;
     if (isBookmarked) {
       await removeBookmark({ type: "PROBLEM", targetId: id });
@@ -528,34 +554,68 @@ function Loaded({
               {attachments.length > 0 && (
                 <Section title="Attachments">
                   <div className="space-y-2">
-                    {attachments.map((file, i) => (
-                      <div
-                        key={file.id ?? `${file.originalFileName}-${i}`}
-                        className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-neutral-800 dark:bg-neutral-800/60"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-slate-800 dark:text-neutral-200">
-                            {file.originalFileName ?? "Unnamed file"}
-                          </p>
-                          <p className="text-xs text-slate-500 dark:text-neutral-400">
-                            {[file.mimeType, formatBytes(file.sizeBytes)]
-                              .filter(Boolean)
-                              .join(" · ") || "—"}
-                          </p>
+                    {attachments.map((file, i) => {
+                      const isImg =
+                        file.mimeType?.startsWith("image/") ||
+                        /\.(png|jpe?g|webp|gif|svg)$/i.test(
+                          file.originalFileName || file.downloadUrl || "",
+                        );
+
+                      return (
+                        <div
+                          key={file.id ?? `${file.originalFileName}-${i}`}
+                          className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-neutral-800 dark:bg-neutral-800/60"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-slate-800 dark:text-neutral-200">
+                              {file.originalFileName ?? "Unnamed file"}
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-neutral-400">
+                              {[file.mimeType, formatBytes(file.sizeBytes)]
+                                .filter(Boolean)
+                                .join(" · ") || "—"}
+                            </p>
+                          </div>
+                          {file.downloadUrl?.startsWith("https://") && (
+                            <div className="flex items-center gap-2">
+                              {isImg && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setPreviewImage({
+                                      src: file.downloadUrl!,
+                                      alt: file.originalFileName ?? "Attachment",
+                                      title:
+                                        file.originalFileName ??
+                                        "Attachment Preview",
+                                    })
+                                  }
+                                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 cursor-pointer"
+                                >
+                                  <ZoomIn
+                                    aria-hidden="true"
+                                    className="size-3.5"
+                                  />
+                                  Preview
+                                </button>
+                              )}
+                              <a
+                                href={file.downloadUrl}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                              >
+                                <Download
+                                  aria-hidden="true"
+                                  className="size-3.5"
+                                />
+                                Download
+                              </a>
+                            </div>
+                          )}
                         </div>
-                        {file.downloadUrl?.startsWith("https://") && (
-                          <a
-                            href={file.downloadUrl}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
-                          >
-                            <Download aria-hidden="true" className="size-3.5" />
-                            Download
-                          </a>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </Section>
               )}
@@ -595,8 +655,18 @@ function Loaded({
                   type="button"
                   variant="outline"
                   size="lg"
-                  onClick={() => setReportingProblem(true)}
-                  className="rounded-xl text-muted-foreground"
+                  onClick={() => {
+                    if (!isSignedIn) {
+                      void handleLogin(
+                        typeof window !== "undefined"
+                          ? `${window.location.pathname}${window.location.search}`
+                          : `/problems/${id}`,
+                      );
+                      return;
+                    }
+                    setReportingProblem(true);
+                  }}
+                  className="rounded-xl text-muted-foreground cursor-pointer"
                 >
                   <Flag data-icon="inline-start" />
                   Report
@@ -641,7 +711,7 @@ function Loaded({
                 </div>
               </div>
 
-              {canAnswer && (
+              {canAnswer ? (
                 <Link
                   href={`/community/${id}/solutions/create`}
                   className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-emerald-700"
@@ -649,7 +719,22 @@ function Loaded({
                   <Plus aria-hidden="true" className="size-4" />
                   {myAnswers.length > 0 ? "Post another" : "Post your solution"}
                 </Link>
-              )}
+              ) : !isSignedIn ? (
+                <Button
+                  type="button"
+                  onClick={() =>
+                    void handleLogin(
+                      typeof window !== "undefined"
+                        ? `${window.location.pathname}${window.location.search}`
+                        : `/problems/${id}`,
+                    )
+                  }
+                  className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-emerald-700 cursor-pointer"
+                >
+                  <Plus aria-hidden="true" className="size-4" />
+                  Post your solution
+                </Button>
+              ) : null}
             </div>
 
             {/* ── The reader's own answers on this problem ──
@@ -670,9 +755,23 @@ function Loaded({
               </p>
             )}
             {!isSignedIn && (
-              <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-                Sign in to post a solution to this problem.
-              </p>
+              <div className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
+                <span>Sign in to post a solution to this problem.</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() =>
+                    void handleLogin(
+                      typeof window !== "undefined"
+                        ? `${window.location.pathname}${window.location.search}`
+                        : `/problems/${id}`,
+                    )
+                  }
+                  className="rounded-xl bg-blue-600 px-4 font-semibold text-white hover:bg-blue-700 cursor-pointer"
+                >
+                  Sign in
+                </Button>
+              </div>
             )}
 
             {isLoadingSolutions ? (
@@ -794,6 +893,14 @@ function Loaded({
         authorName={authorNameOf(problem.author)}
         open={reportingProblem}
         onOpenChange={setReportingProblem}
+      />
+
+      <ImagePreviewModal
+        src={previewImage?.src ?? null}
+        alt={previewImage?.alt ?? "Attachment"}
+        title={previewImage?.title}
+        isOpen={previewImage !== null}
+        onClose={() => setPreviewImage(null)}
       />
     </motion.div>
   );

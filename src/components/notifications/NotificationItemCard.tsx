@@ -32,6 +32,7 @@ import {
   useLazyGetCommentByIdQuery,
   type CommentResponse,
 } from "@/lib/redux/services/commentsApi";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 interface NotificationItemCardProps {
@@ -210,6 +211,7 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
   onMarkRead,
   onCloseModal,
 }) => {
+  const t = useT();
   const router = useRouter();
   const [resolveComment, { isFetching: isResolvingComment }] =
     useLazyGetCommentByIdQuery();
@@ -254,16 +256,15 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
       className={cn(
         "group relative flex items-start gap-3.5 rounded-2xl border p-3.5 transition-colors sm:p-4",
         isUnread
-          ? "border-primary/20 bg-muted/70 hover:bg-muted"
-          : "border-border bg-card hover:bg-muted/40",
+          ? "border-primary/30 bg-primary/5 hover:bg-primary/8 dark:bg-primary/10 dark:hover:bg-primary/15"
+          : "border-border bg-card hover:bg-muted/50",
       )}
     >
       {hasCommentAuthor ? (
@@ -298,7 +299,7 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
             </h3>
           </Link>
 
-          {/* Unread Red Dot Indicator */}
+          {/* Unread Indicator Dot */}
           {isUnread && item.id && (
             <button
               onClick={(e) => {
@@ -306,7 +307,7 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
                 if (onMarkRead && item.id) onMarkRead(item.id);
               }}
               title="Mark as read"
-              className="mt-1 size-2.5 shrink-0 cursor-pointer rounded-full bg-primary shadow-xs transition-transform hover:scale-125"
+              className="mt-1 size-2.5 shrink-0 cursor-pointer rounded-full bg-primary shadow-[0_0_8px_rgba(37,99,235,0.6)] transition-transform hover:scale-125"
             />
           )}
         </div>
@@ -318,7 +319,7 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
 
         {/* Footer info & Link */}
         <div className="mt-2.5 flex items-center justify-between gap-2 text-sm font-medium text-muted-foreground">
-          <span className="min-w-0 truncate">
+          <span className="min-w-0 truncate text-xs">
             {hasCommentAuthor && item.authorName ? `${item.authorName} · ` : ""}
             {formatNotificationTime(item.createdAt)}
           </span>
@@ -327,16 +328,16 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
             href={targetHref}
             onClick={handleClick}
             aria-disabled={isResolvingComment}
-            className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary/80 aria-disabled:pointer-events-none aria-disabled:opacity-60"
+            className="inline-flex shrink-0 items-center gap-1 text-xs sm:text-sm font-semibold text-primary transition-colors hover:text-primary/80 aria-disabled:pointer-events-none aria-disabled:opacity-60"
           >
             {isResolvingComment ? (
               <>
                 <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" />
-                <span>Opening…</span>
+                <span>{t("notifications.opening") || "Opening…"}</span>
               </>
             ) : (
               <>
-                <span>View details</span>
+                <span>{t("notifications.viewDetails") || "View details"}</span>
                 <ChevronRight className="size-3.5" />
               </>
             )}

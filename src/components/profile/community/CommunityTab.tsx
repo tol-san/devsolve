@@ -5,15 +5,6 @@ import { motion } from "motion/react";
 import { CommunityPost, CommunityPostTag } from "@/lib/types/profile/types";
 import CommunityPostCard from "./CommunityPostCard";
 
-/**
- * Everything one person has posted — problems, solutions and showcases, from
- * the three portfolio endpoints — behind a filter, since a busy profile is
- * usually read looking for one kind of thing.
- *
- * The filter is client-side on purpose: the three lists are already merged and
- * sorted by date, and re-fetching per tab would lose that ordering.
- */
-
 type Filter = "All" | CommunityPostTag;
 
 const FILTERS: { value: Filter; label: string }[] = [
@@ -47,7 +38,7 @@ export default function CommunityTab({ posts }: CommunityTabProps) {
 
   if (posts.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm text-slate-400 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-500">
+      <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm font-medium text-muted-foreground">
         No problems, solutions, or showcases posted yet.
       </div>
     );
@@ -58,7 +49,7 @@ export default function CommunityTab({ posts }: CommunityTabProps) {
       <div
         role="group"
         aria-label="Filter posts"
-        className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-2xs dark:border-neutral-800 dark:bg-neutral-900"
+        className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-border bg-card p-1.5 shadow-2xs"
       >
         {FILTERS.map((option) => {
           const isActive = filter === option.value;
@@ -73,14 +64,14 @@ export default function CommunityTab({ posts }: CommunityTabProps) {
               disabled={count === 0}
               className={`relative cursor-pointer rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
                 isActive
-                  ? "text-white"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                  ? "text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
               {isActive && (
                 <motion.span
                   layoutId="community-filter-pill"
-                  className="absolute inset-0 rounded-xl bg-blue-600"
+                  className="absolute inset-0 rounded-xl bg-primary"
                   transition={{ type: "spring", stiffness: 400, damping: 35 }}
                 />
               )}
@@ -89,8 +80,8 @@ export default function CommunityTab({ posts }: CommunityTabProps) {
                 <span
                   className={`rounded-md px-1.5 py-0.5 text-xs font-bold tabular-nums ${
                     isActive
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-100 text-slate-500 dark:bg-neutral-800 dark:text-neutral-400"
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {count}
@@ -102,7 +93,7 @@ export default function CommunityTab({ posts }: CommunityTabProps) {
       </div>
 
       {visible.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm text-slate-400 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-500">
+        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm font-medium text-muted-foreground">
           Nothing under this filter yet.
         </div>
       ) : (

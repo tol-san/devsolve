@@ -36,15 +36,13 @@ export function HeroPlatform() {
           initial={{ opacity: 0, y: 14 }}
           animate={hydrated ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="mx-auto max-w-4xl font-extrabold tracking-[-0.04em] text-slate-900 dark:text-white"
-          style={{ fontSize: "clamp(32px, min(5.2vw, 7vh), 64px)", lineHeight: 1.12 }}
+          className="mx-auto max-w-4xl font-extrabold tracking-[-0.03em] text-slate-900 dark:text-white"
+          style={{ fontSize: "clamp(32px, min(4.8vw, 6.5vh), 58px)", lineHeight: 1.25 }}
         >
-          <span>A Single Platform Built for </span>
-          <br className="hidden sm:inline" />
-          <span className="text-[#2563EB] dark:text-blue-400">
-            Developers and Security
+          <span className="inline-block">{t("hero.platformTitleLine1") || "A Single Platform Built for"}</span>{" "}
+          <span className="inline-block text-[#2563EB] dark:text-blue-400">
+            {t("hero.platformTitleLine2") || "Developers and Security."}
           </span>
-          <span className="text-[#2563EB] dark:text-blue-400">.</span>
         </motion.h1>
 
         {/* Subtitle */}
@@ -52,9 +50,9 @@ export function HeroPlatform() {
           initial={{ opacity: 0, y: 12 }}
           animate={hydrated ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="mx-auto mt-4 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300 font-normal"
+          className="mx-auto mt-4 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-600 dark:text-neutral-300 font-normal text-balance"
         >
-          DevSolve helps security researchers find and report vulnerabilities with guaranteed bounty escrow, while helping engineering teams remediate threats with verified code solutions.
+          {t("hero.platformSubtitle") || "DevSolve helps security researchers find and report vulnerabilities with guaranteed bounty escrow, while helping engineering teams remediate threats with verified code solutions."}
         </motion.p>
 
         {/* Action CTAs */}
@@ -96,7 +94,7 @@ export function HeroPlatform() {
               $120k+
             </span>
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
-              Active Bounty Pool
+              {t("hero.activeBountyPool") || "Active Bounty Pool"}
             </p>
           </div>
 
@@ -105,7 +103,7 @@ export function HeroPlatform() {
               &lt; 2h
             </span>
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
-              Average Triage SLA
+              {t("hero.avgTriageSla") || "Average Triage SLA"}
             </p>
           </div>
 
@@ -114,7 +112,7 @@ export function HeroPlatform() {
               500+
             </span>
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
-              Protected Scopes
+              {t("hero.protectedScopes") || "Protected Scopes"}
             </p>
           </div>
 
@@ -123,7 +121,7 @@ export function HeroPlatform() {
               12,000+
             </span>
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500 mt-0.5">
-              Engineers & Researchers
+              {t("hero.researchersAndDevs") || "Engineers & Researchers"}
             </p>
           </div>
         </div>

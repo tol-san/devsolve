@@ -38,6 +38,8 @@ export interface Profile {
   displayName: string;
   avatarInitials: string;
   avatarUrl?: string;
+  /** The banner behind the profile header, when one has been uploaded. */
+  coverUrl?: string;
   bio: string;
   location?: string;
   memberSince: string; // e.g. "March 2023"
@@ -188,6 +190,8 @@ export type NotificationPreferences = Record<NotificationKey, NotificationChanne
 export interface EditProfileFormData {
   avatarInitials: string;
   avatarUrl?: string; // NEW — backend-persisted photo URL
+  /** The banner behind the profile header. Uploaded separately from the form. */
+  coverUrl?: string;
   fullName: string;
   username: string;
   email: string;

@@ -39,7 +39,6 @@ export function ProgramActiveFilters({
   asset,
   severity,
   industry,
-  country,
   minReward,
   maxReward,
   sort,
@@ -48,7 +47,6 @@ export function ProgramActiveFilters({
   onClearAsset,
   onClearSeverity,
   onClearIndustry,
-  onClearCountry,
   onClearReward,
   onClearSort,
   onResetAll,
@@ -58,7 +56,6 @@ export function ProgramActiveFilters({
   asset: string;
   severity: string;
   industry: string;
-  country: string;
   minReward: string;
   maxReward: string;
   sort: string;
@@ -67,7 +64,6 @@ export function ProgramActiveFilters({
   onClearAsset: () => void;
   onClearSeverity: () => void;
   onClearIndustry: () => void;
-  onClearCountry: () => void;
   onClearReward: () => void;
   onClearSort: () => void;
   onResetAll: () => void;
@@ -113,14 +109,6 @@ export function ProgramActiveFilters({
       label: t("programs.activeFilters.industry"),
       value: t(`programs.industries.${industry.toLowerCase()}`),
       onRemove: onClearIndustry,
-    });
-  }
-  if (country.trim()) {
-    chips.push({
-      key: "country",
-      label: t("programs.activeFilters.country"),
-      value: country.trim(),
-      onRemove: onClearCountry,
     });
   }
   if (minReward || maxReward) {

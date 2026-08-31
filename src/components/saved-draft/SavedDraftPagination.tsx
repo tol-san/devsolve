@@ -124,7 +124,7 @@ function PaginationPageButton({
       className={cn(
         "border-transparent bg-card text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
         currentPage === page &&
-          "border-blue-600 bg-[#2563EB] text-white hover:bg-[#1D4ED8] hover:text-white"
+          "border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
       )}
     >
       {page}
