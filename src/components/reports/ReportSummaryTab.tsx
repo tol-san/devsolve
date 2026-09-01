@@ -1,8 +1,24 @@
-import React from "react";
-import { Download, ExternalLink, FileText, History, Paperclip } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import {
+  Download,
+  ExternalLink,
+  Eye,
+  FileCode,
+  FileText,
+  History,
+  Image as ImageIcon,
+  Paperclip,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ReportSidebarPanels } from "@/components/reports/ReportSidebarPanels";
 import type { ReportDetail } from "@/lib/types/reports/types";
+import {
+  AttachmentPreviewModal,
+  type AttachmentItem,
+} from "@/components/reports/AttachmentPreviewModal";
 
 interface ReportSummaryTabProps {
   report: ReportDetail;
@@ -28,17 +44,11 @@ function Section({
 
 /**
  * Everything the reporter wrote, as they wrote it.
- *
- * This screen used to be a fixed illustration: a description of an IDOR in
- * `/api/v1/profile/[id]`, four reproduction steps, a `payload.json`
- * attachment and a conversation between "hunter_x_ray" and "Alex (SecOps)" —
- * all of it hardcoded, and all of it shown no matter which report was opened.
- * Every field below now comes from the report, and a field the report does
- * not carry is left out rather than filled in.
  */
 export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
   const hasEvidence = report.attachments.length > 0;
   const hasReferences = report.referenceLinks.length > 0;
+  const [previewAttachment, setPreviewAttachment] = useState<AttachmentItem | null>(null);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -58,8 +68,6 @@ export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
 
         {report.reproduceSteps.length > 0 && (
           <Section title="Steps to Reproduce">
-            {/* The reporter's own numbering is preserved, so the list is not
-                renumbered on top of theirs. */}
             <div className="space-y-2 text-base text-foreground/90 leading-relaxed whitespace-pre-wrap">
               {report.reproduceSteps.map((step, index) => (
                 <p key={index}>{step}</p>
@@ -107,34 +115,95 @@ export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
         <Section title="Evidence & Attachments">
           {hasEvidence ? (
             <div className="space-y-2.5">
-              {report.attachments.map((file) => (
-                <div
-                  key={file.name}
-                  className="flex items-center justify-between gap-3 p-3.5 bg-muted/40 rounded-xl border border-border"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                      <Paperclip className="w-4.5 h-4.5" />
+              {report.attachments.map((file) => {
+                const ext = file.name.split(".").pop()?.toLowerCase() || "";
+                const isImg =
+                  /^(png|jpg|jpeg|webp|gif|svg)$/i.test(ext) ||
+                  file.type?.startsWith("image/");
+                const isCode =
+                  /^(txt|log|json|xml|js|ts|py|sh)$/i.test(ext) ||
+                  file.type?.includes("text") ||
+                  file.type?.includes("json");
+                const isPdf = ext === "pdf" || file.type?.includes("pdf");
+
+                return (
+                  <div
+                    key={file.name}
+                    onClick={() => setPreviewAttachment(file)}
+                    className="group flex items-center justify-between gap-3 p-3 sm:p-3.5 bg-muted/40 hover:bg-muted/70 rounded-xl border border-border transition-all cursor-pointer shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="size-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20 group-hover:scale-105 transition-transform">
+                        {isImg ? (
+                          <ImageIcon className="size-5 text-purple-500" />
+                        ) : isCode ? (
+                          <FileCode className="size-5 text-blue-500" />
+                        ) : isPdf ? (
+                          <FileText className="size-5 text-rose-500" />
+                        ) : (
+                          <Paperclip className="size-5 text-blue-600 dark:text-blue-400" />
+                        )}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                            {file.name}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] uppercase font-mono px-1.5 py-0 shrink-0 hidden sm:inline-flex"
+                          >
+                            {ext || "FILE"}
+                          </Badge>
+                        </div>
+                        <span className="text-xs text-muted-foreground font-mono">
+                          {[file.size, file.type].filter(Boolean).join(" • ")}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-bold text-foreground truncate">
-                        {file.name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {[file.size, file.type].filter(Boolean).join(" • ")}
-                      </span>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreviewAttachment(file);
+                        }}
+                        className="h-8 px-2.5 gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg cursor-pointer"
+                        title="Preview attachment"
+                      >
+                        <Eye className="size-3.5" />
+                        <span className="hidden sm:inline">Preview</span>
+                      </Button>
+
+                      {file.url && (
+                        <Button
+                          type="button"
+                          size="icon-xs"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const a = document.createElement("a");
+                            a.href = file.url!;
+                            a.download = file.name;
+                            a.target = "_blank";
+                            a.rel = "noopener noreferrer";
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                          }}
+                          className="size-8 rounded-lg text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+                          title="Download attachment"
+                        >
+                          <Download className="size-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="rounded-lg text-muted-foreground hover:text-foreground shrink-0"
-                    title="Download attachment"
-                  >
-                    <Download className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p className="flex items-center gap-2 text-base text-muted-foreground">
@@ -173,6 +242,13 @@ export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
 
       {/* Right Column: Sidebar */}
       <ReportSidebarPanels report={report} />
+
+      {/* Attachment Preview Modal */}
+      <AttachmentPreviewModal
+        attachment={previewAttachment}
+        isOpen={Boolean(previewAttachment)}
+        onClose={() => setPreviewAttachment(null)}
+      />
     </div>
   );
 }

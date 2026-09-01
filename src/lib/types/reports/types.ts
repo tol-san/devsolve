@@ -80,7 +80,13 @@ export interface ReportDetail extends ReportItem {
   discoveredAt: string | null;
   referenceLinks: string[];
   weakness: string | null;
-  attachments: { name: string; size?: string; type: string }[];
+  attachments: {
+    id?: string;
+    name: string;
+    size?: string;
+    type: string;
+    url?: string;
+  }[];
   comments: CommentItem[];
   updates: ActivityUpdate[];
   retestHistory: RetestItem[];

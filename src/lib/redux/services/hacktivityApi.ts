@@ -98,7 +98,7 @@ function toActivity(entry: HacktivityApiEntry): HacktivityActivity {
         : undefined,
     /* The one place disclosure is enforced. An undisclosed title is dropped
        here rather than hidden in the markup, so no later change can leak it. */
-    title: isDisclosed ? entry.report?.title?.trim() || undefined : undefined,
+    title: isDisclosed ? entry.report?.title?.trim() || null : null,
     disclosureStatus,
     isDisclosed,
     reportId: entry.report?.id,

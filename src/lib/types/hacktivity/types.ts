@@ -55,7 +55,7 @@ export interface HacktivityApiEntry {
   program?: { id?: string; name?: string; handle?: string } | null;
   report?: {
     id?: string;
-    title?: string;
+    title?: string | null;
     /** Null while a severity dispute is open. */
     severity?: Severity | null;
     disclosureStatus?: DisclosureStatus | null;
@@ -122,9 +122,9 @@ export interface HacktivityActivity {
   /**
    * Only set on a disclosed report. A row is on the feed because it was
    * recognised or paid, which is not the same as its report being public, so
-   * an undisclosed title never reaches the markup.
+   * an undisclosed title is null.
    */
-  title?: string;
+  title?: string | null;
   disclosureStatus: DisclosureStatus;
   isDisclosed: boolean;
   /** The report behind the row, present whether or not it may be named. */

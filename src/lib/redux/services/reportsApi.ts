@@ -320,12 +320,14 @@ function toReportDetail(
      open, and there is not. Sizes and types are only stated when the response
      carries them. */
   const attachments = (report.attachments ?? []).map((att) => ({
+    id: att.id,
     name: att.fileName || att.filename || att.name || "Attachment",
     size:
       att.sizeBytes || att.fileSize || att.size
         ? `${Math.round((att.sizeBytes || att.fileSize || att.size || 0) / 1024)} KB`
         : undefined,
     type: att.mimeType || att.contentType || att.type || "file",
+    url: att.downloadUrl || (att as any).fileUrl || (att as any).url || undefined,
   }));
 
   const description =

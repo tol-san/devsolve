@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -235,21 +236,22 @@ export function ExportOptions() {
                 <div className="space-y-4 md:col-span-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-700">Date from</label>
-                      <Input
-                        type="date"
+                      <label className="text-xs font-semibold text-foreground">Date from</label>
+                      <DatePicker
                         value={dateFrom}
-                        onChange={(e) => setDateFrom(e.target.value)}
-                        className="h-9 rounded-lg border-slate-200 text-xs focus:border-blue-500"
+                        onChange={(val) => setDateFrom(val)}
+                        placeholder="Start date"
+                        className="h-9 rounded-lg border-border text-xs"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-slate-700">Date to</label>
-                      <Input
-                        type="date"
+                      <label className="text-xs font-semibold text-foreground">Date to</label>
+                      <DatePicker
                         value={dateTo}
-                        onChange={(e) => setDateTo(e.target.value)}
-                        className="h-9 rounded-lg border-slate-200 text-xs focus:border-blue-500"
+                        onChange={(val) => setDateTo(val)}
+                        placeholder="End date"
+                        min={dateFrom || undefined}
+                        className="h-9 rounded-lg border-border text-xs"
                       />
                     </div>
                   </div>
