@@ -163,18 +163,20 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
           const numericAmount = parseFloat(
             (rewardAmount || rewardEstimate || "").replace(/[^0-9.]/g, "")
           );
-          const rewardsResult = await fetchWithBQ({
-            url: `/reports/${id}/rewards`,
-            method: "POST",
-            body: {
-              amount: !isNaN(numericAmount) ? numericAmount : 0,
-              rewardAmount: rewardAmount || rewardEstimate,
-              rewardEstimate,
-              currency: "USD",
-            },
-          });
-          if (rewardsResult.error) {
-            console.warn("Rewards API error:", rewardsResult.error);
+          if (!isNaN(numericAmount) && numericAmount > 0) {
+            const rewardsResult = await fetchWithBQ({
+              url: `/reports/${id}/rewards`,
+              method: "POST",
+              body: {
+                amount: numericAmount,
+                ...(triageNotes || companyReasoning
+                  ? { note: triageNotes || companyReasoning }
+                  : {}),
+              },
+            });
+            if (rewardsResult.error) {
+              console.warn("Rewards API error:", rewardsResult.error);
+            }
           }
         }
 

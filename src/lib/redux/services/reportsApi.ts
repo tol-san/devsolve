@@ -696,7 +696,6 @@ export const reportsApi = baseApi.injectEndpoints({
         decisionReason?: string;
         improvementSuggestions?: string;
         bountyAmount?: string;
-        reputationPoints?: number;
         files?: string[];
       }
     >({
@@ -707,45 +706,34 @@ export const reportsApi = baseApi.injectEndpoints({
         const triageResult = await fetchWithBQ({
           url: `/reports/${payload.id}/triage`,
           method: "PATCH",
-          /* Exactly what TriageReportRequest accepts. The extra keys this used
-             to send — status, severity, companyReasoning, triageNotes,
-             rewardAmount — are not fields of it, and the reasoning among them
-             was never being recorded anywhere. */
+          /* Exactly what TriageReportRequest accepts. */
           body: {
             triageSeverity: payload.severity.toUpperCase(),
             state: "VALID_CONFIRMED",
           },
         });
 
-        /* The result was read and then ignored: the mutation reported success
-           whatever came back, so a company saw "approved" over a report the
-           upstream had refused to triage. */
         if (triageResult.error) {
           return { error: triageResult.error };
         }
 
         if (payload.bountyAmount) {
-          const numericAmount = parseFloat(payload.bountyAmount.replace(/[^0-9.]/g, ""));
+          const numericAmount = parseFloat(
+            payload.bountyAmount.replace(/[^0-9.]/g, "")
+          );
           if (!isNaN(numericAmount) && numericAmount > 0) {
             const rewardResult = await fetchWithBQ({
               url: `/reports/${payload.id}/rewards`,
               method: "POST",
-              /* RewardReportRequest is amount, points and note. `currency` and
-                 `rewardAmount` were invented. */
+              /* RewardReportRequest accepts amount and note. points is removed. */
               body: {
                 amount: numericAmount,
-                ...(payload.reputationPoints
-                  ? { points: payload.reputationPoints }
-                  : {}),
                 ...(payload.explanation || payload.decisionReason
                   ? { note: payload.explanation || payload.decisionReason }
                   : {}),
               },
             });
 
-            /* The report is triaged either way, but the reward is the part the
-               researcher is owed — saying it was paid when it was not is the
-               one outcome worth failing over. */
             if (rewardResult.error) {
               return { error: rewardResult.error };
             }
@@ -764,7 +752,6 @@ export const reportsApi = baseApi.injectEndpoints({
         { type: "Report", id },
         "Report",
         "Profile",
-        "Leaderboard",
       ],
     }),
 
@@ -805,6 +792,24 @@ export const reportsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: (_result, _error, { id }) => [{ type: "Report", id }, "Report"],
     }),
+
+    awardRecognition: builder.mutation<
+      { success: boolean; message?: string },
+      {
+        userId: string;
+        programId: string;
+        reportId: string;
+        title?: string;
+        description?: string;
+      }
+    >({
+      query: (body) => ({
+        url: "/recognitions",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Profile", "Leaderboard", "Report"],
+    }),
   }),
 });
 
@@ -817,4 +822,5 @@ export const {
   useUploadReportAttachmentMutation,
   useApproveReportMutation,
   useRejectReportMutation,
+  useAwardRecognitionMutation,
 } = reportsApi;

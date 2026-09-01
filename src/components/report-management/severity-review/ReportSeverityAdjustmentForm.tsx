@@ -56,13 +56,13 @@ type SeverityOption = (typeof SEVERITY_OPTIONS)[number];
 
 const SEVERITY_DEFAULTS: Record<
   SeverityOption,
-  { bounty: string; rep: number; label: string }
+  { bounty: string; label: string }
 > = {
-  Critical: { bounty: "3500", rep: 50, label: "Critical Severity ($2,500 - $5,000)" },
-  High: { bounty: "1800", rep: 30, label: "High Severity ($1,000 - $2,500)" },
-  Medium: { bounty: "750", rep: 15, label: "Medium Severity ($250 - $1,000)" },
-  Low: { bounty: "250", rep: 5, label: "Low Severity ($50 - $250)" },
-  Info: { bounty: "0", rep: 2, label: "Informational (Recognition Only)" },
+  Critical: { bounty: "3500", label: "Critical Severity ($2,500 - $5,000)" },
+  High: { bounty: "1800", label: "High Severity ($1,000 - $2,500)" },
+  Medium: { bounty: "750", label: "Medium Severity ($250 - $1,000)" },
+  Low: { bounty: "250", label: "Low Severity ($50 - $250)" },
+  Info: { bounty: "0", label: "Informational (Recognition Only)" },
 };
 
 type ReportSeverityAdjustmentFormProps = {
@@ -105,9 +105,6 @@ export function ReportSeverityAdjustmentForm({
   const [bountyAmount, setBountyAmount] = useState<string>(
     SEVERITY_DEFAULTS[(detail.severity as SeverityOption) || "Medium"].bounty
   );
-  const [reputationPoints, setReputationPoints] = useState<number>(
-    SEVERITY_DEFAULTS[(detail.severity as SeverityOption) || "Medium"].rep
-  );
   const [explanation, setExplanation] = useState("");
   const [findingsSummary, setFindingsSummary] = useState(
     detail.assessmentSummary || ""
@@ -123,7 +120,6 @@ export function ReportSeverityAdjustmentForm({
       setSelectedSeverity(sev);
       if (SEVERITY_DEFAULTS[sev]) {
         setBountyAmount(SEVERITY_DEFAULTS[sev].bounty);
-        setReputationPoints(SEVERITY_DEFAULTS[sev].rep);
       }
     }
     if (detail?.assessmentSummary) {
@@ -144,10 +140,15 @@ export function ReportSeverityAdjustmentForm({
   const handleSeverityChange = (option: SeverityOption) => {
     setSelectedSeverity(option);
     setBountyAmount(SEVERITY_DEFAULTS[option].bounty);
-    setReputationPoints(SEVERITY_DEFAULTS[option].rep);
   };
 
   const handleConfirmApproval = async () => {
+    const numericBounty = parseFloat(bountyAmount.replace(/[^0-9.]/g, ""));
+    if (isNaN(numericBounty) || numericBounty <= 0) {
+      toast.error("A reward amount is required and must be greater than zero.");
+      return;
+    }
+
     try {
       await approveReport({
         id: String(detail.id),
@@ -156,8 +157,7 @@ export function ReportSeverityAdjustmentForm({
         findingsSummary,
         decisionReason,
         improvementSuggestions,
-        bountyAmount: `$${bountyAmount}`,
-        reputationPoints,
+        bountyAmount: `$${numericBounty}`,
         files: selectedFiles,
       }).unwrap();
 
@@ -165,9 +165,6 @@ export function ReportSeverityAdjustmentForm({
       setApprovalSuccess(true);
       onOutcomeChange?.("approved");
     } catch (err) {
-      /* No "fallback success". Announcing an approval the upstream refused
-         left the reviewer believing a researcher had been paid, and the report
-         sitting untriaged behind a confirmation screen. */
       console.error("Failed to approve report:", err);
       setShowApprovalModal(false);
       toast.error(
@@ -205,7 +202,7 @@ export function ReportSeverityAdjustmentForm({
 
   const handleCopyResolution = async () => {
     try {
-      const summaryText = `[DevSolve Triage Resolution]\nReport: #${detail.reportId} - ${detail.title}\nStatus: APPROVED\nSeverity: ${selectedSeverity}\nBounty Award: $${bountyAmount} USD\nReputation Award: +${reputationPoints} PTS\nResearcher: ${detail.submitter}\nDecision: ${decisionReason || "Severity verified and validated according to program bounty rubric."}`;
+      const summaryText = `[DevSolve Triage Resolution]\nReport: #${detail.reportId} - ${detail.title}\nStatus: APPROVED\nSeverity: ${selectedSeverity}\nBounty Award: $${bountyAmount} USD\nResearcher: ${detail.submitter}\nDecision: ${decisionReason || "Severity verified and validated according to program bounty rubric."}`;
       await navigator.clipboard.writeText(summaryText);
       setCopiedSummary(true);
       setTimeout(() => setCopiedSummary(false), 2000);
@@ -252,7 +249,7 @@ export function ReportSeverityAdjustmentForm({
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
               The submission was formally accepted. Severity was adjusted to{" "}
               <strong className="text-foreground font-bold">{selectedSeverity}</strong>, and an authorized bounty of{" "}
-              <strong className="text-emerald-600 dark:text-emerald-400 font-bold">${bountyAmount} USD</strong> (+{reputationPoints} Rep) has been allocated to{" "}
+              <strong className="text-emerald-600 dark:text-emerald-400 font-bold">${bountyAmount} USD</strong> has been allocated to{" "}
               <Link
                 href={`/profile/${encodeURIComponent(profileIdentifier)}`}
                 className="text-blue-600 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-0.5"
@@ -288,12 +285,12 @@ export function ReportSeverityAdjustmentForm({
 
             <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 flex flex-col justify-between space-y-2">
               <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1">
-                <Award className="size-3.5" />
-                Reputation Award
+                <ShieldCheck className="size-3.5" />
+                Status Outcome
               </span>
               <div>
-                <p className="text-base font-extrabold text-blue-600 dark:text-blue-400">+{reputationPoints} Points</p>
-                <p className="text-xs text-blue-600/80 dark:text-blue-400/80 font-semibold mt-0.5">Leaderboard Updated</p>
+                <p className="text-base font-extrabold text-blue-600 dark:text-blue-400">VALID_CONFIRMED</p>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">Ready for Resolution</p>
               </div>
             </div>
 
@@ -504,12 +501,12 @@ export function ReportSeverityAdjustmentForm({
               </FieldContent>
             </Field>
 
-            {/* 2. Bounty & Reputation Allocation */}
-            <div className="grid gap-4 sm:grid-cols-2 rounded-2xl border border-border bg-muted/20 p-5">
+            {/* 2. Bounty Allocation (Money only) */}
+            <div className="rounded-2xl border border-border bg-muted/20 p-5">
               <Field>
                 <FieldLabel htmlFor="bounty-reward" className="text-foreground font-semibold flex items-center gap-1.5">
                   <DollarSign className="size-4 text-emerald-600 dark:text-emerald-400" />
-                  Bounty Reward Amount (USD)
+                  Bounty Reward Amount (USD) <span className="text-rose-500 font-bold">*</span>
                 </FieldLabel>
                 <FieldContent className="mt-1.5">
                   <div className="relative">
@@ -517,34 +514,17 @@ export function ReportSeverityAdjustmentForm({
                     <Input
                       id="bounty-reward"
                       type="number"
+                      min="1"
+                      step="any"
+                      required
                       value={bountyAmount}
                       onChange={(e) => setBountyAmount(e.target.value)}
-                      placeholder="0.00"
+                      placeholder="e.g. 750.00"
                       className="pl-7 bg-card text-foreground font-semibold text-base"
                     />
                   </div>
-                  <FieldDescription className="text-xs text-muted-foreground mt-1.5">
-                    Cash payout (USD) paid to researcher earnings. Does not move leaderboard points.
-                  </FieldDescription>
-                </FieldContent>
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="rep-points" className="text-foreground font-semibold flex items-center gap-1.5">
-                  <Award className="size-4 text-blue-600 dark:text-blue-400" />
-                  Reputation Points Awarded
-                </FieldLabel>
-                <FieldContent className="mt-1.5">
-                  <Input
-                    id="rep-points"
-                    type="number"
-                    value={reputationPoints}
-                    onChange={(e) => setReputationPoints(Number(e.target.value) || 0)}
-                    placeholder="0"
-                    className="bg-card text-foreground font-semibold text-base"
-                  />
-                  <FieldDescription className="text-xs text-muted-foreground mt-1.5">
-                    Points added directly to researcher&apos;s reputation and leaderboard ranking.
+                  <FieldDescription className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                    Bounties are paid by your organization. A researcher&apos;s reputation is set by the platform from the finding&apos;s severity when the report is recognised.
                   </FieldDescription>
                 </FieldContent>
               </Field>
@@ -771,12 +751,6 @@ export function ReportSeverityAdjustmentForm({
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs sm:text-sm">
-                    <span className="text-muted-foreground">Reputation Award:</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
-                      +{reputationPoints} Points
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-muted-foreground">Researcher:</span>
                     <Link
                       href={`/profile/${encodeURIComponent(detail.submitterId || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_"))}`}
@@ -788,6 +762,9 @@ export function ReportSeverityAdjustmentForm({
                       <span>{detail.submitter}</span>
                     </Link>
                   </div>
+                  <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/70 leading-relaxed">
+                    Bounties are paid directly by your organization. Reputation is assigned separately by the platform upon resolution recognition.
+                  </p>
                 </div>
               </div>
 
