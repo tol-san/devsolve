@@ -344,8 +344,8 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
       </AnimatePresence>
 
       {/* 2. Main Title Banner Card */}
-      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden">
-        <CardContent className="p-6 sm:p-7 space-y-6">
+      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden p-0 py-0 gap-0">
+        <CardContent className="p-5 sm:p-6 space-y-5">
           {/* Top Row: Badges & Title */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">

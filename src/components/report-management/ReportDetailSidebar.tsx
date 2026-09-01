@@ -89,19 +89,19 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
   const profileHref = `/profile/${encodeURIComponent(profileIdentifier)}`;
 
   return (
-    <aside className="space-y-6 lg:sticky lg:top-6 min-w-0">
+    <aside className="space-y-5 lg:sticky lg:top-6 min-w-0">
       {/* 1. Moderation & Triage Actions */}
-      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0">
-        <CardHeader className="bg-muted/40 border-b border-border/70 px-5 py-3.5">
-          <CardTitle className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
+      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0 p-0 py-0 gap-0">
+        <CardHeader className="bg-muted/40 border-b border-border/70 px-4 py-3 sm:px-5 sm:py-3.5 [.border-b]:pb-3 sm:[.border-b]:pb-3.5">
+          <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground flex items-center gap-2">
             <Shield className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
             <span>Triage & Moderation</span>
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="p-5 space-y-4 min-w-0">
+        <CardContent className="p-4 sm:p-5 space-y-4 min-w-0">
           {detail.isReviewed ? (
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3 min-w-0">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 space-y-2.5 min-w-0">
               <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
                 <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
                 <span>Triage Decision Recorded</span>
@@ -120,7 +120,7 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full h-8 text-xs font-semibold rounded-lg border-border hover:bg-muted truncate"
+                  className="w-full h-8 text-xs font-semibold rounded-lg border-border hover:bg-muted truncate cursor-pointer"
                 >
                   Adjust / Re-evaluate Severity
                 </Button>
@@ -138,7 +138,7 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
                   className="block"
                 >
                   <Button
-                    className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 font-semibold text-white text-xs gap-2 cursor-pointer shadow-xs"
+                    className="w-full h-9 rounded-xl bg-blue-600 hover:bg-blue-700 font-semibold text-white text-xs gap-2 cursor-pointer shadow-xs"
                   >
                     <CheckCircle2 className="size-4" />
                     <span>Accept & Adjust Severity</span>
@@ -151,7 +151,7 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
                 >
                   <Button
                     variant="outline"
-                    className="w-full h-10 rounded-xl border-border bg-card hover:bg-muted font-semibold text-foreground text-xs gap-2 cursor-pointer shadow-2xs"
+                    className="w-full h-9 rounded-xl border-border bg-card hover:bg-muted font-semibold text-foreground text-xs gap-2 cursor-pointer shadow-2xs"
                   >
                     <AlertCircle className="size-4 text-amber-500" />
                     <span>Request Information</span>
@@ -164,7 +164,7 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
                 >
                   <Button
                     variant="outline"
-                    className="w-full h-10 rounded-xl border-red-500/20 bg-red-500/5 hover:bg-red-500/15 font-semibold text-red-600 dark:text-red-400 text-xs gap-2 cursor-pointer shadow-2xs"
+                    className="w-full h-9 rounded-xl border-red-500/20 bg-red-500/5 hover:bg-red-500/15 font-semibold text-red-600 dark:text-red-400 text-xs gap-2 cursor-pointer shadow-2xs"
                   >
                     <XCircle className="size-4" />
                     <span>Reject Submission</span>
@@ -177,15 +177,15 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
       </Card>
 
       {/* 2. Vulnerability Classification Snapshot */}
-      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden">
-        <CardHeader className="bg-muted/40 border-b border-border/70 px-5 py-3.5">
-          <CardTitle className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Tag className="size-4 text-blue-600 dark:text-blue-400" />
-            Classification Snapshot
+      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0 p-0 py-0 gap-0">
+        <CardHeader className="bg-muted/40 border-b border-border/70 px-4 py-3 sm:px-5 sm:py-3.5 [.border-b]:pb-3 sm:[.border-b]:pb-3.5">
+          <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Tag className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span>Classification Snapshot</span>
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="p-5 space-y-4 text-sm">
+        <CardContent className="p-4 sm:p-5 space-y-3.5 text-sm min-w-0">
           <div className="flex items-start justify-between gap-2">
             <span className="text-xs text-muted-foreground font-medium">Type</span>
             <span className="text-right text-xs font-bold text-foreground">
@@ -256,9 +256,9 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
       </Card>
 
       {/* 3. Researcher Profile */}
-      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0">
-        <CardHeader className="bg-muted/40 border-b border-border/70 px-5 py-3.5 flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
+      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0 p-0 py-0 gap-0">
+        <CardHeader className="bg-muted/40 border-b border-border/70 px-4 py-3 sm:px-5 sm:py-3.5 [.border-b]:pb-3 sm:[.border-b]:pb-3.5 flex flex-row items-center justify-between">
+          <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground flex items-center gap-2">
             <User className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
             <span>Researcher Profile</span>
           </CardTitle>
@@ -271,7 +271,7 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
           </Link>
         </CardHeader>
 
-        <CardContent className="p-5 space-y-4 min-w-0">
+        <CardContent className="p-4 sm:p-5 space-y-4 min-w-0">
           {/* Avatar & Info Row */}
           <div className="flex items-start justify-between gap-3 min-w-0">
             <div className="flex items-center gap-3 min-w-0">
