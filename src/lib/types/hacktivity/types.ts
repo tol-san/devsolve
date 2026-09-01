@@ -12,10 +12,18 @@ export const SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"] as const
 export type Severity = (typeof SEVERITIES)[number];
 
 /**
- * `REPORT_DISCLOSED` and `REPORT_RESOLVED` are in the contract but nothing
- * emits them yet, so the page offers the two that carry rows.
+ * All four event types now emitted by the backend:
+ * - `RECOGNITION_AWARDED`: Researcher recognised by organization
+ * - `BOUNTY_AWARDED`: Cash bounty awarded to researcher
+ * - `REPORT_RESOLVED`: Organization resolved a vulnerability report
+ * - `REPORT_DISCLOSED`: Researcher disclosed a vulnerability finding
  */
-export const EVENT_TYPES = ["RECOGNITION_AWARDED", "BOUNTY_AWARDED"] as const;
+export const EVENT_TYPES = [
+  "RECOGNITION_AWARDED",
+  "BOUNTY_AWARDED",
+  "REPORT_RESOLVED",
+  "REPORT_DISCLOSED",
+] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
 export type DisclosureStatus =
@@ -62,6 +70,7 @@ export interface HacktivityApiEntry {
     /** Null while unclassified. */
     weakness?: { cweId?: string; name?: string } | null;
   } | null;
+  /** Nullable: null on REPORT_RESOLVED and REPORT_DISCLOSED rows */
   recognition?: { id?: string; title?: string; description?: string } | null;
   /** Null when the report was never paid. */
   reward?: {

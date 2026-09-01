@@ -92,11 +92,66 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
             </Avatar>
 
             <div className="min-w-0 flex-1">
-              <p className="text-base leading-snug text-muted-foreground">
-                <Noun href={profileHref}>{researcher.name}</Noun>{" "}
-                {eventPhrase(activity.eventType)}{" "}
-                {target ? <Noun href={targetHref}>{target.name}</Noun> : "a program"}
-              </p>
+              {activity.eventType === "REPORT_RESOLVED" ? (
+                <p className="text-base leading-snug text-muted-foreground">
+                  {target ? <Noun href={targetHref}>{target.name}</Noun> : "An organization"}{" "}
+                  resolved a{" "}
+                  {activity.severity ? (
+                    <strong className="font-bold text-foreground">
+                      {activity.severity}
+                    </strong>
+                  ) : null}{" "}
+                  severity report by{" "}
+                  <Noun href={profileHref}>
+                    {researcher.username ? `@${researcher.username}` : researcher.name}
+                  </Noun>
+                </p>
+              ) : activity.eventType === "REPORT_DISCLOSED" ? (
+                <p className="text-base leading-snug text-muted-foreground">
+                  <Noun href={profileHref}>
+                    {researcher.username ? `@${researcher.username}` : researcher.name}
+                  </Noun>{" "}
+                  disclosed a{" "}
+                  {activity.severity ? (
+                    <strong className="font-bold text-foreground">
+                      {activity.severity}
+                    </strong>
+                  ) : null}{" "}
+                  severity finding in{" "}
+                  {target ? <Noun href={targetHref}>{target.name}</Noun> : "a program"}
+                </p>
+              ) : activity.eventType === "BOUNTY_AWARDED" ? (
+                <p className="text-base leading-snug text-muted-foreground">
+                  <Noun href={profileHref}>
+                    {researcher.username ? `@${researcher.username}` : researcher.name}
+                  </Noun>{" "}
+                  earned{" "}
+                  {reward.kind === "cash" ? (
+                    <strong className="font-bold text-emerald-600 dark:text-emerald-400">
+                      {formatMoney(reward.amount, reward.currency)}
+                    </strong>
+                  ) : (
+                    "a bounty"
+                  )}{" "}
+                  from {target ? <Noun href={targetHref}>{target.name}</Noun> : "a program"}
+                </p>
+              ) : activity.eventType === "RECOGNITION_AWARDED" ? (
+                <p className="text-base leading-snug text-muted-foreground">
+                  <Noun href={profileHref}>
+                    {researcher.username ? `@${researcher.username}` : researcher.name}
+                  </Noun>{" "}
+                  was recognised by{" "}
+                  {target ? <Noun href={targetHref}>{target.name}</Noun> : "an organization"}
+                </p>
+              ) : (
+                <p className="text-base leading-snug text-muted-foreground">
+                  <Noun href={profileHref}>
+                    {researcher.username ? `@${researcher.username}` : researcher.name}
+                  </Noun>{" "}
+                  {eventPhrase(activity.eventType)}{" "}
+                  {target ? <Noun href={targetHref}>{target.name}</Noun> : "a program"}
+                </p>
+              )}
 
               <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
                 {researcher.username ? (
@@ -202,7 +257,7 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
 
         {/* What it was worth */}
         <div className="flex items-center justify-between gap-3 border-t border-border pt-3 sm:min-w-[7.5rem] sm:flex-col sm:items-end sm:justify-center sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
-          <Reward reward={reward} />
+          <Reward reward={reward} eventType={activity.eventType} />
         </div>
       </div>
     </article>
@@ -214,7 +269,13 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
  * in their own right, not a bounty of zero, so they never borrow the numerals
  * a paid bounty uses.
  */
-function Reward({ reward }: { reward: HacktivityActivity["reward"] }) {
+function Reward({
+  reward,
+  eventType,
+}: {
+  reward: HacktivityActivity["reward"];
+  eventType?: string;
+}) {
   if (reward.kind === "cash") {
     return (
       <div className="flex flex-col items-start gap-0.5 sm:items-end">
@@ -235,6 +296,22 @@ function Reward({ reward }: { reward: HacktivityActivity["reward"] }) {
       <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-bold text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-500/25">
         <Award aria-hidden className="size-4" />
         {formatCount(reward.points)} points
+      </span>
+    );
+  }
+
+  if (eventType === "REPORT_RESOLVED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-200 dark:ring-emerald-500/20">
+        Resolved
+      </span>
+    );
+  }
+
+  if (eventType === "REPORT_DISCLOSED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 px-3 py-1 text-xs font-bold text-blue-700 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-500/20">
+        Disclosed
       </span>
     );
   }

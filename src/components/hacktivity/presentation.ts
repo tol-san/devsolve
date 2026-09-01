@@ -60,8 +60,10 @@ export const UNRATED_STYLE: SeverityStyle = {
 };
 
 export const EVENT_LABEL: Record<EventType, string> = {
-  BOUNTY_AWARDED: "Bounty awarded",
   RECOGNITION_AWARDED: "Recognition",
+  BOUNTY_AWARDED: "Bounty awarded",
+  REPORT_RESOLVED: "Resolved",
+  REPORT_DISCLOSED: "Disclosed",
 };
 
 /** The verb between a researcher and the program on a card. */
