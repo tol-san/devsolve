@@ -64,14 +64,19 @@ export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
           </div>
         </Section>
 
-        <Section title="Impact">
-          <div className="prose dark:prose-invert max-w-none text-foreground">
-            <MarkdownView
-              source={report.impact}
-              className="text-base text-foreground/90 leading-relaxed"
-            />
-          </div>
-        </Section>
+        {report.impact &&
+          report.impact.trim() !== "" &&
+          report.impact !==
+            "Impact information has not been explicitly provided for this report." && (
+            <Section title="Impact">
+              <div className="prose dark:prose-invert max-w-none text-foreground">
+                <MarkdownView
+                  source={report.impact}
+                  className="text-base text-foreground/90 leading-relaxed"
+                />
+              </div>
+            </Section>
+          )}
 
         {report.reproduceSteps.length > 0 && (
           <Section title="Steps to Reproduce">

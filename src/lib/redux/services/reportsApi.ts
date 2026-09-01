@@ -167,10 +167,22 @@ function toBountyDisplay(
   report: ReportApiResponse,
   status: ReportItem["status"]
 ): Pick<ReportItem, "bountyOrRep" | "isBountyHighlight" | "isBountyDim"> {
-  const total = report.rewards?.reduce((sum, reward) => sum + (reward.amount ?? 0), 0) ?? 0;
-  if (total > 0) return { bountyOrRep: `$${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, isBountyHighlight: true };
+  const total =
+    report.rewards?.reduce(
+      (sum, reward) => sum + (Number(reward.amount) || 0),
+      0
+    ) ?? 0;
+  if (total > 0)
+    return {
+      bountyOrRep: `$${total.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
+      isBountyHighlight: true,
+    };
   if (status === "REJECTED") return { bountyOrRep: "$0.00", isBountyDim: true };
-  if (status === "RESOLVED" || status === "ACCEPTED") return { bountyOrRep: "Reputation" };
+  if (status === "RESOLVED" || status === "ACCEPTED")
+    return { bountyOrRep: "Reputation Points", isBountyHighlight: true };
   return { bountyOrRep: "Pending Triage" };
 }
 
@@ -287,6 +299,22 @@ function toReportItem(
     program: programName,
     programId: report.programId,
     organizationId,
+    organizationName:
+      (report as any).organizationName ||
+      (report as any).org_name ||
+      undefined,
+    organizationLogoUrl:
+      (report as any).organizationLogoUrl ||
+      (report as any).org_logo ||
+      undefined,
+    organizationSlug:
+      (report as any).organizationSlug ||
+      (report as any).slug ||
+      undefined,
+    organizationWebsiteUrl:
+      (report as any).organizationWebsiteUrl ||
+      (report as any).website_url ||
+      undefined,
     avatarLetter: programName.slice(0, 1).toUpperCase(),
     type: "Bounty",
     severity: toSeverity(report),

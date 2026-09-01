@@ -100,7 +100,7 @@ export default function ReportDetailPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Header & Status Toggle Bar */}
+      {/* Header Bar */}
       <ReportDetailHeader
         reportId={report.reportId}
         program={report.program}
@@ -108,7 +108,6 @@ export default function ReportDetailPage() {
         submittedAt={report.submittedAt}
         isRejected={isRejected}
         onBack={handleBack}
-        onToggleDemoView={(rejected) => setIsForceRejected(rejected)}
       />
 
       {isRejected ? (
@@ -126,7 +125,7 @@ export default function ReportDetailPage() {
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               {report.title}
             </h2>
-            <ReportStatusTracker />
+            <ReportStatusTracker status={report.status} />
           </div>
 
           {/* Navigation Tabs */}

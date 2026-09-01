@@ -145,7 +145,7 @@ export async function GET(
       }
 
       // Enrich with program details if programId is present
-      if (reportData.programId && !reportData.programName) {
+      if (reportData.programId) {
         try {
           const progRes = await fetch(
             `${BACKEND_API_URL}/programs/${reportData.programId}`,
@@ -160,8 +160,84 @@ export async function GET(
 
           if (progRes.ok) {
             const prog = await progRes.json();
-            reportData.programName = prog.name;
-            reportData.organizationId = prog.organizationId;
+            reportData.programName = prog.name || reportData.programName;
+            reportData.organizationId =
+              prog.organizationId || reportData.organizationId;
+
+            // Fetch organization details if available
+            if (prog.organizationId) {
+              try {
+                const orgRes = await fetch(
+                  `${BACKEND_API_URL}/organizations/${prog.organizationId}`,
+                  {
+                    headers: {
+                      Accept: "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    cache: "no-store",
+                  }
+                );
+                if (orgRes.ok) {
+                  const org = await orgRes.json();
+                  reportData.organizationName = org.name;
+                  reportData.organizationLogoUrl = org.logoUrl;
+                }
+              } catch {
+                // optional enrichment
+              }
+            }
+          }
+        } catch {
+          // optional enrichment
+        }
+      }
+
+      // Enrich with rewards if not already attached
+      if (!reportData.rewards || reportData.rewards.length === 0) {
+        try {
+          const rewRes = await fetch(
+            `${BACKEND_API_URL}/reports/${id}/rewards`,
+            {
+              headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              cache: "no-store",
+            }
+          );
+          if (rewRes.ok) {
+            const rew = await rewRes.json();
+            reportData.rewards = Array.isArray(rew)
+              ? rew
+              : Array.isArray(rew?.content)
+              ? rew.content
+              : [];
+          }
+        } catch {
+          // optional enrichment
+        }
+      }
+
+      // Enrich with attachments if not already attached
+      if (!reportData.attachments || reportData.attachments.length === 0) {
+        try {
+          const attRes = await fetch(
+            `${BACKEND_API_URL}/reports/${id}/attachments`,
+            {
+              headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              cache: "no-store",
+            }
+          );
+          if (attRes.ok) {
+            const att = await attRes.json();
+            reportData.attachments = Array.isArray(att)
+              ? att
+              : Array.isArray(att?.content)
+              ? att.content
+              : [];
           }
         } catch {
           // optional enrichment

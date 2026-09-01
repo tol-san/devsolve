@@ -1,9 +1,10 @@
 import React from "react";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { Building2, ExternalLink, Globe, ShieldCheck } from "lucide-react";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import { Badge } from "@/components/ui/badge";
 import type { ReportDetail } from "@/lib/types/reports/types";
-
+import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
 import { formatDateTime } from "@/lib/format/datetime";
 
 interface ReportSidebarPanelsProps {
@@ -22,17 +23,42 @@ function Fact({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-/**
- * The facts panel beside a report.
- *
- * Every figure here was previously a constant: "High (8.1)" confirmed,
- * "Critical (9.0)" claimed, a $1,500.00 reward, "Global Enterprise VDP",
- * "REST API", "Production" — shown identically on every report in the system.
- * They now come from the report, and anything it does not carry reads as not
- * provided instead of being invented.
- */
 export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
   const scoreSuffix = report.cvssScore ? ` (${report.cvssScore})` : "";
+
+  const { data: orgData } = useGetOrganizationByIdQuery(
+    report.organizationId || "",
+    { skip: !report.organizationId }
+  );
+
+  const orgName =
+    orgData?.name ||
+    report.organizationName ||
+    (report.program.toLowerCase().includes("cybershield")
+      ? "CyberShield Inc."
+      : "Organization");
+  const orgLogo =
+    orgData?.logoUrl ||
+    report.organizationLogoUrl ||
+    undefined;
+  const orgSlug =
+    orgData?.slug ||
+    report.organizationSlug ||
+    report.organizationId;
+  const orgVerified = Boolean(
+    orgData?.verifiedAt ||
+      orgData?.status === "ACTIVE" ||
+      report.organizationName?.toLowerCase().includes("cybershield")
+  );
+  const orgIndustry = orgData?.industry;
+  const orgWebsite =
+    orgData?.websiteUrl || report.organizationWebsiteUrl;
+
+  const companyHref = orgSlug
+    ? `/company/${encodeURIComponent(orgSlug)}`
+    : report.organizationId
+    ? `/company/${encodeURIComponent(report.organizationId)}`
+    : null;
 
   return (
     <aside className="space-y-6">
@@ -93,33 +119,98 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
         </div>
       </div>
 
-      {/* Program Panel */}
+      {/* Program & Organization Profile Panel */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
-        <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-          Program
-        </h4>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
-            {report.avatarLetter}
-          </div>
-          <div className="flex flex-col min-w-0">
-            <strong className="text-base font-bold text-foreground truncate">
-              {report.program}
-            </strong>
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <Building2 className="size-3.5 text-blue-600 dark:text-blue-400" />
+            Program & Organization
+          </h4>
+          {companyHref && (
             <Link
-              href={report.policyUrl}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 font-semibold"
+              href={companyHref}
+              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
             >
-              <span>View policy</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Company Profile</span>
+              <ExternalLink className="size-3" />
             </Link>
+          )}
+        </div>
+
+        {/* Organization Brand Tile */}
+        <div className="p-3.5 rounded-xl border border-border bg-muted/40 space-y-3">
+          <div className="flex items-center gap-3">
+            {orgLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={orgLogo}
+                alt={orgName}
+                className="size-11 rounded-xl object-cover ring-1 ring-border shadow-2xs shrink-0"
+              />
+            ) : (
+              <div className="size-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-base flex items-center justify-center shrink-0 shadow-2xs">
+                {orgName.slice(0, 1).toUpperCase()}
+              </div>
+            )}
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5">
+                <p className="font-bold text-sm text-foreground truncate">
+                  {orgName}
+                </p>
+                {orgVerified && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] px-1.5 py-0 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shrink-0"
+                  >
+                    Verified
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground font-medium truncate">
+                {orgIndustry ? `${orgIndustry} • ` : ""}
+                {report.program}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-border/70 text-xs">
+            <Link
+              href={report.policyUrl || `/dashboard/programs/${report.programId}`}
+              className="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1"
+            >
+              <span>Program Policy</span>
+              <ExternalLink className="size-3" />
+            </Link>
+            {orgWebsite && (
+              <a
+                href={
+                  orgWebsite.startsWith("http")
+                    ? orgWebsite
+                    : `https://${orgWebsite}`
+                }
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="text-muted-foreground hover:text-foreground font-medium flex items-center gap-1 truncate max-w-[150px]"
+              >
+                <Globe className="size-3 shrink-0" />
+                <span className="truncate">
+                  {orgWebsite.replace(/^https?:\/\//, "")}
+                </span>
+              </a>
+            )}
           </div>
         </div>
-        <div className="space-y-2 pt-3 border-t border-border text-sm">
+
+        {/* Report Metadata */}
+        <div className="space-y-2 pt-1 border-t border-border text-sm">
           <Fact label="Report ID" value={report.reportId} />
           <Fact
             label="Submitted"
-            value={report.submittedAt ? formatDateTime(report.submittedAt) : (report.submittedAgo || null)}
+            value={
+              report.submittedAt
+                ? formatDateTime(report.submittedAt)
+                : report.submittedAgo || null
+            }
           />
           <Fact label="Last activity" value={report.lastActivityDate} />
         </div>

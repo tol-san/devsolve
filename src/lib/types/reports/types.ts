@@ -11,6 +11,10 @@ export interface ReportItem {
       `organizationId` also when the program itself could not be read. */
   programId?: string;
   organizationId?: string;
+  organizationName?: string;
+  organizationLogoUrl?: string;
+  organizationSlug?: string;
+  organizationWebsiteUrl?: string;
   avatarLetter: string;
   type: "Bounty" | "Response";
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
