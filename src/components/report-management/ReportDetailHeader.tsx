@@ -27,6 +27,7 @@ import type { ReportManagementDetail } from "@/components/report-management/type
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { MarkdownView } from "@/components/ui/markdown-view";
 import { cn } from "@/lib/utils";
 
 type ReportDetailHeaderProps = {
