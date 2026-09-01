@@ -20,6 +20,8 @@ export interface ProfileStats {
   accepted: number;
   acceptedRate: number; // 0-100
   totalEarned: number;
+  bountyCurrency?: string;
+  rewardedReports?: number;
 }
 
 export interface SeverityStats {

@@ -8,6 +8,18 @@ interface StatsCardsProps {
   stats: ProfileStats;
 }
 
+function formatBountyAmount(amount: number, currency: string = "USD"): string {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "USD",
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${currency || "USD"} ${amount.toLocaleString()}`;
+  }
+}
+
 export default function StatsCards({ stats }: StatsCardsProps) {
   const cards = [
     {
@@ -52,8 +64,11 @@ export default function StatsCards({ stats }: StatsCardsProps) {
     },
     {
       label: "Total Earned",
-      value: `$${stats.totalEarned.toLocaleString()}`,
-      subtext: "Bounty rewards",
+      value: formatBountyAmount(stats.totalEarned, stats.bountyCurrency),
+      subtext:
+        stats.rewardedReports !== undefined
+          ? `${stats.rewardedReports} rewarded ${stats.rewardedReports === 1 ? "report" : "reports"}`
+          : "Bounty rewards",
       icon: DollarSign,
       color: "text-emerald-600 dark:text-emerald-400",
       bgColor: "bg-emerald-500/10",

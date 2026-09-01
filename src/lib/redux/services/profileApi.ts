@@ -55,6 +55,9 @@ interface UserProfileApiResponse {
   validReports?: number;
   criticalReports?: number;
   recognitionCount?: number;
+  totalBountyEarned?: number;
+  bountyCurrency?: string;
+  rewardedReports?: number;
   lastLoginAt?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -351,9 +354,15 @@ function toProfileOverview(
     reportsSubmitted: totalReports,
     accepted: validReports,
     acceptedRate: acceptedRateOf(totalReports, validReports),
-    // Rewards live on the reports themselves, and `/reports/mine` is the only
-    // endpoint that returns any — so this is unknowable for another user.
-    totalEarned: isOwnProfile ? totalEarnedOf(reports) : 0,
+    // Total bounty earned across all programs, provided directly by the backend profile.
+    totalEarned:
+      typeof raw.totalBountyEarned === "number"
+        ? raw.totalBountyEarned
+        : isOwnProfile
+          ? totalEarnedOf(reports)
+          : 0,
+    bountyCurrency: raw.bountyCurrency || "USD",
+    rewardedReports: typeof raw.rewardedReports === "number" ? raw.rewardedReports : 0,
   };
 
   /* Same limitation: a per-severity breakdown needs the individual reports.

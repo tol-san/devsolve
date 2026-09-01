@@ -52,6 +52,9 @@ export interface UserProfileResponse {
   validReports: number;
   criticalReports: number;
   recognitionCount: number;
+  totalBountyEarned?: number;
+  bountyCurrency?: string;
+  rewardedReports?: number;
   lastLoginAt: string;
   createdAt: string;
   updatedAt: string;
@@ -96,6 +99,9 @@ function createFallbackProfile(user: { id?: string; email?: string; name?: strin
     validReports: 0,
     criticalReports: 0,
     recognitionCount: 0,
+    totalBountyEarned: 0,
+    bountyCurrency: "USD",
+    rewardedReports: 0,
     lastLoginAt: new Date().toISOString(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

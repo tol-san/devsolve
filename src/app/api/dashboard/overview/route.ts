@@ -75,8 +75,29 @@ const pageSchema = <T extends z.ZodType>(itemSchema: T) =>
     })
     .passthrough();
 
+const userProfileSchema = z
+  .object({
+    totalBountyEarned: z.number().nullish(),
+    bountyCurrency: z.string().nullish(),
+    rewardedReports: z.number().int().nullish(),
+  })
+  .passthrough();
+
 type ProgramRecord = z.output<typeof programSchema>;
 type ReportRecord = z.output<typeof reportSchema>;
+type UserProfileRecord = z.output<typeof userProfileSchema>;
+
+function formatBountyCurrency(amount: number, currency: string = "USD"): string {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "USD",
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${currency || "USD"} ${amount.toLocaleString()}`;
+  }
+}
 
 async function upstreamJson(path: string, token: string) {
   const response = await upstreamFetch(path, token);
@@ -132,6 +153,7 @@ function dashboardFrom(
   reports: ReportRecord[],
   programs: ProgramRecord[],
   organization?: z.output<typeof organizationSchema>,
+  userProfile?: UserProfileRecord,
 ): DashboardOverviewResponse {
   const programNames = new Map(programs.map((program) => [program.id, program.name]));
   const reportCounts = new Map<string, number>();
@@ -156,6 +178,11 @@ function dashboardFrom(
     ? Math.round((validReports / reports.length) * 100)
     : 0;
   const activePrograms = programs.filter((program) => program.state === "ACTIVE").length;
+
+  const userTotalBounty = userProfile?.totalBountyEarned ?? 0;
+  const userCurrency = userProfile?.bountyCurrency || "USD";
+  const userRewardedReports = userProfile?.rewardedReports ?? 0;
+  const userBountyFormatted = formatBountyCurrency(userTotalBounty, userCurrency);
 
   const stats: StatMetric[] =
     audience === "COMPANY"
@@ -221,8 +248,8 @@ function dashboardFrom(
           {
             id: "earned_bounties",
             title: "Bounties Earned",
-            value: `$${totalRewards.toLocaleString()}`,
-            subtext: `${rewardedReports} rewarded reports`,
+            value: userBountyFormatted,
+            subtext: `${userRewardedReports} rewarded ${userRewardedReports === 1 ? "report" : "reports"}`,
             trend: "neutral",
             type: "total_bounties",
           },
@@ -402,23 +429,27 @@ export async function GET(request: NextRequest) {
   const isCompany = parsedAudience.data === "company";
 
   try {
-    const [reportsResult, programsResult, organizationResult] = await Promise.all([
-      upstreamJson(
+    const [reportsResult, programsResult, organizationResult, userProfileResult] =
+      await Promise.all([
+        upstreamJson(
+          isCompany
+            ? "/reports?size=100&sort=submittedAt,DESC"
+            : "/reports/mine?size=100&sort=submittedAt,DESC",
+          token,
+        ),
         isCompany
-          ? "/reports?size=100&sort=submittedAt,DESC"
-          : "/reports/mine?size=100&sort=submittedAt,DESC",
-        token,
-      ),
-      isCompany
-        ? upstreamJson(
-            "/organizations/me/programs?size=100&sort=updatedAt,DESC",
-            token,
-          )
-        : Promise.resolve(null),
-      isCompany
-        ? upstreamJson("/organizations/me", token)
-        : Promise.resolve(null),
-    ]);
+          ? upstreamJson(
+              "/organizations/me/programs?size=100&sort=updatedAt,DESC",
+              token,
+            )
+          : Promise.resolve(null),
+        isCompany
+          ? upstreamJson("/organizations/me", token)
+          : Promise.resolve(null),
+        !isCompany
+          ? upstreamJson("/user-profiles/me", token)
+          : Promise.resolve(null),
+      ]);
 
     if (!reportsResult.response.ok) {
       return relay(reportsResult.response, "Unable to load dashboard reports.");
@@ -443,6 +474,10 @@ export async function GET(request: NextRequest) {
       isCompany && organizationResult?.response.ok
         ? organizationSchema.safeParse(organizationResult.data)
         : null;
+    const userProfile =
+      !isCompany && userProfileResult?.response.ok
+        ? userProfileSchema.safeParse(userProfileResult.data)
+        : null;
 
     if (!reportsPage.success || !programsPage.success || (organization && !organization.success)) {
       return NextResponse.json(
@@ -457,6 +492,7 @@ export async function GET(request: NextRequest) {
         reportsPage.data.content,
         programsPage.data.content,
         organization?.data,
+        userProfile?.data,
       ),
       { status: 200 },
     );
