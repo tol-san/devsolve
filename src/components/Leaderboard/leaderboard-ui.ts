@@ -80,6 +80,8 @@ export const SEVERITY_STYLES: Record<
 
 export const PERIOD_OPTIONS: { value: LeaderboardPeriod; label: string }[] = [
   { value: "all", label: "All time" },
+  { value: "month", label: "This month" },
+  { value: "week", label: "This week" },
 ];
 
 /** Compact period wording for eyebrows and inline captions. */

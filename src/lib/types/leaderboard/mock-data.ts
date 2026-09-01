@@ -156,8 +156,8 @@ function buildRawEntry(person: Person, index: number, period: LeaderboardPeriod)
     countryCode: person.countryCode,
     countryName: person.countryName,
     reputation,
-    totalReports,
-    validReports,
+    totalReports: period === "all" ? totalReports : null,
+    validReports: period === "all" ? validReports : null,
     criticalReports: critical,
     recognitionCount,
     severity: { critical, high, medium, low },
@@ -243,7 +243,7 @@ export function getHighlights(period: LeaderboardPeriod): LeaderboardHighlight[]
   };
 
   return [
-    pick("valid", "Most valid reports", "valid", (e) => e.validReports),
+    pick("valid", "Most valid reports", "valid", (e) => e.validReports ?? 0),
     pick("critical", "Most criticals found", "critical", (e) => e.criticalReports),
     pick("recognition", "Most recognized", "thanks", (e) => e.recognitionCount),
     pick("climb", "Biggest climber", "places", (e) =>
@@ -254,6 +254,6 @@ export function getHighlights(period: LeaderboardPeriod): LeaderboardHighlight[]
 
 export const mockLeaderboardStats: LeaderboardStats = {
   activeResearchers: PEOPLE.length,
-  validReports: BOARDS.all.reduce((sum, e) => sum + e.validReports, 0),
+  validReports: BOARDS.all.reduce((sum, e) => sum + (e.validReports ?? 0), 0),
   programsLive: 312,
 };

@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Users,
   Building2,
+  ShieldAlert,
   ShieldCheck,
   UserCheck,
   PanelsTopLeft,
@@ -97,6 +98,7 @@ export const NAV_ITEMS: NavItem[] = [
   { name: "Create Program", href: "/dashboard/create-program", icon: PlusCircle, category: "Organization", permissions: ["CREATE_PROGRAM"] },
   { name: "Saved Drafts", href: "/dashboard/saved-draft", icon: FilePen, category: "Organization", permissions: ["VIEW_PROGRAMS"] },
   { name: "Report Management", href: "/dashboard/report-management", icon: ClipboardList, category: "Organization", permissions: ["VIEW_REPORTS", "TRIAGE_REPORTS"] },
+  { name: "Security Incidents", href: "/dashboard/organization-security", icon: ShieldAlert, category: "Organization", permissions: ["TRIAGE_REPORTS"] },
   // Owner-only: the roster and the organization profile are owner endpoints.
   { name: "Team Management", href: "/dashboard/team-management", icon: Users, category: "Organization", ownerOnly: true },
   // The other side of the same gate: who outside the organization may report
@@ -108,6 +110,7 @@ export const NAV_ITEMS: NavItem[] = [
   { name: "Program Review", href: "/dashboard/program-management?scope=admin", icon: Building2, roles: ["ADMIN"], category: "Administration" },
   { name: "Users", href: "/dashboard/users", icon: UserCheck, roles: ["ADMIN"], category: "Administration" },
   { name: "Content Management", href: "/dashboard/content-moderation", icon: PanelsTopLeft, roles: ["ADMIN"], category: "Administration" },
+  { name: "Security Incidents", href: "/dashboard/security-incidents", icon: ShieldAlert, roles: ["ADMIN"], category: "Administration" },
   { name: "Categories", href: "/dashboard/categories", icon: Tags, roles: ["ADMIN"], category: "Administration" },
   { name: "Tags", href: "/dashboard/tags", icon: Tag, roles: ["ADMIN"], category: "Administration" },
   { name: "Weaknesses", href: "/dashboard/weaknesses", icon: Bug, roles: ["ADMIN"], category: "Administration" },

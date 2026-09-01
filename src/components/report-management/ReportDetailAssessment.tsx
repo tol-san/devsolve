@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import {
@@ -11,6 +13,7 @@ import {
 
 import { ReportDetailSectionCard } from "@/components/report-management/ReportDetailSectionCard";
 import type { ReportManagementDetail } from "@/components/report-management/types";
+import { MarkdownView } from "@/components/ui/markdown-view";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -33,9 +36,12 @@ export function ReportDetailAssessment({
           <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-400" />
           Executive Summary
         </h3>
-        <p className="text-sm sm:text-base leading-relaxed text-muted-foreground font-normal">
-          {detail.assessmentSummary}
-        </p>
+        <div className="prose dark:prose-invert max-w-none text-foreground">
+          <MarkdownView
+            source={detail.assessmentSummary}
+            className="text-sm sm:text-base leading-relaxed text-muted-foreground font-normal"
+          />
+        </div>
       </section>
 
       {/* 2. Steps to Reproduce */}
@@ -56,12 +62,12 @@ export function ReportDetailAssessment({
               key={step}
               className="flex items-start gap-3.5 p-3.5 rounded-xl border border-border/80 bg-muted/20 hover:bg-muted/40 transition-colors"
             >
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-xs">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-xs mt-0.5">
                 {idx + 1}
               </span>
-              <p className="text-sm leading-relaxed text-foreground font-medium pt-0.5">
-                {step}
-              </p>
+              <div className="flex-1 min-w-0 text-sm leading-relaxed text-foreground font-medium">
+                <MarkdownView source={step} className="text-sm leading-relaxed" />
+              </div>
             </div>
           ))}
         </div>
@@ -90,7 +96,7 @@ export function ReportDetailAssessment({
           Suggested Remediation
         </h3>
         <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 text-sm sm:text-base leading-relaxed text-foreground/90 space-y-2">
-          <p className="text-sm leading-relaxed">{detail.remediation}</p>
+          <MarkdownView source={detail.remediation} className="text-sm leading-relaxed" />
         </div>
       </section>
 
@@ -110,29 +116,31 @@ export function ReportDetailAssessment({
       )}
 
       {/* 6. Review Action Callout Footer */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-muted/40">
-        <div>
-          <p className="text-sm font-bold text-foreground">
-            Ready to adjust severity & approve?
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Proceed to the severity review step to validate CVSS score, bounty amount, and company notes.
-          </p>
-        </div>
+      {!detail.isReviewed && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-muted/40">
+          <div>
+            <p className="text-sm font-bold text-foreground">
+              Ready to adjust severity & approve?
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Proceed to the severity review step to validate CVSS score, bounty amount, and company notes.
+            </p>
+          </div>
 
-        <Link
-          href={`/dashboard/report-management/${detail.id}/severity-review`}
-          className="shrink-0"
-        >
-          <Button
-            size="sm"
-            className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-4 gap-1.5 cursor-pointer shadow-xs"
+          <Link
+            href={`/dashboard/report-management/${detail.id}/severity-review`}
+            className="shrink-0"
           >
-            <span>Proceed to Severity Review</span>
-            <ArrowRight className="size-3.5" />
-          </Button>
-        </Link>
-      </div>
+            <Button
+              size="sm"
+              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-4 gap-1.5 cursor-pointer shadow-xs"
+            >
+              <span>Proceed to Severity Review</span>
+              <ArrowRight className="size-3.5" />
+            </Button>
+          </Link>
+        </div>
+      )}
     </ReportDetailSectionCard>
   );
 }
@@ -170,9 +178,9 @@ function InsightCard({
           {title}
         </p>
       </div>
-      <p className="text-sm leading-relaxed text-foreground/90 font-medium">
-        {content}
-      </p>
+      <div className="text-sm leading-relaxed text-foreground/90 font-medium">
+        <MarkdownView source={content} className="text-sm leading-relaxed" />
+      </div>
     </div>
   );
 }

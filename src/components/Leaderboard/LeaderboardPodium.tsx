@@ -272,7 +272,9 @@ function PodiumColumn({
               style={{ color: tone.muted }}
             >
               {[
-                { short: "v", label: "valid", value: entry.validReports },
+                ...(entry.validReports != null
+                  ? [{ short: "v", label: "valid", value: entry.validReports }]
+                  : []),
                 { short: "c", label: "critical", value: entry.criticalReports },
                 { short: "t", label: "thanks", value: entry.recognitionCount },
               ].map((stat, i) => (

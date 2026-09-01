@@ -73,7 +73,11 @@ function ReputationPill({ value, isCurrentUser }: { value: number; isCurrentUser
 
 function ResearcherCard({ entry, index }: { entry: LeaderboardEntry; index: number }) {
   const medal = entry.rank <= 3 ? MEDALS[entry.rank - 1] : null;
-  const validRate = Math.round((entry.validReports / entry.totalReports) * 100);
+  const hasValidReports = entry.validReports != null && entry.totalReports != null;
+  const validRate =
+    hasValidReports && entry.totalReports! > 0
+      ? Math.round((entry.validReports! / entry.totalReports!) * 100)
+      : null;
   const flagCode = getCountryFlagCode(entry.countryCode, entry.countryName);
   const countryDisplayName =
     entry.countryName && !entry.countryName.includes(",")
@@ -166,11 +170,16 @@ function ResearcherCard({ entry, index }: { entry: LeaderboardEntry; index: numb
             <span>{entry.topSeverity}</span>
           </span>
 
-          {/* Valid Rate Pill */}
-          <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
-            <CheckCircle2 size={12} className="text-emerald-500" />
-            <span>{entry.validReports} valid ({validRate}%)</span>
-          </span>
+          {/* Valid Rate Pill - Show only when totalReports & validReports are non-null (Lifetime) */}
+          {hasValidReports && (
+            <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
+              <CheckCircle2 size={12} className="text-emerald-500" />
+              <span>
+                {entry.validReports} / {entry.totalReports} valid
+                {validRate !== null ? ` (${validRate}%)` : ""}
+              </span>
+            </span>
+          )}
 
           {/* Critical Count */}
           {entry.criticalReports > 0 && (

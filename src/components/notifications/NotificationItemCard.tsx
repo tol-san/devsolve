@@ -19,6 +19,7 @@ import {
   Loader2,
   Mail,
   MessageSquare,
+  ShieldAlert,
   Sparkles,
   UserPlus,
 } from "lucide-react";
@@ -75,6 +76,8 @@ function getAdminNotificationLink(type: NotificationType, id: string): string {
     case "REPORT":
     case "DISPUTE":
       return "/dashboard/content-moderation?tab=queue";
+    case "SECURITY":
+      return "/dashboard/content-moderation";
     default:
       return "/dashboard";
   }
@@ -111,6 +114,8 @@ function getNotificationLink(
     case "REWARD":
     case "RECOGNITION":
       return `/dashboard/rewards`;
+    case "SECURITY":
+      return id ? `/dashboard/report-management/${id}` : `/dashboard/report-management`;
     case "USER":
       // A follow. The payload carries the actor's uuid and the profile route
       // keys on username, so this opens the reader's own followers instead.
@@ -136,6 +141,8 @@ function getNotificationIcon(type: NotificationType) {
       return <Building className="size-4" />;
     case "REPORT":
       return <AlertTriangle className="size-4" />;
+    case "SECURITY":
+      return <ShieldAlert className="size-4 text-red-500" />;
     case "INVITATION":
       return <Mail className="size-4" />;
     case "KYC":

@@ -41,8 +41,8 @@ interface LeaderboardApiItem {
   avatarUrl?: string;
   country?: string;
   reputation?: number;
-  totalReports?: number;
-  validReports?: number;
+  totalReports?: number | null;
+  validReports?: number | null;
   criticalReports?: number;
   recognitionCount?: number;
 }
@@ -78,11 +78,11 @@ function mapProfileToEntry(
       .toUpperCase() || "AR";
 
   const critical = profile.criticalReports ?? 0;
-  const valid = profile.validReports ?? 0;
-  const total = profile.totalReports ?? 0;
-  const high = Math.max(0, valid - critical);
+  const valid = typeof profile.validReports === "number" ? profile.validReports : null;
+  const total = typeof profile.totalReports === "number" ? profile.totalReports : null;
+  const high = valid != null ? Math.max(0, valid - critical) : 0;
   const topSeverity: SeverityLabel =
-    critical > 0 ? "Critical" : valid > 0 ? "High" : "Low";
+    critical > 0 ? "Critical" : (valid ?? 0) > 0 ? "High" : "Low";
 
   return {
     id: profile.id,
@@ -154,7 +154,7 @@ function countryOptionsOf(entries: LeaderboardEntry[]): LeaderboardCountryOption
 function statsOf(entries: LeaderboardEntry[]): LeaderboardStats {
   return {
     activeResearchers: entries.length,
-    validReports: entries.reduce((sum, entry) => sum + entry.validReports, 0),
+    validReports: entries.reduce((sum, entry) => sum + (entry.validReports ?? 0), 0),
     programsLive: 0,
   };
 }
@@ -217,8 +217,15 @@ export const leaderboardApi = proxyApi.injectEndpoints({
         let myUserId: string | undefined;
 
         try {
+          const apiPeriod =
+            period === "week"
+              ? "WEEK"
+              : period === "month"
+                ? "MONTH"
+                : "ALL_TIME";
+
           const [leaderboardResult, meResult] = await Promise.all([
-            fetchWithBQ(`/reputation/leaderboard`),
+            fetchWithBQ(`/reputation/leaderboard?period=${apiPeriod}`),
             fetchWithBQ(`/user-profiles/me`),
           ]);
 

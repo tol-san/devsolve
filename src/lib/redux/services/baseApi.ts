@@ -13,8 +13,8 @@ const rawBaseQuery = fetchBaseQuery({
   // Never point directly at NEXT_PUBLIC_BACKEND_API_URL from the client.
   baseUrl: "/api",
   // Upstream VirusTotal scanning blocks on attachment uploads and report submissions,
-  // taking up to ~35s-60s. Setting a 75s timeout prevents premature client aborts.
-  timeout: 75000,
+  // taking up to ~95s on never-seen files. Setting a 120s timeout prevents premature client aborts.
+  timeout: 120000,
   prepareHeaders: async (headers) => {
     // The token lives with better-auth against the session cookie, not in
     // localStorage — asking the client for it is the only way to get one.
@@ -137,6 +137,7 @@ export const baseApi = createApi({
     "AdminProblem",
     "AdminSolution",
     "VirusTotal",
+    "SecurityIncident",
   ],
   endpoints: () => ({}),
 });

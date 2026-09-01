@@ -35,8 +35,8 @@ export interface LeaderboardEntry {
   countryName: string;
   /** The sort key. Points, never payout amounts. */
   reputation: number;
-  totalReports: number;
-  validReports: number;
+  totalReports: number | null;
+  validReports: number | null;
   criticalReports: number;
   recognitionCount: number;
   severity: SeverityBreakdown;

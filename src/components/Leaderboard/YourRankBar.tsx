@@ -59,8 +59,12 @@ export default function YourRankBar({
               <span className="font-semibold text-white dark:text-foreground">
                 {formatNumber(entry.reputation)} pts
               </span>
-              <span className="hidden sm:inline text-slate-500 dark:text-muted-foreground/60">·</span>
-              <span>{formatNumber(entry.validReports)} valid</span>
+              {entry.validReports != null && (
+                <>
+                  <span className="hidden sm:inline text-slate-500 dark:text-muted-foreground/60">·</span>
+                  <span>{formatNumber(entry.validReports)} valid</span>
+                </>
+              )}
               <span className="hidden sm:inline text-slate-500 dark:text-muted-foreground/60">·</span>
               <span>{formatNumber(entry.criticalReports)} critical</span>
               <span className="hidden sm:inline text-slate-500 dark:text-muted-foreground/60">·</span>

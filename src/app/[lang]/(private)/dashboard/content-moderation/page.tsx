@@ -57,7 +57,9 @@ import { SolutionReviewQueue } from "@/components/admin/solutions/SolutionReview
 import { useGetShowcaseReviewQueueQuery } from "@/lib/redux/services/admin/showcaseReviewApi";
 import { useGetProblemReviewQueueQuery } from "@/lib/redux/services/admin/problemReviewApi";
 import { useGetAdminSolutionsQuery } from "@/lib/redux/services/admin/solutionAdminApi";
+import { useGetAdminSecurityIncidentsQuery } from "@/lib/redux/services/securityIncidentsApi";
 import { FlagDetailSheet } from "@/components/admin/FlagDetailSheet";
+import { SecurityIncidentsTable } from "@/components/security-incidents/SecurityIncidentsTable";
 import type { ModerationActionType } from "@/lib/types/admin/types";
 import { cn } from "@/lib/utils";
 
@@ -71,7 +73,7 @@ import { cn } from "@/lib/utils";
  * a page nothing linked to.
  */
 
-type TabId = "queue" | "showcases" | "problems" | "solutions" | "history";
+type TabId = "queue" | "showcases" | "problems" | "solutions" | "security" | "history";
 
 const TABS: {
   value: TabId;
@@ -85,6 +87,13 @@ const TABS: {
     icon: ShieldAlert,
     blurb:
       "Content the community flagged. It is already public, so acting here takes something down or warns its author.",
+  },
+  {
+    value: "security",
+    label: "Malware Incidents",
+    icon: ShieldAlert,
+    blurb:
+      "Uploads refused and discarded by the VirusTotal security guard across all bounty programs and platform attachments.",
   },
   {
     value: "showcases",
@@ -161,6 +170,9 @@ function ContentManagement() {
     reviewStatus: "PENDING",
     pageSize: 1,
   });
+  const { data: securityQueue } = useGetAdminSecurityIncidentsQuery({
+    size: 1,
+  });
 
   const reportsList = useMemo(() => data?.items ?? [], [data]);
   const breakdown = data?.breakdown;
@@ -175,6 +187,7 @@ function ContentManagement() {
     showcases: showcaseQueue?.totalElements ?? 0,
     problems: problemQueue?.totalElements ?? 0,
     solutions: solutionQueue?.totalElements ?? 0,
+    security: securityQueue?.totalElements ?? 0,
     history: undefined,
   };
 
@@ -605,6 +618,8 @@ function ContentManagement() {
         <ProblemReviewQueue />
       ) : activeTab === "solutions" ? (
         <SolutionReviewQueue />
+      ) : activeTab === "security" ? (
+        <SecurityIncidentsTable scope="admin" />
       ) : (
         <ModerationHistoryTable />
       )}

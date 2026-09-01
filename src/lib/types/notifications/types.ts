@@ -15,7 +15,8 @@ export type NotificationType =
   | "RECOGNITION"
   | "SHOWCASE"
   | "USER"
-  | "REWARD";
+  | "REWARD"
+  | "SECURITY";
 
 export interface Notification {
   id: string | null; // UUID — null only on bulk follower SSE push events

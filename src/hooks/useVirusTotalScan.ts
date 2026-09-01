@@ -41,8 +41,8 @@ export interface ScanResult {
   pollAttempts: number;
 }
 
-const POLL_DELAYS_MS = [5000, 10000, 20000];
-const MAX_POLL_ATTEMPTS = 3;
+const POLL_DELAYS_MS = [5000, 10000, 15000, 20000, 20000, 25000];
+const MAX_POLL_ATTEMPTS = 6;
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -237,15 +237,15 @@ export function useVirusTotalScan() {
         }
       }
 
-      // Max attempts reached while still PENDING -> treat as unknown/timed out, allow proceed
+      // Max attempts reached while still PENDING -> treat as timed out (fail-closed)
       return {
         id: analysisId,
         target: targetName,
         type,
         state: "timed_out",
         verdict: "UNKNOWN",
-        message: "Scan did not complete in time. Proceeding safely.",
-        isSafeToProceed: true,
+        message: "Security scan did not return a final verdict in time. Unscanned content cannot be accepted; please try again.",
+        isSafeToProceed: false,
         pollAttempts: attempts,
       };
     },

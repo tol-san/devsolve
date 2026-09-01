@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MarkdownView } from "@/components/ui/markdown-view";
 import { ReportSidebarPanels } from "@/components/reports/ReportSidebarPanels";
 import type { ReportDetail } from "@/lib/types/reports/types";
 import {
@@ -43,7 +44,7 @@ function Section({
 }
 
 /**
- * Everything the reporter wrote, as they wrote it.
+ * Everything the reporter wrote, rendered with full Markdown support.
  */
 export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
   const hasEvidence = report.attachments.length > 0;
@@ -55,22 +56,35 @@ export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
       {/* Left Column: Main Content */}
       <main className="lg:col-span-2 space-y-6">
         <Section title="Description">
-          <p className="text-base text-foreground/90 leading-relaxed whitespace-pre-wrap">
-            {report.description}
-          </p>
+          <div className="prose dark:prose-invert max-w-none text-foreground">
+            <MarkdownView
+              source={report.description}
+              className="text-base text-foreground/90 leading-relaxed"
+            />
+          </div>
         </Section>
 
         <Section title="Impact">
-          <p className="text-base text-foreground/90 leading-relaxed whitespace-pre-wrap">
-            {report.impact}
-          </p>
+          <div className="prose dark:prose-invert max-w-none text-foreground">
+            <MarkdownView
+              source={report.impact}
+              className="text-base text-foreground/90 leading-relaxed"
+            />
+          </div>
         </Section>
 
         {report.reproduceSteps.length > 0 && (
           <Section title="Steps to Reproduce">
-            <div className="space-y-2 text-base text-foreground/90 leading-relaxed whitespace-pre-wrap">
+            <div className="space-y-2.5 text-base text-foreground/90 leading-relaxed">
               {report.reproduceSteps.map((step, index) => (
-                <p key={index}>{step}</p>
+                <div key={index} className="flex items-start gap-2.5">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-600/10 text-blue-600 dark:text-blue-400 font-bold text-xs mt-0.5">
+                    {index + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <MarkdownView source={step} className="text-sm sm:text-base leading-relaxed" />
+                  </div>
+                </div>
               ))}
             </div>
           </Section>
@@ -86,9 +100,12 @@ export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
 
         {report.remediation && (
           <Section title="Suggested Remediation">
-            <p className="text-base text-foreground/90 leading-relaxed whitespace-pre-wrap">
-              {report.remediation}
-            </p>
+            <div className="prose dark:prose-invert max-w-none text-foreground">
+              <MarkdownView
+                source={report.remediation}
+                className="text-base text-foreground/90 leading-relaxed"
+              />
+            </div>
           </Section>
         )}
 
