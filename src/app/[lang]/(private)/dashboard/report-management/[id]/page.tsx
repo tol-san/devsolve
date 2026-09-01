@@ -13,21 +13,40 @@ import { ReportDetailSidebar } from "@/components/report-management/ReportDetail
 import { ReportDetailTargetScope } from "@/components/report-management/ReportDetailTargetScope";
 import {
   buildReportDetailFromManagedReport,
+  buildReportManagementDetailFromApiReport,
   findManagedReportByRouteId,
   getReportDetailById,
 } from "@/components/report-management/mock-data";
-import { useGetManagedReportsQuery } from "@/lib/redux/services/reportsApi";
+import {
+  useGetManagedReportsQuery,
+  useGetReportByIdQuery,
+} from "@/lib/redux/services/reportsApi";
 
 export default function ReportManagementDetailPage() {
   const params = useParams<{ id: string }>();
-  const { data: managedReports = [], isLoading } = useGetManagedReportsQuery();
+  const reportId = params?.id ?? "";
 
-  const liveReport = findManagedReportByRouteId(managedReports, params.id);
-  const detail = liveReport
-    ? buildReportDetailFromManagedReport(liveReport)
-    : getReportDetailById(params.id);
+  const { data: apiReport, isLoading: isReportLoading } = useGetReportByIdQuery(
+    reportId,
+    { skip: !reportId }
+  );
+  const { data: managedReports = [], isLoading: isListLoading } =
+    useGetManagedReportsQuery();
 
-  if (isLoading && !detail) {
+  const detail = React.useMemo(() => {
+    if (apiReport) {
+      return buildReportManagementDetailFromApiReport(apiReport);
+    }
+    const liveReport = findManagedReportByRouteId(managedReports, reportId);
+    if (liveReport) {
+      return buildReportDetailFromManagedReport(liveReport);
+    }
+    return getReportDetailById(reportId);
+  }, [apiReport, managedReports, reportId]);
+
+  const isLoading = (isReportLoading || isListLoading) && !detail;
+
+  if (isLoading) {
     return (
       <div className="space-y-6 w-full pb-12 animate-pulse">
         {/* Skeleton Header */}

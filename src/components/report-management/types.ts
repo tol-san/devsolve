@@ -33,6 +33,8 @@ export type ReportManagementDetail = {
   submitterId?: string;
   type: ReportType;
   status: ReportStatus;
+  isReviewed?: boolean;
+  rawStatus?: "SUBMITTED" | "TRIAGING" | "ACCEPTED" | "RESOLVED" | "REJECTED";
   severity: ReportSeverity;
   cvssScore: string;
   submittedDate: string;

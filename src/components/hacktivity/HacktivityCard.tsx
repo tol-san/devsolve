@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Award, Bug, Lock, ShieldAlert, Sparkles } from "lucide-react";
+import { Award, Bug, Clock, Lock, ShieldAlert, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRelativeTime } from "@/lib/i18n/relative-time";
 import type { HacktivityActivity } from "@/lib/types/hacktivity/types";
@@ -123,21 +123,27 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
             </div>
           </div>
 
-          {/* What */}
-          {activity.title ? (
-            <h3 className="text-base font-semibold leading-snug text-foreground text-pretty">
+          {/* What: Driven by disclosureStatus */}
+          {activity.disclosureStatus === "DISCLOSED" && activity.title ? (
+            <h3 className="text-base font-bold leading-snug text-foreground text-pretty">
               {activity.title}
             </h3>
-          ) : (
-            <p className="flex items-center gap-2 text-base font-medium text-muted-foreground">
-              <Lock aria-hidden className="size-4 shrink-0" />
-              <span>
-                Report not yet disclosed
-                {activity.disclosureStatus === "PENDING_DISCLOSURE"
-                  ? " — disclosure pending"
-                  : ""}
+          ) : activity.disclosureStatus === "PENDING_DISCLOSURE" ? (
+            <div className="flex items-center gap-2 text-sm sm:text-base font-medium text-amber-700 dark:text-amber-300">
+              <Clock aria-hidden className="size-4 shrink-0 text-amber-500 animate-pulse" />
+              <span className="font-semibold">Disclosure pending</span>
+              <span className="text-xs text-muted-foreground font-normal hidden sm:inline">
+                — public disclosure requested and awaiting publication
               </span>
-            </p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm sm:text-base font-medium text-muted-foreground">
+              <Lock aria-hidden className="size-4 shrink-0 text-muted-foreground/80" />
+              <span className="font-medium">Undisclosed finding</span>
+              <span className="text-xs text-muted-foreground/70 font-normal hidden sm:inline">
+                — vulnerability details remain confidential
+              </span>
+            </div>
           )}
 
           {activity.recognition ? (

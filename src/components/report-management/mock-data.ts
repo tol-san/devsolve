@@ -348,6 +348,102 @@ export function buildReportDetailFromManagedReport(
   };
 }
 
+export function buildReportManagementDetailFromApiReport(
+  report: import("@/lib/types/reports/types").ReportDetail,
+): ReportManagementDetail {
+  const sevMap: Record<string, import("@/components/report-management/types").ReportSeverity> = {
+    CRITICAL: "Critical",
+    HIGH: "High",
+    MEDIUM: "Medium",
+    LOW: "Low",
+  };
+  const severity = sevMap[report.severity] || "Medium";
+  const isReviewed =
+    report.status === "ACCEPTED" ||
+    report.status === "RESOLVED" ||
+    report.status === "REJECTED";
+
+  const status: import("@/components/report-management/types").ReportStatus =
+    isReviewed ? "Closed" : "Open";
+
+  const submittedDate = report.submittedAt
+    ? new Date(report.submittedAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : report.submittedAgo || "Recently";
+
+  const attachments = (report.attachments || []).map((att) => {
+    const isImg =
+      att.type?.startsWith("image/") ||
+      /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(att.name);
+    return {
+      name: att.name,
+      kind: (isImg ? "image" : "file") as "image" | "file",
+      url: att.url,
+      size: att.size,
+    };
+  });
+
+  return {
+    id: report.id,
+    reportId: report.reportId || `RPT-${report.id.slice(0, 8).toUpperCase()}`,
+    title: report.title || "Vulnerability Report",
+    programLogo: "/tiktok.png",
+    submitter: "Security Researcher",
+    submitterInitials: "SR",
+    submitterEmail: "researcher@devsolve.io",
+    type: report.type || "Bounty",
+    status,
+    isReviewed,
+    rawStatus: report.status,
+    severity,
+    cvssScore: report.cvssScore || "N/A",
+    submittedDate,
+    bountyRange: report.bountyOrRep || "$500 - $2,500",
+    summary: report.description || "No description provided.",
+    assets: report.targetEndpoint ? [report.targetEndpoint] : [report.program || "Target Asset"],
+    affectedUrl: report.targetEndpoint || "https://api.target.com",
+    httpMethod: "GET",
+    parameter: "vulnerable_param",
+    environment: report.environment || "Production",
+    environmentNote:
+      report.environment === "PRODUCTION"
+        ? "Live production environment"
+        : "Staging / QA environment",
+    vulnerabilityType: report.weakness || "Vulnerability Finding",
+    cweIdentifier: report.weakness || "CWE-Unclassified",
+    vectorString: report.cvssVector || "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    assessmentSummary: report.description || "No assessment summary.",
+    reproductionSteps:
+      report.reproduceSteps && report.reproduceSteps.length > 0
+        ? report.reproduceSteps
+        : [report.description || "Follow steps described in summary."],
+    impact: report.impact || "Direct security and operational impact on target environment.",
+    rootCause: "Insufficient server-side authorization or input validation.",
+    remediation: report.remediation || "Implement defensive authorization and validation checks.",
+    analystTip: "Validate vulnerability fix against current deployment.",
+    proofRequestLanguage: "HTTP",
+    proofRequest:
+      report.proofOfConcept ||
+      (report.reproduceSteps && report.reproduceSteps.length > 0
+        ? report.reproduceSteps.join("\n")
+        : "No raw request payload provided."),
+    expectedResult: "Endpoint should reject unauthorized or invalid access.",
+    actualResult: "Endpoint processed unauthorized request with sensitive data returned.",
+    attachments,
+    externalDocumentation:
+      report.referenceLinks && report.referenceLinks.length > 0
+        ? report.referenceLinks[0]
+        : "No external documentation provided",
+    internalAssetLink: report.targetEndpoint || report.program || "Asset identifier",
+    relatedReport: "#RPT-NONE",
+  };
+}
+
 export function getReportDetailById(id: string): ReportManagementDetail {
   const matchedReport = findManagedReportByRouteId(MANAGED_REPORTS, id);
 

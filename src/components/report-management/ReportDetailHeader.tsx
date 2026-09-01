@@ -33,22 +33,62 @@ type ReportDetailHeaderProps = {
   detail: ReportManagementDetail;
 };
 
-function getStatusBadge(status: ReportManagementDetail["status"]) {
-  return status === "Open" ? (
+function getStatusBadge(detail: ReportManagementDetail) {
+  if (detail.rawStatus === "ACCEPTED") {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+      >
+        <CheckCircle2 className="size-3.5 text-emerald-500" />
+        TRIAGED & ACCEPTED
+      </Badge>
+    );
+  }
+
+  if (detail.rawStatus === "RESOLVED") {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+      >
+        <ShieldCheck className="size-3.5 text-purple-500" />
+        RESOLVED & PAID
+      </Badge>
+    );
+  }
+
+  if (detail.rawStatus === "REJECTED") {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-red-500/10 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+      >
+        <X className="size-3.5 text-red-500" />
+        REJECTED
+      </Badge>
+    );
+  }
+
+  if (detail.isReviewed || detail.status === "Closed") {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+      >
+        <CheckCircle2 className="size-3.5 text-emerald-500" />
+        TRIAGED
+      </Badge>
+    );
+  }
+
+  return (
     <Badge
       variant="outline"
-      className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+      className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
     >
-      <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
-      OPEN
-    </Badge>
-  ) : (
-    <Badge
-      variant="outline"
-      className="bg-muted text-muted-foreground border-border font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
-    >
-      <ShieldCheck className="size-3.5" />
-      CLOSED
+      <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 animate-pulse" />
+      PENDING REVIEW
     </Badge>
   );
 }
@@ -62,27 +102,27 @@ function getSeverityBadge(
       return (
         <Badge className="bg-red-600 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
           <ShieldAlert className="size-3.5" />
-          CRITICAL {cvssScore ? `(${cvssScore})` : ""}
+          CRITICAL {cvssScore && cvssScore !== "N/A" ? `(${cvssScore})` : ""}
         </Badge>
       );
     case "High":
       return (
         <Badge className="bg-orange-500 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
           <CircleAlert className="size-3.5" />
-          HIGH {cvssScore ? `(${cvssScore})` : ""}
+          HIGH {cvssScore && cvssScore !== "N/A" ? `(${cvssScore})` : ""}
         </Badge>
       );
     case "Medium":
       return (
         <Badge className="bg-amber-500 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
           <CircleAlert className="size-3.5" />
-          MEDIUM {cvssScore ? `(${cvssScore})` : ""}
+          MEDIUM {cvssScore && cvssScore !== "N/A" ? `(${cvssScore})` : ""}
         </Badge>
       );
     default:
       return (
         <Badge className="bg-blue-600 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
-          LOW {cvssScore ? `(${cvssScore})` : ""}
+          LOW {cvssScore && cvssScore !== "N/A" ? `(${cvssScore})` : ""}
         </Badge>
       );
   }
@@ -142,15 +182,37 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <span>Preview Summary</span>
           </Button>
 
-          <Link href={`/dashboard/report-management/${detail.id}/severity-review`}>
-            <Button
-              size="sm"
-              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-3.5 gap-1.5 cursor-pointer shadow-xs"
-            >
-              <CheckCircle2 className="size-3.5" />
-              <span>Review & Adjust Severity</span>
-            </Button>
-          </Link>
+          {detail.isReviewed ? (
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="h-9 px-3 gap-1.5 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center"
+              >
+                <CheckCircle2 className="size-3.5 text-emerald-500" />
+                <span>Review Completed</span>
+              </Badge>
+
+              <Link href={`/dashboard/report-management/${detail.id}/severity-review`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3 gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <span>Edit Severity</span>
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <Link href={`/dashboard/report-management/${detail.id}/severity-review`}>
+              <Button
+                size="sm"
+                className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-3.5 gap-1.5 cursor-pointer shadow-xs"
+              >
+                <CheckCircle2 className="size-3.5" />
+                <span>Review & Adjust Severity</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -191,7 +253,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               <div className="flex-1 overflow-auto p-5 sm:p-6 space-y-4 text-sm leading-relaxed">
                 <div className="flex flex-wrap items-center gap-2">
                   {getSeverityBadge(detail.severity, detail.cvssScore)}
-                  {getStatusBadge(detail.status)}
+                  {getStatusBadge(detail)}
                   <span className="text-xs text-muted-foreground">
                     Submitted by <strong>{detail.submitter}</strong> on {detail.submittedDate}
                   </span>
@@ -243,7 +305,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                     className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 gap-1.5"
                   >
                     <CheckCircle2 className="size-3.5" />
-                    <span>Open Severity Review</span>
+                    <span>{detail.isReviewed ? "Edit Severity Review" : "Open Severity Review"}</span>
                   </Button>
                 </Link>
               </div>
@@ -267,7 +329,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
 
               {getSeverityBadge(detail.severity, detail.cvssScore)}
 
-              {getStatusBadge(detail.status)}
+              {getStatusBadge(detail)}
 
               <Badge
                 variant="outline"

@@ -24,15 +24,26 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { AttachedFile } from "@/components/reports/FileUploadDropzone";
+
+export interface AttachmentItem {
+  id?: string;
+  name: string;
+  size?: string;
+  type?: string;
+  url?: string;
+  file?: File;
+  previewUrl?: string;
+}
 
 interface AttachmentPreviewModalProps {
-  attachedFile: AttachedFile | null;
+  attachment?: AttachmentItem | null;
+  attachedFile?: AttachmentItem | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function AttachmentPreviewModal({
+  attachment,
   attachedFile,
   isOpen,
   onClose,
@@ -43,31 +54,50 @@ export function AttachmentPreviewModal({
   const [copied, setCopied] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const file = attachedFile?.file;
-  const fileName = attachedFile?.name || "Attachment";
+  const active = attachment || attachedFile || null;
+  const file = active?.file;
+  const fileName = active?.name || "Attachment";
   const fileExt = fileName.split(".").pop()?.toLowerCase() || "";
-  const isImage = /^(png|jpg|jpeg|webp|gif|svg)$/i.test(fileExt);
-  const isText = /^(txt|log|json|xml|csv|md|js|ts|py|sh)$/i.test(fileExt);
-  const isPdf = fileExt === "pdf";
-
-  // Generate object URL for preview
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const isImage =
+    /^(png|jpg|jpeg|webp|gif|svg)$/i.test(fileExt) ||
+    Boolean(active?.type?.startsWith("image/"));
+  const isText =
+    /^(txt|log|json|xml|csv|md|js|ts|py|sh)$/i.test(fileExt) ||
+    Boolean(active?.type?.includes("text") || active?.type?.includes("json"));
+  const isPdf =
+    fileExt === "pdf" || Boolean(active?.type?.includes("pdf"));
 
   useEffect(() => {
-    if (isOpen && file) {
-      const url = URL.createObjectURL(file);
-      setObjectUrl(url);
-      setZoom(1);
-      setRotation(0);
-      setCopied(false);
+    if (!isOpen || !active) {
+      setObjectUrl(null);
+      setTextContent(null);
+      return;
+    }
 
-      if (isText) {
-        setIsLoadingText(true);
+    let urlToUse: string | null = null;
+    let shouldRevoke = false;
+
+    if (file) {
+      urlToUse = URL.createObjectURL(file);
+      shouldRevoke = true;
+    } else if (active.previewUrl || active.url) {
+      urlToUse = active.previewUrl || active.url || null;
+    }
+
+    setObjectUrl(urlToUse);
+    setZoom(1);
+    setRotation(0);
+    setCopied(false);
+
+    if (isText) {
+      setIsLoadingText(true);
+      if (file) {
         file
           .text()
           .then((text) => {
@@ -78,22 +108,35 @@ export function AttachmentPreviewModal({
             setTextContent("Could not load text content.");
             setIsLoadingText(false);
           });
+      } else if (urlToUse) {
+        fetch(urlToUse)
+          .then((res) => res.text())
+          .then((text) => {
+            setTextContent(text);
+            setIsLoadingText(false);
+          })
+          .catch(() => {
+            setTextContent("Could not load remote text content.");
+            setIsLoadingText(false);
+          });
       } else {
-        setTextContent(null);
+        setTextContent("Preview not available for this text file.");
+        setIsLoadingText(false);
       }
-
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-
-      return () => {
-        URL.revokeObjectURL(url);
-        document.body.style.overflow = originalOverflow;
-      };
     } else {
-      setObjectUrl(null);
       setTextContent(null);
     }
-  }, [isOpen, file, isText]);
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      if (shouldRevoke && urlToUse) {
+        URL.revokeObjectURL(urlToUse);
+      }
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen, file, active, isText]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -118,16 +161,18 @@ export function AttachmentPreviewModal({
   };
 
   const handleDownload = () => {
-    if (!objectUrl || !file) return;
+    if (!objectUrl) return;
     const a = document.createElement("a");
     a.href = objectUrl;
     a.download = fileName;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   };
 
-  if (!mounted || !isOpen || !attachedFile) return null;
+  if (!mounted || !isOpen || !active) return null;
 
   return createPortal(
     <AnimatePresence>
@@ -172,9 +217,11 @@ export function AttachmentPreviewModal({
                     {fileExt || "FILE"}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground font-mono">
-                  {attachedFile.size}
-                </p>
+                {active.size && (
+                  <p className="text-xs text-muted-foreground font-mono">
+                    {active.size}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -221,7 +268,7 @@ export function AttachmentPreviewModal({
                 variant="ghost"
                 size="icon-sm"
                 onClick={onClose}
-                className="size-8 rounded-xl text-muted-foreground hover:text-foreground"
+                className="size-8 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
                 title="Close (Esc)"
               >
                 <X className="size-4" />
@@ -330,7 +377,7 @@ export function AttachmentPreviewModal({
             )}
 
             {/* 4. Document / Generic Fallback */}
-            {!isImage && !isText && !isPdf && (
+            {(!isImage || !objectUrl) && (!isText || (!textContent && !isLoadingText)) && (!isPdf || !objectUrl) && (
               <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
                 <div className="size-16 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center">
                   <FileIcon className="size-8" />
@@ -338,17 +385,17 @@ export function AttachmentPreviewModal({
                 <div className="space-y-1">
                   <h4 className="font-bold text-foreground text-base">{fileName}</h4>
                   <p className="text-xs text-muted-foreground">
-                    This file format cannot be rendered inline in the browser.
+                    This file format can be downloaded and opened with external tools.
                   </p>
                 </div>
                 {objectUrl && (
                   <Button
                     type="button"
                     onClick={handleDownload}
-                    className="rounded-xl h-10 px-5 gap-2 font-semibold"
+                    className="rounded-xl h-10 px-5 gap-2 font-semibold cursor-pointer"
                   >
                     <Download className="size-4" />
-                    <span>Download to View ({attachedFile.size})</span>
+                    <span>Download {fileName}</span>
                   </Button>
                 )}
               </div>

@@ -66,49 +66,79 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
         </CardHeader>
 
         <CardContent className="p-5 space-y-4">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Review findings, validate CVSS scoring, and assign appropriate bounty rewards.
-          </p>
-
-          <div className="space-y-2.5 pt-1">
-            <Link
-              href={`/dashboard/report-management/${detail.id}/severity-review`}
-              className="block"
-            >
-              <Button
-                className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 font-semibold text-white text-xs gap-2 cursor-pointer shadow-xs"
+          {detail.isReviewed ? (
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
+                <CheckCircle2 className="size-4 text-emerald-500" />
+                <span>Triage Decision Recorded</span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                This finding has been reviewed. Severity is confirmed as{" "}
+                <strong className="text-foreground">{detail.severity}</strong>{" "}
+                {detail.cvssScore && detail.cvssScore !== "N/A"
+                  ? `(${detail.cvssScore} CVSS)`
+                  : ""}.
+              </p>
+              <Link
+                href={`/dashboard/report-management/${detail.id}/severity-review`}
+                className="block pt-1"
               >
-                <CheckCircle2 className="size-4" />
-                <span>Accept & Adjust Severity</span>
-              </Button>
-            </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-8 text-xs font-semibold rounded-lg border-border hover:bg-muted"
+                >
+                  Adjust / Re-evaluate Severity
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Review findings, validate CVSS scoring, and assign appropriate bounty rewards.
+              </p>
 
-            <a
-              href={`mailto:${contactEmail}?subject=Information request regarding report #${detail.reportId}`}
-              className="block"
-            >
-              <Button
-                variant="outline"
-                className="w-full h-10 rounded-xl border-border bg-card hover:bg-muted font-semibold text-foreground text-xs gap-2 cursor-pointer shadow-2xs"
-              >
-                <AlertCircle className="size-4 text-amber-500" />
-                <span>Request Information</span>
-              </Button>
-            </a>
+              <div className="space-y-2.5 pt-1">
+                <Link
+                  href={`/dashboard/report-management/${detail.id}/severity-review`}
+                  className="block"
+                >
+                  <Button
+                    className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 font-semibold text-white text-xs gap-2 cursor-pointer shadow-xs"
+                  >
+                    <CheckCircle2 className="size-4" />
+                    <span>Accept & Adjust Severity</span>
+                  </Button>
+                </Link>
 
-            <Link
-              href={`/dashboard/report-management/${detail.id}/severity-review?action=reject`}
-              className="block"
-            >
-              <Button
-                variant="outline"
-                className="w-full h-10 rounded-xl border-red-500/20 bg-red-500/5 hover:bg-red-500/15 font-semibold text-red-600 dark:text-red-400 text-xs gap-2 cursor-pointer shadow-2xs"
-              >
-                <XCircle className="size-4" />
-                <span>Reject Submission</span>
-              </Button>
-            </Link>
-          </div>
+                <a
+                  href={`mailto:${contactEmail}?subject=Information request regarding report #${detail.reportId}`}
+                  className="block"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 rounded-xl border-border bg-card hover:bg-muted font-semibold text-foreground text-xs gap-2 cursor-pointer shadow-2xs"
+                  >
+                    <AlertCircle className="size-4 text-amber-500" />
+                    <span>Request Information</span>
+                  </Button>
+                </a>
+
+                <Link
+                  href={`/dashboard/report-management/${detail.id}/severity-review?action=reject`}
+                  className="block"
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 rounded-xl border-red-500/20 bg-red-500/5 hover:bg-red-500/15 font-semibold text-red-600 dark:text-red-400 text-xs gap-2 cursor-pointer shadow-2xs"
+                  >
+                    <XCircle className="size-4" />
+                    <span>Reject Submission</span>
+                  </Button>
+                </Link>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
