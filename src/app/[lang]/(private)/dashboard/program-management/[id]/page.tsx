@@ -148,11 +148,14 @@ function ProgramDetailPageContent({
 
   const isStateChanging =
     isPublishing || isClosing || isPausing || isResuming || isActionLoading;
+  const isActionInProgressRef = React.useRef(false);
 
   const handleUpdateVisibility = async (
     visibility: "PUBLIC" | "PRIVATE" | "INVITE_ONLY"
   ) => {
     if (program?.visibility === visibility) return;
+    if (isActionInProgressRef.current) return;
+    isActionInProgressRef.current = true;
     try {
       setIsActionLoading(true);
       await updateProgramVisibility({ id, visibility }).unwrap();
@@ -160,33 +163,42 @@ function ProgramDetailPageContent({
       refetch();
     } catch (err: unknown) {
       const message = (err as { data?: { message?: string } })?.data?.message;
-      toast.error(message || "Failed to update program visibility.");
+      toast.error(message || "Failed to update visibility.");
     } finally {
       setIsActionLoading(false);
+      isActionInProgressRef.current = false;
     }
   };
 
-  const handleApprove = async () => {
+  const handleApproveConfirm = async (reason: string) => {
+    if (isActionInProgressRef.current) return;
+    isActionInProgressRef.current = true;
     try {
       setIsActionLoading(true);
-      await approveProgram({ id }).unwrap();
-      toast.success(`Program "${program?.name || ""}" approved successfully!`);
-      setApproveDialogOpen(false);
+      await approveProgram({ id, reason }).unwrap();
       refetch();
-    } catch (err: unknown) {
-      const message = (err as { data?: { message?: string } })?.data?.message;
-      toast.error(message || "Failed to approve program.");
     } finally {
       setIsActionLoading(false);
+      isActionInProgressRef.current = false;
     }
   };
 
   const handleRejectConfirm = async (reason: string) => {
-    await rejectProgram({ id, reason }).unwrap();
-    refetch();
+    if (isActionInProgressRef.current) return;
+    isActionInProgressRef.current = true;
+    try {
+      setIsActionLoading(true);
+      await rejectProgram({ id, reason }).unwrap();
+      refetch();
+    } finally {
+      setIsActionLoading(false);
+      isActionInProgressRef.current = false;
+    }
   };
 
   const handlePublishProgram = async () => {
+    if (isActionInProgressRef.current) return;
+    isActionInProgressRef.current = true;
     try {
       setIsActionLoading(true);
       await publishProgram(id).unwrap();
@@ -200,10 +212,13 @@ function ProgramDetailPageContent({
       toast.error(message || "Failed to publish program.");
     } finally {
       setIsActionLoading(false);
+      isActionInProgressRef.current = false;
     }
   };
 
   const handlePauseProgram = async () => {
+    if (isActionInProgressRef.current) return;
+    isActionInProgressRef.current = true;
     try {
       setIsActionLoading(true);
       await pauseProgram(id).unwrap();
@@ -216,10 +231,13 @@ function ProgramDetailPageContent({
       toast.error(message || "Failed to pause program.");
     } finally {
       setIsActionLoading(false);
+      isActionInProgressRef.current = false;
     }
   };
 
   const handleResumeProgram = async () => {
+    if (isActionInProgressRef.current) return;
+    isActionInProgressRef.current = true;
     try {
       setIsActionLoading(true);
       await resumeProgram(id).unwrap();
@@ -232,10 +250,13 @@ function ProgramDetailPageContent({
       toast.error(message || "Failed to resume program.");
     } finally {
       setIsActionLoading(false);
+      isActionInProgressRef.current = false;
     }
   };
 
   const handleCloseProgram = async () => {
+    if (isActionInProgressRef.current) return;
+    isActionInProgressRef.current = true;
     try {
       setIsActionLoading(true);
       await closeProgram(id).unwrap();
@@ -248,6 +269,7 @@ function ProgramDetailPageContent({
       toast.error(message || "Failed to close program.");
     } finally {
       setIsActionLoading(false);
+      isActionInProgressRef.current = false;
     }
   };
 
@@ -452,13 +474,6 @@ function ProgramDetailPageContent({
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           ACTIVE
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={handlePauseProgram}
-                          className="cursor-pointer font-semibold text-amber-600 dark:text-amber-400 gap-2 rounded-xl text-xs"
-                        >
-                          <PauseCircle className="w-4 h-4" />
-                          PAUSE
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={handleCloseProgram}

@@ -1,11 +1,10 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import {
   bearerTokenFor,
   relay,
   unauthorized,
   unreachable,
   upstreamFetch,
-  BACKEND_API_URL,
 } from "@/lib/api/proxy";
 
 export async function PATCH(
@@ -18,30 +17,9 @@ export async function PATCH(
   const { id } = await params;
 
   try {
-    const candidates = [
-      `/programs/${id}/publish`,
-      `/v1/programs/${id}/publish`,
-      `/organizations/me/programs/${id}/publish`,
-    ];
-
-    let upstream: Response | null = null;
-    for (const path of candidates) {
-      const res = await upstreamFetch(path, token, {
-        method: "PATCH",
-      });
-      upstream = res;
-      if (res.ok) {
-        break;
-      }
-    }
-
-    if (!upstream) {
-      return NextResponse.json(
-        { message: "Failed to publish program." },
-        { status: 500 }
-      );
-    }
-
+    const upstream = await upstreamFetch(`/programs/${id}/publish`, token, {
+      method: "PATCH",
+    });
     return relay(upstream, "Failed to publish program.");
   } catch {
     return unreachable("program publish");

@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 import {
   bearerTokenFor,
   relay,
@@ -17,30 +17,9 @@ export async function PATCH(
   const { id } = await params;
 
   try {
-    const candidates = [
-      `/programs/${id}/pause`,
-      `/v1/programs/${id}/pause`,
-      `/organizations/me/programs/${id}/pause`,
-    ];
-
-    let upstream: Response | null = null;
-    for (const path of candidates) {
-      const res = await upstreamFetch(path, token, {
-        method: "PATCH",
-      });
-      upstream = res;
-      if (res.ok) {
-        break;
-      }
-    }
-
-    if (!upstream) {
-      return NextResponse.json(
-        { message: "Failed to pause program." },
-        { status: 500 }
-      );
-    }
-
+    const upstream = await upstreamFetch(`/programs/${id}/pause`, token, {
+      method: "PATCH",
+    });
     return relay(upstream, "Failed to pause program.");
   } catch {
     return unreachable("program pause");
