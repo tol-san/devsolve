@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import "@uiw/react-markdown-preview/markdown.css";
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
+import { cn } from "@/lib/utils";
 
 const MarkdownPreview = dynamic(
   async () => (await import("@uiw/react-md-editor")).default.Markdown,
