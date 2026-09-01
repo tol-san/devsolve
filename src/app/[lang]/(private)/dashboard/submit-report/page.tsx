@@ -10,7 +10,6 @@ import { SubmitReportProgressNav } from "@/components/reports/SubmitReportProgre
 import { SubmitReportProgramCard } from "@/components/reports/SubmitReportProgramCard";
 import { SubmitReportSeverityCard } from "@/components/reports/SubmitReportSeverityCard";
 import { SubmitReportQuickTips } from "@/components/reports/SubmitReportQuickTips";
-import { SubmitReportFooterNav } from "@/components/reports/SubmitReportFooterNav";
 
 import { SubmitReportStep1Basics } from "@/components/reports/SubmitReportStep1Basics";
 import { SubmitReportStep2Poc } from "@/components/reports/SubmitReportStep2Poc";
@@ -62,7 +61,7 @@ function SubmitReportContent() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="space-y-8 w-full pb-12 font-sans"
+      className="space-y-6 sm:space-y-8 w-full pb-12 font-sans"
     >
       {/* Offered before the form, because resuming after typing would mean
           throwing away whichever of the two the reporter did not pick. */}
@@ -86,26 +85,24 @@ function SubmitReportContent() {
           </Link>
         </nav>
 
-        <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-card rounded-2xl border border-border p-5 sm:p-7 md:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground">
                 Submit Vulnerability Report
               </h1>
             </div>
-            <p className="text-sm text-muted-foreground max-w-2xl font-medium">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl font-medium">
               Submit structured findings, technical evidence, and reproduction steps directly to the security triage team.
             </p>
           </div>
-
-
         </div>
       </div>
 
       {/* Main 2-Column Responsive Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
         {/* Left Column (2/3 width - Step Content Area) */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
           {/* Above the steps, not inside one: a reporter who is not cleared
               should read that before writing the report, not after. */}
           <ReportingAccessNotice
@@ -122,7 +119,7 @@ function SubmitReportContent() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -12 }}
                 transition={{ duration: 0.25, ease: "easeInOut" }}
-                className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-xs"
+                className="bg-card rounded-2xl border border-border p-4 sm:p-6 md:p-8 shadow-xs"
               >
                 {/* STEP 1: TARGET & CLASSIFICATION */}
                 {currentStep === 1 && (
@@ -142,7 +139,7 @@ function SubmitReportContent() {
                       <button
                         type="button"
                         onClick={nextStep}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 dark:hover:bg-muted transition-colors shadow-xs cursor-pointer"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 dark:hover:bg-muted transition-colors shadow-xs cursor-pointer"
                       >
                         <span>Next: PoC & Submit</span>
                       </button>

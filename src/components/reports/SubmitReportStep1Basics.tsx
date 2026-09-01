@@ -59,15 +59,15 @@ export function SubmitReportStep1Basics({
   return (
     <div className="space-y-8 font-sans">
       {/* Section Header */}
-      <div className="flex items-center gap-3.5 pb-2 border-b border-border">
-        <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
+      <div className="flex items-start sm:items-center gap-3.5 pb-3 border-b border-border">
+        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs mt-0.5 sm:mt-0">
           <Target className="w-5 h-5" />
         </div>
-        <div>
-          <h2 className="text-xl font-bold text-foreground tracking-tight">
+        <div className="min-w-0">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
             Step 1: Target & Classification
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Specify the affected target asset, vulnerability title, and severity rating.
           </p>
         </div>
@@ -95,7 +95,7 @@ export function SubmitReportStep1Basics({
         </div>
 
         {selectedProgram ? (
-          <div className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-muted/40 p-4 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-2xl border border-border bg-muted/40 p-4 shadow-2xs">
             <div className="flex min-w-0 items-center gap-3.5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-xs">
                 <Building2 className="h-5 w-5" />
@@ -112,7 +112,7 @@ export function SubmitReportStep1Basics({
 
             <Link
               href={lp("/dashboard/programs")}
-              className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              className="inline-flex shrink-0 items-center justify-end gap-1 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400 self-end sm:self-auto"
             >
               Change
               <ArrowUpRight className="h-3.5 w-3.5" />

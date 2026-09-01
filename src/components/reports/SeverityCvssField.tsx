@@ -137,7 +137,7 @@ export function SeverityCvssField({ value, onChange, error }: Props) {
 
   return (
     <section className="space-y-3" aria-labelledby="severity-heading">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3
             id="severity-heading"
@@ -153,7 +153,7 @@ export function SeverityCvssField({ value, onChange, error }: Props) {
         <div
           role="tablist"
           aria-label="How to set severity"
-          className="flex items-center gap-1 rounded-xl bg-muted/60 p-1"
+          className="flex items-center gap-1 rounded-xl bg-muted/60 p-1 w-full sm:w-auto"
         >
           {(
             [
@@ -171,14 +171,14 @@ export function SeverityCvssField({ value, onChange, error }: Props) {
                 aria-selected={active}
                 onClick={() => switchMode(tab.id)}
                 className={cn(
-                  "flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
+                  "flex flex-1 sm:flex-initial cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-colors",
                   active
                     ? "bg-background text-foreground shadow-2xs"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon className="size-3.5" />
-                {tab.label}
+                <Icon className="size-3.5 shrink-0" />
+                <span>{tab.label}</span>
               </button>
             );
           })}
