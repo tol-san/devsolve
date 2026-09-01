@@ -25,6 +25,8 @@ export const proxyApi = createApi({
     "ReportDraft",
     "ResearcherAccess",
     "Tag",
+    "Leaderboard",
+    "Profile",
   ],
   endpoints: () => ({}),
 });

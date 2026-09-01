@@ -226,7 +226,12 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
 
         return { data };
       },
-      invalidatesTags: (_result, _error, { id }) => [{ type: "Report", id }, "Report"],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Report", id },
+        "Report",
+        "Profile",
+        "Leaderboard",
+      ],
     }),
   }),
 });

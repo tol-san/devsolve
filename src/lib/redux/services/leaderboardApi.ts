@@ -280,6 +280,7 @@ export const leaderboardApi = proxyApi.injectEndpoints({
           },
         };
       },
+      providesTags: ["Leaderboard"],
     }),
     /**
      * The head of the ranking for one window — the sidebar on `/hacktivity`.
@@ -293,6 +294,7 @@ export const leaderboardApi = proxyApi.injectEndpoints({
         `/reputation/leaderboard?period=${period}&page=0&size=${size}`,
       transformResponse: (response: LeaderboardApiPage) =>
         (response.content ?? []).map(toTopResearcher),
+      providesTags: ["Leaderboard"],
     }),
   }),
 });

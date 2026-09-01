@@ -513,7 +513,7 @@ export function ReportSeverityAdjustmentForm({
                     />
                   </div>
                   <FieldDescription className="text-xs text-muted-foreground mt-1.5">
-                    Recommended matrix: {SEVERITY_DEFAULTS[selectedSeverity].label}
+                    Cash payout (USD) paid to researcher earnings. Does not move leaderboard points.
                   </FieldDescription>
                 </FieldContent>
               </Field>
@@ -533,7 +533,7 @@ export function ReportSeverityAdjustmentForm({
                     className="bg-card text-foreground font-semibold text-base"
                   />
                   <FieldDescription className="text-xs text-muted-foreground mt-1.5">
-                    Awarded to researcher profile on platform leaderboard.
+                    Points added directly to researcher&apos;s reputation and leaderboard ranking.
                   </FieldDescription>
                 </FieldContent>
               </Field>

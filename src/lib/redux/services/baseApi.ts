@@ -138,6 +138,7 @@ export const baseApi = createApi({
     "AdminSolution",
     "VirusTotal",
     "SecurityIncident",
+    "Leaderboard",
   ],
   endpoints: () => ({}),
 });

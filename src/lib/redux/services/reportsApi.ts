@@ -719,7 +719,12 @@ export const reportsApi = baseApi.injectEndpoints({
           },
         };
       },
-      invalidatesTags: (_result, _error, { id }) => [{ type: "Report", id }, "Report"],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Report", id },
+        "Report",
+        "Profile",
+        "Leaderboard",
+      ],
     }),
 
     rejectReport: builder.mutation<
