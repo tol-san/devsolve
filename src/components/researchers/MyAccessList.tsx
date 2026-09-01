@@ -98,9 +98,9 @@ export function MyAccessList({
                         it is lifted back above the overlay. */}
                     <Link
                       href={lp(`/dashboard/my-access/${record.organizationId}`)}
-                      className="flex items-center gap-1 truncate text-base font-bold tracking-tight text-foreground outline-none transition-colors group-hover:text-blue-600 after:absolute after:inset-0 after:rounded-2xl dark:group-hover:text-blue-400"
+                      className="flex min-w-0 items-center gap-1 text-base font-bold tracking-tight text-foreground outline-none transition-colors group-hover:text-blue-600 after:absolute after:inset-0 after:rounded-2xl dark:group-hover:text-blue-400"
                     >
-                      {record.organizationName?.trim() || "Unnamed organization"}
+                      <span className="truncate">{record.organizationName?.trim() || "Unnamed organization"}</span>
                       <ChevronRight
                         aria-hidden
                         className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"

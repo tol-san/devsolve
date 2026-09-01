@@ -99,13 +99,24 @@ export function asUuid(value: string | undefined): string | null {
 /**
  * Forwards only the query parameters a route actually supports, dropping
  * anything else so a caller cannot smuggle extra params upstream.
+ *
+ * `repeatable` names the parameters the upstream reads as a list — a filter
+ * offering several severities at once sends the key more than once, and
+ * taking only the first would quietly narrow the result.
  */
 export function forwardQuery(
   params: URLSearchParams,
   allowed: readonly string[],
+  repeatable: readonly string[] = [],
 ): string {
   const forwarded = new URLSearchParams();
   for (const key of allowed) {
+    if (repeatable.includes(key)) {
+      for (const value of params.getAll(key)) {
+        if (value !== "") forwarded.append(key, value);
+      }
+      continue;
+    }
     const value = params.get(key);
     if (value !== null && value !== "") forwarded.set(key, value);
   }

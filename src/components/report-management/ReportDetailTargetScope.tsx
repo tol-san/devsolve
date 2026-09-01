@@ -1,8 +1,22 @@
-import { AlertTriangle, Crosshair, Link2 } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import {
+  AlertTriangle,
+  Check,
+  Copy,
+  Crosshair,
+  Globe,
+  Layers,
+  Link2,
+  Server,
+} from "lucide-react";
 
 import { ReportDetailSectionCard } from "@/components/report-management/ReportDetailSectionCard";
 import type { ReportManagementDetail } from "@/components/report-management/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type ReportDetailTargetScopeProps = {
   detail: ReportManagementDetail;
@@ -11,60 +25,117 @@ type ReportDetailTargetScopeProps = {
 export function ReportDetailTargetScope({
   detail,
 }: ReportDetailTargetScopeProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(detail.affectedUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <ReportDetailSectionCard
-      title="Target & Scope"
+      title="Target & Scope Verification"
       icon={<Crosshair className="size-4.5" />}
-      contentClassName="flex flex-col gap-5"
+      contentClassName="space-y-6"
       headerRight={
-        <>
-          <Badge
-            variant="outline"
-            className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
-          >
-            In Scope
-          </Badge>
-          <Badge
-            variant="outline"
-            className="rounded-full border-border bg-muted text-muted-foreground"
-          >
-            CV
-          </Badge>
-        </>
+        <Badge
+          variant="outline"
+          className="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 font-bold text-xs px-2.5 py-0.5"
+        >
+          ✓ In-Scope Asset
+        </Badge>
       }
     >
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1.6fr)_0.7fr_0.9fr]">
-          <FieldBlock label="Affected URL">
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-3 text-sm text-foreground">
-              <Link2 className="size-4 text-muted-foreground" />
-              <code className="truncate font-mono">{detail.affectedUrl}</code>
+      {/* 1. Affected URL, Method & Parameter Grid */}
+      <div className="grid gap-4 md:grid-cols-[minmax(0,1.8fr)_0.8fr_1fr]">
+        <FieldBlock label="Affected Endpoint / URL">
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-muted/30 px-3.5 py-2 text-sm text-foreground min-h-10">
+            <div className="flex items-center gap-2 min-w-0">
+              <Globe className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+              <code className="truncate font-mono text-xs sm:text-sm font-semibold">
+                {detail.affectedUrl || "—"}
+              </code>
             </div>
-          </FieldBlock>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleCopyUrl}
+              className="size-7 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+              title="Copy URL"
+            >
+              {copied ? (
+                <Check className="size-3.5 text-emerald-500" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
+            </Button>
+          </div>
+        </FieldBlock>
 
-          <FieldBlock label="HTTP Method">
-            <p className="text-lg font-semibold tracking-tight text-foreground">
-              {detail.httpMethod}
-            </p>
-          </FieldBlock>
+        <FieldBlock label="HTTP Method">
+          <div className="flex items-center min-h-10 px-3.5 rounded-xl border border-border bg-muted/30">
+            <span
+              className={cn(
+                "inline-flex items-center rounded-md px-2 py-0.5 font-mono text-xs font-bold",
+                detail.httpMethod === "GET" && "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+                detail.httpMethod === "POST" && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                detail.httpMethod === "PUT" && "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+                detail.httpMethod === "DELETE" && "bg-red-500/10 text-red-700 dark:text-red-300"
+              )}
+            >
+              {detail.httpMethod || "GET"}
+            </span>
+          </div>
+        </FieldBlock>
 
-          <FieldBlock label="Parameter">
-            <code className="inline-flex rounded-lg bg-muted px-2.5 py-1 font-mono text-sm text-foreground">
-              {detail.parameter}
+        <FieldBlock label="Vulnerable Parameter">
+          <div className="flex items-center min-h-10 px-3.5 rounded-xl border border-border bg-muted/30">
+            <code className="font-mono text-xs sm:text-sm font-bold text-foreground truncate">
+              {detail.parameter || "N/A"}
             </code>
-          </FieldBlock>
-        </div>
+          </div>
+        </FieldBlock>
+      </div>
 
-        <div className="flex gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-4">
-          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">
-              Environment: {detail.environment}
-            </p>
-            <p className="text-sm leading-relaxed text-amber-600 dark:text-amber-400">
-              {detail.environmentNote}
-            </p>
+      {/* 2. Environment Note Callout */}
+      <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
+        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+        <div className="space-y-1">
+          <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+            Target Environment: {detail.environment || "Production"}
+          </p>
+          <p className="text-sm leading-relaxed text-amber-600 dark:text-amber-300">
+            {detail.environmentNote ||
+              "Vulnerability validated directly against live application endpoints."}
+          </p>
+        </div>
+      </div>
+
+      {/* 3. In-Scope Asset List */}
+      {detail.assets && detail.assets.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <Layers className="size-3.5 text-blue-600 dark:text-blue-400" />
+            Program Asset Scope
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {detail.assets.map((asset) => (
+              <span
+                key={asset}
+                className="inline-flex items-center rounded-lg border border-border bg-muted/40 px-3 py-1.5 font-mono text-xs font-medium text-foreground"
+              >
+                {asset}
+              </span>
+            ))}
           </div>
         </div>
+      )}
     </ReportDetailSectionCard>
   );
 }

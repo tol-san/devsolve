@@ -20,12 +20,15 @@ export interface ReportItem {
   isBountyDim?: boolean;
   lastActivityDate: string;
   lastActivityBadge: string;
+  submittedAt?: string;
 }
 
 export interface ReportsFilterParams {
   search?: string;
   status?: string;
   severity?: string;
+  program?: string;
+  programId?: string;
 }
 
 export interface CommentItem {

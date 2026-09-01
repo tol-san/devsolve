@@ -3,10 +3,13 @@ import { ArrowLeft, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+import { formatDateTime } from "@/lib/format/datetime";
+
 interface ReportDetailHeaderProps {
   reportId: string;
   program: string;
-  submittedAgo: string;
+  submittedAgo?: string;
+  submittedAt?: string;
   isRejected: boolean;
   onBack: () => void;
   onToggleDemoView: (rejected: boolean) => void;
@@ -16,10 +19,19 @@ export function ReportDetailHeader({
   reportId,
   program,
   submittedAgo,
+  submittedAt,
   isRejected,
   onBack,
   onToggleDemoView,
 }: ReportDetailHeaderProps) {
+  const displaySubmitted = submittedAt
+    ? formatDateTime(submittedAt)
+    : submittedAgo
+    ? formatDateTime(submittedAgo) !== "—"
+      ? formatDateTime(submittedAgo)
+      : submittedAgo
+    : "Recently";
+
   return (
     <div className="space-y-4">
       {/* Top Bar */}
@@ -34,7 +46,7 @@ export function ReportDetailHeader({
             </Badge>
           </div>
           <p className="text-base text-muted-foreground font-medium">
-            {program} &bull; Submitted {submittedAgo}
+            {program} &bull; Submitted {displaySubmitted}
           </p>
         </div>
         <Button

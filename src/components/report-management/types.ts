@@ -11,6 +11,7 @@ export type ManagedReport = {
   author: string;
   authorEmail: string;
   authorInitials: string;
+  authorId?: string;
   type: ReportType;
   status: ReportStatus;
   severity: ReportSeverity;
@@ -29,6 +30,7 @@ export type ReportManagementDetail = {
   submitter: string;
   submitterInitials: string;
   submitterEmail?: string;
+  submitterId?: string;
   type: ReportType;
   status: ReportStatus;
   severity: ReportSeverity;
@@ -58,6 +60,9 @@ export type ReportManagementDetail = {
   attachments: Array<{
     name: string;
     kind: "image" | "file";
+    url?: string;
+    size?: string;
+    content?: string;
   }>;
   externalDocumentation: string;
   internalAssetLink: string;

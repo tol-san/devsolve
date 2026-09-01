@@ -15,7 +15,6 @@ import {
   SubmitReportResponse,
 } from "@/lib/types/reports/types";
 import type { ManagedReport } from "@/components/report-management/types";
-import { MOCK_REPORTS } from "@/lib/types/reports/mock-data";
 
 export * from "@/lib/types/reports/types";
 export * from "@/lib/types/reports/mock-data";
@@ -69,12 +68,16 @@ interface ReportApiResponse {
   };
   attachments?: Array<{
     id?: string;
+    fileName?: string;
     filename?: string;
     name?: string;
+    sizeBytes?: number;
     fileSize?: number;
     size?: number;
+    mimeType?: string;
     contentType?: string;
     type?: string;
+    downloadUrl?: string;
     createdAt?: string;
   }>;
   /* The fields `ReportResponse` grew when the submission form stopped folding
@@ -236,17 +239,6 @@ function composeVulnerabilityInformation(payload: SubmitReportPayload): string {
     sections.push(`## Classification\n${classificationLines.join("\n")}`);
   }
 
-  /* Attachment bytes need `POST /reports/{id}/attachments`, which happens
-     after the report exists and is not wired yet — so what the reader picked
-     is at least named, rather than vanishing without a word. */
-  if (payload.attachments?.length) {
-    sections.push(
-      `## Attachments the reporter prepared\n${payload.attachments
-        .map((a) => `- ${a.name} (${a.size}, ${a.type})`)
-        .join("\n")}`
-    );
-  }
-
   return sections.join("\n\n");
 }
 
@@ -302,6 +294,7 @@ function toReportItem(
     ...toBountyDisplay(report, status),
     lastActivityDate: toLastActivityDate(report),
     lastActivityBadge: toActivityBadge(status),
+    submittedAt: report.submittedAt || report.createdAt,
   };
 }
 
@@ -316,9 +309,10 @@ function toReportDetail(
      the UTC it is; `new Date` alone treated it as local time, which moved the
      age of a report by the reader's own offset — and rounded a report filed
      hours ago up to a whole day. */
-  const submittedDate = toDate(report.submittedAt || report.createdAt);
+  const submittedRaw = report.submittedAt || report.createdAt;
+  const submittedDate = toDate(submittedRaw);
   const submittedAgo = submittedDate
-    ? `${Math.max(1, Math.floor((Date.now() - submittedDate.getTime()) / (1000 * 60 * 60 * 24)))} days ago`
+    ? formatDateTime(submittedRaw)
     : "Recently";
 
   /* No stand-in file. An attachment list that invents "poc-evidence.png,
@@ -326,9 +320,12 @@ function toReportDetail(
      open, and there is not. Sizes and types are only stated when the response
      carries them. */
   const attachments = (report.attachments ?? []).map((att) => ({
-    name: att.filename || att.name || "Attachment",
-    size: att.fileSize ? `${Math.round(att.fileSize / 1024)} KB` : undefined,
-    type: att.contentType || att.type || "file",
+    name: att.fileName || att.filename || att.name || "Attachment",
+    size:
+      att.sizeBytes || att.fileSize || att.size
+        ? `${Math.round((att.sizeBytes || att.fileSize || att.size || 0) / 1024)} KB`
+        : undefined,
+    type: att.mimeType || att.contentType || att.type || "file",
   }));
 
   const description =
@@ -493,6 +490,20 @@ export const reportsApi = baseApi.injectEndpoints({
           );
         }
 
+        if (params?.program && params.program !== "All" && params.program !== "All programs") {
+          results = results.filter(
+            (item) =>
+              item.program.toLowerCase() === params.program?.toLowerCase() ||
+              item.programId === params.program
+          );
+        }
+
+        if (params?.programId && params.programId !== "All") {
+          results = results.filter(
+            (item) => item.programId === params.programId
+          );
+        }
+
         return { data: results };
       },
       providesTags: ["Report"],
@@ -612,6 +623,140 @@ export const reportsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["Report"],
     }),
+
+    uploadReportAttachment: builder.mutation<
+      unknown,
+      { reportId: string; file: File }
+    >({
+      query: ({ reportId, file }) => {
+        const body = new FormData();
+        body.append("file", file, file.name);
+        return {
+          url: `/reports/${reportId}/attachments`,
+          method: "POST",
+          body,
+        };
+      },
+      invalidatesTags: (_result, _error, { reportId }) => [
+        { type: "Report", id: reportId },
+        "Report",
+      ],
+    }),
+
+    approveReport: builder.mutation<
+      { success: boolean; message: string; reportId?: string },
+      {
+        id: string;
+        severity: "Critical" | "High" | "Medium" | "Low" | "Info";
+        explanation?: string;
+        findingsSummary?: string;
+        decisionReason?: string;
+        improvementSuggestions?: string;
+        bountyAmount?: string;
+        reputationPoints?: number;
+        files?: string[];
+      }
+    >({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        /* PATCH, not POST — the upstream answers 405 to a POST here, and the
+           reward call that follows then failed too with "a final severity is
+           required", because the severity this call sets had never landed. */
+        const triageResult = await fetchWithBQ({
+          url: `/reports/${payload.id}/triage`,
+          method: "PATCH",
+          /* Exactly what TriageReportRequest accepts. The extra keys this used
+             to send — status, severity, companyReasoning, triageNotes,
+             rewardAmount — are not fields of it, and the reasoning among them
+             was never being recorded anywhere. */
+          body: {
+            triageSeverity: payload.severity.toUpperCase(),
+            state: "VALID_CONFIRMED",
+          },
+        });
+
+        /* The result was read and then ignored: the mutation reported success
+           whatever came back, so a company saw "approved" over a report the
+           upstream had refused to triage. */
+        if (triageResult.error) {
+          return { error: triageResult.error };
+        }
+
+        if (payload.bountyAmount) {
+          const numericAmount = parseFloat(payload.bountyAmount.replace(/[^0-9.]/g, ""));
+          if (!isNaN(numericAmount) && numericAmount > 0) {
+            const rewardResult = await fetchWithBQ({
+              url: `/reports/${payload.id}/rewards`,
+              method: "POST",
+              /* RewardReportRequest is amount, points and note. `currency` and
+                 `rewardAmount` were invented. */
+              body: {
+                amount: numericAmount,
+                ...(payload.reputationPoints
+                  ? { points: payload.reputationPoints }
+                  : {}),
+                ...(payload.explanation || payload.decisionReason
+                  ? { note: payload.explanation || payload.decisionReason }
+                  : {}),
+              },
+            });
+
+            /* The report is triaged either way, but the reward is the part the
+               researcher is owed — saying it was paid when it was not is the
+               one outcome worth failing over. */
+            if (rewardResult.error) {
+              return { error: rewardResult.error };
+            }
+          }
+        }
+
+        return {
+          data: {
+            success: true,
+            message: `Report #${payload.id} successfully approved and severity set to ${payload.severity}.`,
+            reportId: payload.id,
+          },
+        };
+      },
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Report", id }, "Report"],
+    }),
+
+    rejectReport: builder.mutation<
+      { success: boolean; message: string; reportId?: string },
+      {
+        id: string;
+        reason?: string;
+        explanation?: string;
+        decisionReason?: string;
+        files?: string[];
+      }
+    >({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        const triageResult = await fetchWithBQ({
+          url: `/reports/${payload.id}/triage`,
+          method: "PATCH",
+          body: {
+            /* Required on every triage, including this one. A rejected report
+               is not rated, so it carries no severity — which is what NONE is
+               for. Without it the call is refused outright. */
+            triageSeverity: "NONE",
+            state: "REJECTED",
+          },
+        });
+
+        if (triageResult.error) {
+          return { error: triageResult.error };
+        }
+
+        return {
+          data: {
+            success: true,
+            message: `Report #${payload.id} has been rejected.`,
+            reportId: payload.id,
+          },
+        };
+      },
+      invalidatesTags: (_result, _error, { id }) => [{ type: "Report", id }, "Report"],
+    }),
   }),
 });
 
@@ -621,4 +766,7 @@ export const {
   useGetReportByIdQuery,
   useAddReportCommentMutation,
   useSubmitReportMutation,
+  useUploadReportAttachmentMutation,
+  useApproveReportMutation,
+  useRejectReportMutation,
 } = reportsApi;

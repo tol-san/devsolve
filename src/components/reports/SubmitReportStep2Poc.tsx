@@ -1,18 +1,18 @@
 "use client";
 
 import React from "react";
-import { UseFormRegister, FieldErrors, Control, Controller, UseFormWatch } from "react-hook-form";
-import { FileText, ArrowLeft, Send, CheckCircle2, ShieldCheck, Loader2, Bookmark } from "lucide-react";
+import { UseFormRegister, FieldErrors, Control, Controller } from "react-hook-form";
+import { FileText, ArrowLeft, Send, Loader2, Bookmark } from "lucide-react";
 import { SubmitReportFormValues } from "@/lib/validations/report";
 import { PocTemplateToolbar } from "@/components/reports/PocTemplateToolbar";
 import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import { FileUploadDropzone, AttachedFile } from "@/components/reports/FileUploadDropzone";
+import { ContentScanStatus } from "@/components/security/ContentScanStatus";
 
 interface SubmitReportStep2PocProps {
   register: UseFormRegister<SubmitReportFormValues>;
   control: Control<SubmitReportFormValues>;
   errors: FieldErrors<SubmitReportFormValues>;
-  watch: UseFormWatch<SubmitReportFormValues>;
   attachedFiles: AttachedFile[];
   isSubmitting: boolean;
   submitError: string | null;
@@ -37,7 +37,6 @@ export function SubmitReportStep2Poc({
   register,
   control,
   errors,
-  watch,
   attachedFiles,
   isSubmitting,
   submitError,
@@ -51,8 +50,6 @@ export function SubmitReportStep2Poc({
   onSaveDraft,
   onSubmitReport,
 }: SubmitReportStep2PocProps) {
-  const agreeTerms = watch("checklistAgreeTerms");
-
   return (
     <div className="space-y-8 font-sans">
       {/* Section Header */}
@@ -111,8 +108,15 @@ export function SubmitReportStep2Poc({
           files={attachedFiles}
           onAddFiles={onAddFiles}
           onRemoveFile={onRemoveFile}
+          disabled={isSubmitting}
         />
       </div>
+
+      <ContentScanStatus
+        active={isSubmitting}
+        fileCount={attachedFiles.length}
+        includesLinks
+      />
 
       {/* Submission Compliance Checkbox */}
       <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
@@ -175,7 +179,7 @@ export function SubmitReportStep2Poc({
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Submitting Report...</span>
+                <span>Security check in progress…</span>
               </>
             ) : (
               <>

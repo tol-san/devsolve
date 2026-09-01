@@ -19,12 +19,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { formatDateTime } from "@/lib/format/datetime";
 
 interface ReportSuccessModalProps {
   isOpen: boolean;
   reportId: string;
   programName: string;
   title: string;
+  submittedAt?: string;
+  attachmentWarning?: string;
   onReset: () => void;
 }
 
@@ -33,6 +36,8 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
   reportId,
   programName,
   title,
+  submittedAt,
+  attachmentWarning,
   onReset,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -109,7 +114,27 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
               {title || "Vulnerability Report"}
             </span>
           </div>
+
+          {/* Submitted At */}
+          <div className="grid grid-cols-3 gap-2 items-center pt-2 border-t border-border/60">
+            <span className="text-xs font-semibold text-muted-foreground">
+              Submitted At
+            </span>
+            <span className="col-span-2 text-sm font-semibold text-foreground truncate">
+              {formatDateTime(submittedAt || new Date().toISOString())}
+            </span>
+          </div>
         </div>
+
+        {attachmentWarning && (
+          <div
+            role="alert"
+            className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-medium text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200"
+          >
+            <p className="font-semibold">Report saved, but an attachment was not added</p>
+            <p className="mt-1 leading-relaxed">{attachmentWarning}</p>
+          </div>
+        )}
 
         {/* Dialog Actions */}
         <DialogFooter className="flex flex-col sm:flex-row items-center gap-3 pt-1">

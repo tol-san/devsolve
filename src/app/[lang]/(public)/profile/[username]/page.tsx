@@ -22,25 +22,19 @@ export async function generateMetadata({
   const { lang, username } = await params;
   const path = `/profile/${username}`;
 
-  if (!isUuid(username)) {
-    return pageMetadata({
-      title: "Profile",
-      description: `A member profile on ${SITE_NAME}.`,
-      path,
-      locale: lang,
-      noIndex: true,
-    });
-  }
-
   const profile = await getPublicProfile(username);
 
   if (!profile?.fullName) {
+    const formattedName = username
+      .split(/[_.-]/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
     return pageMetadata({
-      title: "Profile",
-      description: `This profile is not available on ${SITE_NAME}.`,
+      title: `${formattedName} · Profile`,
+      description: `Security researcher profile on ${SITE_NAME}.`,
       path,
       locale: lang,
-      noIndex: true,
     });
   }
 
@@ -62,7 +56,7 @@ export async function generateMetadata({
 
 export default async function PublicProfilePage({ params }: PageProps) {
   const { username } = await params;
-  const profile = isUuid(username) ? await getPublicProfile(username) : null;
+  const profile = await getPublicProfile(username);
   const path = `/profile/${username}`;
 
   return (

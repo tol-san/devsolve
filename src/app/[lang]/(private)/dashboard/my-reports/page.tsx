@@ -2,9 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState } from "react";
+import React, { Suspense, useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowLeft,
@@ -20,6 +20,7 @@ import {
   Filter,
   DollarSign,
   FileSearch,
+  Building2,
 } from "lucide-react";
 
 import { useGetReportsQuery, ReportItem } from "@/lib/redux/services/reportsApi";
@@ -61,13 +62,26 @@ const STATUS_TABS: { value: "All" | "Open" | "Resolved"; label: string }[] = [
   { value: "Resolved", label: "Resolved" },
 ];
 
-export default function MyReportsPage() {
+function MyReportsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialProgram = searchParams.get("program") || searchParams.get("programId") || "All";
+  const initialSeverity = searchParams.get("severity") || "All";
+  const initialSearch = searchParams.get("search") || "";
+  const initialStatusParam = searchParams.get("status");
+  const initialStatus: "All" | "Open" | "Resolved" =
+    initialStatusParam === "SUBMITTED" || initialStatusParam === "TRIAGING" || initialStatusParam === "Open"
+      ? "Open"
+      : initialStatusParam === "RESOLVED" || initialStatusParam === "ACCEPTED" || initialStatusParam === "Resolved"
+      ? "Resolved"
+      : "All";
 
   // Filter state
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<"All" | "Open" | "Resolved">("All");
-  const [severityFilter, setSeverityFilter] = useState("All");
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [activeTab, setActiveTab] = useState<"All" | "Open" | "Resolved">(initialStatus);
+  const [severityFilter, setSeverityFilter] = useState(initialSeverity);
+  const [programFilter, setProgramFilter] = useState(initialProgram);
 
   // Selected report for modal detail preview
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
@@ -75,16 +89,33 @@ export default function MyReportsPage() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
 
-  // RTK Query data fetching
+  // Unfiltered fetch (separate cache entry) just to drive the header/footer
+  // totals, so "Showing X of Y" stays accurate against filters/search.
+  const { data: allReports = [] } = useGetReportsQuery();
+
+  // Dynamic program options derived from the user's filed reports
+  const programOptions: Record<string, string> = useMemo(() => {
+    const options: Record<string, string> = {
+      All: "All programs",
+    };
+    allReports.forEach((r) => {
+      if (r.program && !options[r.program]) {
+        options[r.program] = r.program;
+      }
+    });
+    if (programFilter !== "All" && !options[programFilter]) {
+      options[programFilter] = programFilter;
+    }
+    return options;
+  }, [allReports, programFilter]);
+
+  // RTK Query data fetching with program filter
   const { data: reports = [], isLoading } = useGetReportsQuery({
     search: searchTerm,
     status: activeTab,
     severity: severityFilter,
+    program: programFilter,
   });
-
-  // Unfiltered fetch (separate cache entry) just to drive the header/footer
-  // totals, so "Showing X of Y" stays accurate against filters/search.
-  const { data: allReports = [] } = useGetReportsQuery();
 
   const totalSubmissions = allReports.length;
   const totalPrograms = new Set(allReports.map((r) => r.program)).size;
@@ -233,6 +264,14 @@ export default function MyReportsPage() {
 
           <FilterControls>
             <FilterSelect
+              icon={Building2}
+              label="Program"
+              items={programOptions}
+              value={programFilter}
+              onValueChange={setProgramFilter}
+            />
+
+            <FilterSelect
               icon={Filter}
               label="Severity"
               items={SEVERITY_LABELS}
@@ -244,6 +283,15 @@ export default function MyReportsPage() {
 
         <ActiveFilters
           filters={[
+            ...(programFilter !== "All"
+              ? [
+                  {
+                    key: "program",
+                    label: programOptions[programFilter] ?? programFilter,
+                    clear: () => setProgramFilter("All"),
+                  },
+                ]
+              : []),
             ...(severityFilter !== "All"
               ? [
                   {
@@ -264,6 +312,7 @@ export default function MyReportsPage() {
               : []),
           ]}
           onClearAll={() => {
+            setProgramFilter("All");
             setSeverityFilter("All");
             setSearchTerm("");
           }}
@@ -506,7 +555,7 @@ export default function MyReportsPage() {
                   onClick={() => router.push(`/dashboard/my-reports/${selectedReport.id}`)}
                   className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs cursor-pointer font-semibold"
                 >
-                  Full Details
+                    Full Details
                 </Button>
               </div>
             </motion.div>
@@ -514,5 +563,19 @@ export default function MyReportsPage() {
         )}
       </AnimatePresence>
     </motion.section>
+  );
+}
+
+export default function MyReportsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-muted-foreground animate-pulse font-medium">
+          Loading reports...
+        </div>
+      }
+    >
+      <MyReportsContent />
+    </Suspense>
   );
 }

@@ -6,7 +6,7 @@ import type {
   ResourceType,
   UpdateSolutionRequest,
 } from "@/lib/validations/solution";
-import type { AttachmentSummary, AuthorSummary } from "./problemsApi";
+import type { AuthorSummary } from "./problemsApi";
 
 /**
  * Answers on a problem — `GET /api/v1/problems/{problemId}/solutions`.
@@ -38,6 +38,15 @@ export interface ResourceSummary {
   displayOrder?: number;
 }
 
+export interface SolutionAttachmentSummary {
+  id?: string;
+  fileName?: string;
+  mimeType?: string;
+  fileSize?: number;
+  downloadUrl?: string;
+  createdAt?: string;
+}
+
 /** `ModerationDetails` — where the answer stands in the review queue. */
 export interface ModerationDetails {
   revisionId?: string;
@@ -60,7 +69,7 @@ export interface SolutionResponse {
   testedWith?: TestedWith[];
   tradeoffs?: string;
   resources?: ResourceSummary[];
-  attachments?: AttachmentSummary[];
+  attachments?: SolutionAttachmentSummary[];
   isAccepted?: boolean;
   voteScore?: number;
   commentCount?: number;
@@ -180,6 +189,26 @@ export const solutionsApi = baseApi.injectEndpoints({
         { type: "Solution", id: problemId },
         { type: "Solution", id: "MINE" },
         { type: "Problem", id: problemId },
+      ],
+    }),
+
+    uploadSolutionAttachment: builder.mutation<
+      SolutionResponse,
+      { solutionId: string; version: number; file: File }
+    >({
+      query: ({ solutionId, version, file }) => {
+        const body = new FormData();
+        body.append("file", file, file.name);
+        return {
+          url: `/solutions/${solutionId}/attachments`,
+          method: "POST",
+          headers: { "If-Match": `"${version}"` },
+          body,
+        };
+      },
+      invalidatesTags: (_result, _error, { solutionId }) => [
+        { type: "Solution", id: solutionId },
+        { type: "Solution", id: "MINE" },
       ],
     }),
 
@@ -315,6 +344,7 @@ export const {
   useGetPublicProfileQuery,
   useGetMyProfileQuery,
   useCreateSolutionMutation,
+  useUploadSolutionAttachmentMutation,
   useUpdateSolutionMutation,
   useDeleteSolutionMutation,
 } = solutionsApi;

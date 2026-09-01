@@ -1,7 +1,8 @@
 "use client";
 
 import createGlobe, { type COBEOptions } from "cobe";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useSpring } from "motion/react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,11 @@ export function Globe({ className, config }: GlobeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerInteracting = useRef<number | null>(null);
   const pointerInteractionMovement = useRef(0);
-  const [r, setR] = useState(0);
+  const r = useSpring(0, {
+    stiffness: 280,
+    damping: 40,
+    mass: 1,
+  });
 
   const updatePointerInteraction = (value: number | null) => {
     pointerInteracting.current = value;
@@ -30,14 +35,13 @@ export function Globe({ className, config }: GlobeProps) {
     if (pointerInteracting.current !== null) {
       const delta = clientX - pointerInteracting.current;
       pointerInteractionMovement.current = delta;
-      setR(delta / 200);
+      r.set(delta / 200);
     }
   };
 
   useEffect(() => {
     let width = 0;
     let phi = 0;
-    let animationFrameId: number;
 
     const onResize = () => {
       if (canvasRef.current) {
@@ -76,36 +80,31 @@ export function Globe({ className, config }: GlobeProps) {
         { location: [28.6139, 77.209], size: 0.08 }, // New Delhi
         { location: [25.2048, 55.2708], size: 0.06 }, // Dubai
       ],
-      onRender: () => {},
       ...config,
+      onRender: (state) => {
+        if (!pointerInteracting.current) {
+          phi += 0.0035;
+        }
+        state.phi = phi + r.get();
+        state.width = (width || 600) * 2;
+        state.height = (width || 600) * 2;
+        if (config?.onRender) {
+          config.onRender(state);
+        }
+      },
     };
 
     const globe = createGlobe(canvasRef.current, defaultConfig);
-
-    const animate = () => {
-      if (!pointerInteracting.current) {
-        phi += 0.0035;
-      }
-      globe.update({
-        phi: phi + r,
-        width: (width || 600) * 2,
-        height: (width || 600) * 2,
-      });
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
 
     if (canvasRef.current) {
       canvasRef.current.style.opacity = "1";
     }
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", onResize);
       globe.destroy();
     };
-  }, [isDark, r, config]);
+  }, [isDark, config, r]);
 
   return (
     <div

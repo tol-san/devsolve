@@ -4,6 +4,8 @@ import { ExternalLink } from "lucide-react";
 import SeverityBadge from "@/components/reports/SeverityBadge";
 import type { ReportDetail } from "@/lib/types/reports/types";
 
+import { formatDateTime } from "@/lib/format/datetime";
+
 interface ReportSidebarPanelsProps {
   report: ReportDetail;
 }
@@ -115,6 +117,10 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
         </div>
         <div className="space-y-2 pt-3 border-t border-border text-sm">
           <Fact label="Report ID" value={report.reportId} />
+          <Fact
+            label="Submitted"
+            value={report.submittedAt ? formatDateTime(report.submittedAt) : (report.submittedAgo || null)}
+          />
           <Fact label="Last activity" value={report.lastActivityDate} />
         </div>
       </div>

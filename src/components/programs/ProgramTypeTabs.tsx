@@ -35,12 +35,14 @@ export function ProgramTypeTabs({
   sort,
   onSortChange,
   totalCount,
+  isLoading = false,
 }: {
   selected: ProgramType;
   onSelect: (type: ProgramType) => void;
   sort: ProgramSort;
   onSortChange: (sort: ProgramSort) => void;
   totalCount: number;
+  isLoading?: boolean;
 }) {
   const t = useT();
 
@@ -87,20 +89,30 @@ export function ProgramTypeTabs({
 
       <div className="flex items-center justify-between gap-3 px-1 sm:justify-end">
         <AnimatePresence mode="wait">
-          <motion.p
-            key={totalCount}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.2 }}
-            aria-live="polite"
-            className="text-sm font-medium text-muted-foreground"
-          >
-            <span className="font-bold tabular-nums text-foreground">
-              {totalCount.toLocaleString()}
-            </span>{" "}
-            {totalCount === 1 ? t("programs.result") : t("programs.results")}
-          </motion.p>
+          {isLoading && totalCount === 0 ? (
+            <motion.div
+              key="loading-count"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-5 w-18 animate-pulse rounded-md bg-muted"
+            />
+          ) : (
+            <motion.p
+              key={totalCount}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2 }}
+              aria-live="polite"
+              className="text-sm font-medium text-muted-foreground"
+            >
+              <span className="font-bold tabular-nums text-foreground">
+                {totalCount.toLocaleString()}
+              </span>{" "}
+              {totalCount === 1 ? t("programs.result") : t("programs.results")}
+            </motion.p>
+          )}
         </AnimatePresence>
 
         <Select

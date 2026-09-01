@@ -203,16 +203,21 @@ function toManagedType(
 
 function toSubmittedDate(report: ReportApiResponse): string {
   const iso = report.submittedAt ?? report.createdAt ?? report.updatedAt;
-  const date = iso ? new Date(iso) : null;
+  if (!iso) return "Unknown date";
+  const normalized = /(Z|[+-]\d{2}:?\d{2})$/.test(iso) ? iso : `${iso}Z`;
+  const date = new Date(normalized);
 
-  if (!date || Number.isNaN(date.getTime())) {
+  if (Number.isNaN(date.getTime())) {
     return "Unknown date";
   }
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleString("en-US", {
     month: "short",
     day: "2-digit",
     year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
   });
 }
 

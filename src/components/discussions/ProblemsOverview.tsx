@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { ArrowRight, BookOpenCheck } from "lucide-react";
 
@@ -6,10 +7,12 @@ interface ProblemsOverviewProps {
   description: string;
   browseLabel: string;
   discussionsHref: string;
+  icon?: LucideIcon;
+  id?: string;
 }
 
 /**
- * Durable page content for the public problem directory.
+ * Durable page content for the public discussion directories.
  *
  * The actual feed remains interactive and loads through RTK Query, but this
  * explanation is present in the first HTML response even when the public API
@@ -21,19 +24,21 @@ export function ProblemsOverview({
   description,
   browseLabel,
   discussionsHref,
+  icon: Icon = BookOpenCheck,
+  id = "problems-overview-title",
 }: ProblemsOverviewProps) {
   return (
     <section
-      aria-labelledby="problems-overview-title"
+      aria-labelledby={id}
       className="rounded-2xl border border-border bg-card p-5 ring-1 ring-foreground/5 sm:p-6 dark:ring-foreground/10"
     >
       <div className="flex items-start gap-4">
         <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <BookOpenCheck className="size-5" aria-hidden="true" />
+          <Icon className="size-5" aria-hidden="true" />
         </div>
         <div className="min-w-0">
           <h2
-            id="problems-overview-title"
+            id={id}
             className="text-xl font-bold tracking-tight text-foreground"
           >
             {title}
@@ -53,3 +58,6 @@ export function ProblemsOverview({
     </section>
   );
 }
+
+export const DiscussionOverview = ProblemsOverview;
+

@@ -1,16 +1,31 @@
+"use client";
+
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowLeft,
+  Building2,
   CalendarDays,
+  CheckCircle2,
   CircleAlert,
+  Coins,
+  ExternalLink,
+  Eye,
+  Globe,
+  Lock,
+  Mail,
+  ShieldAlert,
   ShieldCheck,
-  UserRound,
+  Tag,
+  User,
+  X,
 } from "lucide-react";
 
 import type { ReportManagementDetail } from "@/components/report-management/types";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -18,224 +33,338 @@ type ReportDetailHeaderProps = {
   detail: ReportManagementDetail;
 };
 
-function getStatusBadgeClass(status: ReportManagementDetail["status"]) {
-  return status === "Open"
-    ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
-    : "border-border bg-muted text-muted-foreground";
+function getStatusBadge(status: ReportManagementDetail["status"]) {
+  return status === "Open" ? (
+    <Badge
+      variant="outline"
+      className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+    >
+      <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
+      OPEN
+    </Badge>
+  ) : (
+    <Badge
+      variant="outline"
+      className="bg-muted text-muted-foreground border-border font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+    >
+      <ShieldCheck className="size-3.5" />
+      CLOSED
+    </Badge>
+  );
 }
 
-function getSeverityTone(severity: ReportManagementDetail["severity"]) {
+function getSeverityBadge(
+  severity: ReportManagementDetail["severity"],
+  cvssScore?: string
+) {
   switch (severity) {
     case "Critical":
-      return {
-        card: "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400",
-        text: "text-red-600 dark:text-red-400",
-        badge: "border-red-200 bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20",
-      };
+      return (
+        <Badge className="bg-red-600 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+          <ShieldAlert className="size-3.5" />
+          CRITICAL {cvssScore ? `(${cvssScore})` : ""}
+        </Badge>
+      );
     case "High":
-      return {
-        card: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400",
-        text: "text-amber-600 dark:text-amber-400",
-        badge: "border-amber-200 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
-      };
+      return (
+        <Badge className="bg-orange-500 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+          <CircleAlert className="size-3.5" />
+          HIGH {cvssScore ? `(${cvssScore})` : ""}
+        </Badge>
+      );
     case "Medium":
-      return {
-        card: "bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400",
-        text: "text-sky-600 dark:text-sky-400",
-        badge: "border-sky-200 bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20",
-      };
+      return (
+        <Badge className="bg-amber-500 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+          <CircleAlert className="size-3.5" />
+          MEDIUM {cvssScore ? `(${cvssScore})` : ""}
+        </Badge>
+      );
     default:
-      return {
-        card: "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400",
-        text: "text-blue-600 dark:text-blue-400",
-        badge: "border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
-      };
+      return (
+        <Badge className="bg-blue-600 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+          LOW {cvssScore ? `(${cvssScore})` : ""}
+        </Badge>
+      );
   }
 }
 
 export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
-  const severityTone = getSeverityTone(detail.severity);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+  const contactEmail =
+    detail.submitterEmail?.trim() ||
+    `${detail.submitterInitials.toLowerCase()}@devsolve.io`;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <nav className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <Link href="/dashboard" className="transition-colors hover:text-foreground">
-            Home
+    <div className="space-y-5">
+      {/* 1. Breadcrumbs & Top Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border/80">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground font-medium">
+          <Link
+            href="/dashboard"
+            className="transition-colors hover:text-foreground"
+          >
+            Dashboard
           </Link>
-          <span className="text-muted-foreground/60">&gt;</span>
+          <span className="text-muted-foreground/60">/</span>
           <Link
             href="/dashboard/report-management"
             className="transition-colors hover:text-foreground"
           >
             Report Management
           </Link>
-          <span className="text-muted-foreground/60">&gt;</span>
-          <span className="font-semibold text-foreground">Report #{detail.reportId}</span>
+          <span className="text-muted-foreground/60">/</span>
+          <span className="font-semibold text-foreground">
+            #{detail.reportId}
+          </span>
         </nav>
 
-        <Link
-          href="/dashboard/report-management"
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "h-10 items-center justify-center gap-2.5 rounded-xl border-border bg-card px-4 font-semibold text-foreground shadow-none hover:bg-muted cursor-pointer"
-          )}
-        >
-          <ArrowLeft className="size-4" />
-          Back to reports
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <Link href="/dashboard/report-management">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3 gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <ArrowLeft className="size-3.5" />
+              <span>Back to Queue</span>
+            </Button>
+          </Link>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPreviewModal(true)}
+            className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3 gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <Eye className="size-3.5 text-blue-600 dark:text-blue-400" />
+            <span>Preview Summary</span>
+          </Button>
+
+          <Link href={`/dashboard/report-management/${detail.id}/severity-review`}>
+            <Button
+              size="sm"
+              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-3.5 gap-1.5 cursor-pointer shadow-xs"
+            >
+              <CheckCircle2 className="size-3.5" />
+              <span>Review & Adjust Severity</span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <MetricCard
-          icon={<UserRound className="size-5" />}
-          label="Submitter"
-          value={detail.submitter}
-          tone="blue"
-        />
-        <MetricCard
-          icon={<CircleAlert className="size-5" />}
-          label="Severity"
-          value={`${detail.severity} (${detail.cvssScore})`}
-          tone={severityTone}
-        />
-        <MetricCard
-          icon={<CalendarDays className="size-5" />}
-          label="Date submitted"
-          value={detail.submittedDate}
-          tone="slate"
-        />
-      </div>
+      {/* Quick Report Overview Modal */}
+      <AnimatePresence>
+        {showPreviewModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
+            onClick={() => setShowPreviewModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-2xl max-h-[85vh] bg-card rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-4">
+                <div className="flex items-center gap-2.5">
+                  <Badge variant="outline" className="font-mono font-bold text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">
+                    #{detail.reportId}
+                  </Badge>
+                  <h3 className="font-bold text-base text-foreground truncate max-w-sm sm:max-w-md">
+                    {detail.title}
+                  </h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowPreviewModal(false)}
+                  className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
 
-      <Card className="rounded-[24px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs">
-        <CardContent className="px-5 py-5 sm:px-6 sm:py-6">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex min-w-0 items-start gap-4">
-                <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted">
-                  {detail.programLogo ? (
-                    <Image
-                      src={detail.programLogo}
-                      alt={`${detail.title} logo`}
-                      width={48}
-                      height={48}
-                      className="size-11 object-contain"
-                    />
-                  ) : (
-                    <span className="text-sm font-semibold text-foreground">
-                      {detail.submitterInitials}
-                    </span>
-                  )}
+              <div className="flex-1 overflow-auto p-5 sm:p-6 space-y-4 text-sm leading-relaxed">
+                <div className="flex flex-wrap items-center gap-2">
+                  {getSeverityBadge(detail.severity, detail.cvssScore)}
+                  {getStatusBadge(detail.status)}
+                  <span className="text-xs text-muted-foreground">
+                    Submitted by <strong>{detail.submitter}</strong> on {detail.submittedDate}
+                  </span>
                 </div>
 
-                <div className="min-w-0 space-y-3">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted-foreground">
-                      <span className="font-semibold text-foreground">{detail.title}</span>
-                      <span className="text-muted-foreground/60">by</span>
-                      <span className="font-medium text-foreground">{detail.submitter}</span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="h-6 rounded-full bg-blue-600 px-2.5 text-[11px] font-medium text-white hover:bg-blue-600 dark:bg-blue-600 dark:text-white">
-                        {detail.type}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "h-6 rounded-full px-2.5 text-[11px] font-medium",
-                          getStatusBadgeClass(detail.status)
-                        )}
-                      >
-                        <ShieldCheck className="size-3.5 mr-1" />
-                        {detail.status}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="h-6 rounded-full border-border bg-muted px-2.5 text-[11px] font-medium text-muted-foreground"
-                      >
-                        Report ID: #{detail.reportId}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <p className="text-base sm:text-lg leading-relaxed text-muted-foreground">
-                    {detail.summary}
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Executive Summary
+                  </h4>
+                  <p className="text-sm text-foreground/90 font-medium bg-muted/30 p-3.5 rounded-xl border border-border/80">
+                    {detail.summary || detail.assessmentSummary}
                   </p>
                 </div>
+
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Target Endpoint
+                  </h4>
+                  <code className="block text-xs font-mono font-semibold bg-muted/40 p-2.5 rounded-lg border border-border">
+                    {detail.httpMethod} {detail.affectedUrl}
+                  </code>
+                </div>
+
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Reproduction Summary
+                  </h4>
+                  <ol className="space-y-1.5 list-decimal pl-5 text-xs text-muted-foreground">
+                    {detail.reproductionSteps.map((step) => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
               </div>
 
-              <div className="shrink-0 text-left lg:text-right">
-                <p className="text-base font-semibold tracking-tight text-emerald-600 dark:text-emerald-400">
-                  {detail.bountyRange}
-                </p>
+              <div className="flex items-center justify-between border-t border-border bg-card px-5 py-3.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreviewModal(false)}
+                  className="rounded-xl text-xs h-8"
+                >
+                  Close Preview
+                </Button>
+
+                <Link href={`/dashboard/report-management/${detail.id}/severity-review`}>
+                  <Button
+                    size="sm"
+                    className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs h-8 gap-1.5"
+                  >
+                    <CheckCircle2 className="size-3.5" />
+                    <span>Open Severity Review</span>
+                  </Button>
+                </Link>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 2. Main Title Banner Card */}
+      <Card className="rounded-2xl border border-border bg-card shadow-xs">
+        <CardContent className="p-6 sm:p-7 space-y-6">
+          {/* Top Row: Badges & Title */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="outline"
+                className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-200 dark:border-blue-500/20 px-2.5 py-0.5 rounded-md"
+              >
+                #{detail.reportId}
+              </Badge>
+
+              {getSeverityBadge(detail.severity, detail.cvssScore)}
+
+              {getStatusBadge(detail.status)}
+
+              <Badge
+                variant="outline"
+                className="bg-muted/70 text-foreground border-border font-semibold text-xs px-2.5 py-0.5 rounded-full"
+              >
+                {detail.type} Program
+              </Badge>
+
+              <Badge
+                variant="outline"
+                className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20 font-semibold text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1"
+              >
+                <Lock className="size-3" />
+                Scope Verified
+              </Badge>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                In-scope assets
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground leading-snug">
+              {detail.title}
+            </h1>
+          </div>
+
+          {/* Key Facts Summary Strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl bg-muted/40 border border-border/80 text-sm">
+            {/* Submitter */}
+            <div className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <User className="size-3.5 text-blue-600 dark:text-blue-400" />
+                Researcher
+              </span>
+              <Link
+                href={`/profile/${encodeURIComponent(detail.submitterId || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_"))}`}
+                className="font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline truncate inline-flex items-center gap-1 group"
+                title={`View ${detail.submitter}'s public profile`}
+              >
+                <span className="truncate">{detail.submitter}</span>
+                <ExternalLink className="size-3 text-muted-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-60 group-hover:opacity-100 transition-opacity shrink-0" />
+              </Link>
+              <a
+                href={`mailto:${contactEmail}`}
+                className="text-xs text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block font-medium"
+              >
+                {contactEmail}
+              </a>
+            </div>
+
+            {/* Target Asset */}
+            <div className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Globe className="size-3.5 text-blue-600 dark:text-blue-400" />
+                Target Asset
+              </span>
+              <p className="font-mono text-xs font-bold text-foreground truncate" title={detail.affectedUrl}>
+                {detail.affectedUrl || detail.assets[0] || "Target Asset"}
               </p>
-              <div className="flex flex-wrap gap-2">
-                {detail.assets.map((asset) => (
-                  <span
-                    key={asset}
-                    className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-foreground"
-                  >
-                    {asset}
-                  </span>
-                ))}
-              </div>
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-bold text-foreground">
+                {detail.httpMethod || "GET"}
+              </span>
+            </div>
+
+            {/* Reward Range */}
+            <div className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Coins className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                Bounty Estimate
+              </span>
+              <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">
+                {detail.bountyRange}
+              </p>
+              <span className="text-xs text-muted-foreground font-medium">
+                Standard Matrix
+              </span>
+            </div>
+
+            {/* Submitted Date & Time */}
+            <div className="space-y-1">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <CalendarDays className="size-3.5 text-blue-600 dark:text-blue-400" />
+                Submitted At
+              </span>
+              <p className="text-xs font-bold text-foreground">
+                {detail.submittedDate}
+              </p>
+              <span className="text-xs text-muted-foreground font-medium">
+                Triage Queue Intake
+              </span>
             </div>
           </div>
+
+          {/* Summary Callout */}
+          {detail.summary && (
+            <div className="text-sm sm:text-base leading-relaxed text-muted-foreground border-l-2 border-blue-500 pl-4 py-0.5">
+              <p className="font-medium text-foreground/90">{detail.summary}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function MetricCard({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  tone:
-    | "blue"
-    | "slate"
-    | {
-        card: string;
-        text: string;
-      };
-}) {
-  const toneClass =
-    typeof tone === "string"
-      ? {
-          card:
-            tone === "blue"
-              ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
-              : "bg-muted text-foreground",
-          text: "text-foreground",
-        }
-      : tone;
-
-  return (
-    <Card className="rounded-[20px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs">
-      <CardContent className="flex items-center gap-4 px-5 py-5">
-        <div className={cn("flex size-11 items-center justify-center rounded-2xl", toneClass.card)}>
-          {icon}
-        </div>
-
-        <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {label}
-          </p>
-          <p className={cn("text-lg font-bold tracking-tight", toneClass.text)}>{value}</p>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
