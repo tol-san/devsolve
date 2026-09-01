@@ -462,16 +462,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               </div>
             </div>
           </div>
-
-          {/* Summary Callout */}
-          {detail.summary && (
-            <div className="text-sm sm:text-base leading-relaxed text-muted-foreground border-l-2 border-blue-500 pl-4 py-1 bg-muted/20 rounded-r-xl">
-              <MarkdownView
-                source={detail.summary}
-                className="text-xs sm:text-sm font-medium text-foreground/90 leading-relaxed max-h-36 overflow-y-auto"
-              />
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
