@@ -264,13 +264,13 @@ function toAuthorName(
   );
 }
 
-function toAuthorEmail(report: ReportApiResponse): string {
+function toAuthorEmail(report: ReportApiResponse): string | undefined {
   return (
     report.submitterEmail ??
     report.researcherEmail ??
     report.authorEmail ??
     report.reporter?.email ??
-    "unknown@devsolve.local"
+    undefined
   );
 }
 

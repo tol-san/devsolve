@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MarkdownView } from "@/components/ui/markdown-view";
+import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
 import { cn } from "@/lib/utils";
 
 type ReportDetailHeaderProps = {
@@ -132,9 +133,28 @@ function getSeverityBadge(
 export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
+  const profileIdentifier = detail.submitterId || detail.submitter;
+  const { data: profileOverview } = useGetProfileByUsernameQuery(
+    profileIdentifier,
+    {
+      skip: !profileIdentifier,
+    }
+  );
+
+  const profile = profileOverview?.profile;
+  const displayName = profile?.fullName || detail.submitter;
+  const username =
+    profile?.username ||
+    detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_");
+
+  const rawEmail = detail.submitterEmail?.trim();
   const contactEmail =
-    detail.submitterEmail?.trim() ||
-    `${detail.submitterInitials.toLowerCase()}@devsolve.io`;
+    profile?.email ||
+    (rawEmail &&
+    !rawEmail.includes("@devsolve.local") &&
+    !rawEmail.includes("@devsolve.io")
+      ? rawEmail
+      : "");
 
   const cleanReportId = detail.reportId.startsWith("#")
     ? detail.reportId
@@ -371,19 +391,26 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               </span>
               <div className="min-w-0">
                 <Link
-                  href={`/profile/${encodeURIComponent(detail.submitterId || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_"))}`}
+                  href={`/profile/${encodeURIComponent(profileIdentifier)}`}
                   className="font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline truncate inline-flex items-center gap-1 group max-w-full"
-                  title={`View ${detail.submitter}'s public profile`}
+                  title={`View ${displayName}'s public profile`}
                 >
-                  <span className="truncate">{detail.submitter}</span>
+                  <span className="truncate">{displayName}</span>
                   <ExternalLink className="size-3 text-muted-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-60 group-hover:opacity-100 transition-opacity shrink-0" />
                 </Link>
-                <a
-                  href={`mailto:${contactEmail}`}
-                  className="text-xs text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block font-medium"
-                >
-                  {contactEmail}
-                </a>
+                {contactEmail ? (
+                  <a
+                    href={`mailto:${contactEmail}`}
+                    className="text-xs text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block font-medium"
+                    title={`Email ${displayName}`}
+                  >
+                    {contactEmail}
+                  </a>
+                ) : (
+                  <span className="text-xs text-muted-foreground font-mono truncate block">
+                    @{username}
+                  </span>
+                )}
               </div>
             </div>
 

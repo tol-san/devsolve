@@ -403,7 +403,7 @@ export function buildReportManagementDetailFromApiReport(
     programLogo: undefined,
     submitter,
     submitterInitials,
-    submitterEmail: report.reporterEmail || "researcher@devsolve.local",
+    submitterEmail: report.reporterEmail || (report as any).authorEmail || undefined,
     submitterId: report.reporterId || report.reporterUsername || undefined,
     submitterAvatarUrl:
       (report as any).reporterAvatarUrl ||
