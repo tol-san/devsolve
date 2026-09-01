@@ -283,7 +283,10 @@ function SidebarContent({
           const categoryItems = filteredNavItems.filter(
             (item) => (item.category || "Overview") === category,
           );
-          const categoryLabel = t(`sidebar.category.${category.toLowerCase()}`);
+          const categoryKey = `sidebar.category.${category.toLowerCase()}`;
+          const translatedCategory = t(categoryKey);
+          const categoryLabel =
+            translatedCategory === categoryKey ? category : translatedCategory;
 
           return (
             <div key={category} className="space-y-1">
