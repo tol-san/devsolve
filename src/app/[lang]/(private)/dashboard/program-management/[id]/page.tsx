@@ -66,6 +66,7 @@ import { ProgramScopeTab } from "@/components/programs/details/ProgramScopeTab";
 import { ProgramBountyMatrixTab } from "@/components/programs/details/ProgramBountyMatrixTab";
 import { ProgramRulesTab } from "@/components/programs/details/ProgramRulesTab";
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/lib/api/error-message";
 
 function ProgramDetailPageContent({
   params,
@@ -75,8 +76,7 @@ function ProgramDetailPageContent({
   const { id } = use(params);
   const searchParams = useSearchParams();
 
-  const { user } = useSidebarAuth();
-  const isAdmin = user?.roles?.includes("ADMIN") ?? false;
+  const { isAdmin } = useSidebarAuth();
   const {
     hasCompanyAccess: isCompanyUser,
     can,
@@ -162,8 +162,7 @@ function ProgramDetailPageContent({
       toast.success(`Program visibility updated to "${visibility}"!`);
       refetch();
     } catch (err: unknown) {
-      const message = (err as { data?: { message?: string } })?.data?.message;
-      toast.error(message || "Failed to update visibility.");
+      toast.error(apiErrorMessage(err, "Failed to update visibility."));
     } finally {
       setIsActionLoading(false);
       isActionInProgressRef.current = false;
@@ -180,8 +179,7 @@ function ProgramDetailPageContent({
       setApproveDialogOpen(false);
       refetch();
     } catch (err: unknown) {
-      const message = (err as { data?: { message?: string } })?.data?.message;
-      toast.error(message || "Failed to approve program.");
+      toast.error(apiErrorMessage(err, "Failed to approve program."));
     } finally {
       setIsActionLoading(false);
       isActionInProgressRef.current = false;
@@ -195,6 +193,8 @@ function ProgramDetailPageContent({
       setIsActionLoading(true);
       await approveProgram({ id, reason }).unwrap();
       refetch();
+    } catch (err: unknown) {
+      toast.error(apiErrorMessage(err, "Failed to approve program."));
     } finally {
       setIsActionLoading(false);
       isActionInProgressRef.current = false;
@@ -208,6 +208,8 @@ function ProgramDetailPageContent({
       setIsActionLoading(true);
       await rejectProgram({ id, reason }).unwrap();
       refetch();
+    } catch (err: unknown) {
+      toast.error(apiErrorMessage(err, "Failed to reject program."));
     } finally {
       setIsActionLoading(false);
       isActionInProgressRef.current = false;
@@ -226,8 +228,7 @@ function ProgramDetailPageContent({
       });
       refetch();
     } catch (err: unknown) {
-      const message = (err as { data?: { message?: string } })?.data?.message;
-      toast.error(message || "Failed to publish program.");
+      toast.error(apiErrorMessage(err, "Failed to publish program."));
     } finally {
       setIsActionLoading(false);
       isActionInProgressRef.current = false;
@@ -245,8 +246,7 @@ function ProgramDetailPageContent({
       });
       refetch();
     } catch (err: unknown) {
-      const message = (err as { data?: { message?: string } })?.data?.message;
-      toast.error(message || "Failed to pause program.");
+      toast.error(apiErrorMessage(err, "Failed to pause program."));
     } finally {
       setIsActionLoading(false);
       isActionInProgressRef.current = false;
@@ -264,8 +264,7 @@ function ProgramDetailPageContent({
       });
       refetch();
     } catch (err: unknown) {
-      const message = (err as { data?: { message?: string } })?.data?.message;
-      toast.error(message || "Failed to resume program.");
+      toast.error(apiErrorMessage(err, "Failed to resume program."));
     } finally {
       setIsActionLoading(false);
       isActionInProgressRef.current = false;
@@ -283,8 +282,7 @@ function ProgramDetailPageContent({
       });
       refetch();
     } catch (err: unknown) {
-      const message = (err as { data?: { message?: string } })?.data?.message;
-      toast.error(message || "Failed to close program.");
+      toast.error(apiErrorMessage(err, "Failed to close program."));
     } finally {
       setIsActionLoading(false);
       isActionInProgressRef.current = false;

@@ -275,10 +275,10 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // PATCH /programs/{id}/resume (resume program)
+    // PATCH /programs/{id}/publish (resume program by publishing / activating it)
     resumeProgram: builder.mutation<Program, string>({
       query: (id) => ({
-        url: `/programs/${id}/resume`,
+        url: `/programs/${id}/publish`,
         method: "PATCH",
       }),
       invalidatesTags: (_result, _error, id) => [
