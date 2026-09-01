@@ -21,19 +21,17 @@ export const ProgramDetailTabNav: React.FC<ProgramDetailTabNavProps> = ({
   activeTab,
   onTabChange,
 }) => {
-
-// this si the filter tab ( Overview , Scope , Bounty Matrix , Rule & Exclusions )
-
   return (
-    <nav className="border-b border-border bg-card rounded-xl px-2 pt-2 shadow-2xs">
-      <ul className="flex items-center gap-1 overflow-x-auto">
+    <nav className="border-b border-border bg-card rounded-2xl px-2 pt-1 shadow-2xs overflow-hidden">
+      <ul className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {PROGRAM_DETAILS_TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
-            <li key={tab.id}>
+            <li key={tab.id} className="shrink-0">
               <button
+                type="button"
                 onClick={() => onTabChange(tab.id)}
-                className={`relative px-6 py-3.5 text-base font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                className={`relative px-4 sm:px-6 py-3 sm:py-3.5 text-sm sm:text-base font-bold transition-colors cursor-pointer whitespace-nowrap ${
                   isActive
                     ? "text-blue-600 dark:text-blue-400"
                     : "text-muted-foreground hover:text-foreground"

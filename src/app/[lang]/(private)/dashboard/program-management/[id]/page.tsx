@@ -170,6 +170,24 @@ function ProgramDetailPageContent({
     }
   };
 
+  const handleApprove = async () => {
+    if (isActionInProgressRef.current) return;
+    isActionInProgressRef.current = true;
+    try {
+      setIsActionLoading(true);
+      await approveProgram({ id }).unwrap();
+      toast.success(`Program "${program?.name || ""}" approved successfully!`);
+      setApproveDialogOpen(false);
+      refetch();
+    } catch (err: unknown) {
+      const message = (err as { data?: { message?: string } })?.data?.message;
+      toast.error(message || "Failed to approve program.");
+    } finally {
+      setIsActionLoading(false);
+      isActionInProgressRef.current = false;
+    }
+  };
+
   const handleApproveConfirm = async (reason: string) => {
     if (isActionInProgressRef.current) return;
     isActionInProgressRef.current = true;
