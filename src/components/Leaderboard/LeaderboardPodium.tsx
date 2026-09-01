@@ -19,15 +19,15 @@ import {
 /* Left-to-right reading order: 2nd (index 1), 1st (index 0), 3rd (index 2) */
 const COLUMNS = [1, 0, 2];
 
-/* Pedestal card heights: balanced riser proportions for tight profile-to-pedestal gap */
+/* Pedestal card heights: taller height & wider layout to eliminate empty padding */
 const RISER_HEIGHTS = [
-  "h-[210px] sm:h-[270px]", // 1st Place (Center - tallest)
-  "h-[175px] sm:h-[235px]", // 2nd Place (Left - taller pedestal)
-  "h-[175px] sm:h-[235px]", // 3rd Place (Right - taller pedestal)
+  "h-[250px] sm:h-[335px]", // 1st Place (Center - tallest)
+  "h-[210px] sm:h-[285px]", // 2nd Place (Left)
+  "h-[210px] sm:h-[285px]", // 3rd Place (Right)
 ];
 
 /* Equal avatar sizes across 1st, 2nd, and 3rd place */
-const AVATAR_SIZES = [60, 60, 60];
+const AVATAR_SIZES = [68, 68, 68];
 const BUILD_DELAY = [0.34, 0.06, 0.2];
 
 /** Points tick up once on mount */
@@ -194,8 +194,8 @@ function PodiumColumn({
   /* Content padding positioning rank badges cleanly inside pedestal fill */
   const contentPadding = {
     0: "pt-4 pb-3.5",
-    1: "pt-7 sm:pt-9 pb-3",
-    2: "pt-7 sm:pt-9 pb-3",
+    1: "pt-9 sm:pt-11 pb-3",
+    2: "pt-9 sm:pt-11 pb-3",
   }[place];
 
   return (
@@ -449,7 +449,7 @@ export default function LeaderboardPodium({
         </p>
       </div>
 
-      <div className="relative overflow-hidden rounded-3xl bg-card border border-border/50 p-3 pb-0 pt-8 sm:p-8 sm:pb-0 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl bg-card border border-border/50 p-2 pb-0 pt-5 sm:p-4 sm:pb-0 sm:pt-6 shadow-sm">
         {/* Floating Confetti Accents */}
         <FloatingConfetti />
 
@@ -461,8 +461,8 @@ export default function LeaderboardPodium({
           DevSolve
         </span>
 
-        {/* 3 Columns Flex with zero gap (gap-0) so pedestals connect seamlessly into a wave */}
-        <div className="relative flex items-end justify-center w-full max-w-4xl mx-auto gap-0 pt-2">
+        {/* 3 Columns Flex expanding across max-w-6xl to fill outer container completely */}
+        <div className="relative flex items-end justify-center w-full max-w-6xl mx-auto gap-0 pt-2">
           {COLUMNS.map((place) => (
             <PodiumColumn
               key={podium[place].id}
