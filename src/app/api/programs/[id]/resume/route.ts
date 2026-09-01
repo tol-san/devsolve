@@ -8,8 +8,7 @@ import {
 } from "@/lib/api/proxy";
 
 /**
- * `PATCH /api/programs/[id]/resume` — Resumes/activates a paused program.
- * Upstream backend uses `/programs/{id}/publish` to transition state to ACTIVE.
+ * `PATCH /api/programs/[id]/resume` — Resumes a PAUSED program back to ACTIVE.
  */
 export async function PATCH(
   request: NextRequest,
@@ -21,7 +20,7 @@ export async function PATCH(
   const { id } = await params;
 
   try {
-    const upstream = await upstreamFetch(`/programs/${id}/publish`, token, {
+    const upstream = await upstreamFetch(`/programs/${id}/resume`, token, {
       method: "PATCH",
     });
     return relay(upstream, "Failed to resume program.");
