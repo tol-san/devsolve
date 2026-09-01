@@ -36,10 +36,10 @@ export function ReportDetailAssessment({
           <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-400" />
           Executive Summary
         </h3>
-        <div className="prose dark:prose-invert max-w-none text-foreground">
+        <div className="w-full text-foreground">
           <MarkdownView
             source={detail.assessmentSummary}
-            className="text-sm sm:text-base leading-relaxed text-muted-foreground font-normal"
+            className="text-sm sm:text-base leading-relaxed text-foreground font-normal"
           />
         </div>
       </section>
