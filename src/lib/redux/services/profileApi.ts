@@ -16,6 +16,7 @@ import {
   FollowingUser,
   FollowingUsersResponse,
 } from "@/lib/types/profile/types";
+import { mockEditProfileFormData } from "@/lib/types/profile/mock-data";
 
 interface ProfileOverviewResponse {
   profile: Profile;
@@ -231,7 +232,7 @@ function initialsOf(name: string): string {
       .map((word) => word[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2) || mockProfile.avatarInitials
+      .slice(0, 2) || "??"
   );
 }
 
