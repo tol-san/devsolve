@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { Sparkles } from "lucide-react";
 import { DiscussionsFeed } from "@/components/discussions/DiscussionsFeed";
-import { DiscussionOverview } from "@/components/discussions/ProblemsOverview";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
@@ -57,16 +55,6 @@ export default async function ShowcasesPage({
         feed="showcases"
         createHref="/community/create/showcase"
         initialData={initialData}
-        overview={
-          <DiscussionOverview
-            title={copy.overviewTitle}
-            description={copy.overviewDescription}
-            browseLabel={copy.overviewBrowse}
-            discussionsHref={localise("/discussions", locale)}
-            icon={Sparkles}
-            id="showcases-overview-title"
-          />
-        }
       />
     </>
   );

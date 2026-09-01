@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { DiscussionsFeed } from "@/components/discussions/DiscussionsFeed";
-import { ProblemsOverview } from "@/components/discussions/ProblemsOverview";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
@@ -56,14 +55,6 @@ export default async function ProblemsPage({
         feed="problems"
         createHref="/community/create/problem"
         initialData={initialData}
-        overview={
-          <ProblemsOverview
-            title={copy.overviewTitle}
-            description={copy.overviewDescription}
-            browseLabel={copy.overviewBrowse}
-            discussionsHref={localise("/discussions", locale)}
-          />
-        }
       />
     </>
   );

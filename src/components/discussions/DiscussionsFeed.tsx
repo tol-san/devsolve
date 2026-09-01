@@ -36,8 +36,6 @@ interface DiscussionsFeedProps {
    */
   feed: "community" | "problems" | "showcases";
   createHref: string;
-  /** Useful server-rendered context for a valid listing before its API feed loads. */
-  overview?: ReactNode;
   /** Pre-rendered discussion items from the server to guarantee rich crawlable HTML. */
   initialData?: InitialDiscussionsData | DiscussionsResponse | null;
 }
@@ -46,7 +44,6 @@ export function DiscussionsFeed({
   defaultCategory,
   feed,
   createHref,
-  overview,
   initialData,
 }: DiscussionsFeedProps) {
   const t = useT();
@@ -121,8 +118,6 @@ export function DiscussionsFeed({
           createHref={createHref}
           createLabel={copy("createLabel")}
         />
-
-        {overview}
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_20rem]">
           <section
