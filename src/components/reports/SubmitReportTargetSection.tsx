@@ -22,6 +22,7 @@ import {
 import { Program } from "@/lib/types/programs/types";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -354,23 +355,24 @@ export function SubmitReportTargetSection({
           <div className="flex items-center justify-between">
             <label
               htmlFor="discoveredAt"
-              className="text-sm font-semibold text-slate-900 dark:text-slate-100"
+              className="text-sm font-semibold text-foreground"
             >
               Date discovered
             </label>
-            <span className="text-xs text-slate-500 font-medium">optional</span>
+            <span className="text-xs text-muted-foreground font-medium">optional</span>
           </div>
-          <Input
-            id="discoveredAt"
-            type="date"
-            /* Today is the last day that can be selected — a discovery cannot
-               have happened yet, and the browser enforces it before the schema
-               has to. */
-            max={new Date().toISOString().slice(0, 10)}
-            {...register("discoveredAt")}
-            className="bg-white dark:bg-slate-900 h-11 text-sm border-slate-300 dark:border-slate-700 sm:max-w-56"
-          />
-          <p className="text-xs text-slate-500 font-medium">
+          <div className="sm:max-w-64">
+            <DatePicker
+              id="discoveredAt"
+              value={watch("discoveredAt") ?? ""}
+              onChange={(val: string) => setValue("discoveredAt", val, { shouldValidate: true })}
+              max={new Date().toISOString().slice(0, 10)}
+              placeholder="Select discovery date"
+              className="h-11 text-sm bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+              error={Boolean(errors.discoveredAt)}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground font-medium">
             When you first observed the issue. Helps a triager establish how
             long the exposure has been live.
           </p>

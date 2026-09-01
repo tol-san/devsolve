@@ -14,6 +14,7 @@ import {
   type Severity,
 } from "@/components/reports/SeverityCvssField";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import {
   Select,
@@ -199,15 +200,17 @@ export function SubmitReportStep1Basics({
           <span>Date discovered</span>
           <span className="text-xs text-muted-foreground font-normal">optional</span>
         </label>
-        <Input
-          id="discoveredAt"
-          type="date"
-          /* Today is the last selectable day — a discovery cannot have happened
-             yet, and the browser refuses it before the schema has to. */
-          max={new Date().toISOString().slice(0, 10)}
-          {...register("discoveredAt")}
-          className="h-12 bg-card border-border text-foreground text-sm sm:max-w-64"
-        />
+        <div className="sm:max-w-72">
+          <DatePicker
+            id="discoveredAt"
+            value={watch("discoveredAt") ?? ""}
+            onChange={(val: string) => setValue("discoveredAt", val, { shouldValidate: true })}
+            max={new Date().toISOString().slice(0, 10)}
+            placeholder="Select discovery date"
+            className="h-12 text-sm"
+            error={Boolean(errors.discoveredAt)}
+          />
+        </div>
         <p className="text-xs text-muted-foreground font-medium">
           When you first observed the issue. Helps triage judge how long the
           exposure has been live.

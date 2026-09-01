@@ -20,6 +20,9 @@ interface DatePickerProps {
   placeholder?: string;
   id?: string;
   error?: boolean;
+  max?: string;
+  min?: string;
+  disabled?: boolean;
 }
 
 export function DatePicker({
@@ -29,6 +32,9 @@ export function DatePicker({
   placeholder = "Select date",
   id,
   error,
+  max,
+  min,
+  disabled = false,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
 
@@ -225,6 +231,13 @@ export function DatePicker({
                 ))}
                 {Array.from({ length: daysInMonth }).map((_, i) => {
                   const dayNum = i + 1;
+                  const dateCandidate = new Date(year, month, dayNum);
+                  const dateCandidateStr = toYYYYMMDD(dateCandidate);
+
+                  const isBeyondMax = Boolean(max && dateCandidateStr > max);
+                  const isBeforeMin = Boolean(min && dateCandidateStr < min);
+                  const isDayDisabled = isBeyondMax || isBeforeMin || disabled;
+
                   const isSelected =
                     parsedDate &&
                     parsedDate.getFullYear() === year &&
@@ -240,14 +253,20 @@ export function DatePicker({
                     <button
                       key={dayNum}
                       type="button"
-                      onClick={() => handleDateSelect(dayNum)}
+                      disabled={isDayDisabled}
+                      onClick={() => !isDayDisabled && handleDateSelect(dayNum)}
                       className={cn(
-                        "size-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors cursor-pointer relative",
-                        isSelected
+                        "size-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors relative",
+                        isDayDisabled
+                          ? "opacity-25 cursor-not-allowed pointer-events-none text-muted-foreground"
+                          : "cursor-pointer",
+                        !isDayDisabled && isSelected
                           ? "bg-primary text-primary-foreground shadow-xs font-bold"
-                          : isToday
+                          : !isDayDisabled && isToday
                           ? "bg-primary/10 text-primary font-bold border border-primary/20"
-                          : "hover:bg-accent text-foreground"
+                          : !isDayDisabled
+                          ? "hover:bg-accent text-foreground"
+                          : ""
                       )}
                     >
                       {dayNum}
