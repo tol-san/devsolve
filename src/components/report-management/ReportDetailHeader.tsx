@@ -135,6 +135,10 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
     detail.submitterEmail?.trim() ||
     `${detail.submitterInitials.toLowerCase()}@devsolve.io`;
 
+  const cleanReportId = detail.reportId.startsWith("#")
+    ? detail.reportId
+    : `#${detail.reportId}`;
+
   return (
     <div className="space-y-5">
       {/* 1. Breadcrumbs & Top Quick Actions */}
@@ -155,11 +159,11 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
           </Link>
           <span className="text-muted-foreground/60">/</span>
           <span className="font-semibold text-foreground">
-            #{detail.reportId}
+            {cleanReportId}
           </span>
         </nav>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <Link href="/dashboard/report-management">
             <Button
               variant="outline"
@@ -183,7 +187,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
           </Button>
 
           {detail.isReviewed ? (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant="outline"
                 className="h-9 px-3 gap-1.5 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center"
@@ -232,9 +236,9 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-4">
-                <div className="flex items-center gap-2.5">
-                  <Badge variant="outline" className="font-mono font-bold text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20">
-                    #{detail.reportId}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Badge variant="outline" className="font-mono font-bold text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20 shrink-0">
+                    {cleanReportId}
                   </Badge>
                   <h3 className="font-bold text-base text-foreground truncate max-w-sm sm:max-w-md">
                     {detail.title}
@@ -244,7 +248,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowPreviewModal(false)}
-                  className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+                  className="size-8 rounded-lg text-muted-foreground hover:text-foreground shrink-0"
                 >
                   <X className="size-4" />
                 </Button>
@@ -263,16 +267,20 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Executive Summary
                   </h4>
-                  <p className="text-sm text-foreground/90 font-medium bg-muted/30 p-3.5 rounded-xl border border-border/80">
-                    {detail.summary || detail.assessmentSummary}
-                  </p>
+                  <div className="text-sm text-foreground/90 font-medium bg-muted/30 p-3.5 rounded-xl border border-border/80">
+                    {detail.summary ? (
+                      <MarkdownView source={detail.summary} className="text-xs sm:text-sm leading-relaxed" />
+                    ) : (
+                      detail.assessmentSummary
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Target Endpoint
                   </h4>
-                  <code className="block text-xs font-mono font-semibold bg-muted/40 p-2.5 rounded-lg border border-border">
+                  <code className="block text-xs font-mono font-semibold bg-muted/40 p-2.5 rounded-lg border border-border break-all">
                     {detail.httpMethod} {detail.affectedUrl}
                   </code>
                 </div>
@@ -315,7 +323,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
       </AnimatePresence>
 
       {/* 2. Main Title Banner Card */}
-      <Card className="rounded-2xl border border-border bg-card shadow-xs">
+      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden">
         <CardContent className="p-6 sm:p-7 space-y-6">
           {/* Top Row: Badges & Title */}
           <div className="space-y-3">
@@ -324,7 +332,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                 variant="outline"
                 className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-200 dark:border-blue-500/20 px-2.5 py-0.5 rounded-md"
               >
-                #{detail.reportId}
+                {cleanReportId}
               </Badge>
 
               {getSeverityBadge(detail.severity, detail.cvssScore)}
@@ -347,82 +355,93 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               </Badge>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground leading-snug">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground leading-snug break-words">
               {detail.title}
             </h1>
           </div>
 
           {/* Key Facts Summary Strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-xl bg-muted/40 border border-border/80 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 p-4 rounded-xl bg-muted/40 border border-border/80 text-sm">
             {/* Submitter */}
-            <div className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <User className="size-3.5 text-blue-600 dark:text-blue-400" />
-                Researcher
+            <div className="space-y-1 min-w-0 overflow-hidden">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 truncate">
+                <User className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>Researcher</span>
               </span>
-              <Link
-                href={`/profile/${encodeURIComponent(detail.submitterId || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_"))}`}
-                className="font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline truncate inline-flex items-center gap-1 group"
-                title={`View ${detail.submitter}'s public profile`}
-              >
-                <span className="truncate">{detail.submitter}</span>
-                <ExternalLink className="size-3 text-muted-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-60 group-hover:opacity-100 transition-opacity shrink-0" />
-              </Link>
-              <a
-                href={`mailto:${contactEmail}`}
-                className="text-xs text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block font-medium"
-              >
-                {contactEmail}
-              </a>
+              <div className="min-w-0">
+                <Link
+                  href={`/profile/${encodeURIComponent(detail.submitterId || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_"))}`}
+                  className="font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline truncate inline-flex items-center gap-1 group max-w-full"
+                  title={`View ${detail.submitter}'s public profile`}
+                >
+                  <span className="truncate">{detail.submitter}</span>
+                  <ExternalLink className="size-3 text-muted-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-60 group-hover:opacity-100 transition-opacity shrink-0" />
+                </Link>
+                <a
+                  href={`mailto:${contactEmail}`}
+                  className="text-xs text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 truncate block font-medium"
+                >
+                  {contactEmail}
+                </a>
+              </div>
             </div>
 
             {/* Target Asset */}
-            <div className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Globe className="size-3.5 text-blue-600 dark:text-blue-400" />
-                Target Asset
+            <div className="space-y-1 min-w-0 overflow-hidden">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 truncate">
+                <Globe className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>Target Asset</span>
               </span>
-              <p className="font-mono text-xs font-bold text-foreground truncate" title={detail.affectedUrl}>
-                {detail.affectedUrl || detail.assets[0] || "Target Asset"}
-              </p>
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-bold text-foreground">
-                {detail.httpMethod || "GET"}
-              </span>
+              <div className="min-w-0 space-y-0.5">
+                <p className="font-mono text-xs font-bold text-foreground truncate" title={detail.affectedUrl}>
+                  {detail.affectedUrl || detail.assets[0] || "Target Asset"}
+                </p>
+                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-bold text-foreground">
+                  {detail.httpMethod || "GET"}
+                </span>
+              </div>
             </div>
 
             {/* Reward Range */}
-            <div className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Coins className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                Bounty Estimate
+            <div className="space-y-1 min-w-0 overflow-hidden">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 truncate">
+                <Coins className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Bounty Estimate</span>
               </span>
-              <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">
-                {detail.bountyRange}
-              </p>
-              <span className="text-xs text-muted-foreground font-medium">
-                Standard Matrix
-              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight truncate">
+                  {detail.bountyRange}
+                </p>
+                <span className="text-xs text-muted-foreground font-medium truncate block">
+                  Standard Matrix
+                </span>
+              </div>
             </div>
 
             {/* Submitted Date & Time */}
-            <div className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <CalendarDays className="size-3.5 text-blue-600 dark:text-blue-400" />
-                Submitted At
+            <div className="space-y-1 min-w-0 overflow-hidden">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 truncate">
+                <CalendarDays className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>Submitted At</span>
               </span>
-              <p className="text-xs font-bold text-foreground">
-                {detail.submittedDate}
-              </p>
-              <span className="text-xs text-muted-foreground font-medium">
-                Triage Queue Intake
-              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-foreground truncate" title={detail.submittedDate}>
+                  {detail.submittedDate}
+                </p>
+                <span className="text-xs text-muted-foreground font-medium truncate block">
+                  Triage Queue Intake
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Summary Callout */}
           {detail.summary && (
-            <div className="text-sm sm:text-base leading-relaxed text-muted-foreground border-l-2 border-blue-500 pl-4 py-0.5">
-              <p className="font-medium text-foreground/90">{detail.summary}</p>
+            <div className="text-sm sm:text-base leading-relaxed text-muted-foreground border-l-2 border-blue-500 pl-4 py-1 bg-muted/20 rounded-r-xl">
+              <MarkdownView
+                source={detail.summary}
+                className="text-xs sm:text-sm font-medium text-foreground/90 leading-relaxed max-h-36 overflow-y-auto"
+              />
             </div>
           )}
         </CardContent>

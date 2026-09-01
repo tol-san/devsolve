@@ -89,24 +89,24 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
   const profileHref = `/profile/${encodeURIComponent(profileIdentifier)}`;
 
   return (
-    <aside className="space-y-6 lg:sticky lg:top-6">
+    <aside className="space-y-6 lg:sticky lg:top-6 min-w-0">
       {/* 1. Moderation & Triage Actions */}
-      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden">
+      <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0">
         <CardHeader className="bg-muted/40 border-b border-border/70 px-5 py-3.5">
           <CardTitle className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Shield className="size-4 text-blue-600 dark:text-blue-400" />
-            Triage & Moderation
+            <Shield className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span>Triage & Moderation</span>
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-5 space-y-4 min-w-0">
           {detail.isReviewed ? (
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3 min-w-0">
               <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
-                <CheckCircle2 className="size-4 text-emerald-500" />
+                <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
                 <span>Triage Decision Recorded</span>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed break-words">
                 This finding has been reviewed. Severity is confirmed as{" "}
                 <strong className="text-foreground">{detail.severity}</strong>{" "}
                 {detail.cvssScore && detail.cvssScore !== "N/A"
@@ -120,7 +120,7 @@ export function ReportDetailSidebar({ detail }: ReportDetailSidebarProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full h-8 text-xs font-semibold rounded-lg border-border hover:bg-muted"
+                  className="w-full h-8 text-xs font-semibold rounded-lg border-border hover:bg-muted truncate"
                 >
                   Adjust / Re-evaluate Severity
                 </Button>
