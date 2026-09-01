@@ -7,12 +7,6 @@ import {
   LeaderboardStats,
   SeverityLabel,
 } from "@/lib/types/leaderboard/types";
-import {
-  getCountryOptions,
-  getHighlights,
-  getLeaderboardEntries,
-  mockLeaderboardStats,
-} from "@/lib/types/leaderboard/mock-data";
 
 export interface LeaderboardQueryParams {
   period: LeaderboardPeriod;
@@ -159,6 +153,38 @@ function statsOf(entries: LeaderboardEntry[]): LeaderboardStats {
   };
 }
 
+function highlightsOf(entries: LeaderboardEntry[]): LeaderboardHighlight[] {
+  if (entries.length === 0) return [];
+
+  const pick = (
+    kind: LeaderboardHighlight["kind"],
+    label: string,
+    unit: string,
+    score: (e: LeaderboardEntry) => number,
+  ): LeaderboardHighlight => {
+    const winner = entries.reduce((best, e) => (score(e) > score(best) ? e : best));
+    return {
+      kind,
+      label,
+      unit,
+      value: score(winner),
+      username: winner.username,
+      displayName: winner.displayName,
+      avatarUrl: winner.avatarUrl,
+      avatarInitials: winner.avatarInitials,
+    };
+  };
+
+  return [
+    pick("valid", "Most valid reports", "valid", (e) => e.validReports ?? 0),
+    pick("critical", "Most criticals found", "critical", (e) => e.criticalReports),
+    pick("recognition", "Most recognized", "thanks", (e) => e.recognitionCount),
+    pick("climb", "Biggest climber", "places", (e) =>
+      e.previousRank ? Math.max(0, e.previousRank - e.rank) : 0,
+    ),
+  ];
+}
+
 /**
  * The window a ranking is measured over, as the API names it. Distinct from
  * the `LeaderboardPeriod` the full leaderboard screen uses for its own copy.
@@ -252,33 +278,25 @@ export const leaderboardApi = proxyApi.injectEndpoints({
             data: {
               entries: filteredEntries,
               podium: allEntries.slice(0, 3),
-              highlights: getHighlights(period),
+              highlights: highlightsOf(allEntries),
               countries: countryOptionsOf(allEntries),
               totalRanked: leaderboardPage.totalElements ?? allEntries.length,
               stats: statsOf(allEntries),
             },
           };
         } catch {
-          // Fall back gracefully to mock entries if backend is unreachable
+          // Return empty result when backend is unreachable
+          return {
+            data: {
+              entries: [],
+              podium: [],
+              highlights: [],
+              countries: [],
+              totalRanked: 0,
+              stats: { activeResearchers: 0, validReports: 0, programsLive: 0 },
+            },
+          };
         }
-
-        const mockAll = getLeaderboardEntries(period);
-        const filteredMock = filterEntries(mockAll, {
-          country,
-          severity,
-          queryTerm,
-        });
-
-        return {
-          data: {
-            entries: filteredMock,
-            podium: mockAll.slice(0, 3),
-            highlights: getHighlights(period),
-            countries: getCountryOptions(period),
-            totalRanked: mockAll.length,
-            stats: mockLeaderboardStats,
-          },
-        };
       },
       providesTags: ["Leaderboard"],
     }),

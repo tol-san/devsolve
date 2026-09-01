@@ -196,7 +196,7 @@ function CreateProgramContent() {
           )}
 
           {/* FOOTER NAVIGATION BUTTONS */}
-          <div className="pt-4 border-t border-border flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="pt-4 border-t border-border flex flex-col-reverse sm:flex-row items-stretch sm:items-start justify-between gap-3">
             <Button
               type="button"
               variant="outline"
@@ -211,7 +211,7 @@ function CreateProgramContent() {
               Previous
             </Button>
 
-            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-start gap-2.5 sm:gap-3 w-full sm:w-auto">
               <Button
                 type="button"
                 variant="outline"
@@ -229,8 +229,7 @@ function CreateProgramContent() {
                       : "Add a program name and handle before saving a draft"
                 }
                 className={cn(
-                  "rounded-xl border-border bg-card text-foreground font-semibold text-sm h-11 px-3 sm:px-5 gap-1.5 sm:gap-2 cursor-pointer hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 justify-center",
-                  activeTab === 1 && "col-span-1"
+                  "rounded-xl border-border bg-card text-foreground font-semibold text-sm h-11 px-4 sm:px-5 gap-1.5 sm:gap-2 cursor-pointer hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 justify-center w-full sm:w-auto"
                 )}
               >
                 <Save className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -246,18 +245,42 @@ function CreateProgramContent() {
                   type="button"
                   onClick={() => setActiveTab(Math.min(activeTab + 1, 4))}
                   disabled={isNextDisabled}
-                  className="rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm h-11 px-4 sm:px-6 gap-1.5 cursor-pointer dark:bg-blue-600 dark:hover:bg-blue-700 justify-center col-span-1"
+                  className="rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm h-11 px-4 sm:px-6 gap-1.5 cursor-pointer dark:bg-blue-600 dark:hover:bg-blue-700 justify-center w-full sm:w-auto"
                 >
                   <span>Next</span>
                   <ChevronRight className="w-4 h-4 shrink-0" />
                 </Button>
               ) : (
-                <div className="col-span-2 sm:col-span-1 flex flex-col items-stretch gap-2 sm:items-end w-full sm:w-auto">
-                  {/* A disabled button with no reason beside it is the whole
-                      complaint: the author pressed submit, nothing happened,
-                      and the upstream's refusal only arrived once it did. */}
+                <div className="flex flex-col items-stretch sm:items-end gap-1.5 w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    onClick={handleCreateProgram}
+                    disabled={
+                      !isFormValid || isCreating || isFetchingDraft || isUnderReview
+                    }
+                    title={
+                      isUnderReview
+                        ? "This program is being reviewed and cannot be edited"
+                        : undefined
+                    }
+                    className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm h-11 px-6 justify-center disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer dark:bg-blue-600 dark:hover:bg-blue-700 w-full sm:w-auto"
+                  >
+                    {isCreating
+                      ? isSubmitting
+                        ? "Submitting..."
+                        : isEditingDraft
+                          ? "Updating..."
+                          : "Creating..."
+                      : isExistingDraft
+                        ? "Submit for Review"
+                        : isEditingDraft
+                          ? "Update Program"
+                          : "Submit for Review"}
+                  </Button>
+
+                  {/* Missing fields note positioned cleanly under the button */}
                   {missingForSubmit.length > 0 && !isUnderReview ? (
-                    <p className="text-sm text-muted-foreground text-left sm:text-right">
+                    <p className="text-xs text-muted-foreground text-left sm:text-right">
                       <span className="font-semibold text-foreground">
                         Before submitting:
                       </span>{" "}
@@ -275,33 +298,6 @@ function CreateProgramContent() {
                       ))}
                     </p>
                   ) : null}
-
-                  <Button
-                    type="button"
-                    onClick={handleCreateProgram}
-                    disabled={
-                      !isFormValid || isCreating || isFetchingDraft || isUnderReview
-                    }
-                    title={
-                      isUnderReview
-                        ? "This program is being reviewed and cannot be edited"
-                        : undefined
-                    }
-                    size="lg"
-                    className="rounded-xl w-full sm:w-auto justify-center"
-                  >
-                    {isCreating
-                      ? isSubmitting
-                        ? "Submitting..."
-                        : isEditingDraft
-                          ? "Updating..."
-                          : "Creating..."
-                      : isExistingDraft
-                        ? "Submit for Review"
-                        : isEditingDraft
-                          ? "Update Program"
-                          : "Submit for Review"}
-                  </Button>
                 </div>
               )}
             </div>

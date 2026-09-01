@@ -3,32 +3,33 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-import { Crown, Medal } from "lucide-react";
+import { Crown, Globe } from "lucide-react";
 import {
   LeaderboardEntry,
   LeaderboardPeriod,
 } from "@/lib/types/leaderboard/types";
 import ResearcherAvatar from "./ResearcherAvatar";
-import RankMovement from "./RankMovement";
 import {
-  MEDALS,
   PERIOD_LABEL_SHORT,
   formatNumber,
-  isUuid,
+  getCountryFlagCode,
   profileHref,
 } from "./leaderboard-ui";
 
-/* Left-to-right reading order is the podium order: 2nd · 1st · 3rd. */
+/* Left-to-right reading order: 2nd (index 1), 1st (index 0), 3rd (index 2) */
 const COLUMNS = [1, 0, 2];
 
-/* Pedestal heights, kept compact so the board stays above the fold. */
-const RISER = ["h-36 sm:h-40", "h-28 sm:h-32", "h-24 sm:h-28"];
-const AVATAR = [64, 54, 54];
+/* Pedestal card heights: 2nd & 3rd place taller main body with subtle, gentle end curve */
+const RISER_HEIGHTS = [
+  "h-[250px] sm:h-[295px]", // 1st Place (Center - tallest)
+  "h-[180px] sm:h-[220px]", // 2nd Place (Left - taller main body)
+  "h-[180px] sm:h-[220px]", // 3rd Place (Right - taller main body)
+];
 
-/* The champion's pedestal lands last, so the eye finishes in the middle. */
+const AVATAR_SIZES = [76, 60, 60];
 const BUILD_DELAY = [0.34, 0.06, 0.2];
 
-/** Points tick up once on mount — the only number worth counting. */
+/** Points tick up once on mount */
 function CountUp({
   target,
   duration = 900,
@@ -58,12 +59,89 @@ function CountUp({
 
   return (
     <span className="relative inline-block tabular-nums">
-      {/* Final value reserves the width so the count never shifts the layout */}
       <span className="opacity-0">{formatNumber(target)}</span>
       <span aria-hidden className="absolute inset-0">
         {formatNumber(reduce ? target : value)}
       </span>
     </span>
+  );
+}
+
+function FloatingConfetti() {
+  const reduce = useReducedMotion();
+  if (reduce) return null;
+
+  const confettiItems = [
+    { top: "12%", left: "12%", color: "bg-amber-400", size: "w-2.5 h-2.5 rotate-12" },
+    { top: "18%", left: "26%", color: "bg-blue-400", size: "w-2 h-3 -rotate-45" },
+    { top: "28%", left: "8%", color: "bg-purple-400", size: "w-3 h-2 rotate-30" },
+    { top: "14%", right: "14%", color: "bg-rose-400", size: "w-2.5 h-2.5 -rotate-12" },
+    { top: "22%", right: "26%", color: "bg-emerald-400", size: "w-2 h-3 rotate-45" },
+    { top: "30%", right: "10%", color: "bg-amber-300", size: "w-3 h-2 -rotate-30" },
+    { top: "8%", left: "48%", color: "bg-blue-500", size: "w-2 h-2 rotate-15" },
+  ];
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden select-none">
+      {confettiItems.map((item, idx) => (
+        <motion.span
+          key={idx}
+          className={`absolute rounded-xs opacity-75 ${item.color} ${item.size}`}
+          style={{ top: item.top, left: item.left, right: item.right }}
+          animate={{
+            y: [0, -8, 0],
+            rotate: [0, 20, -20, 0],
+          }}
+          transition={{
+            duration: 3.5 + (idx % 3),
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: idx * 0.25,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function LaurelWreathIcon({ rank }: { rank: number }) {
+  const colors = {
+    1: "text-amber-400",
+    2: "text-indigo-400",
+    3: "text-rose-400",
+  }[rank] || "text-slate-500";
+
+  return (
+    <div className="relative mb-2 flex items-center justify-center select-none">
+      <svg
+        viewBox="0 0 80 50"
+        className={`w-14 h-9 sm:w-16 sm:h-10 ${colors}`}
+        fill="currentColor"
+      >
+        {/* Left Laurel Branch */}
+        <g>
+          <path d="M 24,44 C 18,36 17,20 28,8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M 25,12 C 20,10 16,13 18,18 C 22,17 24,14 25,12 Z" />
+          <path d="M 21,21 C 15,20 12,24 15,28 C 18,27 20,24 21,21 Z" />
+          <path d="M 19,31 C 13,31 11,36 14,39 C 17,38 18,34 19,31 Z" />
+          <path d="M 23,39 C 17,41 16,46 20,47 C 22,45 23,42 23,39 Z" />
+        </g>
+
+        {/* Right Laurel Branch */}
+        <g>
+          <path d="M 56,44 C 62,36 63,20 52,8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M 55,12 C 60,10 64,13 62,18 C 58,17 56,14 55,12 Z" />
+          <path d="M 59,21 C 65,20 68,24 65,28 C 62,27 60,24 59,21 Z" />
+          <path d="M 61,31 C 67,31 69,36 66,39 C 63,38 62,34 61,31 Z" />
+          <path d="M 57,39 C 63,41 64,46 60,47 C 58,45 57,42 57,39 Z" />
+        </g>
+      </svg>
+
+      {/* Rank Number in Center */}
+      <span className={`absolute text-base sm:text-lg font-black tracking-tight ${colors}`}>
+        {rank}
+      </span>
+    </div>
   );
 }
 
@@ -75,238 +153,262 @@ function PodiumColumn({
   place: number;
 }) {
   const reduce = useReducedMotion();
-  const medal = MEDALS[place];
-  const tone = medal.podium;
   const isChampion = place === 0;
   const delay = BUILD_DELAY[place];
+
+  const flagCode = getCountryFlagCode(entry.countryCode, entry.countryName);
+  const countryDisplayName =
+    entry.countryName && !entry.countryName.includes(",")
+      ? entry.countryName
+      : entry.countryCode && !entry.countryCode.includes(",")
+      ? entry.countryCode
+      : entry.countryName || null;
+
+  const avatarRingStyles = {
+    0: "ring-4 ring-amber-400 shadow-lg shadow-amber-400/40",
+    1: "ring-4 ring-indigo-400 shadow-lg shadow-indigo-400/40",
+    2: "ring-4 ring-rose-400 shadow-lg shadow-rose-400/40",
+  }[place];
+
+  const badgePillStyles = {
+    0: "bg-white/95 text-amber-950 font-black px-4 py-0.5 rounded-full text-xs tracking-wider shadow-sm",
+    1: "bg-white/95 text-indigo-950 font-black px-3.5 py-0.5 rounded-full text-xs tracking-wider shadow-sm",
+    2: "bg-white/95 text-rose-950 font-black px-3.5 py-0.5 rounded-full text-xs tracking-wider shadow-sm",
+  }[place];
+
+  const pointsTextStyles = {
+    0: "text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-xs",
+    1: "text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-xs",
+    2: "text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-xs",
+  }[place];
+
+  const ptsUnitStyles = {
+    0: "text-white/90 font-bold drop-shadow-xs",
+    1: "text-white/90 font-bold drop-shadow-xs",
+    2: "text-white/90 font-bold drop-shadow-xs",
+  }[place];
+
+  const rankBadgeText = place === 0 ? "1ST" : place === 1 ? "2ND" : "3RD";
+
+  const contentPadding = {
+    0: "pt-4 pb-3.5",
+    1: "pt-8 sm:pt-9 pb-3.5",
+    2: "pt-8 sm:pt-9 pb-3.5",
+  }[place];
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: delay * 0.5 }}
-      className="group flex min-w-0 flex-col items-center justify-end"
+      className={`group flex flex-1 min-w-0 flex-col items-center justify-end ${
+        isChampion ? "z-10" : "z-0"
+      }`}
     >
       <Link
         href={profileHref(entry.username)}
         aria-label={`Rank ${entry.rank}: ${entry.displayName}, ${formatNumber(
           entry.reputation,
         )} reputation points. Open profile.`}
-        className="flex w-full min-w-0 flex-col items-center rounded-t-2xl outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+        className="flex w-full min-w-0 flex-col items-center outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
       >
-        {/* Identity and avatar lift together on hover; the pedestal stays
-            planted on the floor, the way a podium should read. */}
-        <div className="flex w-full min-w-0 flex-col items-center transition-transform duration-200 ease-out group-hover:-translate-y-1">
-          {/* ── Identity, sitting on top of the pedestal ── */}
+        {/* ── TOP SECTION: Laurel, Avatar, Name & Location ── */}
+        <div className="flex w-full min-w-0 flex-col items-center transition-transform duration-200 ease-out group-hover:-translate-y-1 pb-3 px-1 sm:px-2">
+          {/* Laurel Wreath Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.4,
-              delay: delay + 0.18,
-              ease: [0.22, 1, 0.36, 1],
-            }}
-            className="flex w-full min-w-0 flex-col items-center px-1 text-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: delay + 0.1, type: "spring", stiffness: 300 }}
           >
-            <p className="w-full truncate text-sm font-bold tracking-tight text-foreground transition-colors group-hover:text-blue-700 dark:group-hover:text-blue-400 sm:text-base">
-              {entry.displayName}
-            </p>
-            {!isUuid(entry.username) && (
-              <p className="hidden w-full truncate text-xs font-medium text-muted-foreground sm:block">
-                @{entry.username}
-              </p>
-            )}
+            <LaurelWreathIcon rank={entry.rank} />
           </motion.div>
 
-
-          {/* ── Avatar with medal ring and rank chip ── */}
+          {/* Avatar with Ring */}
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.82 }}
+            initial={{ opacity: 0, y: -8, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{
-              delay: delay + 0.24,
+              delay: delay + 0.18,
               type: "spring",
               stiffness: 320,
               damping: 20,
             }}
-            className="relative mt-2.5"
+            className="relative mt-0.5"
           >
-            {isChampion && (
-              <motion.span
-                aria-hidden
-                animate={reduce ? undefined : { y: [0, -3, 0] }}
-                transition={{
-                  duration: 2.6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="absolute -top-2 left-1/2 -translate-x-1/2"
-                style={{ color: medal.ring }}
-              >
-                <Crown
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  strokeWidth={1.2}
-                />
-              </motion.span>
-            )}
-
-            <motion.span
-              whileHover={reduce ? undefined : { scale: 1.06 }}
-              transition={{ type: "spring", stiffness: 400, damping: 22 }}
-              className="inline-flex shrink-0 items-center justify-center rounded-full bg-white p-1"
-              // Ring takes the pedestal's rim colour, so each column reads as
-              // one hue from crown to floor.
-              style={{ boxShadow: `0 0 0 2px ${tone.edge}` }}
-            >
-              <span className="hidden sm:inline-block">
-                <ResearcherAvatar
-                  username={entry.username}
-                  displayName={entry.displayName}
-                  avatarUrl={entry.avatarUrl}
-                  initials={entry.avatarInitials}
-                  size={AVATAR[place]}
-                />
-              </span>
-              <span className="sm:hidden">
-                <ResearcherAvatar
-                  username={entry.username}
-                  displayName={entry.displayName}
-                  avatarUrl={entry.avatarUrl}
-                  initials={entry.avatarInitials}
-                  size={place === 0 ? 48 : 40}
-                />
-              </span>
-            </motion.span>
-
             <span
-              className="absolute -bottom-1 left-1/2 flex h-6 -translate-x-1/2 items-center gap-0.5 rounded-full px-2 text-xs font-bold ring-2 ring-white"
-              style={{ backgroundColor: medal.soft, color: medal.ink }}
+              className={`inline-flex shrink-0 items-center justify-center rounded-full bg-background p-1 ${avatarRingStyles}`}
             >
-              {isChampion ? (
-                <Crown className="h-3 w-3" aria-hidden />
-              ) : (
-                <Medal className="h-3 w-3" aria-hidden />
-              )}
-              {entry.rank}
+              <ResearcherAvatar
+                username={entry.username}
+                displayName={entry.displayName}
+                avatarUrl={entry.avatarUrl}
+                initials={entry.avatarInitials}
+                size={AVATAR_SIZES[place]}
+              />
             </span>
+
+            {/* Rank crown badge pinned on bottom edge of champion avatar */}
+            {isChampion && (
+              <span className="absolute -bottom-1.5 left-1/2 flex h-5 sm:h-6 -translate-x-1/2 items-center gap-0.5 rounded-full bg-amber-400 px-2 text-[11px] sm:text-xs font-black text-amber-950 shadow-md border border-amber-300">
+                <Crown className="size-3 fill-amber-950 text-amber-950" aria-hidden />
+                <span>1</span>
+              </span>
+            )}
+          </motion.div>
+
+          {/* User Name & Location */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: delay + 0.25 }}
+            className="mt-3 flex w-full min-w-0 flex-col items-center text-center"
+          >
+            <p className="w-full truncate text-xs sm:text-sm font-bold tracking-tight text-foreground transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+              {entry.displayName}
+            </p>
+
+            <div className="mt-1 flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-medium text-muted-foreground">
+              {flagCode ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`https://flagcdn.com/w40/${flagCode}.png`}
+                  alt={countryDisplayName || "Flag"}
+                  className="h-3 w-4 shrink-0 rounded-2xs object-cover border border-border/50"
+                />
+              ) : (
+                <Globe className="h-3.5 w-3.5 shrink-0 opacity-70" />
+              )}
+              <span className="truncate max-w-[95px] sm:max-w-[140px]">
+                {countryDisplayName || "Unknown country"}
+              </span>
+            </div>
           </motion.div>
         </div>
 
-        {/* ── Pedestal ── */}
-        <div className={`relative mt-4 w-full ${RISER[place]}`}>
-          {/* The riser scales up from the floor; content stays undistorted */}
-          <motion.span
-            aria-hidden
-            initial={{ scaleY: reduce ? 1 : 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ delay, type: "spring", stiffness: 130, damping: 18 }}
-            className="absolute inset-0 overflow-hidden rounded-t-2xl"
-            style={{
-              transformOrigin: "bottom",
-              backgroundColor: tone.block,
-              // Rim in the hue plus a light top edge, so the block reads as a
-              // solid riser rather than a flat swatch.
-              boxShadow: `inset 0 0 0 1px ${tone.edge}, inset 0 1px 0 0 rgba(255,255,255,0.55)`,
-            }}
-          >
-            {/* One slow sheen across the champion's block */}
-            {isChampion && !reduce && (
-              <motion.span
-                className="absolute inset-y-0 -left-1/3 w-1/3 bg-[linear-gradient(100deg,transparent,rgba(255,255,255,0.7),transparent)]"
-                animate={{ x: ["0%", "420%"] }}
-                transition={{
-                  duration: 1.8,
-                  delay: delay + 0.7,
-                  repeat: Infinity,
-                  repeatDelay: 6,
-                  ease: "easeInOut",
-                }}
-              />
-            )}
-          </motion.span>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: delay + 0.3, ease: "easeOut" }}
-            className="relative flex h-full flex-col items-center justify-center px-1.5 text-center"
-          >
-            <span
-              className="text-xs font-bold uppercase tracking-[0.18em]"
-              style={{ color: tone.heading }}
+        {/* ── BOTTOM CONNECTED RISER PEDESTAL CARD ── */}
+        <div className={`relative w-full ${RISER_HEIGHTS[place]}`}>
+          {/* 2nd Place Single SVG Background (Soft desaturated eye-friendly indigo gradient) */}
+          {place === 1 && (
+            <svg
+              viewBox="0 0 100 200"
+              preserveAspectRatio="none"
+              className="absolute inset-0 w-full h-full drop-shadow-sm z-0"
             >
-              {medal.label}
+              <defs>
+                <linearGradient id="podium-2nd-grad-full" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#818CF8" stopOpacity="0.55" />
+                  <stop offset="50%" stopColor="#6366F1" stopOpacity="0.55" />
+                  <stop offset="100%" stopColor="#4F46E5" stopOpacity="0.60" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 0,65 C 0,35 15,22 36,22 L 78,22 C 90,22 98,10 100,0 L 100,200 L 0,200 Z"
+                fill="url(#podium-2nd-grad-full)"
+              />
+            </svg>
+          )}
+
+          {/* 3rd Place Single SVG Background (Soft desaturated eye-friendly rose gradient) */}
+          {place === 2 && (
+            <svg
+              viewBox="0 0 100 200"
+              preserveAspectRatio="none"
+              className="absolute inset-0 w-full h-full drop-shadow-sm z-0"
+            >
+              <defs>
+                <linearGradient id="podium-3rd-grad-full" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#FB7185" stopOpacity="0.55" />
+                  <stop offset="50%" stopColor="#F43F5E" stopOpacity="0.55" />
+                  <stop offset="100%" stopColor="#E11D48" stopOpacity="0.60" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 0,0 C 2,10 10,22 22,22 L 64,22 C 85,22 100,35 100,65 L 100,200 L 0,200 Z"
+                fill="url(#podium-3rd-grad-full)"
+              />
+            </svg>
+          )}
+
+          {/* 1st Place Card Container (Soft desaturated eye-friendly gold gradient) */}
+          {place === 0 && (
+            <motion.div
+              initial={{ scaleY: reduce ? 1 : 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ delay, type: "spring", stiffness: 140, damping: 18 }}
+              className="absolute inset-0 w-full h-full bg-gradient-to-b from-[#FBBF24] via-[#F59E0B] to-[#D97706] opacity-65 text-white rounded-t-[2.2rem] sm:rounded-t-[2.8rem] shadow-xl shadow-amber-500/15 z-10 overflow-hidden"
+              style={{ transformOrigin: "bottom" }}
+            >
+              {/* Gloss shine effect on champion card */}
+              {!reduce && (
+                <motion.span
+                  className="absolute inset-y-0 -left-1/3 w-1/3 bg-[linear-gradient(100deg,transparent,rgba(255,255,255,0.45),transparent)]"
+                  animate={{ x: ["0%", "420%"] }}
+                  transition={{
+                    duration: 2,
+                    delay: delay + 0.6,
+                    repeat: Infinity,
+                    repeatDelay: 5,
+                    ease: "easeInOut",
+                  }}
+                />
+              )}
+            </motion.div>
+          )}
+
+          {/* Foreground Card Content */}
+          <div className={`relative z-20 flex h-full flex-col items-center justify-between ${contentPadding} px-1.5 sm:px-3 text-center`}>
+            {/* Top Rank Badge Pill */}
+            <span className={badgePillStyles}>
+              {rankBadgeText}
             </span>
 
-            <p className="mt-1 flex items-baseline justify-center gap-1">
-              <span
-                className={`font-bold leading-none tracking-tighter ${
-                  isChampion ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
-                }`}
-                style={{ color: tone.figure }}
-              >
-                <CountUp target={entry.reputation} />
-              </span>
-              <span
-                className="text-xs font-semibold"
-                style={{ color: tone.muted }}
-              >
-                pts
-              </span>
-            </p>
-
-            {/* Sat on a near-white pill: the movement inks are tuned for white,
-                and a saturated pedestal would drop them below 4.5:1. */}
-            <RankMovement
-              rank={entry.rank}
-              previousRank={entry.previousRank}
-              className="mt-1.5 rounded-md bg-white/90 px-1.5 py-0.5"
-            />
-
-            {/* Supporting counts — aggregates only, never report detail.
-                Narrow columns drop to single-letter labels rather than
-                shrinking the type below 12px. */}
-            <p
-              className="mt-2 flex items-center gap-1 text-xs font-medium sm:gap-2.5"
-              style={{ color: tone.muted }}
-            >
-              {[
-                ...(entry.validReports != null
-                  ? [{ short: "v", label: "valid", value: entry.validReports }]
-                  : []),
-                { short: "c", label: "critical", value: entry.criticalReports },
-                { short: "t", label: "thanks", value: entry.recognitionCount },
-              ].map((stat, i) => (
-                <span
-                  key={stat.label}
-                  className="flex items-center gap-1 sm:gap-2.5"
-                >
-                  {i > 0 && (
-                    <span
-                      aria-hidden
-                      className="hidden text-muted-foreground/70 sm:inline"
-                    >
-                      ·
-                    </span>
-                  )}
-                  <span className="whitespace-nowrap">
-                    <span
-                      className="font-bold tabular-nums"
-                      style={{ color: tone.figure }}
-                    >
-                      {formatNumber(stat.value)}
-                    </span>
-                    <span className="hidden sm:inline"> {stat.label}</span>
-                    <span aria-hidden className="sm:hidden">
-                      {stat.short}
-                    </span>
-                    <span className="sr-only sm:hidden">{stat.label}</span>
-                  </span>
+            {/* Central Points Display */}
+            <div className="my-auto py-0.5">
+              <p className="flex items-baseline justify-center gap-1">
+                <span className={pointsTextStyles}>
+                  <CountUp target={entry.reputation} />
                 </span>
-              ))}
-            </p>
-          </motion.div>
+                <span className={`text-xs sm:text-sm font-bold ${ptsUnitStyles}`}>
+                  pts
+                </span>
+              </p>
+            </div>
+
+            {/* Bottom Metrics Box (Soft white glass backdrop for all 3 pedestals with white text) */}
+            <div className="w-[94%] sm:w-[90%] max-w-[220px] rounded-2xl py-1.5 sm:py-2 px-1 backdrop-blur-xs bg-white/20 shadow-2xs text-white">
+              <div className="grid grid-cols-3 divide-x divide-white/25 text-center">
+                {/* Valid */}
+                <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
+                  <span className="text-sm sm:text-base font-black leading-tight text-white drop-shadow-xs">
+                    {formatNumber(entry.validReports ?? 0)}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
+                    valid
+                  </span>
+                </div>
+
+                {/* Critical */}
+                <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
+                  <span className="text-sm sm:text-base font-black leading-tight text-white drop-shadow-xs">
+                    {formatNumber(entry.criticalReports)}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
+                    critical
+                  </span>
+                </div>
+
+                {/* Thanks */}
+                <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
+                  <span className="text-sm sm:text-base font-black leading-tight text-white drop-shadow-xs">
+                    {formatNumber(entry.recognitionCount)}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
+                    thanks
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Link>
     </motion.div>
@@ -345,17 +447,20 @@ export default function LeaderboardPodium({
         </p>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl bg-card px-3 pb-1.5 pt-10 ring-1 ring-foreground/5 dark:ring-foreground/10 sm:px-8 sm:pb-2 sm:pt-12">
-        {/* Watermark, echoing the reference board's oversized title */}
+      <div className="relative overflow-hidden rounded-3xl bg-card border border-border/50 p-3 pb-0 pt-8 sm:p-8 sm:pb-0 shadow-sm">
+        {/* Floating Confetti Accents */}
+        <FloatingConfetti />
+
+        {/* Background watermark */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-3 hidden select-none text-center text-[5.5rem] font-bold leading-none tracking-[-0.06em] text-foreground/4 sm:block"
+          className="pointer-events-none absolute inset-x-0 top-3 hidden select-none text-center text-[5.5rem] font-black leading-none tracking-[-0.06em] text-foreground/4 sm:block"
         >
           DevSolve
         </span>
 
-        {/* Floor the pedestals stand on */}
-        <div className="relative grid grid-cols-3 items-end gap-2 border-b-2 border-border sm:gap-4">
+        {/* 3 Columns Flex with zero gap (gap-0) so pedestals connect seamlessly into a wave */}
+        <div className="relative flex items-end justify-center w-full max-w-4xl mx-auto gap-0 pt-2">
           {COLUMNS.map((place) => (
             <PodiumColumn
               key={podium[place].id}
