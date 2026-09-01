@@ -39,7 +39,9 @@ export function HeroPlatform() {
           className="mx-auto max-w-4xl font-extrabold tracking-[-0.03em] text-slate-900 dark:text-white"
           style={{ fontSize: "clamp(32px, min(4.8vw, 6.5vh), 58px)", lineHeight: 1.25 }}
         >
-          <span className="inline-block">{t("hero.platformTitleLine1") || "A Single Platform Built for"}</span>{" "}
+          <span className="inline-block" style={{ fontSize: "clamp(29px, min(4.3vw, 5.8vh), 52px)" }}>
+            {t("hero.platformTitleLine1") || "A Single Platform Built for"}
+          </span>{" "}
           <span className="inline-block text-[#2563EB] dark:text-blue-400">
             {t("hero.platformTitleLine2") || "Developers and Security."}
           </span>
