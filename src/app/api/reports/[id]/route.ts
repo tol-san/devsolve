@@ -58,14 +58,126 @@ export async function GET(
       }
     }
 
-    if (!upstream.ok) {
-      return NextResponse.json(
-        { message: (body as { message?: string } | null)?.message ?? "Report not found." },
-        { status: upstream.status }
-      );
+    let reportData: Record<string, any> | null =
+      upstream.ok && typeof body === "object" && body !== null
+        ? (body as Record<string, any>)
+        : null;
+
+    // If direct report lookup fails with 403 or 404 (e.g. for company accounts),
+    // look through organization reports to find matching report
+    if (!reportData && (upstream.status === 403 || upstream.status === 404)) {
+      try {
+        const orgReportsRes = await fetch(
+          `${BACKEND_API_URL}/reports?size=100&sort=submittedAt,DESC`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
+          }
+        );
+
+        if (orgReportsRes.ok) {
+          const orgRaw = await orgReportsRes.json();
+          const list = Array.isArray(orgRaw)
+            ? orgRaw
+            : Array.isArray(orgRaw?.content)
+            ? orgRaw.content
+            : Array.isArray(orgRaw?.data)
+            ? orgRaw.data
+            : [];
+
+          const matched = list.find((item: { id?: string }) => item.id === id);
+          if (matched && typeof matched === "object") {
+            reportData = matched;
+          }
+        }
+      } catch {
+        // fall through to error handling if not found
+      }
     }
 
-    return NextResponse.json(body, { status: upstream.status });
+    if (reportData) {
+      // Enrich with reporter profile details if reporterId is present
+      const repId =
+        reportData.reporterId ||
+        reportData.reporter_id ||
+        reportData.reporter?.id;
+
+      if (repId) {
+        try {
+          const profRes = await fetch(`${BACKEND_API_URL}/user-profiles/${repId}`, {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
+          });
+
+          if (profRes.ok) {
+            const profile = await profRes.json();
+            reportData.reporterId = profile.id || repId;
+            reportData.authorName = profile.fullName || reportData.authorName;
+            reportData.researcherName = profile.fullName || reportData.researcherName;
+            reportData.submitterName = profile.fullName || reportData.submitterName;
+            reportData.authorEmail = profile.email || reportData.authorEmail;
+            reportData.reporterEmail = profile.email || reportData.reporterEmail;
+            reportData.avatarUrl = profile.avatarUrl || reportData.avatarUrl;
+            reportData.reporterAvatarUrl = profile.avatarUrl;
+            reportData.reporter = {
+              id: profile.id,
+              name: profile.fullName,
+              username: profile.username,
+              email: profile.email,
+              avatarUrl: profile.avatarUrl,
+              biography: profile.biography,
+              country: profile.country,
+              reputation: profile.reputation,
+              totalReports: profile.totalReports,
+              validReports: profile.validReports,
+            };
+          }
+        } catch {
+          // optional enrichment
+        }
+      }
+
+      // Enrich with program details if programId is present
+      if (reportData.programId && !reportData.programName) {
+        try {
+          const progRes = await fetch(
+            `${BACKEND_API_URL}/programs/${reportData.programId}`,
+            {
+              headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              cache: "no-store",
+            }
+          );
+
+          if (progRes.ok) {
+            const prog = await progRes.json();
+            reportData.programName = prog.name;
+            reportData.organizationId = prog.organizationId;
+          }
+        } catch {
+          // optional enrichment
+        }
+      }
+
+      return NextResponse.json(reportData, { status: 200 });
+    }
+
+    return NextResponse.json(
+      {
+        message:
+          (body as { message?: string } | null)?.message ?? "Report not found.",
+      },
+      { status: upstream.status }
+    );
   } catch {
     return unreachable();
   }

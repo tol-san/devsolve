@@ -22,10 +22,12 @@ export default function ReportSeverityReviewPage() {
   const params = useParams<{ id: string }>();
   const reportId = params?.id ?? "";
 
-  const { data: apiReport } = useGetReportByIdQuery(reportId, {
-    skip: !reportId,
-  });
-  const { data: managedReports = [] } = useGetManagedReportsQuery();
+  const { data: apiReport, isLoading: isReportLoading } = useGetReportByIdQuery(
+    reportId,
+    { skip: !reportId }
+  );
+  const { data: managedReports = [], isLoading: isListLoading } =
+    useGetManagedReportsQuery();
   const [outcome, setOutcome] = useState<"approved" | "rejected" | null>(null);
 
   const detail = useMemo(() => {
@@ -38,6 +40,21 @@ export default function ReportSeverityReviewPage() {
     }
     return getReportDetailById(reportId);
   }, [apiReport, managedReports, reportId]);
+
+  const isLoading = (isReportLoading || isListLoading) && !apiReport && managedReports.length === 0;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 w-full pb-12 animate-pulse">
+        <div className="h-8 w-64 bg-muted/60 rounded-xl" />
+        <div className="h-36 w-full bg-muted/40 rounded-2xl" />
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="h-96 w-full bg-muted/40 rounded-2xl" />
+          <div className="h-96 w-full bg-muted/40 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.section

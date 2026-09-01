@@ -409,6 +409,19 @@ function toReportDetail(
     discoveredAt: report.discoveredAt ? formatDate(report.discoveredAt) : null,
     referenceLinks: report.referenceLinks ?? [],
     weakness: weakness || null,
+    reporterId: report.reporterId || report.reporter?.id,
+    reporterName:
+      report.reporter?.name ||
+      report.reporter?.username ||
+      report.authorName ||
+      report.researcherName ||
+      report.submitterName,
+    reporterEmail:
+      report.reporter?.email ||
+      report.authorEmail ||
+      report.researcherEmail ||
+      report.submitterEmail,
+    reporterUsername: report.reporter?.username,
     attachments,
     /* The API has no comments endpoint, so there is no discussion to show. It
        used to render a "DevSolve Triage Bot" notice that no one had written. */

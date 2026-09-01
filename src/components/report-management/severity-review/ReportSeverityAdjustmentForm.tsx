@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -43,6 +43,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import {
   useApproveReportMutation,
   useRejectReportMutation,
@@ -114,6 +115,21 @@ export function ReportSeverityAdjustmentForm({
   const [decisionReason, setDecisionReason] = useState("");
   const [improvementSuggestions, setImprovementSuggestions] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+
+  // Sync state when detail data arrives from API
+  useEffect(() => {
+    if (detail?.severity) {
+      const sev = (detail.severity as SeverityOption) || "Medium";
+      setSelectedSeverity(sev);
+      if (SEVERITY_DEFAULTS[sev]) {
+        setBountyAmount(SEVERITY_DEFAULTS[sev].bounty);
+        setReputationPoints(SEVERITY_DEFAULTS[sev].rep);
+      }
+    }
+    if (detail?.assessmentSummary) {
+      setFindingsSummary(detail.assessmentSummary);
+    }
+  }, [detail?.severity, detail?.assessmentSummary]);
 
   // Dialog & Workflow State
   const [showApprovalModal, setShowApprovalModal] = useState(false);
@@ -212,13 +228,8 @@ export function ReportSeverityAdjustmentForm({
           className="relative z-10 flex flex-col items-center text-center space-y-7"
         >
           {/* Animated Hero Badge */}
-          <div className="relative">
-            <div className="flex size-20 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-8 ring-emerald-500/10 shadow-lg">
-              <CheckCircle2 className="size-10" />
-            </div>
-            <div className="absolute -top-1 -right-1 flex size-6 items-center justify-center rounded-full bg-blue-600 text-white shadow-xs">
-              <Sparkles className="size-3.5 text-amber-300" />
-            </div>
+          <div className="flex size-20 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-8 ring-emerald-500/10 shadow-lg">
+            <CheckCircle2 className="size-10" />
           </div>
 
           {/* Title & Tag Strip */}
@@ -228,7 +239,7 @@ export function ReportSeverityAdjustmentForm({
                 APPROVED & CONFIRMED
               </Badge>
               <Badge variant="outline" className="font-mono text-xs font-bold border-border bg-muted/50 px-2.5 py-0.5">
-                #{detail.reportId}
+                {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
               </Badge>
               <Badge variant="outline" className="text-xs border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold px-2.5 py-0.5 rounded-full">
                 Reward Dispatched
@@ -398,7 +409,7 @@ export function ReportSeverityAdjustmentForm({
                 REJECTED & CLOSED
               </Badge>
               <Badge variant="outline" className="font-mono text-xs font-bold border-border bg-muted/50 px-2.5 py-0.5">
-                #{detail.reportId}
+                {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
               </Badge>
             </div>
 
@@ -406,7 +417,7 @@ export function ReportSeverityAdjustmentForm({
               Report Submission Rejected
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              Report #{detail.reportId} has been marked as rejected. Triage reasoning has been documented and feedback was shared back to researcher <strong>{detail.submitter}</strong>.
+              Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`} has been marked as rejected. Triage reasoning has been documented and feedback was shared back to researcher <strong>{detail.submitter}</strong>.
             </p>
           </div>
 
@@ -570,15 +581,15 @@ export function ReportSeverityAdjustmentForm({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="findings-summary" className="text-foreground font-semibold">
-                  Summary of validation findings
+                  Summary of validation findings (Markdown supported)
                 </FieldLabel>
-                <FieldContent>
-                  <Textarea
+                <FieldContent className="mt-2">
+                  <MarkdownEditor
                     id="findings-summary"
                     value={findingsSummary}
-                    onChange={(e) => setFindingsSummary(e.target.value)}
-                    placeholder="Briefly summarize your validation steps and confirmation results."
-                    className="min-h-20 border border-border bg-card text-foreground text-base focus-visible:ring-1 focus-visible:ring-ring"
+                    onChange={(value) => setFindingsSummary(value || "")}
+                    placeholder="Document validation findings, reproduction confirmation, and technical evidence..."
+                    height={280}
                   />
                 </FieldContent>
               </Field>

@@ -16,10 +16,6 @@ import {
   FollowingUser,
   FollowingUsersResponse,
 } from "@/lib/types/profile/types";
-import {
-  mockProfile,
-  mockEditProfileFormData,
-} from "@/lib/types/profile/mock-data";
 
 interface ProfileOverviewResponse {
   profile: Profile;

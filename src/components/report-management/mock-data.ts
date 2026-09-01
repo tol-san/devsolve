@@ -1,3 +1,4 @@
+import { formatDateTime } from "@/lib/format/datetime";
 import type {
   ManagedReport,
   MetricCard,
@@ -367,13 +368,7 @@ export function buildReportManagementDetailFromApiReport(
     isReviewed ? "Closed" : "Open";
 
   const submittedDate = report.submittedAt
-    ? new Date(report.submittedAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+    ? formatDateTime(report.submittedAt)
     : report.submittedAgo || "Recently";
 
   const attachments = (report.attachments || []).map((att) => {
@@ -388,14 +383,32 @@ export function buildReportManagementDetailFromApiReport(
     };
   });
 
+  const submitter =
+    report.reporterName ||
+    report.reporterUsername ||
+    "Researcher";
+  const submitterInitials =
+    submitter
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "RE";
+
   return {
     id: report.id,
     reportId: report.reportId || `RPT-${report.id.slice(0, 8).toUpperCase()}`,
     title: report.title || "Vulnerability Report",
-    programLogo: "/tiktok.png",
-    submitter: "Security Researcher",
-    submitterInitials: "SR",
-    submitterEmail: "researcher@devsolve.io",
+    programLogo: undefined,
+    submitter,
+    submitterInitials,
+    submitterEmail: report.reporterEmail || "researcher@devsolve.local",
+    submitterId: report.reporterId || report.reporterUsername || undefined,
+    submitterAvatarUrl:
+      (report as any).reporterAvatarUrl ||
+      (report as any).avatarUrl ||
+      undefined,
     type: report.type || "Bounty",
     status,
     isReviewed,

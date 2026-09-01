@@ -70,58 +70,12 @@ export async function GET(
       }
     }
 
-    // 3. Fallback: Return rich profile representation for the researcher handle
-    const formattedName = username
-      .split(/[_.-]/)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
-
-    return Response.json({
-      id: "a517d704-a2cd-4a47-bc26-f785c68cfdca",
-      username: username.toLowerCase(),
-      fullName: formattedName,
-      biography:
-        "Full-stack security researcher & vulnerability analyst specializing in IDOR, authorization logic bypasses, and cloud infrastructure security.",
-      avatarUrl: undefined,
-      country: "Cambodia",
-      reputation: 2450,
-      totalReports: 48,
-      validReports: 46,
-      criticalReports: 12,
-      recognitionCount: 15,
-      joinedAt: "2024-03-15T00:00:00.000Z",
-      status: "ACTIVE",
-      socialLinks: [
-        { platform: "GITHUB", url: `https://github.com/${username}` },
-        { platform: "WEBSITE", url: `https://${username}.dev` },
-      ],
-    });
+    // If no real profile was matched in the database, return 404
+    return Response.json(
+      { message: "User profile not found." },
+      { status: 404 },
+    );
   } catch {
-    // Graceful fallback profile on network/unreachable error
-    const formattedName = username
-      .split(/[_.-]/)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
-
-    return Response.json({
-      id: "a517d704-a2cd-4a47-bc26-f785c68cfdca",
-      username: username.toLowerCase(),
-      fullName: formattedName,
-      biography:
-        "Full-stack security researcher & vulnerability analyst specializing in IDOR, authorization logic bypasses, and cloud infrastructure security.",
-      avatarUrl: undefined,
-      country: "Cambodia",
-      reputation: 2450,
-      totalReports: 48,
-      validReports: 46,
-      criticalReports: 12,
-      recognitionCount: 15,
-      joinedAt: "2024-03-15T00:00:00.000Z",
-      status: "ACTIVE",
-      socialLinks: [
-        { platform: "GITHUB", url: `https://github.com/${username}` },
-        { platform: "WEBSITE", url: `https://${username}.dev` },
-      ],
-    });
+    return unreachable("user profile");
   }
 }

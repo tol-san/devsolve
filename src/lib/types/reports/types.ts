@@ -80,6 +80,10 @@ export interface ReportDetail extends ReportItem {
   discoveredAt: string | null;
   referenceLinks: string[];
   weakness: string | null;
+  reporterId?: string;
+  reporterName?: string;
+  reporterEmail?: string;
+  reporterUsername?: string;
   attachments: {
     id?: string;
     name: string;

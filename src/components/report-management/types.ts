@@ -31,6 +31,7 @@ export type ReportManagementDetail = {
   submitterInitials: string;
   submitterEmail?: string;
   submitterId?: string;
+  submitterAvatarUrl?: string;
   type: ReportType;
   status: ReportStatus;
   isReviewed?: boolean;
