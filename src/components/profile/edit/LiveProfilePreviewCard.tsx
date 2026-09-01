@@ -99,8 +99,8 @@ export default function LiveProfilePreviewCard({
       <div className="px-5 pb-6 sm:px-6">
         <div className="flex flex-col gap-4">
           {/* Avatar and Primary Names */}
-          <div className="flex items-end gap-4 -mt-12 sm:-mt-14">
-            <div className="relative size-20 sm:size-24 shrink-0 rounded-full border-4 border-card bg-muted shadow-md overflow-hidden ring-2 ring-primary/20">
+          <div className="flex items-start gap-3.5 sm:gap-4">
+            <div className="relative -mt-10 sm:-mt-12 size-20 sm:size-24 shrink-0 rounded-full border-4 border-card bg-muted shadow-md overflow-hidden ring-2 ring-primary/20 z-10">
               {values.avatarUrl ? (
                 <Image
                   src={values.avatarUrl}
@@ -116,7 +116,7 @@ export default function LiveProfilePreviewCard({
               )}
             </div>
 
-            <div className="min-w-0 flex-1 space-y-0.5 pb-1">
+            <div className="min-w-0 flex-1 pt-1.5 sm:pt-2 space-y-0.5">
               <div className="flex flex-wrap items-center gap-1.5">
                 <h3 className="truncate text-lg sm:text-xl font-bold tracking-tight text-foreground">
                   {displayName}

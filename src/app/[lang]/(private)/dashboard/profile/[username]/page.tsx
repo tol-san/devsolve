@@ -16,6 +16,7 @@ import { isNotFoundError } from "@/lib/api/query-error";
 import { authClient } from "@/lib/auth/auth-client";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { username } = useParams<{ username: string }>();
   const { data: session } = authClient.useSession();
   const { data, isLoading, isError, error, refetch } =
@@ -72,8 +73,6 @@ export default function ProfilePage() {
   );
 
   const profile = { ...rawProfile, isOwnProfile };
-
-  const router = useRouter();
 
   const handleExitEdit = () => {
     setIsEditing(false);
