@@ -451,7 +451,7 @@ export async function GET(request: NextRequest) {
           : Promise.resolve(null),
       ]);
 
-    if (!reportsResult.response.ok) {
+    if (reportsResult.response.status === 401) {
       return relay(reportsResult.response, "Unable to load dashboard reports.");
     }
     /* Both of these are the company's, and an invited member may hold neither.
@@ -466,7 +466,13 @@ export async function GET(request: NextRequest) {
       return relay(programsResult.response, "Unable to load organization programs.");
     }
 
-    const reportsPage = pageSchema(reportSchema).safeParse(reportsResult.data);
+    if (!isCompany && userProfileResult && userProfileResult.response.status === 401) {
+      return relay(userProfileResult.response, "Unable to load user profile.");
+    }
+
+    const reportsPage = pageSchema(reportSchema).safeParse(
+      reportsResult.response.ok ? reportsResult.data : { content: [] },
+    );
     const programsPage = pageSchema(programSchema).safeParse(
       programsResult?.response.ok ? programsResult.data : { content: [] },
     );

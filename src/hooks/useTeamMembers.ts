@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { authClient } from "@/lib/auth/auth-client";
+import { useCompanyAccess } from "./useCompanyAccess";
 
 import type {
   MemberRole,
@@ -106,6 +108,11 @@ export function useTeamMembers() {
   const [statusFilter, setStatusFilter] =
     useState<StatusFilter>("All");
 
+  const { data: session } = authClient.useSession();
+  const { isOwner } = useCompanyAccess();
+  const sessionEmail = session?.user?.email?.toLowerCase();
+  const sessionUserId = session?.user?.id;
+
   const {
     data: organizationMembers = [],
     isLoading,
@@ -116,24 +123,31 @@ export function useTeamMembers() {
 
   const teamMembers = useMemo<TeamMember[]>(
     () =>
-      organizationMembers.map((member) => ({
-        id: member.userId,
-        username: member.username ?? undefined,
-        name: formatMemberName(member.name, member.email),
-        email: member.email,
-        role: formatRole(member.role),
-        status: formatStatus(
-          member.status,
-          member.invitationPending,
-        ),
-        joined: formatJoinedDate(member.joinedAt),
-        permissions: member.permissions ?? [],
-        isPending:
-          Boolean(member.invitationPending) || member.status === "SUSPENDED",
-        isSelf: member.self === true,
-        isOwner: member.owner === true,
-      })),
-    [organizationMembers],
+      organizationMembers.map((member) => {
+        const isSelf = Boolean(
+          member.self === true ||
+            (sessionEmail &&
+              member.email &&
+              member.email.toLowerCase() === sessionEmail) ||
+            (sessionUserId && member.userId && member.userId === sessionUserId),
+        );
+
+        return {
+          id: member.userId,
+          username: member.username ?? undefined,
+          name: formatMemberName(member.name, member.email),
+          email: member.email,
+          role: formatRole(member.role),
+          status: formatStatus(member.status, member.invitationPending),
+          joined: formatJoinedDate(member.joinedAt),
+          permissions: member.permissions ?? [],
+          isPending:
+            Boolean(member.invitationPending) || member.status === "SUSPENDED",
+          isSelf,
+          isOwner: member.owner === true || (isSelf && isOwner),
+        };
+      }),
+    [organizationMembers, sessionEmail, sessionUserId, isOwner],
   );
 
   const filteredMembers = useMemo(() => {

@@ -304,7 +304,10 @@ function SidebarContent({
                 const isActive = item.href === activeHref;
                 const badgeCount =
                   item.name === "Bookmarks" ? bookmarkCount : item.badge;
-                const itemLabel = t(`sidebar.nav.${item.name.toLowerCase()}`);
+                const itemKey = `sidebar.nav.${item.name.toLowerCase()}`;
+                const translated = t(itemKey);
+                const itemLabel =
+                  translated === itemKey ? item.name : translated;
 
                 return (
                   <Link
