@@ -262,44 +262,46 @@ export function ReportSeverityAdjustmentForm({
 
           {/* 4-Column Executive Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 w-full text-left">
-            <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
                 Final Severity
               </span>
-              <div>
-                <p className="text-base font-bold text-foreground">{selectedSeverity}</p>
-                <p className="text-xs text-muted-foreground font-mono mt-0.5">{detail.cvssScore} CVSS</p>
+              <div className="min-w-0">
+                <p className="text-base font-bold text-foreground truncate">{selectedSeverity}</p>
+                <p className="text-xs text-muted-foreground font-mono mt-0.5 truncate">{detail.cvssScore} CVSS</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 flex flex-col justify-between space-y-2">
-              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1">
-                <Coins className="size-3.5" />
-                Bounty Award
+            <div className="p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+              <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1 truncate">
+                <Coins className="size-3.5 shrink-0" />
+                <span>Bounty Award</span>
               </span>
-              <div>
-                <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">${bountyAmount} USD</p>
-                <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80 font-semibold mt-0.5">Queued for Payout</p>
+              <div className="min-w-0">
+                <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400 truncate">${bountyAmount} USD</p>
+                <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80 font-semibold mt-0.5 truncate">Queued for Payout</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 flex flex-col justify-between space-y-2">
-              <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1">
-                <ShieldCheck className="size-3.5" />
-                Status Outcome
+            <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+              <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1 truncate">
+                <ShieldCheck className="size-3.5 shrink-0" />
+                <span>Status Outcome</span>
               </span>
-              <div>
-                <p className="text-base font-extrabold text-blue-600 dark:text-blue-400">VALID_CONFIRMED</p>
-                <p className="text-xs text-muted-foreground font-medium mt-0.5">Ready for Resolution</p>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-black text-blue-600 dark:text-blue-400 truncate tracking-tight">
+                  VALID_CONFIRMED
+                </p>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5 truncate">Ready for Resolution</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <User className="size-3.5" />
-                Researcher
+            <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 truncate">
+                <User className="size-3.5 shrink-0" />
+                <span>Researcher</span>
               </span>
-              <div>
+              <div className="min-w-0">
                 <Link
                   href={`/profile/${encodeURIComponent(profileIdentifier)}`}
                   className="text-base font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline truncate block"
