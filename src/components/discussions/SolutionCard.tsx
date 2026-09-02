@@ -431,21 +431,26 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                   /\.(png|jpe?g|webp|gif|svg)$/i.test(
                     file.fileName || file.downloadUrl || "",
                   );
+                const fileUrl =
+                  file.downloadUrl ||
+                  (file.id && solution.id
+                    ? `/api/solutions/${solution.id}/attachments/${file.id}/download`
+                    : undefined);
 
-                return isImg ? (
+                return isImg && fileUrl ? (
                   <button
                     key={file.id ?? i}
                     type="button"
                     onClick={() =>
                       setPreviewImage({
-                        src: file.downloadUrl!,
+                        src: fileUrl,
                         alt: file.fileName ?? "Attachment",
                         title: file.fileName ?? "Attachment Preview",
                       })
                     }
-                    className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 cursor-pointer"
+                    className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 cursor-pointer shadow-2xs"
                   >
-                    <ZoomIn aria-hidden="true" className="size-3.5 shrink-0" />
+                    <ZoomIn aria-hidden="true" className="size-3.5 shrink-0 text-blue-500" />
                     <span className="truncate">
                       {file.fileName ?? "Attachment"}
                     </span>
@@ -455,15 +460,16 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                       </span>
                     )}
                   </button>
-                ) : (
+                ) : fileUrl ? (
                   <a
                     key={file.id ?? i}
-                    href={file.downloadUrl}
+                    href={fileUrl}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                    download={file.fileName ?? "attachment"}
+                    className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 shadow-2xs"
                   >
-                    <Download aria-hidden="true" className="size-3.5 shrink-0" />
+                    <Download aria-hidden="true" className="size-3.5 shrink-0 text-slate-500" />
                     <span className="truncate">
                       {file.fileName ?? "Attachment"}
                     </span>
@@ -473,7 +479,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                       </span>
                     )}
                   </a>
-                );
+                ) : null;
               })}
             </div>
           )}

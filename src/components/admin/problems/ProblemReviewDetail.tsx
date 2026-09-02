@@ -268,16 +268,43 @@ export function ProblemReviewDetail({ id }: { id: string }) {
                     /\.(png|jpe?g|webp|gif|svg)$/i.test(
                       file.originalFileName || file.downloadUrl || "",
                     );
+                  const fileUrl =
+                    file.downloadUrl ||
+                    (file.id && problem.id
+                      ? `/api/problems/${problem.id}/attachments/${file.id}/download`
+                      : undefined);
 
                   return (
                     <div
                       key={file.id ?? `${file.originalFileName}-${index}`}
                       className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-800/60"
                     >
-                      <FileText
-                        aria-hidden="true"
-                        className="size-4 shrink-0 text-slate-400"
-                      />
+                      {isImg && fileUrl ? (
+                        <div
+                          onClick={() =>
+                            setPreviewImage({
+                              src: fileUrl,
+                              alt: file.originalFileName ?? "Attachment",
+                              title:
+                                file.originalFileName ?? "Attachment Preview",
+                            })
+                          }
+                          className="relative size-12 shrink-0 rounded-lg overflow-hidden border border-border bg-muted/50 cursor-pointer group/thumb flex items-center justify-center"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={fileUrl}
+                            alt={file.originalFileName ?? "Attachment"}
+                            className="size-full object-cover transition-transform group-hover/thumb:scale-105"
+                            loading="lazy"
+                          />
+                        </div>
+                      ) : (
+                        <FileText
+                          aria-hidden="true"
+                          className="size-4 shrink-0 text-slate-400"
+                        />
+                      )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
                           {file.originalFileName ?? "Unnamed file"}
@@ -288,14 +315,14 @@ export function ProblemReviewDetail({ id }: { id: string }) {
                             .join(" · ") || "—"}
                         </p>
                       </div>
-                      {file.downloadUrl?.startsWith("https://") && (
+                      {fileUrl && (
                         <div className="flex items-center gap-2">
                           {isImg && (
                             <button
                               type="button"
                               onClick={() =>
                                 setPreviewImage({
-                                  src: file.downloadUrl!,
+                                  src: fileUrl,
                                   alt: file.originalFileName ?? "Attachment",
                                   title:
                                     file.originalFileName ??
@@ -312,7 +339,7 @@ export function ProblemReviewDetail({ id }: { id: string }) {
                             </button>
                           )}
                           <a
-                            href={file.downloadUrl}
+                            href={fileUrl}
                             target="_blank"
                             rel="noreferrer noopener"
                             className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"

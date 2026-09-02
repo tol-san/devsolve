@@ -16,9 +16,12 @@ import {
   Clock,
   Download,
   Eye,
+  FileImage,
+  FileText,
   Flag,
   FolderGit2,
   ListOrdered,
+  Paperclip,
   Pencil,
   Plus,
   RotateCcw,
@@ -553,63 +556,110 @@ function Loaded({
 
               {attachments.length > 0 && (
                 <Section title="Attachments">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {attachments.map((file, i) => {
                       const isImg =
                         file.mimeType?.startsWith("image/") ||
                         /\.(png|jpe?g|webp|gif|svg)$/i.test(
                           file.originalFileName || file.downloadUrl || "",
                         );
+                      const fileUrl =
+                        file.downloadUrl ||
+                        (file.id && id
+                          ? `/api/problems/${id}/attachments/${file.id}/download`
+                          : undefined);
 
                       return (
                         <div
                           key={file.id ?? `${file.originalFileName}-${i}`}
-                          className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-neutral-800 dark:bg-neutral-800/60"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5 dark:border-neutral-800 dark:bg-neutral-800/80 transition-all hover:border-slate-300 dark:hover:border-neutral-700"
                         >
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-slate-800 dark:text-neutral-200">
-                              {file.originalFileName ?? "Unnamed file"}
-                            </p>
-                            <p className="text-xs text-slate-500 dark:text-neutral-400">
-                              {[file.mimeType, formatBytes(file.sizeBytes)]
-                                .filter(Boolean)
-                                .join(" · ") || "—"}
-                            </p>
+                          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                            {/* Visual Thumbnail or File Icon */}
+                            {isImg && fileUrl ? (
+                              <div
+                                onClick={() =>
+                                  setPreviewImage({
+                                    src: fileUrl,
+                                    alt: file.originalFileName ?? "Attachment",
+                                    title:
+                                      file.originalFileName ??
+                                      "Attachment Preview",
+                                  })
+                                }
+                                className="relative size-14 shrink-0 rounded-xl overflow-hidden border border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 cursor-pointer group/thumb hover:ring-2 hover:ring-blue-500/50 transition-all flex items-center justify-center shadow-2xs"
+                                title="Click to enlarge preview"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={fileUrl}
+                                  alt={file.originalFileName ?? "Attachment"}
+                                  className="size-full object-cover transition-transform group-hover/thumb:scale-105"
+                                  loading="lazy"
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/25 flex items-center justify-center transition-colors">
+                                  <ZoomIn className="size-4 text-white opacity-0 group-hover/thumb:opacity-100 transition-opacity drop-shadow-md" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400 shadow-2xs">
+                                <FileText className="size-6 text-blue-500" />
+                              </div>
+                            )}
+
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
+                                {file.originalFileName ?? "Unnamed file"}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5">
+                                <span className="font-mono">{file.mimeType || (isImg ? "image" : "file")}</span>
+                                {file.sizeBytes ? (
+                                  <>
+                                    <span>·</span>
+                                    <span>{formatBytes(file.sizeBytes)}</span>
+                                  </>
+                                ) : null}
+                              </p>
+                            </div>
                           </div>
-                          {file.downloadUrl?.startsWith("https://") && (
-                            <div className="flex items-center gap-2">
+
+                          {fileUrl && (
+                            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
                               {isImg && (
-                                <button
+                                <Button
                                   type="button"
+                                  variant="outline"
+                                  size="sm"
                                   onClick={() =>
                                     setPreviewImage({
-                                      src: file.downloadUrl!,
+                                      src: fileUrl,
                                       alt: file.originalFileName ?? "Attachment",
                                       title:
                                         file.originalFileName ??
                                         "Attachment Preview",
                                     })
                                   }
-                                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800 cursor-pointer"
+                                  className="h-8 rounded-xl border-slate-200 bg-white text-slate-800 hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 font-semibold text-xs gap-1.5 px-3 cursor-pointer shadow-2xs"
                                 >
                                   <ZoomIn
                                     aria-hidden="true"
-                                    className="size-3.5"
+                                    className="size-3.5 text-blue-600 dark:text-blue-400"
                                   />
-                                  Preview
-                                </button>
+                                  <span>Preview</span>
+                                </Button>
                               )}
                               <a
-                                href={file.downloadUrl}
+                                href={fileUrl}
                                 target="_blank"
                                 rel="noreferrer noopener"
-                                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                                download={file.originalFileName ?? "attachment"}
+                                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 shadow-2xs"
                               >
                                 <Download
                                   aria-hidden="true"
-                                  className="size-3.5"
+                                  className="size-3.5 text-slate-500"
                                 />
-                                Download
+                                <span>Download</span>
                               </a>
                             </div>
                           )}
