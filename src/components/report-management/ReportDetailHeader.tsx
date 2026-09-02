@@ -30,6 +30,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MarkdownView } from "@/components/ui/markdown-view";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import {
   awaitingVerdictLabel,
   openRetestAttempt,
@@ -198,8 +199,23 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
     }
   };
 
+  const { memberships } = useCompanyAccess();
+  const targetOrgId = detail.organizationId || (detail as any)?.organization?.id;
+  const orgMembership = targetOrgId
+    ? memberships.find((m) => m.organizationId === targetOrgId)
+    : memberships[0];
+
+  const canAward = Boolean(
+    orgMembership &&
+    orgMembership.organizationStatus === "ACTIVE" &&
+    (orgMembership.owner || orgMembership.permissions?.includes("AWARD_REWARDS"))
+  );
+
   const rawStatus = (detail.rawStatus || (detail as any).state || detail.status || "").toUpperCase();
   const isResolved = rawStatus === "RESOLVED";
+  const hasSeverity = Boolean(detail.severity);
+  const showThankButton = canAward && isResolved && hasSeverity;
+
   const isWaitingForRetest =
     rawStatus === "RETESTING" ||
     rawStatus === "WAITING_FOR_RETEST";
@@ -279,8 +295,8 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <span>Preview Summary</span>
           </Button>
 
-          {/* Dedicated Thank Researcher / Recognition Dialog (gated on RESOLVED report with severity) */}
-          {isResolved && detail.severity && (
+          {/* Dedicated Thank Researcher / Recognition Dialog (gated on ACTIVE member with AWARD_REWARDS or Owner + RESOLVED report with severity) */}
+          {showThankButton && (
             <ThankResearcherDialog detail={detail} />
           )}
 

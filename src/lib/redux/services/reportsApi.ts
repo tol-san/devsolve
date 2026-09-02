@@ -1040,6 +1040,14 @@ export const reportsApi = baseApi.injectEndpoints({
         severity?: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
         createdAt?: string;
         updatedAt?: string;
+        program?: {
+          id: string;
+          name: string;
+          handle: string;
+          organizationId: string;
+          organizationName: string;
+          organizationSlug: string;
+        } | null;
       },
       {
         reportId: string;

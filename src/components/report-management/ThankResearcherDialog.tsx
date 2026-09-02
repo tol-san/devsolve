@@ -54,14 +54,21 @@ function mapRecognitionError(err: any): { message: string; isAlreadyThanked: boo
   }
 
   if (status === 403) {
-    if (rawMsg.includes("suspended")) {
+    const errorDetails = err?.data?.errorDetails || err?.errorDetails;
+    if (errorDetails?.requiredPermission === "AWARD_REWARDS" || errorDetails?.requiredPermission) {
+      return {
+        message: "You do not have permission to award rewards or recognition in this organization.",
+        isAlreadyThanked: false,
+      };
+    }
+    if (errorDetails?.status === "SUSPENDED" || rawMsg.includes("suspended")) {
       return {
         message: "Your organization membership is suspended.",
         isAlreadyThanked: false,
       };
     }
     return {
-      message: "Only organization members can award recognition.",
+      message: err?.data?.message || "You do not have permission to award recognition.",
       isAlreadyThanked: false,
     };
   }

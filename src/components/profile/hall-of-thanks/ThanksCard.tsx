@@ -27,6 +27,19 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
   const relativeDate = formatRelativeTime(recognition.awardedAt);
   const fullDate = formatFullDateTime(recognition.awardedAt);
 
+  const program = recognition.program;
+  const programTitle = program
+    ? `${program.organizationName ? `${program.organizationName} — ` : ""}${program.name}`
+    : recognition.programName || recognition.awardedBy || "Security Program";
+
+  const programHref = program?.handle
+    ? `/programs/${program.handle}`
+    : program?.id
+      ? `/programs/${program.id}`
+      : recognition.programId
+        ? `/programs/${recognition.programId}`
+        : null;
+
   return (
     <motion.div
       whileHover={{ y: -2 }}
@@ -43,12 +56,12 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-sm sm:text-base font-bold text-foreground truncate">
-                {recognition.awardedBy || "Security Program"}
+                {programTitle}
               </span>
 
-              {recognition.programId && (
+              {programHref && (
                 <Link
-                  href={`/programs/${recognition.programId}`}
+                  href={programHref}
                   className="text-xs text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-0.5"
                   title="View Program"
                 >

@@ -375,6 +375,38 @@ function ThanksRowItem({ entry }: { entry: ThanksEntry }) {
           >
             @{entry.username}
           </Link>
+
+          {/* Program summary chips */}
+          {Array.isArray(entry.programs) && entry.programs.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+              {entry.programs.map((prog) => {
+                if (!prog?.name) return null;
+                const progHref = prog.handle
+                  ? `/programs/${prog.handle}`
+                  : prog.id
+                    ? `/programs/${prog.id}`
+                    : undefined;
+
+                return progHref ? (
+                  <Link
+                    key={prog.id || prog.handle || prog.name}
+                    href={progHref}
+                    className="inline-flex items-center rounded-md border border-border bg-muted/50 hover:bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors max-w-[220px] truncate shadow-2xs"
+                    title={`${prog.organizationName ? `${prog.organizationName} — ` : ""}${prog.name}`}
+                  >
+                    <span className="truncate">{prog.name}</span>
+                  </Link>
+                ) : (
+                  <span
+                    key={prog.id || prog.name}
+                    className="inline-flex items-center rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium text-muted-foreground max-w-[220px] truncate"
+                  >
+                    {prog.name}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

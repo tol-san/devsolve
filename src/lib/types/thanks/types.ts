@@ -1,5 +1,14 @@
 export type Severity = "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
+export interface ProgramSummary {
+  id: string;
+  name: string;
+  handle: string;
+  organizationId: string;
+  organizationName: string;
+  organizationSlug: string;
+}
+
 export interface ThanksEntry {
   /** 1-based, continues across pages (e.g. page=1, size=20 starts at 21) */
   rank: number;
@@ -18,6 +27,8 @@ export interface ThanksEntry {
    * Server local time is UTC+7 (no timezone suffix in raw string).
    */
   lastThankedAt: string | null;
+  /** Programs where this researcher earned recognitions, sorted by name */
+  programs?: ProgramSummary[] | null;
 }
 
 export interface PageThanksResponse {
@@ -54,6 +65,8 @@ export interface UserRecognitionItem {
   severity?: Severity | null;
   createdAt?: string;
   updatedAt?: string;
+  /** Associated program details */
+  program?: ProgramSummary | null;
 }
 
 export interface PageUserRecognitionsResponse {
