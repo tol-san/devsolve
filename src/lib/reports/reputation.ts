@@ -17,6 +17,8 @@
  * backend on exactly the reports where the difference matters.
  */
 
+import { toApiSeverity } from "@/lib/reports/severity";
+
 /** `ReputationPolicy.pointsFor` upstream, mirrored for the confirm step. */
 const POINTS_BY_SEVERITY = {
   NONE: 0,
@@ -34,16 +36,11 @@ export type ReputationSeverity = keyof typeof POINTS_BY_SEVERITY;
  * than promising a number the backend never agreed to.
  */
 export function pointsFor(severity: string | null | undefined): number | null {
-  if (!severity) return null;
+  /* Shares the triage calls' conversion, so what a screen quotes and what the
+     request sends can never disagree about what "Info" means. */
+  const normalized = toApiSeverity(severity);
 
-  const key = severity.trim().toUpperCase();
-  /* The triage screens carry "Critical"/"Info" labels rather than the API's
-     enum, and `Info` is the label for the unrated finding the API calls NONE. */
-  const normalized = key === "INFO" || key === "INFORMATIONAL" ? "NONE" : key;
-
-  return normalized in POINTS_BY_SEVERITY
-    ? POINTS_BY_SEVERITY[normalized as ReputationSeverity]
-    : null;
+  return normalized ? POINTS_BY_SEVERITY[normalized] : null;
 }
 
 /**

@@ -44,7 +44,12 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
   // skip: RTK Query only fetches when skip is false, so each query only fires once its tab is active
   /* Keyed on the profile's id, not the handle: `/user-profiles/{id}/hacktivity`
      is the only endpoint that answers for somebody other than the viewer. */
-  const { data: hacktivity, isLoading: hacktivityLoading } = useGetUserHacktivityQuery(
+  const {
+    data: hacktivity,
+    isLoading: hacktivityLoading,
+    isError: hacktivityError,
+    refetch: refetchHacktivity,
+  } = useGetUserHacktivityQuery(
     { userId, size: 20 },
     { skip: activeTab !== "hacktivity" || !userId },
   );
@@ -66,7 +71,11 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
           (hacktivityLoading ? (
             <div className="p-6 text-sm text-slate-400 dark:text-neutral-500">Loading hacktivity...</div>
           ) : (
-            <HacktivityTab activities={hacktivity?.activities ?? []} />
+            <HacktivityTab
+              activities={hacktivity?.activities ?? []}
+              isError={hacktivityError}
+              onRetry={() => void refetchHacktivity()}
+            />
           ))}
 
         {activeTab === "community" &&

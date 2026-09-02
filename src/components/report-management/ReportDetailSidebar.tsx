@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
 import { useReopenResolvedReportMutation } from "@/lib/redux/services/reportsApi";
 import { apiErrorMessage } from "@/lib/api/error-message";
+import { toApiSeverity } from "@/lib/reports/severity";
 import {
   awaitingVerdictLabel,
   formatBountyAmount,
@@ -135,11 +136,15 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
    * is required by the request and is kept at what triage already decided.
    */
   const handleReopen = async () => {
-    const severity = detail.severity.toUpperCase() as
-      | "CRITICAL"
-      | "HIGH"
-      | "MEDIUM"
-      | "LOW";
+    /* Converted, not cast: `triageSeverity` is required on every triage and
+       a label the enum does not contain comes back as an unreadable body. */
+    const severity = toApiSeverity(detail.severity);
+    if (!severity) {
+      toast.error("Report could not be reopened", {
+        description: `"${detail.severity}" is not a severity this report can be reopened at.`,
+      });
+      return;
+    }
 
     try {
       await reopenReport({ id: String(detail.id), triageSeverity: severity }).unwrap();

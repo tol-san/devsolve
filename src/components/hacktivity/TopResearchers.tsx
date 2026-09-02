@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Trophy } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   useGetTopResearchersQuery,
@@ -11,21 +11,11 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCount } from "./presentation";
 
-/**
- * The head of the ranking, for one window.
- *
- * On a windowed period the API measures reputation, recognitions and criticals
- * over that window and returns the lifetime totals as null. Those lines are
- * dropped rather than printed as zero — a researcher with no reports this week
- * has not filed zero reports.
- */
-
-/** Labels stay short: four tabs share 320px of sidebar. */
 const PERIODS: { value: RankingPeriod; label: string }[] = [
   { value: "DAY", label: "Today" },
   { value: "WEEK", label: "Week" },
   { value: "MONTH", label: "Month" },
-  { value: "ALL_TIME", label: "All" },
+  { value: "ALL_TIME", label: "All time" },
 ];
 
 const EMPTY_COPY: Record<RankingPeriod, string> = {
@@ -35,12 +25,11 @@ const EMPTY_COPY: Record<RankingPeriod, string> = {
   ALL_TIME: "No researchers are ranked yet.",
 };
 
-/** Gold, silver, bronze — the rest keep the neutral chip. */
-const RANK_TONE = [
-  "bg-amber-400 text-amber-950",
-  "bg-foreground/20 text-foreground",
-  "bg-orange-300 text-orange-950",
-];
+const RANK_TONE: Record<number, string> = {
+  1: "bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 font-black shadow-xs ring-1 ring-amber-400/50",
+  2: "bg-gradient-to-br from-slate-200 to-slate-400 text-slate-950 font-bold dark:from-slate-600 dark:to-slate-700 dark:text-slate-100",
+  3: "bg-gradient-to-br from-amber-600/60 to-amber-700/80 text-white font-bold dark:text-amber-100",
+};
 
 function initialsOf(name: string) {
   return (
@@ -66,19 +55,35 @@ export function TopResearchers() {
   return (
     <section
       aria-labelledby="top-researchers"
-      className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 dark:ring-foreground/10"
+      className="overflow-hidden rounded-2xl border border-border/70 bg-card p-5 shadow-xs"
     >
-      <div className="flex items-center gap-2 border-b border-border pb-3">
-        <Trophy aria-hidden className="size-[18px] text-amber-500" />
-        <h2 id="top-researchers" className="text-base font-bold text-foreground">
-          Top researchers
-        </h2>
+      <div className="flex items-center justify-between border-b border-border/80 pb-3.5">
+        <div className="flex items-center gap-2">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <Trophy aria-hidden className="size-4" />
+          </div>
+          <h2
+            id="top-researchers"
+            className="text-base font-bold text-foreground"
+          >
+            Top researchers
+          </h2>
+        </div>
+
+        <Link
+          href="/leaderboard"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+        >
+          View all
+          <ArrowRight className="size-3" />
+        </Link>
       </div>
 
+      {/* Period tabs */}
       <div
         role="group"
         aria-label="Ranking period"
-        className="mt-3 flex flex-wrap gap-1 rounded-xl bg-muted/60 p-1"
+        className="mt-3.5 flex gap-1 rounded-xl bg-muted/60 p-1"
       >
         {PERIODS.map((option) => {
           const isActive = option.value === period;
@@ -90,10 +95,10 @@ export function TopResearchers() {
               aria-label={option.value === "ALL_TIME" ? "All time" : undefined}
               onClick={() => setPeriod(option.value)}
               className={cn(
-                "flex-1 cursor-pointer rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors",
+                "flex-1 cursor-pointer rounded-lg py-1 text-xs font-semibold transition-all duration-150 select-none",
                 "outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                 isActive
-                  ? "bg-card text-foreground shadow-xs"
+                  ? "bg-card text-foreground shadow-2xs font-bold"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -103,21 +108,22 @@ export function TopResearchers() {
         })}
       </div>
 
-      <div className="mt-3 space-y-2">
+      {/* Researchers list */}
+      <div className="mt-3.5 space-y-2">
         {isLoading ? (
-          [0, 1, 2].map((index) => (
+          [0, 1, 2, 3].map((index) => (
             <div
               key={index}
               aria-hidden
-              className="h-[52px] animate-pulse rounded-xl bg-muted/60"
+              className="h-[54px] animate-pulse rounded-xl border border-border/40 bg-muted/40"
             />
           ))
         ) : isError ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-xs text-muted-foreground">
             The ranking is unavailable right now.
           </p>
         ) : !data || data.length === 0 ? (
-          <p className="py-4 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-xs text-muted-foreground">
             {EMPTY_COPY[period]}
           </p>
         ) : (
@@ -130,48 +136,49 @@ export function TopResearchers() {
               <>
                 <span
                   className={cn(
-                    "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums",
-                    RANK_TONE[researcher.rank - 1] ??
-                      "bg-muted text-muted-foreground",
+                    "flex size-6 shrink-0 items-center justify-center rounded-full text-xs tabular-nums",
+                    RANK_TONE[researcher.rank] ??
+                      "bg-muted text-muted-foreground font-semibold border border-border/60",
                   )}
                 >
                   {researcher.rank}
                 </span>
 
-                <Avatar size="sm" className="shrink-0">
+                <Avatar className="size-8 shrink-0 ring-1 ring-border/80">
                   <AvatarImage src={researcher.avatarUrl} alt="" />
-                  <AvatarFallback>{initialsOf(researcher.name)}</AvatarFallback>
+                  <AvatarFallback className="bg-muted text-[11px] font-bold text-foreground">
+                    {initialsOf(researcher.name)}
+                  </AvatarFallback>
                 </Avatar>
 
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-foreground">
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate text-xs sm:text-sm font-bold text-foreground">
                     {researcher.name}
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">
+                  <span className="block truncate text-[11px] text-muted-foreground">
                     {researcher.username ? `@${researcher.username}` : null}
                     {researcher.criticalReports > 0
                       ? `${researcher.username ? " · " : ""}${formatCount(
                           researcher.criticalReports,
                         )} critical`
                       : null}
-                    {/* Lifetime-only figures are absent on a window, not zero. */}
                     {!isWindowed && researcher.validReports !== null
                       ? ` · ${formatCount(researcher.validReports)} valid`
                       : null}
                   </span>
-                </span>
+                </div>
 
-                <span className="shrink-0 text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                <div className="flex shrink-0 items-baseline gap-0.5 rounded-lg bg-emerald-500/10 px-2 py-0.5 text-xs font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400">
                   {formatCount(researcher.reputation)}
-                  <span className="ml-1 text-xs font-medium text-muted-foreground">
-                    rep
+                  <span className="text-[10px] font-medium text-emerald-600/80 dark:text-emerald-400/80">
+                    pts
                   </span>
-                </span>
+                </div>
               </>
             );
 
             const className =
-              "flex items-center gap-2.5 rounded-xl bg-muted/40 p-2.5 transition-colors hover:bg-muted outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
+              "flex items-center gap-2.5 rounded-xl border border-transparent bg-muted/40 p-2.5 transition-all duration-150 hover:border-border/80 hover:bg-muted/70 hover:shadow-2xs outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
 
             return href ? (
               <Link key={researcher.id} href={href} className={className}>
@@ -188,3 +195,4 @@ export function TopResearchers() {
     </section>
   );
 }
+

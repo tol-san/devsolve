@@ -11,6 +11,10 @@ import {
   openRetestAttempt,
 } from "@/lib/reports/retest";
 import {
+  toApiSeverity,
+  type ApiSeverity as SharedApiSeverity,
+} from "@/lib/reports/severity";
+import {
   ReportItem,
   ReportsFilterParams,
   ReportDetail,
@@ -24,7 +28,7 @@ import type { ManagedReport } from "@/components/report-management/types";
 export * from "@/lib/types/reports/types";
 export * from "@/lib/types/reports/mock-data";
 
-type ApiSeverity = "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+type ApiSeverity = SharedApiSeverity;
 type ApiState =
   | "NEW"
   | "TRIAGING"
@@ -920,7 +924,10 @@ export const reportsApi = baseApi.injectEndpoints({
           method: "PATCH",
           /* Exactly what TriageReportRequest accepts. */
           body: {
-            triageSeverity: payload.severity.toUpperCase(),
+            /* "Info" is the screens' label for NONE and is not an enum member
+               upstream — sending it raw made the backend report a missing
+               body. Falling back to NONE keeps an unrated finding unrated. */
+            triageSeverity: toApiSeverity(payload.severity) ?? "NONE",
             state: "VALID_CONFIRMED",
           },
         });
@@ -1049,7 +1056,10 @@ export const reportsApi = baseApi.injectEndpoints({
       }
     >({
       async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
-        const triageSeverity = (payload.severity || "MEDIUM").toUpperCase();
+        /* Same conversion as triage: a label the enum does not contain is a
+           request the backend cannot read. MEDIUM stays the default for a
+           resolve that names no severity at all. */
+        const triageSeverity = toApiSeverity(payload.severity) ?? "MEDIUM";
         const triageResult = await fetchWithBQ({
           url: `/reports/${payload.id}/triage`,
           method: "PATCH",

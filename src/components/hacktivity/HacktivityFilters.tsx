@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpDown } from "lucide-react";
+import {
+  ArrowUpDown,
+  Award,
+  CheckCircle2,
+  Eye,
+  RotateCcw,
+  ShieldAlert,
+  Sparkles,
+} from "lucide-react";
 import {
   ActiveFilters,
   FilterBar,
@@ -11,23 +19,17 @@ import {
   FilterSelect,
   type ActiveFilter,
 } from "@/components/ui/filter-bar";
+import { Button } from "@/components/ui/button";
 import {
   EVENT_TYPES,
   SEVERITIES,
   type EventType,
+  type Severity,
   type Sort,
 } from "@/lib/types/hacktivity/types";
 import { cn } from "@/lib/utils";
 import { EVENT_LABEL, SEVERITY_STYLE } from "./presentation";
 import type { HacktivityFilterState } from "./useHacktivityFilters";
-
-/**
- * Everything that narrows the stream.
- *
- * Each control drives a server parameter, so a search reaches the whole feed
- * rather than the page already on screen. Typing waits {@link DEBOUNCE_MS}
- * before it asks — a request per keystroke would race itself and flicker.
- */
 
 const DEBOUNCE_MS = 300;
 
@@ -38,35 +40,49 @@ const SORT_LABELS: Record<Sort, string> = {
   "severity,ASC": "Least severe",
 };
 
-/** Multi-select: severity and event type are both repeatable upstream. */
+/** Multi-select toggle helper */
 function toggle<T>(values: T[], value: T): T[] {
   return values.includes(value)
     ? values.filter((entry) => entry !== value)
     : [...values, value];
 }
 
-function Chip({
-  pressed,
-  onClick,
-  className,
-  children,
-}: {
+const EVENT_ICON: Record<EventType, React.ReactNode> = {
+  RECOGNITION_AWARDED: <Sparkles aria-hidden className="size-3.5 shrink-0" />,
+  BOUNTY_AWARDED: <Award aria-hidden className="size-3.5 shrink-0" />,
+  REPORT_RESOLVED: <CheckCircle2 aria-hidden className="size-3.5 shrink-0" />,
+  REPORT_DISCLOSED: <Eye aria-hidden className="size-3.5 shrink-0" />,
+};
+
+interface FilterChipProps {
   pressed: boolean;
   onClick: () => void;
   className?: string;
+  activeClassName?: string;
   children: React.ReactNode;
-}) {
+}
+
+function FilterChip({
+  pressed,
+  onClick,
+  className,
+  activeClassName,
+  children,
+}: FilterChipProps) {
   return (
     <button
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
       className={cn(
-        "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition-colors",
-        "outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs sm:text-sm font-medium transition-all duration-150 select-none",
+        "border outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
         pressed
-          ? className
-          : "bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+          ? cn("border-transparent font-semibold shadow-xs", activeClassName)
+          : cn(
+              "border-border/70 bg-card text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:border-border",
+              className,
+            ),
       )}
     >
       {children}
@@ -88,8 +104,6 @@ export function HacktivityFilters({
   const [text, setText] = useState(state.q);
   const typed = useRef(false);
 
-  /* The URL is the source of truth: a back navigation or a cleared filter has
-     to move the box, but only when the reader is not mid-word. */
   useEffect(() => {
     if (!typed.current) setText(state.q);
   }, [state.q]);
@@ -118,12 +132,12 @@ export function HacktivityFilters({
           },
         ]
       : []),
-    ...state.severity.map((value) => ({
+    ...state.severity.map((value: Severity) => ({
       key: `severity:${value}`,
       label: SEVERITY_STYLE[value].label,
       clear: () => setFilters({ severity: toggle(state.severity, value) }),
     })),
-    ...state.eventType.map((value) => ({
+    ...state.eventType.map((value: EventType) => ({
       key: `event:${value}`,
       label: EVENT_LABEL[value],
       clear: () => setFilters({ eventType: toggle(state.eventType, value) }),
@@ -131,12 +145,13 @@ export function HacktivityFilters({
   ];
 
   return (
-    <FilterBar>
+    <FilterBar className="space-y-4 border border-border/60 bg-card/95 p-4 sm:p-5 shadow-xs backdrop-blur-xs">
+      {/* Top Search & Sort Row */}
       <FilterRow>
         <FilterSearch
           value={text}
           label="Search the disclosure stream"
-          placeholder="Search researchers, programs or findings…"
+          placeholder="Search researchers, programs, weaknesses or findings…"
           onChange={(value) => {
             typed.current = true;
             setText(value);
@@ -151,41 +166,113 @@ export function HacktivityFilters({
             value={state.sort}
             onValueChange={(value) => setFilters({ sort: value as Sort })}
           />
+
+          {isFiltered ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                typed.current = false;
+                setText("");
+                clearAll();
+              }}
+              className="h-11 cursor-pointer rounded-xl px-3 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <RotateCcw className="size-3.5 mr-1.5 text-muted-foreground" />
+              Reset
+            </Button>
+          ) : null}
         </FilterControls>
       </FilterRow>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
-        <fieldset className="flex min-w-0 flex-wrap items-center gap-2">
-          <legend className="sr-only">Filter by severity</legend>
-          <span className="text-sm font-medium text-muted-foreground">Severity</span>
-          {SEVERITIES.map((value) => (
-            <Chip
-              key={value}
-              pressed={state.severity.includes(value)}
-              className={SEVERITY_STYLE[value].active}
-              onClick={() => setFilters({ severity: toggle(state.severity, value) })}
-            >
-              {SEVERITY_STYLE[value].label}
-            </Chip>
-          ))}
-        </fieldset>
+      {/* Filter Categories: Clean & Structured with dedicated sections */}
+      <div className="flex flex-col gap-3 pt-1">
+        {/* Severity filter row */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 min-w-[72px] shrink-0">
+            <ShieldAlert className="size-3.5 text-muted-foreground" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Severity
+            </span>
+          </div>
 
-        <fieldset className="flex min-w-0 flex-wrap items-center gap-2">
-          <legend className="sr-only">Filter by activity</legend>
-          <span className="text-sm font-medium text-muted-foreground">Activity</span>
-          {EVENT_TYPES.map((value: EventType) => (
-            <Chip
-              key={value}
-              pressed={state.eventType.includes(value)}
-              className="bg-blue-600 text-white hover:bg-blue-600/90"
-              onClick={() => setFilters({ eventType: toggle(state.eventType, value) })}
-            >
-              {EVENT_LABEL[value]}
-            </Chip>
-          ))}
-        </fieldset>
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
+            {SEVERITIES.map((value: Severity) => {
+              const config = SEVERITY_STYLE[value];
+              const isSelected = state.severity.includes(value);
+
+              return (
+                <FilterChip
+                  key={value}
+                  pressed={isSelected}
+                  activeClassName={config.active}
+                  onClick={() =>
+                    setFilters({ severity: toggle(state.severity, value) })
+                  }
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "size-2 rounded-full shrink-0 transition-transform",
+                      config.dot,
+                      isSelected ? "scale-110 ring-1 ring-white/50" : "",
+                    )}
+                  />
+                  <span>{config.label}</span>
+                </FilterChip>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Activity type filter row */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 min-w-[72px] shrink-0">
+            <Award className="size-3.5 text-muted-foreground" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Activity
+            </span>
+          </div>
+
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
+            {EVENT_TYPES.map((value: EventType) => {
+              const isSelected = state.eventType.includes(value);
+
+              return (
+                <FilterChip
+                  key={value}
+                  pressed={isSelected}
+                  activeClassName="bg-blue-600 text-white hover:bg-blue-600/90 dark:bg-blue-600"
+                  onClick={() =>
+                    setFilters({ eventType: toggle(state.eventType, value) })
+                  }
+                >
+                  <span
+                    className={cn(
+                      "transition-colors",
+                      isSelected
+                        ? "text-white"
+                        : value === "BOUNTY_AWARDED"
+                          ? "text-emerald-500"
+                          : value === "RECOGNITION_AWARDED"
+                            ? "text-amber-500"
+                            : value === "REPORT_RESOLVED"
+                              ? "text-blue-500"
+                              : "text-indigo-500",
+                    )}
+                  >
+                    {EVENT_ICON[value]}
+                  </span>
+                  <span>{EVENT_LABEL[value]}</span>
+                </FilterChip>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
+      {/* Active filters bar */}
       {isFiltered ? (
         <ActiveFilters
           filters={active}

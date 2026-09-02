@@ -1,20 +1,25 @@
 "use client";
 
+import {
+  Building2,
+  CircleDollarSign,
+  ShieldCheck,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { useGetHacktivityStatsQuery } from "@/lib/redux/services/hacktivityApi";
-import { formatCompactMoney, formatCount, formatMoney } from "./presentation";
+import {
+  formatCompactMoney,
+  formatCount,
+  formatMoney,
+} from "./presentation";
 
-/**
- * The four platform totals above the feed.
- *
- * They come from `/hacktivity/stats` rather than being counted from the loaded
- * page, so they stay still while the reader pages and filters — and so the
- * paid figure is the real one instead of the sum of twenty visible rows.
- */
-
-interface Stat {
+interface StatItem {
   label: string;
   value: string;
-  /** The unrounded figure, for the compact ones. */
+  icon: LucideIcon;
+  iconColor: string;
+  iconBg: string;
   title?: string;
 }
 
@@ -23,47 +28,78 @@ export function HacktivityStatsBar() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-wrap items-center gap-2.5" aria-hidden>
+      <div className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center" aria-hidden>
         {[0, 1, 2, 3].map((index) => (
           <div
             key={index}
-            className="h-[58px] w-32 animate-pulse rounded-xl bg-card ring-1 ring-foreground/5 dark:ring-foreground/10"
+            className="h-[62px] w-full sm:w-36 animate-pulse rounded-2xl border border-border/60 bg-card"
           />
         ))}
       </div>
     );
   }
 
-  // The feed itself still loads; a missing total is not worth an error box.
   if (isError || !data) return null;
 
-  const stats: Stat[] = [
-    { label: "Disclosures", value: formatCount(data.disclosures) },
-    { label: "Researchers", value: formatCount(data.researchers) },
-    { label: "Programs live", value: formatCount(data.programsActive) },
+  const stats: StatItem[] = [
     {
-      label: "Paid out",
+      label: "Disclosures",
+      value: formatCount(data.disclosures),
+      icon: ShieldCheck,
+      iconColor: "text-blue-600 dark:text-blue-400",
+      iconBg: "bg-blue-500/10",
+    },
+    {
+      label: "Researchers",
+      value: formatCount(data.researchers),
+      icon: Users,
+      iconColor: "text-emerald-600 dark:text-emerald-400",
+      iconBg: "bg-emerald-500/10",
+    },
+    {
+      label: "Live programs",
+      value: formatCount(data.programsActive),
+      icon: Building2,
+      iconColor: "text-indigo-600 dark:text-indigo-400",
+      iconBg: "bg-indigo-500/10",
+    },
+    {
+      label: "Bounties paid",
       value: formatCompactMoney(data.totalPaid, data.currency),
       title: formatMoney(data.totalPaid, data.currency),
+      icon: CircleDollarSign,
+      iconColor: "text-amber-600 dark:text-amber-400",
+      iconBg: "bg-amber-500/10",
     },
   ];
 
   return (
-    <dl className="flex flex-wrap items-center gap-2.5">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          title={stat.title}
-          className="flex flex-col-reverse rounded-xl bg-card px-4 py-2.5 ring-1 ring-foreground/5 dark:ring-foreground/10"
-        >
-          <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {stat.label}
-          </dt>
-          <dd className="text-lg font-bold tabular-nums leading-tight text-foreground">
-            {stat.value}
-          </dd>
-        </div>
-      ))}
+    <dl className="grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:items-center">
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+        return (
+          <div
+            key={stat.label}
+            title={stat.title}
+            className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/90 px-3.5 py-2.5 shadow-2xs transition-all hover:border-border hover:shadow-xs backdrop-blur-xs sm:min-w-[140px]"
+          >
+            <div
+              className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${stat.iconBg} ${stat.iconColor}`}
+            >
+              <Icon aria-hidden className="size-4.5" />
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <dd className="text-base sm:text-lg font-extrabold tabular-nums leading-tight tracking-tight text-foreground">
+                {stat.value}
+              </dd>
+              <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
+                {stat.label}
+              </dt>
+            </div>
+          </div>
+        );
+      })}
     </dl>
   );
 }
+

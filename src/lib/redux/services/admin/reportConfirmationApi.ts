@@ -1,4 +1,5 @@
 import { baseApi } from "../baseApi";
+import { toApiSeverity } from "@/lib/reports/severity";
 import { ReportConfirmationItem } from "@/lib/types/admin/types";
 import {
   mockReportConfirmationsStore,
@@ -136,7 +137,11 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
           REJECTED: "REJECTED",
           ESCALATED: "TRIAGING",
         };
-        const triageSeverity = severity ? severity.toUpperCase() : undefined;
+        /* "Info" uppercases to a value `ReportSeverity` does not contain,
+           which the backend reports as an unreadable body rather than as a
+           bad severity. Undefined when the label names nothing: the call then
+           carries no severity instead of an invented one. */
+        const triageSeverity = toApiSeverity(severity) ?? undefined;
 
         // 1. Call real triage endpoint: POST /reports/${id}/triage
         const triageResult = await fetchWithBQ({
