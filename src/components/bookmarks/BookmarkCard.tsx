@@ -4,8 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { BookmarkItem } from "@/lib/types/bookmarks/types";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Bookmark, ExternalLink, Clock, ShieldAlert, Award, ThumbsUp, Layers, CheckCircle2 } from "lucide-react";
+import { Bookmark, Clock, ShieldAlert, Award, ThumbsUp, Layers, CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 
@@ -81,8 +80,15 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
       transition={{ duration: 0.2 }}
       className="group relative flex flex-col justify-between gap-4 rounded-2xl bg-card p-5 shadow-2xs ring-1 ring-foreground/5 transition-all duration-200 hover:shadow-md hover:ring-foreground/10 dark:ring-foreground/10 dark:hover:ring-foreground/20"
     >
+      {/* Stretched clickable overlay linking to details */}
+      <Link
+        href={item.url || "/community"}
+        className="absolute inset-0 z-0 rounded-2xl focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+        aria-label={`View details for ${item.title}`}
+      />
+
       {/* CARD TOP BAR */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="relative z-10 flex items-center justify-between gap-2 pointer-events-none">
         <div className="flex items-center gap-2">
           {getCategoryBadge()}
           {item.severity && (
@@ -93,7 +99,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground pointer-events-auto">
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {item.savedAt}
@@ -105,7 +111,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
             onClick={(event) => void handleRemove(event)}
             title="Remove from saved bookmarks"
             aria-label={`Remove ${item.title} from bookmarks`}
-            className="rounded-full text-blue-600 hover:text-red-600 dark:text-blue-400 dark:hover:text-red-400"
+            className="rounded-full text-blue-600 hover:text-red-600 dark:text-blue-400 dark:hover:text-red-400 cursor-pointer"
           >
             <Bookmark className="fill-current" />
           </Button>
@@ -113,7 +119,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
       </div>
 
       {/* CARD BODY */}
-      <div className="space-y-2 flex-1">
+      <div className="relative z-10 space-y-2 flex-1 pointer-events-none">
         <h3 className="text-base font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
           {item.title}
         </h3>
@@ -123,7 +129,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
       </div>
 
       {/* CATEGORY SPECIFIC METADATA */}
-      <div className="pt-1">
+      <div className="relative z-10 pt-1 pointer-events-none">
         {item.category === "Program" &&
           (item.companyName || item.bountyMax || item.inScopeCount !== undefined) && (
             <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2.5 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10">
@@ -181,7 +187,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
       </div>
 
       {/* TAGS CHIPS */}
-      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+      <div className="relative z-10 flex flex-wrap items-center gap-1.5 pt-1 pointer-events-none">
         {item.tags.slice(0, 3).map((tag, idx) => (
           <span
             key={idx}
@@ -195,20 +201,6 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
             +{item.tags.length - 3} more
           </span>
         )}
-      </div>
-
-      {/* FOOTER VIEW LINK */}
-      <div className="flex items-center justify-end border-t border-border pt-2">
-        <Button
-          nativeButton={false}
-          render={<Link href={item.url || "/community"} />}
-          variant="outline"
-          size="lg"
-          className="w-full justify-between rounded-xl border-transparent text-sm font-semibold text-foreground hover:bg-muted hover:text-blue-600 dark:hover:text-blue-400"
-        >
-          View details
-          <ExternalLink data-icon="inline-end" />
-        </Button>
       </div>
     </motion.div>
   );
