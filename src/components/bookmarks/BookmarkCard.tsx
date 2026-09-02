@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { BookmarkItem } from "@/lib/types/bookmarks/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Bookmark, Clock, ShieldAlert, Award, ThumbsUp, Layers, CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
