@@ -14,6 +14,12 @@ type ReportSeverityReviewHeaderProps = {
 export function ReportSeverityReviewHeader({
   detail,
 }: ReportSeverityReviewHeaderProps) {
+  const cleanReportId = detail?.reportId
+    ? String(detail.reportId).startsWith("#")
+      ? detail.reportId
+      : `#${detail.reportId}`
+    : "#REPORT";
+
   return (
     <div className="flex flex-col gap-4 min-w-0">
       <div className="flex flex-col gap-3 sm:gap-4 min-w-0">
@@ -30,10 +36,10 @@ export function ReportSeverityReviewHeader({
           </Link>
           <span className="text-muted-foreground/60">&gt;</span>
           <Link
-            href={`/dashboard/report-management/${detail.id}`}
+            href={`/dashboard/report-management/${detail?.id || ""}`}
             className="transition-colors hover:text-foreground font-mono"
           >
-            Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
+            Report {cleanReportId}
           </Link>
           <span className="text-muted-foreground/60">&gt;</span>
           <span className="font-semibold text-foreground">Severity Adjustment</span>
@@ -52,7 +58,7 @@ export function ReportSeverityReviewHeader({
                 variant="outline"
                 className="border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold"
               >
-                Submitted {detail.severity} ({detail.cvssScore})
+                Submitted {detail?.severity || "Medium"} ({detail?.cvssScore || "N/A"})
               </Badge>
             </div>
 
@@ -68,7 +74,7 @@ export function ReportSeverityReviewHeader({
           </div>
 
           <Link
-            href={`/dashboard/report-management/${detail.id}`}
+            href={`/dashboard/report-management/${detail?.id || ""}`}
             className={cn(
               buttonVariants({ variant: "outline", size: "sm" }),
               "h-10 items-center justify-center gap-2.5 rounded-xl border-border bg-card px-4 font-semibold text-foreground shadow-none hover:bg-muted cursor-pointer shrink-0 w-full sm:w-auto"
@@ -94,9 +100,9 @@ export function ReportSeverityReviewHeader({
                 </span>
                 <span
                   className="text-sm sm:text-base font-semibold text-foreground truncate block"
-                  title={detail.affectedUrl || detail.internalAssetLink || "Target Asset"}
+                  title={detail?.affectedUrl || detail?.internalAssetLink || "Target Asset"}
                 >
-                  {detail.affectedUrl || detail.internalAssetLink || "Target Asset"}
+                  {detail?.affectedUrl || detail?.internalAssetLink || "Target Asset"}
                 </span>
               </div>
             </div>
@@ -113,7 +119,7 @@ export function ReportSeverityReviewHeader({
                   Submitted Severity
                 </span>
                 <span className="text-sm sm:text-base font-semibold text-foreground truncate block">
-                  {detail.severity} ({detail.cvssScore})
+                  {detail?.severity || "Medium"} ({detail?.cvssScore || "N/A"})
                 </span>
               </div>
             </div>
@@ -126,7 +132,7 @@ export function ReportSeverityReviewHeader({
                 Reward estimate
               </span>
               <p className="mt-1 sm:mt-2 text-sm sm:text-base font-semibold text-emerald-600 dark:text-emerald-400 truncate">
-                {detail.bountyRange}
+                {detail?.bountyRange || "Standard Matrix"}
               </p>
             </div>
           </div>
@@ -135,3 +141,4 @@ export function ReportSeverityReviewHeader({
     </div>
   );
 }
+

@@ -2,7 +2,8 @@
 
 import { useEffect, useId, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { AnimatePresence, motion } from "motion/react";
 import {
   AlertTriangle,
@@ -65,6 +66,17 @@ const SEVERITY_DEFAULTS: Record<
   Info: { bounty: "0", label: "Informational (Recognition Only)" },
 };
 
+function normalizeSeverity(sev?: string): SeverityOption {
+  if (!sev) return "Medium";
+  const lower = sev.toLowerCase();
+  if (lower === "critical") return "Critical";
+  if (lower === "high") return "High";
+  if (lower === "medium") return "Medium";
+  if (lower === "low") return "Low";
+  if (lower === "info" || lower === "none") return "Info";
+  return "Medium";
+}
+
 type ReportSeverityAdjustmentFormProps = {
   detail: ReportManagementDetail;
   onOutcomeChange?: (outcome: "approved" | "rejected") => void;
@@ -98,16 +110,16 @@ export function ReportSeverityAdjustmentForm({
   const router = useRouter();
   const fileInputId = useId();
 
+  const initialSev = normalizeSeverity(detail?.severity);
+
   // Form State
-  const [selectedSeverity, setSelectedSeverity] = useState<SeverityOption>(
-    (detail.severity as SeverityOption) || "Medium"
-  );
+  const [selectedSeverity, setSelectedSeverity] = useState<SeverityOption>(initialSev);
   const [bountyAmount, setBountyAmount] = useState<string>(
-    SEVERITY_DEFAULTS[(detail.severity as SeverityOption) || "Medium"].bounty
+    SEVERITY_DEFAULTS[initialSev]?.bounty || "750"
   );
   const [explanation, setExplanation] = useState("");
   const [findingsSummary, setFindingsSummary] = useState(
-    detail.assessmentSummary || ""
+    detail?.assessmentSummary || ""
   );
   const [decisionReason, setDecisionReason] = useState("");
   const [improvementSuggestions, setImprovementSuggestions] = useState("");
@@ -116,7 +128,7 @@ export function ReportSeverityAdjustmentForm({
   // Sync state when detail data arrives from API
   useEffect(() => {
     if (detail?.severity) {
-      const sev = (detail.severity as SeverityOption) || "Medium";
+      const sev = normalizeSeverity(detail.severity);
       setSelectedSeverity(sev);
       if (SEVERITY_DEFAULTS[sev]) {
         setBountyAmount(SEVERITY_DEFAULTS[sev].bounty);
@@ -128,10 +140,19 @@ export function ReportSeverityAdjustmentForm({
   }, [detail?.severity, detail?.assessmentSummary]);
 
   // Dialog & Workflow State
+  const searchParams = useSearchParams();
+  const actionParam = searchParams?.get("action");
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [approvalSuccess, setApprovalSuccess] = useState<boolean | null>(null);
   const [rejectionSuccess, setRejectionSuccess] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (actionParam === "reject") {
+      setShowRejectModal(true);
+    }
+  }, [actionParam]);
+
 
   // RTK Mutations
   const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
@@ -139,7 +160,7 @@ export function ReportSeverityAdjustmentForm({
 
   const handleSeverityChange = (option: SeverityOption) => {
     setSelectedSeverity(option);
-    setBountyAmount(SEVERITY_DEFAULTS[option].bounty);
+    setBountyAmount(SEVERITY_DEFAULTS[option]?.bounty || "750");
   };
 
   const handleConfirmApproval = async () => {
@@ -197,12 +218,19 @@ export function ReportSeverityAdjustmentForm({
 
   const [copiedSummary, setCopiedSummary] = useState(false);
 
-  const username = detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_");
-  const profileIdentifier = detail.submitterId || username;
+  const cleanReportId = detail?.reportId
+    ? String(detail.reportId).startsWith("#")
+      ? detail.reportId
+      : `#${detail.reportId}`
+    : "#REPORT";
+
+  const submitterName = detail?.submitter || "Researcher";
+  const username = submitterName.toLowerCase().replace(/[^a-z0-9_]+/g, "_");
+  const profileIdentifier = detail?.submitterId || username;
 
   const handleCopyResolution = async () => {
     try {
-      const summaryText = `[DevSolve Triage Resolution]\nReport: #${detail.reportId} - ${detail.title}\nStatus: APPROVED\nSeverity: ${selectedSeverity}\nBounty Award: $${bountyAmount} USD\nResearcher: ${detail.submitter}\nDecision: ${decisionReason || "Severity verified and validated according to program bounty rubric."}`;
+      const summaryText = `[DevSolve Triage Resolution]\nReport: ${cleanReportId} - ${detail?.title || "Vulnerability Finding"}\nStatus: APPROVED\nSeverity: ${selectedSeverity}\nBounty Award: $${bountyAmount} USD\nResearcher: ${submitterName}\nDecision: ${decisionReason || "Severity verified and validated according to program bounty rubric."}`;
       await navigator.clipboard.writeText(summaryText);
       setCopiedSummary(true);
       setTimeout(() => setCopiedSummary(false), 2000);
@@ -236,7 +264,7 @@ export function ReportSeverityAdjustmentForm({
                 APPROVED & CONFIRMED
               </Badge>
               <Badge variant="outline" className="font-mono text-xs font-bold border-border bg-muted/50 px-2.5 py-0.5">
-                {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
+                {cleanReportId}
               </Badge>
               <Badge variant="outline" className="text-xs border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold px-2.5 py-0.5 rounded-full">
                 Reward Dispatched
@@ -254,11 +282,12 @@ export function ReportSeverityAdjustmentForm({
                 href={`/profile/${encodeURIComponent(profileIdentifier)}`}
                 className="text-blue-600 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-0.5"
               >
-                <span>{detail.submitter}</span>
+                <span>{submitterName}</span>
                 <ExternalLink className="size-3" />
               </Link>.
             </p>
           </div>
+
 
           {/* 4-Column Executive Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 w-full text-left min-w-0">
@@ -408,7 +437,7 @@ export function ReportSeverityAdjustmentForm({
                 REJECTED & CLOSED
               </Badge>
               <Badge variant="outline" className="font-mono text-xs font-bold border-border bg-muted/50 px-2.5 py-0.5">
-                {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
+                {cleanReportId}
               </Badge>
             </div>
 
@@ -416,7 +445,7 @@ export function ReportSeverityAdjustmentForm({
               Report Submission Rejected
             </h2>
             <p className="text-xs sm:text-base text-muted-foreground leading-relaxed">
-              Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`} has been marked as rejected. Triage reasoning has been documented and feedback was shared back to researcher <strong>{detail.submitter}</strong>.
+              Report {cleanReportId} has been marked as rejected. Triage reasoning has been documented and feedback was shared back to researcher <strong>{submitterName}</strong>.
             </p>
           </div>
 
@@ -434,7 +463,7 @@ export function ReportSeverityAdjustmentForm({
                 <span>Return to Report Queue</span>
               </Button>
             </Link>
-            <Link href={`/dashboard/report-management/${detail.id}`} className="w-full sm:w-auto">
+            <Link href={`/dashboard/report-management/${detail?.id || ""}`} className="w-full sm:w-auto">
               <Button variant="outline" className="w-full sm:w-auto rounded-xl border-border bg-card font-semibold text-xs sm:text-sm h-10 px-4 cursor-pointer gap-2 justify-center">
                 <span>View Closed Report</span>
                 <ArrowRight className="size-4" />
@@ -493,7 +522,7 @@ export function ReportSeverityAdjustmentForm({
                 <FieldDescription className="text-xs sm:text-sm text-muted-foreground mt-3">
                   Claimed researcher severity:{" "}
                   <span className="font-semibold text-foreground">
-                    {detail.severity} ({detail.cvssScore})
+                    {detail?.severity || "Medium"} ({detail?.cvssScore || "N/A"})
                   </span>
                   . Company decision rating:{" "}
                   <span className="font-semibold text-blue-600 dark:text-blue-400">
@@ -559,7 +588,7 @@ export function ReportSeverityAdjustmentForm({
                 Feedback to Researcher
               </Badge>
               <span className="text-xs text-muted-foreground">
-                Visible to {detail.submitter}
+                Visible to {submitterName}
               </span>
             </div>
 
@@ -665,7 +694,7 @@ export function ReportSeverityAdjustmentForm({
           <div className="flex flex-col gap-4 rounded-2xl border border-border bg-muted/40 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between min-w-0">
             <div className="flex flex-col gap-1 min-w-0">
               <p className="text-sm sm:text-base font-semibold text-foreground truncate">
-                Triage Decision for Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
+                Triage Decision for Report {cleanReportId}
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground flex flex-wrap gap-1 items-center">
                 <span>Target:</span>
@@ -726,7 +755,7 @@ export function ReportSeverityAdjustmentForm({
                       Confirm Report Approval
                     </h3>
                     <p className="text-xs text-muted-foreground font-mono truncate">
-                      Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
+                      Report {cleanReportId}
                     </p>
                   </div>
                 </div>
@@ -742,7 +771,7 @@ export function ReportSeverityAdjustmentForm({
 
               <div className="p-4 sm:p-6 space-y-4 text-xs sm:text-sm leading-relaxed overflow-y-auto min-w-0">
                 <p className="text-muted-foreground">
-                  You are about to officially approve this vulnerability report and authorize the reward payment to <strong>{detail.submitter}</strong>.
+                  You are about to officially approve this vulnerability report and authorize the reward payment to <strong>{submitterName}</strong>.
                 </p>
 
                 <div className="rounded-xl border border-border bg-muted/40 p-3.5 sm:p-4 space-y-2.5 min-w-0">
@@ -761,13 +790,13 @@ export function ReportSeverityAdjustmentForm({
                   <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-muted-foreground">Researcher:</span>
                     <Link
-                      href={`/profile/${encodeURIComponent(detail.submitterId || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_"))}`}
+                      href={`/profile/${encodeURIComponent(profileIdentifier)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="font-semibold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline inline-flex items-center gap-1 group truncate max-w-[200px]"
-                      title={`View ${detail.submitter}'s public profile`}
+                      title={`View ${submitterName}'s public profile`}
                     >
-                      <span className="truncate">{detail.submitter}</span>
+                      <span className="truncate">{submitterName}</span>
                     </Link>
                   </div>
                   <p className="text-xs sm:text-sm text-muted-foreground pt-1 border-t border-border/70 leading-relaxed">
@@ -840,7 +869,7 @@ export function ReportSeverityAdjustmentForm({
                       Confirm Report Rejection
                     </h3>
                     <p className="text-xs text-muted-foreground font-mono truncate">
-                      Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
+                      Report {cleanReportId}
                     </p>
                   </div>
                 </div>
@@ -857,7 +886,7 @@ export function ReportSeverityAdjustmentForm({
               <div className="p-4 sm:p-6 space-y-4 text-xs sm:text-sm leading-relaxed overflow-y-auto min-w-0">
                 <div className="flex items-start gap-2.5 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
                   <AlertTriangle className="size-4 shrink-0 mt-0.5" />
-                  <span>Are you sure you want to reject this submission? This will close the report and notify <strong>{detail.submitter}</strong>.</span>
+                  <span>Are you sure you want to reject this submission? This will close the report and notify <strong>{submitterName}</strong>.</span>
                 </div>
 
                 <div className="space-y-1.5">
@@ -912,3 +941,4 @@ export function ReportSeverityAdjustmentForm({
     </>
   );
 }
+

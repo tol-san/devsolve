@@ -1,6 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { RefreshCw } from "lucide-react";
+
 import { motion } from "motion/react";
 
 import { RequireOrgPermission } from "@/components/auth/RequireOrgPermission";

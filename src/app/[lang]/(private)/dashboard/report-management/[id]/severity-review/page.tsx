@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useParams } from "next/navigation";
@@ -19,8 +21,13 @@ import {
 } from "@/lib/redux/services/reportsApi";
 
 export default function ReportSeverityReviewPage() {
-  const params = useParams<{ id: string }>();
-  const reportId = params?.id ?? "";
+  const params = useParams();
+  const reportId =
+    typeof params?.id === "string"
+      ? params.id
+      : Array.isArray(params?.id)
+      ? params.id[0]
+      : "";
 
   const { data: apiReport, isLoading: isReportLoading } = useGetReportByIdQuery(
     reportId,
@@ -41,7 +48,8 @@ export default function ReportSeverityReviewPage() {
     return getReportDetailById(reportId);
   }, [apiReport, managedReports, reportId]);
 
-  const isLoading = (isReportLoading || isListLoading) && !apiReport && managedReports.length === 0;
+  const isLoading =
+    (isReportLoading || isListLoading) && !apiReport && managedReports.length === 0;
 
   if (isLoading) {
     return (
@@ -64,9 +72,18 @@ export default function ReportSeverityReviewPage() {
       className="space-y-6 w-full pb-12 min-w-0"
     >
       {!outcome && <ReportSeverityReviewHeader detail={detail} />}
-      <div className={outcome ? "w-full max-w-4xl mx-auto min-w-0" : "grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start min-w-0"}>
+      <div
+        className={
+          outcome
+            ? "w-full max-w-4xl mx-auto min-w-0"
+            : "grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start min-w-0"
+        }
+      >
         <div className="min-w-0 w-full">
-          <ReportSeverityAdjustmentForm detail={detail} onOutcomeChange={setOutcome} />
+          <ReportSeverityAdjustmentForm
+            detail={detail}
+            onOutcomeChange={setOutcome}
+          />
         </div>
         {!outcome && (
           <div className="min-w-0 w-full">
@@ -77,4 +94,5 @@ export default function ReportSeverityReviewPage() {
     </motion.div>
   );
 }
+
 

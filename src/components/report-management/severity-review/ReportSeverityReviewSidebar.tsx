@@ -31,7 +31,7 @@ export function ReportSeverityReviewSidebar({
   detail,
 }: ReportSeverityReviewSidebarProps) {
   const [copiedEmail, setCopiedEmail] = useState(false);
-  const profileIdentifier = detail.submitterId || detail.submitter;
+  const profileIdentifier = detail?.submitterId || detail?.submitter || "researcher";
 
   const { data: profileOverview } = useGetProfileByUsernameQuery(
     profileIdentifier,
@@ -41,13 +41,15 @@ export function ReportSeverityReviewSidebar({
   const profile = profileOverview?.profile;
   const stats = profileOverview?.stats;
 
-  const displayName = profile?.displayName || (profile as any)?.fullName || detail.submitter;
-  const username = profile?.username || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_");
-  const contactEmail = (profile as any)?.email || detail.submitterEmail || "";
-  const avatarUrl = profile?.avatarUrl || (detail as any).submitterAvatarUrl;
+  const displayName =
+    profile?.displayName || (profile as any)?.fullName || detail?.submitter || "Researcher";
+  const username =
+    profile?.username || (detail?.submitter || "researcher").toLowerCase().replace(/[^a-z0-9_]+/g, "_");
+  const contactEmail = (profile as any)?.email || detail?.submitterEmail || "";
+  const avatarUrl = profile?.avatarUrl || (detail as any)?.submitterAvatarUrl;
   const biography = profile?.bio;
   const location = profile?.location || (profile as any)?.country;
-  const memberSince = profile?.memberSince || (profile as any)?.joinedDate || detail.submittedDate;
+  const memberSince = profile?.memberSince || (profile as any)?.joinedDate || detail?.submittedDate;
 
   const handleCopyEmail = async () => {
     if (!contactEmail) return;
@@ -61,6 +63,7 @@ export function ReportSeverityReviewSidebar({
   };
 
   const profileHref = `/profile/${encodeURIComponent(profileIdentifier)}`;
+
 
   return (
     <div className="flex flex-col gap-5 min-w-0">
@@ -94,7 +97,7 @@ export function ReportSeverityReviewSidebar({
                 />
               ) : (
                 <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs sm:text-sm shadow-2xs group-hover:scale-105 transition-transform">
-                  {detail.submitterInitials}
+                  {detail?.submitterInitials || displayName.slice(0, 2).toUpperCase()}
                 </div>
               )}
               <div className="min-w-0 flex-1 text-left overflow-hidden">
@@ -210,13 +213,13 @@ export function ReportSeverityReviewSidebar({
                 variant="outline"
                 className="border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs"
               >
-                {detail.severity} ({detail.cvssScore})
+                {detail?.severity || "Medium"} ({detail?.cvssScore || "N/A"})
               </Badge>
               <Badge
                 variant="outline"
                 className="border-border bg-card text-muted-foreground text-xs"
               >
-                {detail.status}
+                {detail?.status || "Open"}
               </Badge>
             </div>
           </div>
@@ -226,11 +229,12 @@ export function ReportSeverityReviewSidebar({
               Reward estimate
             </span>
             <p className="mt-2 text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate">
-              {detail.bountyRange}
+              {detail?.bountyRange || "Standard Matrix"}
             </p>
           </div>
         </CardContent>
       </Card>
+
 
       {/* 3. Review Checklist */}
       <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">

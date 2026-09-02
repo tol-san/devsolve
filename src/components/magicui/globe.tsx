@@ -81,18 +81,19 @@ export function Globe({ className, config }: GlobeProps) {
         { location: [25.2048, 55.2708], size: 0.06 }, // Dubai
       ],
       ...config,
-      onRender: (state) => {
+      onRender: (state: Record<string, any>) => {
         if (!pointerInteracting.current) {
           phi += 0.0035;
         }
         state.phi = phi + r.get();
         state.width = (width || 600) * 2;
         state.height = (width || 600) * 2;
-        if (config?.onRender) {
-          config.onRender(state);
+        if ((config as any)?.onRender) {
+          (config as any).onRender(state);
         }
       },
-    };
+    } as any;
+
 
     const globe = createGlobe(canvasRef.current, defaultConfig);
 

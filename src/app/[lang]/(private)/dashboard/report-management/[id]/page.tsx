@@ -1,8 +1,11 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React from "react";
 import { motion } from "motion/react";
 import { useParams } from "next/navigation";
+
 
 import { ReportDetailAssessment } from "@/components/report-management/ReportDetailAssessment";
 import { ReportDetailClassification } from "@/components/report-management/ReportDetailClassification";
@@ -24,8 +27,14 @@ import {
 } from "@/lib/redux/services/reportsApi";
 
 export default function ReportManagementDetailPage() {
-  const params = useParams<{ id: string }>();
-  const reportId = params?.id ?? "";
+  const params = useParams();
+  const reportId =
+    typeof params?.id === "string"
+      ? params.id
+      : Array.isArray(params?.id)
+      ? params.id[0]
+      : "";
+
 
   const { data: apiReport, isLoading: isReportLoading, refetch: refetchReport } = useGetReportByIdQuery(
     reportId,
