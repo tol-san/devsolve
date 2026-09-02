@@ -74,7 +74,7 @@ export default function HacktivityFeature({
     <div className="px-4 py-8 sm:px-6 sm:py-12 md:px-8 lg:px-12">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
         {/* Hero Header */}
-        <header className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between border-b border-border/60 pb-8">
+        <header className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b border-border/60 pb-8">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
               <span className="relative flex size-2">
