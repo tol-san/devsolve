@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import {
   ArrowLeft,
   Eye,
@@ -20,17 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useKeycloakLogin, type IdpHint } from "@/hooks/useKeycloakLogin";
-
-/**
- * /login — presentation only.
- *
- * Deliberately carries no authentication: no submit handler, no provider
- * calls, no validation, no redirects. Every control here is inert, so this
- * can be dropped in front of whichever flow ends up behind it (the app signs
- * in through Keycloak today). Self-contained in one file rather than split
- * into `components/auth/*`, so it can be reshaped without touching the
- * registration screens.
- */
+import { AuthHeroPanel } from "@/components/auth/AuthHeroPanel";
+import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 
 const HERO_BADGES = [
   {
@@ -54,9 +44,9 @@ const HERO_BADGES = [
 ];
 
 export default function LoginPage() {
-  // UI affordance only — reveals the field
   const [showPassword, setShowPassword] = useState(false);
   const { isLoggingIn, pendingIdpHint, handleLogin } = useKeycloakLogin();
+  const localePath = useLocalePath();
 
   const getRedirectUrl = () => {
     if (typeof window === "undefined") return "/dashboard";
@@ -74,76 +64,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-dvh w-full grid-cols-1 overflow-x-hidden font-sans antialiased lg:grid-cols-2">
-      {/* ── Left: hero ── */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative flex min-h-[420px] flex-col items-center justify-between overflow-hidden border-b border-border bg-blue-50/60 p-6 text-center backdrop-blur-[2px] sm:p-10 lg:min-h-dvh lg:border-b-0 lg:border-r xl:p-14 dark:bg-blue-950/20"
-      >
-        <div className="pointer-events-none absolute -left-24 -top-24 z-0 size-96 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 z-0 size-96 rounded-full bg-emerald-400/20 blur-3xl" />
+    <div className="grid h-screen max-h-screen w-full grid-cols-1 overflow-hidden font-sans antialiased lg:grid-cols-2">
+      {/* ── Left: Full-Bleed 3D Hero Section (Hidden on Mobile/Responsive) ── */}
+      <AuthHeroPanel
+        imageSrcDark="/researcher-dark.jpg"
+        imageSrcLight="/researcher-light.jpg"
+        badges={HERO_BADGES}
+        headline="Welcome back"
+        description="Sign in to keep hunting, keep building, and keep your streak going."
+        glowColor1="bg-blue-500/25"
+        glowColor2="bg-purple-500/25"
+        backHref="/"
+        backLabel="Back to home"
+      />
 
-        <div className="relative z-10 flex h-full w-full flex-col items-center justify-between">
-          <div className="mb-4 flex w-full items-center justify-start">
-            <Link
-              href="/"
-              className="group inline-flex items-center gap-2 text-xs font-semibold text-foreground/80 transition-colors hover:text-blue-600 sm:text-sm dark:hover:text-blue-400"
-            >
-              <ArrowLeft className="size-4 text-blue-600 transition-transform group-hover:-translate-x-1" />
-              <span>Back to home</span>
-            </Link>
-          </div>
-
-          <div className="relative my-auto flex w-full max-w-sm flex-col items-center justify-center py-4 sm:max-w-md">
-            <div className="relative flex size-56 items-center justify-center sm:size-72">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-200/60 via-indigo-100/50 to-emerald-100/40 blur-xl" />
-              <div className="relative z-10 flex size-full items-center justify-center">
-                <DotLottieReact src="/lottie/researcher.lottie" loop autoplay />
-              </div>
-            </div>
-
-            <div className="relative z-10 mt-5 flex flex-wrap justify-center gap-2.5">
-              {HERO_BADGES.map((badge) => {
-                const Icon = badge.icon;
-                return (
-                  <div
-                    key={badge.label}
-                    className={`flex items-center gap-1.5 rounded-full border bg-card/90 px-3 py-1.5 text-sm font-semibold text-foreground shadow-2xs backdrop-blur-xs ${badge.borderColorClass}`}
-                  >
-                    <Icon className={`size-3.5 ${badge.iconColorClass}`} />
-                    <span>{badge.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mx-auto mt-auto max-w-md pt-4">
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="mb-2 text-2xl font-extrabold tracking-tight text-blue-600 sm:text-3xl xl:text-4xl dark:text-blue-400"
-            >
-              Welcome back
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-sm font-medium text-muted-foreground sm:text-base"
-            >
-              Sign in to keep hunting, keep building, and keep your streak
-              going.
-            </motion.p>
+      {/* ── Right: Form Panel ── */}
+      <div className="relative flex h-screen max-h-screen w-full flex-col items-center justify-between overflow-y-auto p-6 sm:p-10 lg:p-12 xl:p-16">
+        <div className="flex w-full items-center justify-between mb-4 sm:mb-6">
+          <Link
+            href={localePath("/")}
+            className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft className="size-4 text-blue-600 dark:text-blue-400" />
+            <span>Back to home</span>
+          </Link>
+          <div className="ml-auto">
+            <AuthHeaderActions />
           </div>
         </div>
-      </motion.div>
 
-      {/* ── Right: form ── */}
-      <div className="flex flex-col items-center justify-center overflow-y-auto p-6 sm:p-10 lg:p-12 xl:p-16">
         <div className="mx-auto my-auto flex w-full max-w-md flex-col justify-center">
           <div className="mb-6 text-center sm:text-left">
             <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
@@ -154,13 +103,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Social */}
+          {/* Social Google / GitHub */}
           <div className="mb-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <Button
               type="button"
               disabled={isLoggingIn}
               onClick={() => handleSocialSignIn("google")}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-border dark:border-border bg-card dark:bg-card text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-muted/70 dark:hover:bg-muted/70 sm:h-12 sm:text-sm"
+              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-slate-300 dark:border-border bg-white dark:bg-card text-xs font-semibold text-slate-800 dark:text-foreground shadow-2xs transition-all hover:bg-slate-50 dark:hover:bg-muted/70 sm:h-12 sm:text-sm"
             >
               {pendingIdpHint === "google" ? (
                 <Loader2 className="size-4 animate-spin text-blue-600" />
@@ -191,13 +140,13 @@ export default function LoginPage() {
               type="button"
               disabled={isLoggingIn}
               onClick={() => handleSocialSignIn("github")}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-border dark:border-border bg-card dark:bg-card text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-muted/70 dark:hover:bg-muted/70 sm:h-12 sm:text-sm"
+              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-slate-300 dark:border-border bg-white dark:bg-card text-xs font-semibold text-slate-800 dark:text-foreground shadow-2xs transition-all hover:bg-slate-50 dark:hover:bg-muted/70 sm:h-12 sm:text-sm"
             >
               {pendingIdpHint === "github" ? (
                 <Loader2 className="size-4 animate-spin text-foreground" />
               ) : (
                 <svg
-                  className="size-4 fill-current text-foreground"
+                  className="size-4 fill-current text-slate-900 dark:text-foreground"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
@@ -211,9 +160,9 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="relative mb-6 flex items-center justify-center">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border/60" />
+              <div className="w-full border-t border-slate-200 dark:border-border/60" />
             </div>
-            <span className="relative z-10 px-3.5 py-0.5 text-xs font-medium text-muted-foreground bg-card rounded-full border border-border">
+            <span className="relative z-10 px-3.5 py-0.5 text-xs font-medium text-muted-foreground bg-slate-50 dark:bg-card rounded-full border border-slate-200 dark:border-border">
               or sign in with Keycloak
             </span>
           </div>
@@ -233,7 +182,7 @@ export default function LoginPage() {
                   type="text"
                   autoComplete="username"
                   placeholder="you@example.com or tada122"
-                  className="h-11 w-full rounded-xl border border-border bg-card hover:border-muted-foreground/40 pl-10 pr-4 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  className="h-11 w-full rounded-xl border border-slate-300 dark:border-border bg-white dark:bg-card hover:border-slate-400 dark:hover:border-muted-foreground/40 pl-10 pr-4 text-sm text-foreground transition-all placeholder:text-slate-400 dark:placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
                   <User className="size-4" />
@@ -263,7 +212,7 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="h-11 w-full rounded-xl border border-border bg-card hover:border-muted-foreground/40 pl-10 pr-11 text-sm text-foreground transition-all placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  className="h-11 w-full rounded-xl border border-slate-300 dark:border-border bg-white dark:bg-card hover:border-slate-400 dark:hover:border-muted-foreground/40 pl-10 pr-11 text-sm text-foreground transition-all placeholder:text-slate-400 dark:placeholder:text-muted-foreground focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-muted-foreground">
                   <Key className="size-4" />
@@ -316,13 +265,15 @@ export default function LoginPage() {
           <p className="mt-6 text-center text-sm font-medium text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link
-              href="/account-type"
+              href={localePath("/account-type")}
               className="font-bold text-blue-600 hover:underline dark:text-blue-400"
             >
               Create one
             </Link>
           </p>
         </div>
+
+        <div className="h-4" />
       </div>
     </div>
   );

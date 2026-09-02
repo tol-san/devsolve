@@ -4,13 +4,23 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { UseFormReturn } from "react-hook-form";
-import { User, Mail, Key, Eye, EyeOff, Briefcase, ArrowRight, ShieldCheck } from "lucide-react";
+import {
+  User,
+  Mail,
+  Key,
+  Eye,
+  EyeOff,
+  Briefcase,
+  ArrowRight,
+} from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CustomSelect } from "@/components/auth/CustomSelect";
+import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 import { JOB_TITLES } from "@/lib/constants/auth";
+import { useT, useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 import type { CompanyRegisterFormValues } from "@/lib/validations/auth";
 
@@ -20,6 +30,9 @@ interface CompanyStep1FormProps {
 }
 
 export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
+  const t = useT();
+  const localePath = useLocalePath();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {
@@ -29,20 +42,8 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
     formState: { errors },
   } = form;
 
-  const fullName = watch("fullName");
   const jobTitle = watch("jobTitle");
-  const email = watch("email");
   const password = watch("password");
-  const confirmPassword = watch("confirmPassword");
-  const agreeTermsStep1 = watch("agreeTermsStep1");
-
-  const isStep1Complete =
-    Boolean(fullName?.trim()) &&
-    Boolean(jobTitle) &&
-    Boolean(email?.trim()) &&
-    Boolean(password && password.length >= 8) &&
-    Boolean(confirmPassword && confirmPassword.length >= 8) &&
-    Boolean(agreeTermsStep1);
 
   return (
     <motion.form
@@ -55,15 +56,15 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         e.preventDefault();
         onNext();
       }}
-      className="space-y-4"
+      className="space-y-4 w-full"
     >
       {/* Header */}
       <div className="mb-6 text-center sm:text-left">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
-          Create your account
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-foreground">
+          {t("auth.companyRegister.step1Title")}
         </h1>
-        <p className="text-muted-foreground text-sm sm:text-base mt-1 font-medium">
-          Welcome to the technical elite. Begin your journey today.
+        <p className="text-slate-600 dark:text-muted-foreground text-sm sm:text-base mt-1 font-medium">
+          {t("auth.companyRegister.step1Subtitle")}
         </p>
       </div>
 
@@ -71,19 +72,23 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       <div>
         <Label
           htmlFor="fullName"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
         >
-          FULL NAME <span className="text-destructive">*</span>
+          {t("auth.companyRegister.fullName")}{" "}
+          <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
           <Input
             id="fullName"
             type="text"
-            placeholder="Tada Battambang"
+            autoComplete="name"
+            placeholder={t("auth.companyRegister.fullNamePlaceholder")}
             {...register("fullName")}
             className={cn(
-              "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-              errors.fullName ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+              "w-full h-11 sm:h-12 pl-10 pr-4 bg-white dark:bg-card border rounded-xl text-slate-900 dark:text-foreground text-sm placeholder:text-slate-400 dark:placeholder:text-muted-foreground transition-all focus:border-blue-600 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.fullName
+                ? "border-destructive focus:ring-destructive/30"
+                : "border-slate-300 dark:border-border hover:border-slate-400 dark:hover:border-muted-foreground/40"
             )}
           />
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
@@ -91,7 +96,9 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
           </div>
         </div>
         {errors.fullName && (
-          <p className="text-xs text-destructive mt-1">{errors.fullName.message}</p>
+          <p className="text-xs text-destructive mt-1 font-medium">
+            {errors.fullName.message}
+          </p>
         )}
       </div>
 
@@ -99,14 +106,15 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       <div>
         <Label
           htmlFor="jobTitle"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
         >
-          JOB TITLE <span className="text-destructive">*</span>
+          {t("auth.companyRegister.jobTitle")}{" "}
+          <span className="text-destructive">*</span>
         </Label>
         <CustomSelect
           value={jobTitle}
           options={JOB_TITLES}
-          placeholder="Select job title (e.g. IT Company)"
+          placeholder={t("auth.companyRegister.jobTitlePlaceholder")}
           icon={<Briefcase className="size-4" />}
           error={Boolean(errors.jobTitle)}
           onSelect={(selectedVal) => {
@@ -114,7 +122,9 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
           }}
         />
         {errors.jobTitle && (
-          <p className="text-xs text-destructive mt-1">{errors.jobTitle.message}</p>
+          <p className="text-xs text-destructive mt-1 font-medium">
+            {errors.jobTitle.message}
+          </p>
         )}
       </div>
 
@@ -122,19 +132,23 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       <div>
         <Label
           htmlFor="email"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
         >
-          WORK EMAIL <span className="text-destructive">*</span>
+          {t("auth.companyRegister.workEmail")}{" "}
+          <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
           <Input
             id="email"
             type="email"
-            placeholder="tada@battambang.org"
+            autoComplete="email"
+            placeholder={t("auth.companyRegister.workEmailPlaceholder")}
             {...register("email")}
             className={cn(
-              "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-              errors.email ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+              "w-full h-11 sm:h-12 pl-10 pr-4 bg-white dark:bg-card border rounded-xl text-slate-900 dark:text-foreground text-sm placeholder:text-slate-400 dark:placeholder:text-muted-foreground transition-all focus:border-blue-600 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.email
+                ? "border-destructive focus:ring-destructive/30"
+                : "border-slate-300 dark:border-border hover:border-slate-400 dark:hover:border-muted-foreground/40"
             )}
           />
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
@@ -142,125 +156,168 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
           </div>
         </div>
         {errors.email && (
-          <p className="text-xs text-destructive mt-1">{errors.email.message}</p>
+          <p className="text-xs text-destructive mt-1 font-medium">
+            {errors.email.message}
+          </p>
         )}
       </div>
 
-      {/* Password */}
-      <div>
-        <Label
-          htmlFor="password"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
-        >
-          PASSWORD <span className="text-destructive">*</span>
-        </Label>
-        <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="At least 8 characters"
-            {...register("password")}
-            className={cn(
-              "w-full h-11 pl-10 pr-10 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-              errors.password ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
-            )}
-          />
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-            <Key className="size-4" />
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+      {/* Password & Confirm Password */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Password */}
+        <div>
+          <Label
+            htmlFor="password"
+            className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
           >
-            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-          </button>
-        </div>
-        {errors.password && (
-          <p className="text-xs text-destructive mt-1">{errors.password.message}</p>
-        )}
-      </div>
-
-      {/* Confirm Password */}
-      <div>
-        <Label
-          htmlFor="confirmPassword"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
-        >
-          CONFIRM PASSWORD <span className="text-destructive">*</span>
-        </Label>
-        <div className="relative">
-          <Input
-            id="confirmPassword"
-            type={showConfirmPassword ? "text" : "password"}
-            placeholder="Re-enter your password"
-            {...register("confirmPassword")}
-            className={cn(
-              "w-full h-11 pl-10 pr-10 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-              errors.confirmPassword ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
-            )}
-          />
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
-            <ShieldCheck className="size-4" />
+            {t("auth.common.password")}{" "}
+            <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="••••••••"
+              {...register("password")}
+              className={cn(
+                "w-full h-11 sm:h-12 pl-10 pr-11 bg-white dark:bg-card border rounded-xl text-slate-900 dark:text-foreground text-sm placeholder:text-slate-400 dark:placeholder:text-muted-foreground transition-all focus:border-blue-600 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                errors.password
+                  ? "border-destructive focus:ring-destructive/30"
+                  : "border-slate-300 dark:border-border hover:border-slate-400 dark:hover:border-muted-foreground/40"
+              )}
+            />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+              <Key className="size-4" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              aria-label={
+                showPassword
+                  ? t("auth.common.hidePassword")
+                  : t("auth.common.showPassword")
+              }
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          >
-            {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-          </button>
+          {errors.password && (
+            <p className="text-xs text-destructive mt-1 font-medium">
+              {errors.password.message}
+            </p>
+          )}
+          <PasswordStrengthMeter password={password} />
         </div>
-        {errors.confirmPassword && (
-          <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>
-        )}
+
+        {/* Confirm Password */}
+        <div>
+          <Label
+            htmlFor="confirmPassword"
+            className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
+          >
+            {t("auth.common.confirmPassword")}{" "}
+            <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="••••••••"
+              {...register("confirmPassword")}
+              className={cn(
+                "w-full h-11 sm:h-12 pl-10 pr-11 bg-white dark:bg-card border rounded-xl text-slate-900 dark:text-foreground text-sm placeholder:text-slate-400 dark:placeholder:text-muted-foreground transition-all focus:border-blue-600 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                errors.confirmPassword
+                  ? "border-destructive focus:ring-destructive/30"
+                  : "border-slate-300 dark:border-border hover:border-slate-400 dark:hover:border-muted-foreground/40"
+              )}
+            />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+              <Key className="size-4" />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((p) => !p)}
+              aria-label={
+                showConfirmPassword
+                  ? t("auth.common.hidePassword")
+                  : t("auth.common.showPassword")
+              }
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <p className="text-xs text-destructive mt-1 font-medium">
+              {errors.confirmPassword.message}
+            </p>
+          )}
+        </div>
       </div>
 
-      {/* Checkbox Terms Step 1 */}
-      <div className="pt-1">
-        <label className="flex items-start gap-2.5 cursor-pointer group">
+      {/* Terms Agreement */}
+      <div className="pt-2">
+        <label className="flex items-start gap-2.5 cursor-pointer select-none">
           <input
             type="checkbox"
             {...register("agreeTermsStep1")}
-            className="mt-0.5 w-4 h-4 rounded border-border bg-card text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+            className="size-4 mt-0.5 cursor-pointer rounded border-input text-blue-600 focus:ring-blue-500"
           />
-          <span className="text-xs text-muted-foreground leading-snug">
-            I agree to DevSolve&apos;s{" "}
-            <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
-              Terms of Service
+          <span className="text-xs sm:text-sm text-slate-600 dark:text-muted-foreground leading-snug">
+            {t("auth.common.agreeToTerms")}{" "}
+            <Link
+              href={localePath("/about")}
+              className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
+            >
+              {t("auth.common.termsOfService")}
             </Link>{" "}
-            and{" "}
-            <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
-              Privacy Policy
+            {t("auth.common.and")}{" "}
+            <Link
+              href={localePath("/about")}
+              className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
+            >
+              {t("auth.common.privacyPolicy")}
             </Link>
+            .
           </span>
         </label>
         {errors.agreeTermsStep1 && (
-          <p className="text-xs text-destructive mt-1 pl-6.5">
+          <p className="text-xs text-destructive mt-1 font-medium">
             {errors.agreeTermsStep1.message}
           </p>
         )}
       </div>
 
-      {/* Continue to Step 2 Button */}
-      <div className="pt-4">
-        <Button
-          type="submit"
-          disabled={!isStep1Complete}
-          className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-        >
-          <span>Continue to Company details</span>
-          <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-        </Button>
-      </div>
+      {/* Continue CTA Button */}
+      <Button
+        type="submit"
+        className="mt-4 flex h-11 sm:h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 text-sm sm:text-base font-semibold text-white shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 transition-all active:scale-[0.99]"
+      >
+        <span>{t("auth.companyRegister.nextButton")}</span>
+        <ArrowRight className="size-4" />
+      </Button>
 
-      <div className="mt-4 text-center text-xs sm:text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <Link href="/account-type" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
-          Log in
+      {/* Footer link */}
+      <p className="mt-6 text-center text-sm font-medium text-slate-600 dark:text-muted-foreground">
+        {t("auth.common.alreadyHaveAccount")}{" "}
+        <Link
+          href={localePath("/login")}
+          className="font-bold text-blue-600 hover:underline dark:text-blue-400"
+        >
+          {t("auth.common.logIn")}
         </Link>
-      </div>
+      </p>
     </motion.form>
   );
 }
-

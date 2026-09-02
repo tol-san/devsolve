@@ -47,7 +47,7 @@ export function CustomCountrySelect({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
-          "w-full h-11 px-3.5 bg-card hover:bg-muted/70 border border-border focus:border-blue-500 rounded-xl text-foreground text-sm flex items-center justify-between transition-all cursor-pointer outline-none focus:ring-2 focus:ring-blue-500/20",
+          "w-full h-11 px-3.5 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted/70 border border-slate-300 dark:border-border focus:border-blue-500 rounded-xl text-slate-900 dark:text-foreground text-sm flex items-center justify-between transition-all cursor-pointer outline-none focus:ring-2 focus:ring-blue-500/20",
           isOpen && "border-blue-500 ring-2 ring-blue-500/20"
         )}
       >
@@ -61,7 +61,7 @@ export function CustomCountrySelect({
           ) : (
             <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
           )}
-          <span className={cn("truncate font-medium", !value && "text-muted-foreground font-normal")}>
+          <span className={cn("truncate font-medium", !value && "text-slate-400 dark:text-muted-foreground font-normal")}>
             {value || "Select your country or region"}
           </span>
         </div>
@@ -86,7 +86,7 @@ export function CustomCountrySelect({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.98 }}
           transition={{ duration: 0.15 }}
-          className="absolute z-50 left-0 right-0 mt-1.5 bg-popover/95 backdrop-blur-md border border-border rounded-2xl shadow-xl p-2 max-h-72 flex flex-col overflow-hidden text-popover-foreground"
+          className="absolute z-50 left-0 right-0 mt-1.5 bg-white dark:bg-popover/95 backdrop-blur-md border border-slate-200 dark:border-border rounded-2xl shadow-xl p-2 max-h-72 flex flex-col overflow-hidden text-slate-900 dark:text-popover-foreground"
         >
           <div className="relative mb-2 px-1 pt-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -96,7 +96,7 @@ export function CustomCountrySelect({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search country..."
               autoFocus
-              className="w-full h-9 pl-9 pr-3 text-xs sm:text-sm bg-background/80 border border-border/80 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
+              className="w-full h-9 pl-9 pr-3 text-xs sm:text-sm bg-slate-50 dark:bg-background/80 border border-slate-300 dark:border-border/80 rounded-xl text-slate-900 dark:text-foreground placeholder:text-slate-400 dark:placeholder:text-muted-foreground focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -121,7 +121,7 @@ export function CustomCountrySelect({
                       "w-full px-3 py-2 text-xs sm:text-sm rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer",
                       isSelected
                         ? "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-semibold"
-                        : "hover:bg-muted text-foreground font-medium"
+                        : "hover:bg-slate-100 dark:hover:bg-muted text-slate-800 dark:text-foreground font-medium"
                     )}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -143,4 +143,3 @@ export function CustomCountrySelect({
     </div>
   );
 }
-

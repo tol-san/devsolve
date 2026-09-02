@@ -6,6 +6,8 @@ import { motion, type Variants } from "motion/react";
 import { ArrowRight, Check } from "lucide-react";
 import type { FeatureItem } from "@/lib/constants/auth";
 
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
+
 type Accent = "blue" | "emerald";
 
 /* Flat accents only — the surface stays white and the hue appears as a
@@ -24,22 +26,18 @@ const ACCENTS: Record<
   blue: {
     chip: "bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
     mark: "bg-blue-50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
-    cta: "bg-blue-600 hover:bg-blue-700 text-white",
+    cta: "bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 dark:shadow-blue-500/15",
     media: "",
-    ring: "hover:shadow-[0_0_0_1px_rgba(37,99,235,0.4),0_18px_40px_-20px_rgba(37,99,235,0.45)] focus-visible:shadow-[0_0_0_1px_rgba(37,99,235,0.4),0_18px_40px_-20px_rgba(37,99,235,0.45)]",
+    ring: "hover:ring-2 hover:ring-blue-500/40 focus-visible:ring-2 focus-visible:ring-blue-500/40",
   },
   emerald: {
     chip: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
     mark: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
-    cta: "bg-emerald-600 hover:bg-emerald-700 text-white",
+    cta: "bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 dark:shadow-emerald-500/15",
     media: "",
-    ring: "hover:shadow-[0_0_0_1px_rgba(5,150,105,0.4),0_18px_40px_-20px_rgba(5,150,105,0.45)] focus-visible:shadow-[0_0_0_1px_rgba(5,150,105,0.4),0_18px_40px_-20px_rgba(5,150,105,0.45)]",
+    ring: "hover:ring-2 hover:ring-emerald-500/40 focus-visible:ring-2 focus-visible:ring-emerald-500/40",
   },
 };
-
-/** Shadow-as-border at rest, per design.md. */
-const RESTING_SHADOW =
-  "shadow-[0_0_0_1px_rgba(30,41,59,0.08),0_8px_24px_-18px_rgba(30,41,59,0.4)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_8px_24px_-18px_rgba(0,0,0,0.6)]";
 
 export interface AccountTypeCardProps {
   eyebrow: string;
@@ -68,6 +66,7 @@ export function AccountTypeCard({
   variants,
 }: AccountTypeCardProps) {
   const tone = ACCENTS[accent];
+  const localePath = useLocalePath();
 
   return (
     <motion.div variants={variants} className="h-full">
@@ -79,38 +78,37 @@ export function AccountTypeCard({
         className="h-full"
       >
         <Link
-          href={href}
+          href={localePath(href)}
           aria-label={`${title} — ${ctaLabel}`}
-          className={`group flex h-full flex-col rounded-2xl bg-card dark:bg-neutral-900 border border-slate-200/80 dark:border-neutral-800 p-6 outline-none transition-all duration-200 sm:p-7 ${RESTING_SHADOW} ${tone.ring}`}
+          className={`group flex h-full flex-col rounded-2xl bg-card border border-border p-6 sm:p-7 outline-none transition-all duration-200 shadow-2xs ${tone.ring}`}
         >
           {/* ── Illustration ── */}
           <div
-            className={`relative flex h-36 items-end justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-neutral-800/60 pb-2.5 pt-8 ring-1 ring-slate-100 dark:ring-neutral-800 transition-colors duration-300 ${tone.media}`}
+            className={`relative flex h-36 items-end justify-center overflow-hidden rounded-xl bg-muted/40 pb-2.5 pt-8 ring-1 ring-border transition-colors duration-300 ${tone.media}`}
           >
             {art}
 
             <span
-              className={`absolute left-3 top-2.5 z-10 rounded-lg px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${tone.chip}`}
+              className={`absolute left-3 top-2.5 z-10 rounded-lg px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${tone.chip}`}
             >
               {eyebrow}
             </span>
           </div>
 
           {/* ── Copy ── */}
-          <h2 className="mt-6 text-xl font-bold tracking-tight text-foreground dark:text-neutral-100 sm:text-2xl">
+          <h2 className="mt-6 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             {title}
           </h2>
 
-
-          <ul className="mt-6 space-y-3 border-t border-slate-100 dark:border-neutral-800 pt-6">
+          <ul className="mt-6 space-y-3 border-t border-border pt-6">
             {features.map((item) => (
               <li key={item.text} className="flex items-start gap-3">
                 <span
-                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${tone.mark}`}
+                  className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${tone.mark}`}
                 >
-                  <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
+                  <Check className="size-3" strokeWidth={3} aria-hidden />
                 </span>
-                <span className="text-sm leading-relaxed text-slate-700 dark:text-neutral-300">
+                <span className="text-sm leading-relaxed text-muted-foreground font-medium">
                   {item.text}
                 </span>
               </li>
@@ -120,17 +118,17 @@ export function AccountTypeCard({
           {/* ── CTA, pinned to the bottom so both cards align ── */}
           <div className="mt-auto pt-7">
             <span
-              className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-colors ${tone.cta}`}
+              className={`flex h-11 sm:h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer ${tone.cta}`}
             >
               {ctaLabel}
               <ArrowRight
-                className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1"
+                className="size-4 transition-transform duration-200 group-hover:translate-x-1"
                 aria-hidden
               />
             </span>
 
             {note && (
-              <p className="mt-3 text-center text-xs leading-relaxed text-slate-400 dark:text-neutral-500">
+              <p className="mt-3 text-center text-xs leading-relaxed text-muted-foreground">
                 {note}
               </p>
             )}

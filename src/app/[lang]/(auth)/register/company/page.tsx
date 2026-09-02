@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import { AnimatePresence } from "motion/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, ShieldCheck, Sparkles } from "lucide-react";
+import { Building2, ShieldCheck, Sparkles, ArrowLeft } from "lucide-react";
 
 import { useRegisterCompanyMutation } from "@/lib/redux/services/authApi";
 import type { IndustryEnum, CompanySizeEnum } from "@/lib/redux/services/authApi";
@@ -13,38 +14,44 @@ import { AuthHeroPanel, type HeroBadge } from "@/components/auth/AuthHeroPanel";
 import { CompanyRegisterStepper } from "@/components/auth/CompanyRegisterStepper";
 import { CompanyStep1Form } from "@/components/auth/CompanyStep1Form";
 import { CompanyStep2Form } from "@/components/auth/CompanyStep2Form";
+import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
 import {
   companyRegisterSchema,
   type CompanyRegisterFormValues,
 } from "@/lib/validations/auth";
 import { CompanyStep3Success } from "@/components/auth/CompanyStep3Success";
-
-const COMPANY_HERO_BADGES: HeroBadge[] = [
-  {
-    icon: Building2,
-    label: "Verified Organizations",
-    borderColorClass: "border-blue-200/80 dark:border-blue-400/30",
-    iconColorClass: "text-blue-600 dark:text-blue-400",
-  },
-  {
-    icon: ShieldCheck,
-    label: "Enterprise Bug Bounty",
-    borderColorClass: "border-indigo-200/80 dark:border-indigo-400/30",
-    iconColorClass: "text-indigo-600 dark:text-indigo-400",
-  },
-  {
-    icon: Sparkles,
-    label: "Compliance Ready",
-    borderColorClass: "border-emerald-200/80 dark:border-emerald-400/30",
-    iconColorClass: "text-emerald-600 dark:text-emerald-400",
-  },
-];
+import { useT, useLocalePath } from "@/lib/i18n/I18nProvider";
 
 export default function CompanyRegisterPage() {
+  const t = useT();
+  const localePath = useLocalePath();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [apiError, setApiError] = useState<string | null>(null);
   const [registerCompany, { isLoading: isApiLoading }] = useRegisterCompanyMutation();
 
+  const companyHeroBadges: HeroBadge[] = useMemo(
+    () => [
+      {
+        icon: Building2,
+        label: t("auth.companyRegister.badgeVerified"),
+        borderColorClass: "border-blue-200/80 dark:border-blue-400/30",
+        iconColorClass: "text-blue-600 dark:text-blue-400",
+      },
+      {
+        icon: ShieldCheck,
+        label: t("auth.companyRegister.badgeBounty"),
+        borderColorClass: "border-indigo-200/80 dark:border-indigo-400/30",
+        iconColorClass: "text-indigo-600 dark:text-indigo-400",
+      },
+      {
+        icon: Sparkles,
+        label: t("auth.companyRegister.badgeCompliance"),
+        borderColorClass: "border-emerald-200/80 dark:border-emerald-400/30",
+        iconColorClass: "text-emerald-600 dark:text-emerald-400",
+      },
+    ],
+    [t]
+  );
 
   const form = useForm<CompanyRegisterFormValues>({
     resolver: zodResolver(companyRegisterSchema),
@@ -131,19 +138,35 @@ export default function CompanyRegisterPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full grid grid-cols-1 lg:grid-cols-2 font-sans antialiased overflow-x-hidden">
-      {/* LEFT PANEL - Hero Section */}
+    <div className="h-screen max-h-screen w-full grid grid-cols-1 lg:grid-cols-2 overflow-hidden font-sans antialiased">
+      {/* LEFT PANEL - Full-Bleed 3D Hero Section (Hidden on Mobile/Responsive) */}
       <AuthHeroPanel
-        lottieSrc="/lottie/company.lottie"
-        badges={COMPANY_HERO_BADGES}
-        headline="Protect your organization"
-        description="Connect with elite security researchers, receive verified vulnerability reports, and secure your digital assets."
-        glowColor1="bg-blue-400/20"
-        glowColor2="bg-indigo-400/20"
+        imageSrcDark="/company-dark.jpg"
+        imageSrcLight="/company-light.jpg"
+        badges={companyHeroBadges}
+        headline={t("auth.companyRegister.headline")}
+        description={t("auth.companyRegister.description")}
+        glowColor1="bg-blue-500/25"
+        glowColor2="bg-emerald-500/25"
+        backHref="/account-type"
+        backLabel={t("auth.common.backToAccountType")}
       />
 
       {/* RIGHT PANEL - Multi-Step Form Container */}
-      <div className="p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-center items-center overflow-y-auto">
+      <div className="relative h-screen max-h-screen w-full p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-between items-center overflow-y-auto">
+        <div className="w-full flex items-center justify-between mb-4 sm:mb-6">
+          <Link
+            href={localePath("/account-type")}
+            className="lg:hidden inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft className="size-4 text-blue-600 dark:text-blue-400" />
+            <span>{t("auth.common.backToAccountType")}</span>
+          </Link>
+          <div className="ml-auto">
+            <AuthHeaderActions />
+          </div>
+        </div>
+
         <div className="w-full max-w-xl lg:max-w-2xl mx-auto my-auto flex flex-col justify-center">
           {/* Stepper Header (only visible on steps 1 & 2) */}
           {currentStep < 3 && <CompanyRegisterStepper currentStep={currentStep} />}
@@ -167,6 +190,8 @@ export default function CompanyRegisterPage() {
             {currentStep === 3 && <CompanyStep3Success />}
           </AnimatePresence>
         </div>
+
+        <div className="h-4" />
       </div>
     </div>
   );

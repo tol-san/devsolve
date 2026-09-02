@@ -8,6 +8,7 @@ export const PROGRAM_DETAILS_TABS = [
   { id: "scope", label: "Scope" },
   { id: "bounty-matrix", label: "Bounty Matrix" },
   { id: "rules", label: "Rules & Exclusions" },
+  { id: "thanks", label: "Hall of Thanks" },
 ] as const;
 
 export type ProgramDetailTabId = (typeof PROGRAM_DETAILS_TABS)[number]["id"];

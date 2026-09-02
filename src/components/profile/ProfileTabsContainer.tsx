@@ -8,8 +8,9 @@ import HacktivityTab from "./hacktivity/HacktivityTab";
 import CommunityTab from "./community/CommunityTab";
 import HallOfThanksTab from "./hall-of-thanks/HallOfThanksTab";
 import { ProfileStats, SeverityStats, ProfileBadge } from "@/lib/types/profile/types";
-import { useGetCommunityPostsQuery, useGetThanksQuery } from "@/lib/redux/services/profileApi";
+import { useGetCommunityPostsQuery } from "@/lib/redux/services/profileApi";
 import { useGetUserHacktivityQuery } from "@/lib/redux/services/hacktivityApi";
+import { useGetUserRecognitionsQuery } from "@/lib/redux/services/thanksApi";
 
 interface ProfileTabsContainerProps {
   stats: ProfileStats;
@@ -56,9 +57,12 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
   const { data: communityPosts, isLoading: communityLoading } = useGetCommunityPostsQuery(userId, {
     skip: activeTab !== "community" || !userId,
   });
-  const { data: thanks, isLoading: thanksLoading } = useGetThanksQuery(username, {
-    skip: activeTab !== "hall-of-thanks",
-  });
+  const { data: recognitionsData, isLoading: thanksLoading } = useGetUserRecognitionsQuery(
+    { userId, page: 0, size: 50, sort: "awardedAt,desc" },
+    {
+      skip: activeTab !== "hall-of-thanks" || !userId,
+    }
+  );
 
   return (
     <div>
@@ -87,9 +91,9 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
 
         {activeTab === "hall-of-thanks" &&
           (thanksLoading ? (
-            <div className="p-6 text-sm text-slate-400 dark:text-neutral-500">Loading thanks...</div>
+            <div className="p-6 text-sm text-slate-400 dark:text-neutral-500">Loading recognitions...</div>
           ) : (
-            <HallOfThanksTab entries={thanks ?? []} />
+            <HallOfThanksTab recognitions={recognitionsData?.content ?? []} />
           ))}
       </div>
     </div>

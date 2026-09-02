@@ -19,6 +19,7 @@ import { ProgramOverviewTab } from "@/components/programs/details/ProgramOvervie
 import { ProgramScopeTab } from "@/components/programs/details/ProgramScopeTab";
 import { ProgramBountyMatrixTab } from "@/components/programs/details/ProgramBountyMatrixTab";
 import { ProgramRulesTab } from "@/components/programs/details/ProgramRulesTab";
+import { ProgramThanksTab } from "@/components/programs/details/ProgramThanksTab";
 import { Button } from "@/components/ui/button";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -192,11 +193,18 @@ export default function ProgramDetailPage({
                 {activeTab === "bounty-matrix" && (
                   <ProgramBountyMatrixTab program={program} />
                 )}
-                {activeTab === "rules" && <ProgramRulesTab
-  rulesOfEngagement={program?.rulesOfEngagement}
-  exclusions={program?.exclusions}
-/>}
-                
+                {activeTab === "rules" && (
+                  <ProgramRulesTab
+                    rulesOfEngagement={program?.rulesOfEngagement}
+                    exclusions={program?.exclusions}
+                  />
+                )}
+                {activeTab === "thanks" && (
+                  <ProgramThanksTab
+                    programId={program.id}
+                    programName={program.name}
+                  />
+                )}
               </AnimatePresence>
             </section>
 

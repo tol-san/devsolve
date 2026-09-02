@@ -41,10 +41,10 @@ export function CustomSelect({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={cn(
-          "w-full h-11 px-3.5 bg-card hover:bg-muted/70 border rounded-xl text-foreground text-sm flex items-center justify-between transition-all cursor-pointer outline-none focus:ring-2 focus:ring-blue-500/20",
+          "w-full h-11 px-3.5 bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted/70 border rounded-xl text-slate-900 dark:text-foreground text-sm flex items-center justify-between transition-all cursor-pointer outline-none focus:ring-2 focus:ring-blue-500/20",
           error
             ? "border-destructive focus:ring-destructive/30"
-            : "border-border hover:border-muted-foreground/40 focus:border-blue-500",
+            : "border-slate-300 dark:border-border hover:border-slate-400 dark:hover:border-muted-foreground/40 focus:border-blue-500",
           isOpen && "border-blue-500 ring-2 ring-blue-500/20"
         )}
       >
@@ -69,7 +69,7 @@ export function CustomSelect({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.98 }}
           transition={{ duration: 0.15 }}
-          className="absolute z-50 left-0 right-0 mt-1.5 bg-popover/95 backdrop-blur-md border border-border rounded-2xl shadow-xl p-1.5 max-h-60 overflow-y-auto space-y-0.5 text-popover-foreground"
+          className="absolute z-50 left-0 right-0 mt-1.5 bg-white dark:bg-popover/95 backdrop-blur-md border border-slate-200 dark:border-border rounded-2xl shadow-xl p-1.5 max-h-60 overflow-y-auto space-y-0.5 text-slate-900 dark:text-popover-foreground"
         >
           {options.map((opt) => {
             const isSelected = value === opt;
@@ -85,7 +85,7 @@ export function CustomSelect({
                   "w-full px-3 py-2 text-xs sm:text-sm rounded-xl flex items-center justify-between text-left transition-colors cursor-pointer",
                   isSelected
                     ? "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-semibold"
-                    : "hover:bg-muted text-foreground font-medium"
+                    : "hover:bg-slate-100 dark:hover:bg-muted text-slate-800 dark:text-foreground font-medium"
                 )}
               >
                 <span className="truncate">{opt}</span>
@@ -98,4 +98,3 @@ export function CustomSelect({
     </div>
   );
 }
-

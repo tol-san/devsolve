@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { motion } from "motion/react";
 import { UseFormReturn } from "react-hook-form";
 import {
@@ -9,11 +8,11 @@ import {
   Globe,
   Briefcase,
   Users,
-  CheckCircle2,
   ArrowLeft,
   Loader2,
   HelpCircle,
   AlertCircle,
+  Send,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -23,11 +22,9 @@ import { CustomSelect } from "@/components/auth/CustomSelect";
 import { CustomCountrySelect } from "@/components/auth/CustomCountrySelect";
 import { useAutoDetectCountry } from "@/hooks/useAutoDetectCountry";
 import { INDUSTRIES, COMPANY_SIZES, REASONS } from "@/lib/constants/auth";
+import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
-
-import {
-  type CompanyRegisterFormValues,
-} from "@/lib/validations/auth";
+import type { CompanyRegisterFormValues } from "@/lib/validations/auth";
 
 interface CompanyStep2FormProps {
   form: UseFormReturn<CompanyRegisterFormValues>;
@@ -44,6 +41,8 @@ export function CompanyStep2Form({
   isApiLoading,
   apiError,
 }: CompanyStep2FormProps) {
+  const t = useT();
+
   const {
     register,
     handleSubmit,
@@ -52,13 +51,10 @@ export function CompanyStep2Form({
     formState: { errors, isSubmitting },
   } = form;
 
-  const companyName = watch("companyName");
-  const companyWebsite = watch("companyWebsite");
   const industry = watch("industry");
   const companySize = watch("companySize");
   const country = watch("country");
   const joiningReason = watch("joiningReason");
-  const agreeTermsStep2 = watch("agreeTermsStep2");
 
   const handleCountryDetect = React.useCallback(
     (name: string) => {
@@ -70,15 +66,6 @@ export function CompanyStep2Form({
   const { countriesList, countryCode, isDetecting, handleSetCountry } =
     useAutoDetectCountry(handleCountryDetect);
 
-  const isStep2Complete =
-    Boolean(companyName?.trim()) &&
-    Boolean(companyWebsite?.trim()) &&
-    Boolean(industry) &&
-    Boolean(companySize) &&
-    Boolean(country) &&
-    Boolean(joiningReason) &&
-    Boolean(agreeTermsStep2);
-
   return (
     <motion.form
       key="step2"
@@ -87,15 +74,15 @@ export function CompanyStep2Form({
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-4"
+      className="space-y-4 w-full"
     >
       {/* Header */}
       <div className="mb-6 text-center sm:text-left">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
-          Tell us about your company
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-foreground">
+          {t("auth.companyRegister.step2Title")}
         </h2>
-        <p className="text-muted-foreground text-sm sm:text-base mt-1 font-medium">
-          Set up your organization profile to start creating bounty programs
+        <p className="text-slate-600 dark:text-muted-foreground text-sm sm:text-base mt-1 font-medium">
+          {t("auth.companyRegister.step2Subtitle")}
         </p>
       </div>
 
@@ -103,19 +90,22 @@ export function CompanyStep2Form({
       <div>
         <Label
           htmlFor="companyName"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
         >
-          COMPANY NAME <span className="text-destructive">*</span>
+          {t("auth.companyRegister.companyName")}{" "}
+          <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
           <Input
             id="companyName"
             type="text"
-            placeholder="Battambang Security Inc."
+            placeholder={t("auth.companyRegister.companyNamePlaceholder")}
             {...register("companyName")}
             className={cn(
-              "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-              errors.companyName ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+              "w-full h-11 sm:h-12 pl-10 pr-4 bg-white dark:bg-card border rounded-xl text-slate-900 dark:text-foreground text-sm placeholder:text-slate-400 dark:placeholder:text-muted-foreground transition-all focus:border-blue-600 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.companyName
+                ? "border-destructive focus:ring-destructive/30"
+                : "border-slate-300 dark:border-border hover:border-slate-400 dark:hover:border-muted-foreground/40"
             )}
           />
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
@@ -123,7 +113,9 @@ export function CompanyStep2Form({
           </div>
         </div>
         {errors.companyName && (
-          <p className="text-xs text-destructive mt-1">{errors.companyName.message}</p>
+          <p className="text-xs text-destructive mt-1 font-medium">
+            {errors.companyName.message}
+          </p>
         )}
       </div>
 
@@ -131,19 +123,22 @@ export function CompanyStep2Form({
       <div>
         <Label
           htmlFor="companyWebsite"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
         >
-          COMPANY WEBSITE <span className="text-destructive">*</span>
+          {t("auth.companyRegister.companyWebsite")}{" "}
+          <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
           <Input
             id="companyWebsite"
             type="url"
-            placeholder="https://readme.org"
+            placeholder={t("auth.companyRegister.companyWebsitePlaceholder")}
             {...register("companyWebsite")}
             className={cn(
-              "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-              errors.companyWebsite ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+              "w-full h-11 sm:h-12 pl-10 pr-4 bg-white dark:bg-card border rounded-xl text-slate-900 dark:text-foreground text-sm placeholder:text-slate-400 dark:placeholder:text-muted-foreground transition-all focus:border-blue-600 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.companyWebsite
+                ? "border-destructive focus:ring-destructive/30"
+                : "border-slate-300 dark:border-border hover:border-slate-400 dark:hover:border-muted-foreground/40"
             )}
           />
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
@@ -151,115 +146,133 @@ export function CompanyStep2Form({
           </div>
         </div>
         {errors.companyWebsite && (
-          <p className="text-xs text-destructive mt-1">{errors.companyWebsite.message}</p>
+          <p className="text-xs text-destructive mt-1 font-medium">
+            {errors.companyWebsite.message}
+          </p>
         )}
       </div>
 
       {/* Industry & Company Size */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Industry */}
         <div>
           <Label
             htmlFor="industry"
-            className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+            className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
           >
-            INDUSTRY <span className="text-destructive">*</span>
+            {t("auth.companyRegister.industry")}{" "}
+            <span className="text-destructive">*</span>
           </Label>
           <CustomSelect
             value={industry}
             options={INDUSTRIES}
-            placeholder="Select industry"
-            icon={<Briefcase className="w-4 h-4" />}
+            placeholder={t("auth.companyRegister.industryPlaceholder")}
+            icon={<Briefcase className="size-4" />}
             error={Boolean(errors.industry)}
-            onSelect={(val) => setValue("industry", val, { shouldValidate: true })}
+            onSelect={(selectedVal) => {
+              setValue("industry", selectedVal, { shouldValidate: true });
+            }}
           />
           {errors.industry && (
-            <p className="text-xs text-destructive mt-1">{errors.industry.message}</p>
+            <p className="text-xs text-destructive mt-1 font-medium">
+              {errors.industry.message}
+            </p>
           )}
         </div>
 
+        {/* Company Size */}
         <div>
           <Label
             htmlFor="companySize"
-            className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+            className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
           >
-            COMPANY SIZE <span className="text-destructive">*</span>
+            {t("auth.companyRegister.companySize")}{" "}
+            <span className="text-destructive">*</span>
           </Label>
           <CustomSelect
             value={companySize}
             options={COMPANY_SIZES}
-            placeholder="Select company size"
-            icon={<Users className="w-4 h-4" />}
+            placeholder={t("auth.companyRegister.companySizePlaceholder")}
+            icon={<Users className="size-4" />}
             error={Boolean(errors.companySize)}
-            onSelect={(val) => setValue("companySize", val, { shouldValidate: true })}
+            onSelect={(selectedVal) => {
+              setValue("companySize", selectedVal, { shouldValidate: true });
+            }}
           />
           {errors.companySize && (
-            <p className="text-xs text-destructive mt-1">{errors.companySize.message}</p>
+            <p className="text-xs text-destructive mt-1 font-medium">
+              {errors.companySize.message}
+            </p>
           )}
         </div>
       </div>
 
-      {/* Country / Region */}
+      {/* Country */}
       <div>
         <Label
           htmlFor="country"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
         >
-          COUNTRY / REGION <span className="text-destructive">*</span>
+          {t("auth.companyRegister.country")}{" "}
+          <span className="text-destructive">*</span>
         </Label>
         <CustomCountrySelect
           value={country || ""}
           countryCode={countryCode}
           countries={countriesList}
           isDetecting={isDetecting}
-          onSelect={(c) => handleSetCountry(c.name, c.code)}
+          onSelect={(c) => {
+            setValue("country", c.name, { shouldValidate: true });
+            handleSetCountry(c.name, c.code);
+          }}
         />
         {errors.country && (
-          <p className="text-xs text-destructive mt-1">{errors.country.message}</p>
+          <p className="text-xs text-destructive mt-1 font-medium">
+            {errors.country.message}
+          </p>
         )}
       </div>
 
-      {/* Primary Goal / Reason */}
+      {/* Primary Goal / Reason for Joining */}
       <div>
         <Label
           htmlFor="joiningReason"
-          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
         >
-          WHY ARE YOU JOINING DEVSOLVE? <span className="text-destructive">*</span>
+          {t("auth.companyRegister.joiningReason")}{" "}
+          <span className="text-destructive">*</span>
         </Label>
         <CustomSelect
           value={joiningReason}
           options={REASONS}
-          placeholder="Select primary goal"
-          icon={<HelpCircle className="w-4 h-4" />}
+          placeholder={t("auth.companyRegister.joiningReasonPlaceholder")}
+          icon={<HelpCircle className="size-4" />}
           error={Boolean(errors.joiningReason)}
-          onSelect={(val) => setValue("joiningReason", val, { shouldValidate: true })}
+          onSelect={(selectedVal) => {
+            setValue("joiningReason", selectedVal, { shouldValidate: true });
+          }}
         />
         {errors.joiningReason && (
-          <p className="text-xs text-destructive mt-1">{errors.joiningReason.message}</p>
+          <p className="text-xs text-destructive mt-1 font-medium">
+            {errors.joiningReason.message}
+          </p>
         )}
       </div>
 
-      {/* Checkbox Terms Step 2 */}
-      <div className="pt-1">
-        <label className="flex items-start gap-2.5 cursor-pointer group">
+      {/* Terms Agreement Step 2 */}
+      <div className="pt-2">
+        <label className="flex items-start gap-2.5 cursor-pointer select-none">
           <input
             type="checkbox"
             {...register("agreeTermsStep2")}
-            className="mt-0.5 w-4 h-4 rounded border-border bg-card text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+            className="size-4 mt-0.5 cursor-pointer rounded border-input text-blue-600 focus:ring-blue-500"
           />
-          <span className="text-xs text-muted-foreground leading-snug">
-            I confirm that I am an authorized representative of this company and agree to DevSolve&apos;s{" "}
-            <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
-              Privacy Policy
-            </Link>
+          <span className="text-xs sm:text-sm text-slate-600 dark:text-muted-foreground leading-snug">
+            {t("auth.companyRegister.agreeTermsStep2")}.
           </span>
         </label>
         {errors.agreeTermsStep2 && (
-          <p className="text-xs text-destructive mt-1 pl-6.5">
+          <p className="text-xs text-destructive mt-1 font-medium">
             {errors.agreeTermsStep2.message}
           </p>
         )}
@@ -267,38 +280,39 @@ export function CompanyStep2Form({
 
       {/* API Error Banner */}
       {apiError && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-          <AlertCircle className="mt-0.5 w-4 h-4 shrink-0" />
-          <p>{apiError}</p>
+        <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs sm:text-sm text-destructive font-medium shadow-xs">
+          <AlertCircle className="size-5 shrink-0 mt-0.5" />
+          <span>{apiError}</span>
         </div>
       )}
 
-      {/* Action Buttons: Back + Complete Registration */}
-      <div className="flex items-center gap-3 pt-4">
+      {/* Action Buttons: Back & Submit */}
+      <div className="flex items-center gap-3 pt-2">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
-          className="h-11 sm:h-12 px-5 border border-border text-foreground font-semibold rounded-xl text-sm hover:bg-muted cursor-pointer"
+          disabled={isSubmitting || isApiLoading}
+          className="h-11 sm:h-12 px-5 rounded-xl border border-slate-300 dark:border-border bg-white dark:bg-card hover:bg-slate-50 dark:hover:bg-muted text-slate-800 dark:text-foreground font-semibold text-sm gap-2 cursor-pointer shadow-2xs"
         >
-          <ArrowLeft className="w-4 h-4 mr-1.5" />
-          <span>Back</span>
+          <ArrowLeft className="size-4" />
+          <span>{t("auth.companyRegister.backButton")}</span>
         </Button>
 
         <Button
           type="submit"
-          disabled={!isStep2Complete || isSubmitting || isApiLoading}
-          className="flex-1 h-11 sm:h-12 bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          disabled={isSubmitting || isApiLoading}
+          className="flex-1 h-11 sm:h-12 rounded-xl bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 text-sm sm:text-base font-semibold text-white shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
           {isSubmitting || isApiLoading ? (
             <>
-              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-              <span>Submitting Application...</span>
+              <Loader2 className="size-4 animate-spin" />
+              <span>{t("auth.companyRegister.submitting")}</span>
             </>
           ) : (
             <>
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Complete Registration</span>
+              <Send className="size-4" />
+              <span>{t("auth.companyRegister.submitButton")}</span>
             </>
           )}
         </Button>
@@ -306,4 +320,3 @@ export function CompanyStep2Form({
     </motion.form>
   );
 }
-
