@@ -2,7 +2,17 @@
 
 import React from "react";
 import { motion } from "motion/react";
-import { Award, Clock, ExternalLink, ShieldCheck } from "lucide-react";
+import {
+  Award,
+  Building2,
+  Clock,
+  ExternalLink,
+  Lock,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  Tag,
+} from "lucide-react";
 import Link from "next/link";
 import type { UserRecognitionItem } from "@/lib/types/thanks/types";
 import { Badge } from "@/components/ui/badge";
@@ -13,24 +23,33 @@ interface ThanksCardProps {
   recognition: UserRecognitionItem;
 }
 
-const SEVERITY_STYLES: Record<string, string> = {
-  CRITICAL: "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400",
-  HIGH: "border-orange-500/30 bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  MEDIUM: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  LOW: "border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  NONE: "border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-400",
+const SEVERITY_BORDER: Record<string, string> = {
+  CRITICAL: "border-l-red-500",
+  HIGH: "border-l-orange-500",
+  MEDIUM: "border-l-amber-500",
+  LOW: "border-l-blue-500",
+  NONE: "border-l-slate-400",
+};
+
+const SEVERITY_BADGE: Record<string, string> = {
+  CRITICAL: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
+  HIGH: "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+  MEDIUM: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  LOW: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  NONE: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20",
 };
 
 export default function ThanksCard({ recognition }: ThanksCardProps) {
   const sevKey = (recognition.severity ?? "NONE").toUpperCase();
-  const sevStyle = SEVERITY_STYLES[sevKey] || SEVERITY_STYLES.NONE;
+  const borderStyle = SEVERITY_BORDER[sevKey] || SEVERITY_BORDER.NONE;
+  const badgeStyle = SEVERITY_BADGE[sevKey] || SEVERITY_BADGE.NONE;
+
   const relativeDate = formatRelativeTime(recognition.awardedAt);
   const fullDate = formatFullDateTime(recognition.awardedAt);
 
   const program = recognition.program;
-  const programTitle = program
-    ? `${program.organizationName ? `${program.organizationName} — ` : ""}${program.name}`
-    : recognition.programName || recognition.awardedBy || "Security Program";
+  const orgName = program?.organizationName || "";
+  const programName = program?.name || recognition.programName || recognition.awardedBy || "Security Program";
 
   const programHref = program?.handle
     ? `/programs/${program.handle}`
@@ -44,65 +63,120 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
     <motion.div
       whileHover={{ y: -2 }}
       transition={{ duration: 0.15 }}
-      className="rounded-2xl border border-border bg-card p-5 shadow-2xs transition-all duration-200 hover:border-border/80 hover:shadow-xs"
+      className={cn(
+        "relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xs transition-all duration-200 hover:border-border/90 hover:shadow-xs",
+        "border-l-4",
+        borderStyle
+      )}
     >
-      <div className="flex items-start gap-4">
-        {/* Award Icon Badge */}
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-2xs">
-          <Award className="size-5" />
-        </div>
-
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm sm:text-base font-bold text-foreground truncate">
-                {programTitle}
-              </span>
-
-              {programHref && (
-                <Link
-                  href={programHref}
-                  className="text-xs text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-0.5"
-                  title="View Program"
-                >
-                  <ExternalLink className="size-3" />
-                </Link>
-              )}
+      <div className="space-y-3.5">
+        {/* Top Row: Organization / Program Header & Hall of Thanks Badge */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3.5 min-w-0 flex-1">
+            {/* Organization / Program Avatar Icon */}
+            <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/60 text-foreground font-bold text-sm shadow-2xs">
+              <Building2 className="size-5 text-muted-foreground" />
             </div>
 
-            {recognition.severity && (
-              <Badge
-                variant="outline"
-                className={cn("rounded-lg px-2 py-0.5 text-xs font-bold uppercase", sevStyle)}
-              >
-                {recognition.severity}
-              </Badge>
-            )}
+            <div className="min-w-0 flex-1">
+              {/* Main Headline: Company publicly thanked & recognized */}
+              <div className="text-sm sm:text-base text-foreground font-normal leading-snug">
+                {orgName ? (
+                  <strong className="font-bold text-foreground">{orgName}</strong>
+                ) : (
+                  <strong className="font-bold text-foreground">{programName}</strong>
+                )}
+                {" publicly thanked & recognized for "}
+                {programHref ? (
+                  <Link
+                    href={programHref}
+                    className="font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1"
+                  >
+                    <span>{programName}</span>
+                    <ExternalLink className="size-3 text-muted-foreground" />
+                  </Link>
+                ) : (
+                  <strong className="font-bold text-foreground">{programName}</strong>
+                )}
+              </div>
+
+              {/* Subtext: Organization Name & Timestamp */}
+              <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
+                {orgName && (
+                  <span className="font-medium text-foreground/80">{orgName}</span>
+                )}
+                {orgName && <span aria-hidden className="text-border">·</span>}
+                <span title={fullDate} className="flex items-center gap-1">
+                  <Clock className="size-3 text-muted-foreground/70" />
+                  <span>{relativeDate}</span>
+                </span>
+              </div>
+            </div>
           </div>
 
-          <p className="text-sm font-semibold text-foreground/90 leading-snug">
-            {recognition.title}
-          </p>
+          {/* Desktop Hall of Thanks Accolade Pill */}
+          <div className="hidden sm:flex items-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 shrink-0">
+            <Award className="size-4 text-amber-500" />
+            <span>Hall of Thanks</span>
+          </div>
+        </div>
 
-          {recognition.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {recognition.description}
-            </p>
+        {/* Confidentiality Status Pill */}
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+            <Lock className="size-3.5 text-muted-foreground/80" />
+            <span className="font-medium text-foreground/80">Undisclosed finding</span>
+            <span className="text-xs text-muted-foreground/70 font-normal hidden sm:inline">
+              — vulnerability details remain confidential
+            </span>
+          </div>
+        </div>
+
+        {/* Accolade Title */}
+        <div className="flex items-center gap-2 text-sm sm:text-base font-semibold text-foreground">
+          <Sparkles className="size-4 text-amber-500 shrink-0" />
+          <span>{recognition.title}</span>
+        </div>
+
+        {/* Company Gratitude Message / Note (if any) */}
+        {recognition.description && (
+          <div className="p-3.5 rounded-xl border border-border/70 bg-muted/30 text-xs sm:text-sm text-foreground/90 leading-relaxed italic">
+            &ldquo;{recognition.description}&rdquo;
+          </div>
+        )}
+
+        {/* Metadata Chips Row: Severity & Company Badges */}
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/50">
+          {recognition.severity && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide gap-1",
+                badgeStyle
+              )}
+            >
+              <ShieldAlert className="size-3.5" />
+              <span>{recognition.severity}</span>
+            </Badge>
           )}
 
-          <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="size-3.5 text-emerald-500" />
-              <span>Verified Thank-You Award</span>
+          {orgName && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              <Building2 className="size-3.5 text-muted-foreground/80" />
+              <span>{orgName}</span>
             </span>
+          )}
 
-            <span
-              className="flex items-center gap-1 font-medium cursor-default"
-              title={fullDate}
-            >
-              <Clock className="size-3 text-muted-foreground/70" />
-              <span>{relativeDate}</span>
+          {programName && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              <Tag className="size-3.5 text-muted-foreground/80" />
+              <span>{programName}</span>
             </span>
+          )}
+
+          <div className="ml-auto sm:hidden flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-bold">
+            <Award className="size-3.5 text-amber-500" />
+            <span>Hall of Thanks</span>
           </div>
         </div>
       </div>
