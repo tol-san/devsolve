@@ -19,12 +19,14 @@ import {
   ZoomIn,
 } from "lucide-react";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { Button } from "@/components/ui/button";
 import { VoteControl } from "@/components/ui/vote-control";
 import { CommentsSection } from "@/components/comments/CommentsSection";
+import { authorNameOf, initialsOf } from "@/lib/discussions/format";
 import {
   useGetShowcaseByIdQuery,
   useGetShowcaseStepsQuery,
@@ -72,17 +74,7 @@ function formatDate(iso?: string) {
   });
 }
 
-function initialsOf(name: string) {
-  return (
-    name
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "?"
-  );
-}
+
 
 export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const { data: showcase, isLoading } = useGetShowcaseByIdQuery(id);
@@ -417,8 +409,9 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
             <div className={`${CARD} p-5 text-sm`}>
               <h3 className={`${SIDEBAR_HEADING} mb-3`}>Posted By</h3>
               <PostedBy
-                authorId={showcase.authorId}
-                authorName={showcase.authorName}
+                authorId={showcase.authorId ?? showcase.author?.id}
+                authorName={authorNameOf(showcase.author, showcase.authorName || "Community Member")}
+                avatarUrl={showcase.author?.avatarUrl}
                 viewCount={showcase.viewCount}
               />
             </div>
@@ -429,7 +422,7 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
       <ReportContentDialog
         contentId={id}
         contentType="SHOWCASE"
-        authorName={showcase.authorName}
+        authorName={authorNameOf(showcase.author, showcase.authorName || "Community Member")}
         open={reporting}
         onOpenChange={setReporting}
       />
@@ -448,19 +441,22 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
 function PostedBy({
   authorId,
   authorName,
+  avatarUrl,
   viewCount,
 }: {
   authorId?: string;
   authorName: string;
+  avatarUrl?: string;
   viewCount: number;
 }) {
   const lp = useLocalePath();
 
   const identity = (
     <>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-sm font-bold text-slate-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-        {initialsOf(authorName)}
-      </span>
+      <Avatar size="lg" className="shrink-0">
+        <AvatarImage src={avatarUrl} alt={authorName} />
+        <AvatarFallback>{initialsOf(authorName)}</AvatarFallback>
+      </Avatar>
       <div className="min-w-0">
         <p className="truncate text-base font-bold text-slate-900 group-hover:text-blue-600 dark:text-neutral-100 dark:group-hover:text-blue-400">
           {authorName}

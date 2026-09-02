@@ -192,6 +192,12 @@ function toRelativeDate(iso?: string): string {
 export function problemToDiscussionPost(raw: ProblemResponse): DiscussionPost {
   const timestamp = raw.publishedAt || raw.createdAt;
   const id = raw.id ?? "";
+  const rawAny = raw as unknown as Record<string, unknown>;
+  const avatarUrl =
+    raw.author?.avatarUrl ||
+    (typeof rawAny.authorAvatarUrl === "string" ? rawAny.authorAvatarUrl : "") ||
+    (typeof rawAny.avatarUrl === "string" ? rawAny.avatarUrl : "") ||
+    "";
   return {
     id,
     title: raw.title ?? "",
@@ -204,10 +210,9 @@ export function problemToDiscussionPost(raw: ProblemResponse): DiscussionPost {
     viewsCount: raw.viewCount ?? 0,
     status: raw.status === "RESOLVED" ? "Solved" : "Open",
     author: {
+      id: raw.author?.id || (typeof rawAny.authorId === "string" ? rawAny.authorId : undefined),
       name: authorNameOf(raw.author, "Community Member"),
-      avatarUrl:
-        raw.author?.avatarUrl ||
-        `https://api.dicebear.com/7.x/bottts/svg?seed=${id}`,
+      avatarUrl,
     },
     createdAt: toRelativeDate(timestamp),
     sortTimestamp: timestamp,
@@ -220,6 +225,22 @@ export function showcaseToDiscussionPost(
   raw: ShowcaseResponse,
 ): DiscussionPost {
   const id = raw.id ?? "";
+  const rawAny = raw as unknown as Record<string, unknown>;
+  const authorName = authorNameOf(
+    raw.author,
+    raw.authorName || (typeof rawAny.fullName === "string" ? rawAny.fullName : "") || "Community Member",
+  );
+  const avatarUrl =
+    raw.author?.avatarUrl ||
+    (typeof rawAny.authorAvatarUrl === "string" ? rawAny.authorAvatarUrl : "") ||
+    (typeof rawAny.avatarUrl === "string" ? rawAny.avatarUrl : "") ||
+    (typeof rawAny.author_avatar_url === "string" ? rawAny.author_avatar_url : "") ||
+    "";
+  const authorId =
+    raw.author?.id ||
+    raw.authorId ||
+    (typeof rawAny.authorId === "string" ? rawAny.authorId : undefined) ||
+    (typeof rawAny.userId === "string" ? rawAny.userId : undefined);
   return {
     id,
     title: raw.title ?? "",
@@ -232,8 +253,10 @@ export function showcaseToDiscussionPost(
     viewsCount: raw.viewCount ?? 0,
     thumbnailUrl: raw.coverImageUrl,
     author: {
-      name: raw.authorName || "Community Member",
-      avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${id}`,
+      id: authorId,
+      name: authorName,
+      avatarUrl: avatarUrl,
+      reputation: raw.author?.reputation ?? 0,
     },
     createdAt: toRelativeDate(raw.createdAt),
     sortTimestamp: raw.createdAt,

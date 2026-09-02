@@ -62,11 +62,20 @@ export interface ShowcaseTagResponse {
   slug?: string;
 }
 
+export interface ShowcaseAuthorResponse {
+  id?: string;
+  fullName?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  reputation?: number;
+}
+
 /** `ShowCasesResponse`. */
 export interface ShowcaseResponse {
   id: string;
-  authorId: string;
-  authorName: string;
+  authorId?: string;
+  authorName?: string;
+  author?: ShowcaseAuthorResponse;
   categoryId?: string;
   categoryName?: string;
   title: string;

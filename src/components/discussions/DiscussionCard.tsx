@@ -36,6 +36,7 @@ import {
   useRemoveVoteMutation,
   useSetVoteMutation,
 } from "@/lib/redux/services/votesApi";
+import { useGetPublicProfileQuery } from "@/lib/redux/services/solutionsApi";
 import type { DiscussionPost } from "@/lib/types/dicussion/types";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { useRelativeTime } from "@/lib/i18n/relative-time";
@@ -286,13 +287,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
 
         <CardFooter className="pointer-events-none relative flex flex-col items-stretch gap-3 px-5 pt-0 pb-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-6">
           <div className="flex min-w-0 items-center gap-2.5">
-            <Avatar size="sm">
-              <AvatarImage
-                src={post.author.avatarUrl}
-                alt={`${post.author.name} — ${t("community.card.avatarOf")}`}
-              />
-              <AvatarFallback>{getInitials(post.author.name)}</AvatarFallback>
-            </Avatar>
+            <CardAuthorAvatar author={post.author} />
             <div className="flex min-w-0 items-baseline gap-2">
               <span className="truncate text-sm font-semibold text-foreground">
                 {post.author.name}
@@ -364,3 +359,27 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
     </motion.div>
   );
 };
+
+function CardAuthorAvatar({
+  author,
+}: {
+  author: DiscussionPost["author"];
+}) {
+  const t = useT();
+  const { data: profile } = useGetPublicProfileQuery(author.id ?? "", {
+    skip: Boolean(author.avatarUrl) || !author.id,
+  });
+
+  const avatarUrl = author.avatarUrl || profile?.avatarUrl;
+  const name = author.name || profile?.fullName || "Community Member";
+
+  return (
+    <Avatar size="sm">
+      <AvatarImage
+        src={avatarUrl}
+        alt={`${name} — ${t("community.card.avatarOf")}`}
+      />
+      <AvatarFallback>{getInitials(name)}</AvatarFallback>
+    </Avatar>
+  );
+}

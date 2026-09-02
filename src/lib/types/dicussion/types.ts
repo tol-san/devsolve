@@ -25,6 +25,7 @@ export interface DiscussionPost {
   status?: "Solved" | "Open";
   thumbnailUrl?: string;
   author: {
+    id?: string;
     name: string;
     avatarUrl: string;
     reputation?: number;
