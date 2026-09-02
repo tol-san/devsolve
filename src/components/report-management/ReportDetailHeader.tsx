@@ -279,8 +279,10 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <span>Preview Summary</span>
           </Button>
 
-          {/* Dedicated Thank Researcher / Recognition Dialog */}
-          <ThankResearcherDialog detail={detail} />
+          {/* Dedicated Thank Researcher / Recognition Dialog (gated on RESOLVED report with severity) */}
+          {isResolved && detail.severity && (
+            <ThankResearcherDialog detail={detail} />
+          )}
 
           {isWaitingForRetest ? (
             <div className="flex flex-wrap items-center gap-2">

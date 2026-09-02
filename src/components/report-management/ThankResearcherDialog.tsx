@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Loader2, X } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import type { ReportManagementDetail } from "@/components/report-management/types";
@@ -25,6 +25,61 @@ interface ThankResearcherDialogProps {
   size?: "default" | "sm" | "lg" | "icon";
 }
 
+/**
+ * Maps upstream recognition API errors into clear, actionable UI messages.
+ */
+function mapRecognitionError(err: any): { message: string; isAlreadyThanked: boolean } {
+  const status = err?.status || err?.data?.code || err?.data?.status;
+  const rawMsg = (err?.data?.message || err?.message || "").toLowerCase();
+
+  if (status === 409) {
+    if (rawMsg.includes("already been recognised") || rawMsg.includes("already been recognized") || rawMsg.includes("already")) {
+      return {
+        message: "This report has already been thanked and recognized.",
+        isAlreadyThanked: true,
+      };
+    }
+    if (rawMsg.includes("dispute") || rawMsg.includes("unsettled") || rawMsg.includes("severity")) {
+      return {
+        message: "Please resolve the severity dispute first before awarding recognition.",
+        isAlreadyThanked: false,
+      };
+    }
+    if (rawMsg.includes("resolved")) {
+      return {
+        message: "Recognition can only be awarded for a resolved report.",
+        isAlreadyThanked: false,
+      };
+    }
+  }
+
+  if (status === 403) {
+    if (rawMsg.includes("suspended")) {
+      return {
+        message: "Your organization membership is suspended.",
+        isAlreadyThanked: false,
+      };
+    }
+    return {
+      message: "Only organization members can award recognition.",
+      isAlreadyThanked: false,
+    };
+  }
+
+  if (status === 404) {
+    console.error("[Recognition] Report not found on upstream API:", err);
+    return {
+      message: "Report not found.",
+      isAlreadyThanked: false,
+    };
+  }
+
+  return {
+    message: err?.data?.message || err?.message || "Failed to award recognition.",
+    isAlreadyThanked: false,
+  };
+}
+
 export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
   detail,
   triggerClassName,
@@ -32,6 +87,7 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
   size = "sm",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isThanked, setIsThanked] = useState(false);
   const [thankYouNote, setThankYouNote] = useState("");
   const [awardHallOfFame, setAwardHallOfFame] = useState(true);
   const [postAsComment, setPostAsComment] = useState(true);
@@ -63,27 +119,30 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
 
     try {
       const successes: string[] = [];
-      const errors: string[] = [];
+      let alreadyThankedEncountered = false;
 
       // 1. Award Public Hall of Fame Recognition (POST /api/v1/recognitions)
       if (awardHallOfFame) {
-        if (!programId) {
-          errors.push("Program ID not found for recognition.");
-        } else if (!targetUserId) {
-          errors.push("Researcher ID not found.");
-        } else {
-          try {
-            await awardRecognition({
-              userId: String(targetUserId),
-              programId: String(programId),
-              reportId,
-              title: `Hall of Fame - ${detail.severity || "Security"} Finding`,
-              description: note || `Publicly recognized for responsibly disclosing vulnerability ${cleanReportId}.`,
-            }).unwrap();
-            successes.push("Hall of Fame recognition awarded");
-          } catch (recErr) {
+        try {
+          await awardRecognition({
+            reportId,
+            title: `Hall of Fame - ${detail.severity || "Security"} Finding`,
+            description: note || `Publicly recognized for responsibly disclosing vulnerability ${cleanReportId}.`,
+            userId: targetUserId ? String(targetUserId) : undefined,
+            programId: programId ? String(programId) : undefined,
+          }).unwrap();
+          successes.push("Hall of Fame recognition awarded");
+          setIsThanked(true);
+        } catch (recErr: any) {
+          const mapped = mapRecognitionError(recErr);
+          if (mapped.isAlreadyThanked) {
+            alreadyThankedEncountered = true;
+            setIsThanked(true);
+            successes.push("Already recognized in Hall of Fame");
+          } else {
             console.error("Failed to award recognition:", recErr);
-            errors.push(apiErrorMessage(recErr, "Could not award recognition."));
+            toast.error(mapped.message);
+            return;
           }
         }
       }
@@ -100,7 +159,7 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
           successes.push(`Bonus bounty of $${numericBonus} USD authorized`);
         } catch (rewErr) {
           console.error("Failed to record reward:", rewErr);
-          errors.push(apiErrorMessage(rewErr, "Could not issue bonus bounty."));
+          toast.error(apiErrorMessage(rewErr, "Could not issue bonus bounty."));
         }
       }
 
@@ -115,29 +174,49 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
           }).unwrap();
           successes.push("Thank-you comment posted");
         } catch (commErr: any) {
-          // If already posted (409 Conflict), consider it satisfied
+          // If already posted (409 Conflict), treat as satisfied
           if (commErr?.status === 409 || commErr?.data?.code === 409) {
             console.warn("Comment already exists in thread, skipping duplicate.");
           } else {
             console.error("Failed to post comment:", commErr);
-            errors.push(apiErrorMessage(commErr, "Could not post discussion comment."));
+            toast.error(apiErrorMessage(commErr, "Could not post discussion comment."));
           }
         }
       }
 
       if (successes.length > 0) {
-        toast.success(`Success for ${submitterName}: ${successes.join(", ")}.`);
+        if (alreadyThankedEncountered && successes.length === 1) {
+          toast.info(`Report ${cleanReportId} has already been thanked & recognized.`);
+        } else {
+          toast.success(`Success for ${submitterName}: ${successes.join(", ")}.`);
+        }
         setIsOpen(false);
         setThankYouNote("");
         setBonusBounty("");
-      } else if (errors.length > 0) {
-        toast.error(errors[0]);
       }
     } catch (err) {
       console.error("Failed to process gratitude:", err);
       toast.error(apiErrorMessage(err, "Failed to send thank-you."));
     }
   };
+
+  if (isThanked) {
+    return (
+      <Button
+        type="button"
+        disabled
+        variant="outline"
+        size={size}
+        className={cn(
+          "rounded-xl border border-border bg-muted/40 text-muted-foreground font-semibold text-xs h-9 px-3.5 gap-1.5 opacity-90 cursor-default shadow-2xs",
+          triggerClassName,
+        )}
+      >
+        <Check className="size-3.5 text-emerald-500" />
+        <span>Thanked</span>
+      </Button>
+    );
+  }
 
   return (
     <>

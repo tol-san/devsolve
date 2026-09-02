@@ -1028,22 +1028,46 @@ export const reportsApi = baseApi.injectEndpoints({
      * column on it; `reputation` is untouched by this call.
      */
     awardRecognition: builder.mutation<
-      { success: boolean; message?: string },
       {
+        id: string;
         userId: string;
         programId: string;
         reportId: string;
-        /** Required upstream — the headline the credit is given under. */
         title: string;
-        description?: string;
+        description?: string | null;
+        awardedBy: string;
+        awardedAt: string;
+        severity?: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | string;
+        createdAt?: string;
+        updatedAt?: string;
+      },
+      {
+        reportId: string;
+        title: string;
+        description?: string | null;
+        userId?: string;
+        programId?: string;
       }
     >({
-      query: (body) => ({
+      query: ({ reportId, title, description }) => ({
         url: "/recognitions",
         method: "POST",
-        body,
+        body: {
+          reportId,
+          title: title.trim(),
+          ...(description?.trim() ? { description: description.trim() } : {}),
+        },
       }),
-      invalidatesTags: ["Profile", "Leaderboard", "Report"],
+      invalidatesTags: (_result, _error, { reportId, userId, programId }) => [
+        { type: "Report", id: reportId },
+        { type: "Report" },
+        { type: "Profile" },
+        ...(userId ? [{ type: "Profile" as const, id: `${userId}-recognitions` }] : []),
+        { type: "Leaderboard" },
+        { type: "Program" },
+        ...(programId ? [{ type: "Program" as const, id: `${programId}-thanks` }] : []),
+        { type: "Organization" },
+      ],
     }),
 
     recordReward: builder.mutation<
