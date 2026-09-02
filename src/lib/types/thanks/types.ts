@@ -7,6 +7,7 @@ export interface ProgramSummary {
   organizationId: string;
   organizationName: string;
   organizationSlug: string;
+  organizationLogoUrl?: string | null;
 }
 
 export interface ThanksEntry {

@@ -48,6 +48,12 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
 
   const program = recognition.program;
   const orgName = program?.organizationName || "";
+  const orgLogoUrl = program?.organizationLogoUrl || null;
+  const orgHref = program?.organizationSlug
+    ? `/company/${program.organizationSlug}`
+    : program?.organizationId
+      ? `/company?id=${program.organizationId}`
+      : null;
   const programName = program?.name || recognition.programName || recognition.awardedBy || "Security Program";
 
   const programHref = program?.handle
@@ -72,16 +78,34 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
         {/* Top Row: Organization / Program Header & Hall of Thanks Badge */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5 min-w-0 flex-1">
-            {/* Organization / Program Avatar Icon */}
-            <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/60 text-foreground font-bold text-sm shadow-2xs">
-              <Building2 className="size-5 text-muted-foreground" />
-            </div>
+            {/* Organization / Program Avatar Logo */}
+            {orgLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={orgLogoUrl}
+                alt={orgName || "Organization"}
+                className="size-10 sm:size-11 shrink-0 rounded-xl object-cover border border-border bg-muted/60 shadow-2xs"
+              />
+            ) : (
+              <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/60 text-foreground font-bold text-sm shadow-2xs">
+                <Building2 className="size-5 text-muted-foreground" />
+              </div>
+            )}
 
             <div className="min-w-0 flex-1">
               {/* Main Headline: Company publicly thanked & recognized */}
               <div className="text-sm sm:text-base text-foreground font-normal leading-snug">
                 {orgName ? (
-                  <strong className="font-bold text-foreground">{orgName}</strong>
+                  orgHref ? (
+                    <Link
+                      href={orgHref}
+                      className="font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
+                      {orgName}
+                    </Link>
+                  ) : (
+                    <strong className="font-bold text-foreground">{orgName}</strong>
+                  )
                 ) : (
                   <strong className="font-bold text-foreground">{programName}</strong>
                 )}
@@ -150,8 +174,26 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
 
           {orgName && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-              <Building2 className="size-3.5 text-muted-foreground/80" />
-              <span>{orgName}</span>
+              {orgLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={orgLogoUrl}
+                  alt=""
+                  className="size-3.5 rounded-full object-cover shrink-0"
+                />
+              ) : (
+                <Building2 className="size-3.5 text-muted-foreground/80" />
+              )}
+              {orgHref ? (
+                <Link
+                  href={orgHref}
+                  className="hover:text-foreground transition-colors"
+                >
+                  {orgName}
+                </Link>
+              ) : (
+                <span>{orgName}</span>
+              )}
             </span>
           )}
 

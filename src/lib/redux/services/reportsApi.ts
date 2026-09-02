@@ -1047,6 +1047,7 @@ export const reportsApi = baseApi.injectEndpoints({
           organizationId: string;
           organizationName: string;
           organizationSlug: string;
+          organizationLogoUrl?: string | null;
         } | null;
       },
       {
