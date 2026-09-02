@@ -35,6 +35,7 @@ import {
   openRetestAttempt,
   retestDeadline,
 } from "@/lib/reports/retest";
+import { ThankResearcherDialog } from "@/components/report-management/ThankResearcherDialog";
 import { cn } from "@/lib/utils";
 
 type ReportDetailHeaderProps = {
@@ -260,9 +261,9 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3 gap-1.5 cursor-pointer shadow-2xs"
+              className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3.5 gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95"
             >
-              <ArrowLeft className="size-3.5" />
+              <ArrowLeft className="size-3.5 text-muted-foreground" />
               <span>Back to Queue</span>
             </Button>
           </Link>
@@ -272,17 +273,20 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             variant="outline"
             size="sm"
             onClick={() => setShowPreviewModal(true)}
-            className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3 gap-1.5 cursor-pointer shadow-2xs"
+            className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3.5 gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95"
           >
-            <Eye className="size-3.5 text-blue-600 dark:text-blue-400" />
+            <Eye className="size-3.5 text-muted-foreground" />
             <span>Preview Summary</span>
           </Button>
+
+          {/* Dedicated Thank Researcher / Recognition Dialog */}
+          <ThankResearcherDialog detail={detail} />
 
           {isWaitingForRetest ? (
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant="outline"
-                className="h-9 px-3 gap-1.5 rounded-xl border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center"
+                className="h-9 px-3.5 gap-1.5 rounded-xl border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center"
               >
                 <RotateCcw className="size-3.5 text-blue-500" />
                 <span>Waiting for Retest</span>
@@ -292,7 +296,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3 gap-1.5 cursor-pointer shadow-2xs"
+                  className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3.5 gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95"
                 >
                   <span>Edit Severity</span>
                 </Button>
@@ -302,7 +306,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant="outline"
-                className="h-9 px-3 gap-1.5 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center"
+                className="h-9 px-3.5 gap-1.5 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center"
               >
                 <CheckCircle2 className="size-3.5 text-emerald-500" />
                 <span>Review Completed</span>
@@ -312,7 +316,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3 gap-1.5 cursor-pointer shadow-2xs"
+                  className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3.5 gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95"
                 >
                   <span>Edit Severity</span>
                 </Button>
@@ -322,7 +326,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <Link href={`/dashboard/report-management/${detail.id}/severity-review`}>
               <Button
                 size="sm"
-                className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-3.5 gap-1.5 cursor-pointer shadow-xs"
+                className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs h-9 px-4 gap-1.5 cursor-pointer shadow-xs transition-all active:scale-95"
               >
                 <CheckCircle2 className="size-3.5" />
                 <span>Review & Adjust Severity</span>

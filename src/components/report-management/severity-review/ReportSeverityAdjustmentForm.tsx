@@ -47,6 +47,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import {
   useApproveReportMutation,
+  useAwardRecognitionMutation,
   useRejectReportMutation,
 } from "@/lib/redux/services/reportsApi";
 import { cn } from "@/lib/utils";
@@ -118,6 +119,8 @@ export function ReportSeverityAdjustmentForm({
     SEVERITY_DEFAULTS[initialSev]?.bounty || "750"
   );
   const [explanation, setExplanation] = useState("");
+  const [thankYouNote, setThankYouNote] = useState("");
+  const [awardHallOfFame, setAwardHallOfFame] = useState(true);
   const [findingsSummary, setFindingsSummary] = useState(
     detail?.assessmentSummary || ""
   );
@@ -153,9 +156,9 @@ export function ReportSeverityAdjustmentForm({
     }
   }, [actionParam]);
 
-
   // RTK Mutations
   const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
+  const [awardRecognition] = useAwardRecognitionMutation();
   const [rejectReport, { isLoading: isRejecting }] = useRejectReportMutation();
 
   const handleSeverityChange = (option: SeverityOption) => {
@@ -174,13 +177,30 @@ export function ReportSeverityAdjustmentForm({
       await approveReport({
         id: String(detail.id),
         severity: selectedSeverity,
-        explanation,
+        explanation: thankYouNote.trim() || explanation,
         findingsSummary,
         decisionReason,
         improvementSuggestions,
         bountyAmount: `$${numericBounty}`,
         files: selectedFiles,
       }).unwrap();
+
+      // Award Hall of Fame Recognition if enabled and researcher is known
+      const targetUserId = detail?.submitterId || (detail as any)?.reporterId || (detail as any)?.reporter?.id;
+      const targetProgramId = detail?.programId || (detail as any)?.programId || (detail as any)?.program?.id;
+      if (awardHallOfFame && targetUserId && targetProgramId) {
+        try {
+          await awardRecognition({
+            userId: String(targetUserId),
+            programId: String(targetProgramId),
+            reportId: String(detail.id),
+            title: `Hall of Fame - ${selectedSeverity} Vulnerability Finding`,
+            description: thankYouNote.trim() || `Publicly recognized for finding and disclosing vulnerability ${cleanReportId}.`,
+          }).unwrap();
+        } catch (recErr) {
+          console.warn("Public recognition award note:", recErr);
+        }
+      }
 
       setShowApprovalModal(false);
       setApprovalSuccess(true);
@@ -364,7 +384,19 @@ export function ReportSeverityAdjustmentForm({
                 <Check className="size-4 text-emerald-500 shrink-0" />
                 <span>Report status moved to APPROVED</span>
               </div>
+              {awardHallOfFame && (
+                <div className="flex items-center gap-2 font-medium text-amber-700 dark:text-amber-300">
+                  <Award className="size-4 text-amber-500 shrink-0" />
+                  <span>Public Hall of Fame recognition awarded</span>
+                </div>
+              )}
             </div>
+
+            {thankYouNote && (
+              <div className="pt-2 border-t border-border text-xs text-muted-foreground">
+                <strong className="text-foreground">Thank You Message to Researcher:</strong> &ldquo;{thankYouNote}&rdquo;
+              </div>
+            )}
 
             {decisionReason && (
               <div className="pt-2 border-t border-border text-xs text-muted-foreground">
@@ -624,6 +656,43 @@ export function ReportSeverityAdjustmentForm({
               </Field>
 
               <Field className="min-w-0">
+                <FieldLabel htmlFor="thank-you-note" className="text-foreground font-semibold text-sm sm:text-base">
+                  Thank you note & message to researcher
+                </FieldLabel>
+                <FieldContent className="min-w-0">
+                  <Textarea
+                    id="thank-you-note"
+                    value={thankYouNote}
+                    onChange={(e) => setThankYouNote(e.target.value)}
+                    placeholder="e.g. Thank you for your responsible disclosure! Your detailed proof-of-concept helped us deploy a rapid security patch."
+                    className="min-h-20 border border-border bg-card text-foreground text-sm sm:text-base focus-visible:ring-1 focus-visible:ring-ring w-full"
+                  />
+                  <FieldDescription className="text-xs text-muted-foreground mt-1.5">
+                    Attached as the formal gratitude note on the bounty payout record and dispatched to the researcher.
+                  </FieldDescription>
+                </FieldContent>
+              </Field>
+
+              {/* Hall of Fame Public Recognition Card */}
+              <div className="rounded-xl border border-border bg-muted/20 p-4 flex items-start justify-between gap-3 min-w-0">
+                <div className="space-y-1 min-w-0">
+                  <label htmlFor="hall-of-fame-toggle" className="text-sm font-semibold text-foreground cursor-pointer select-none block">
+                    Award Public Hall of Fame Recognition
+                  </label>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Honors <strong>{submitterName}</strong> on your company and program&apos;s public <em>Thanks & Hall of Fame</em> leaderboard for this finding.
+                  </p>
+                </div>
+                <input
+                  id="hall-of-fame-toggle"
+                  type="checkbox"
+                  checked={awardHallOfFame}
+                  onChange={(e) => setAwardHallOfFame(e.target.checked)}
+                  className="size-4 mt-0.5 rounded border-border text-primary focus:ring-primary/40 cursor-pointer accent-primary shrink-0"
+                />
+              </div>
+
+              <Field className="min-w-0">
                 <FieldLabel htmlFor="improvement-suggestions" className="text-foreground font-semibold text-sm sm:text-base">
                   Suggestions for future reports (Optional)
                 </FieldLabel>
@@ -799,6 +868,25 @@ export function ReportSeverityAdjustmentForm({
                       <span className="truncate">{submitterName}</span>
                     </Link>
                   </div>
+
+                  {thankYouNote && (
+                    <div className="pt-2 border-t border-border/70 space-y-1">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Thank You Note:
+                      </span>
+                      <p className="text-xs text-foreground italic bg-card p-2 rounded-lg border border-border">
+                        &ldquo;{thankYouNote}&rdquo;
+                      </p>
+                    </div>
+                  )}
+
+                  {awardHallOfFame && (
+                    <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-semibold pt-1">
+                      <Award className="size-3.5" />
+                      <span>Public Hall of Fame Recognition will be granted</span>
+                    </div>
+                  )}
+
                   <p className="text-xs sm:text-sm text-muted-foreground pt-1 border-t border-border/70 leading-relaxed">
                     Bounties are paid directly by your organization. Reputation
                     is separate and automatic: DevSolve awards it on the

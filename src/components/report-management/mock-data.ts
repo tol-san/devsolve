@@ -335,6 +335,8 @@ export function buildReportDetailFromManagedReport(
     ...REPORT_DETAIL,
     id: report.id,
     reportId: buildDisplayReportId(report),
+    programId: report.programId,
+    organizationId: report.organizationId,
     title: report.title,
     programLogo: report.programLogo,
     submitter: report.author,
@@ -406,6 +408,8 @@ export function buildReportManagementDetailFromApiReport(
   return {
     id: report.id,
     reportId: report.reportId || `RPT-${report.id.slice(0, 8).toUpperCase()}`,
+    programId: report.programId || (report as any).program?.id || (report as any).programId || undefined,
+    organizationId: (report as any).organizationId || (report as any).organization?.id || undefined,
     title: report.title || "Vulnerability Report",
     programLogo: undefined,
     submitter,

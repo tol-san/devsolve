@@ -6,6 +6,8 @@ export type ReportWorkflowState = "PENDING" | "UNDER_REVIEW" | "RETESTING" | "AP
 export type ManagedReport = {
   id: string | number;
   reportId?: string;
+  programId?: string;
+  organizationId?: string;
   title: string;
   programLogo?: string;
   author: string;
@@ -25,6 +27,8 @@ export type ManagedReport = {
 export type ReportManagementDetail = {
   id: string | number;
   reportId: string;
+  programId?: string;
+  organizationId?: string;
   title: string;
   programLogo?: string;
   submitter: string;

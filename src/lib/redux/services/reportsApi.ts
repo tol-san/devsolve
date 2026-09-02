@@ -1046,6 +1046,21 @@ export const reportsApi = baseApi.injectEndpoints({
       invalidatesTags: ["Profile", "Leaderboard", "Report"],
     }),
 
+    recordReward: builder.mutation<
+      { success: boolean; message?: string },
+      { id: string; amount: number; note?: string }
+    >({
+      query: ({ id, amount, note }) => ({
+        url: `/reports/${id}/rewards`,
+        method: "POST",
+        body: {
+          amount,
+          ...(note ? { note } : {}),
+        },
+      }),
+      invalidatesTags: ["Report", "Profile", "Leaderboard"],
+    }),
+
     resolveReport: builder.mutation<
       { success: boolean; message: string; reportId?: string },
       {
@@ -1232,6 +1247,7 @@ export const {
   useApproveReportMutation,
   useRejectReportMutation,
   useAwardRecognitionMutation,
+  useRecordRewardMutation,
   useResolveReportMutation,
   useRequestRetestMutation,
   useSubmitRetestMutation,
