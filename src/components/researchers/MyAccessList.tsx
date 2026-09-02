@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ChevronRight, MailCheck, ShieldQuestion } from "lucide-react";
+import { ChevronRight, ShieldQuestion } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -145,13 +145,6 @@ export function MyAccessList({
                     {note}
                   </p>
                 </div>
-              )}
-
-              {invited && (
-                <p className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                  <MailCheck aria-hidden className="size-4 shrink-0" />
-                  They invited you — you never had to ask.
-                </p>
               )}
 
               {record.canSubmitReports && (
