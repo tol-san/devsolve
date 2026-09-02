@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -802,6 +803,13 @@ const Navbar = () => {
                   className="size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-700 shadow-2xs transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 cursor-pointer inline-flex"
                   iconClassName="size-5"
                 />
+
+                {/* Search sits with the account controls rather than in the
+                    nav itself: it is a tool, not a destination. Desktop only —
+                    the drawer has its own entry point. */}
+                <div className="hidden xl:block w-56 2xl:w-72">
+                  <SearchDropdown />
+                </div>
 
                 {/* Signed out: Log in + Get Started. Signed in: the account
                     menu, so a session is visible outside /dashboard too. (Desktop only) */}

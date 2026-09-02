@@ -29,6 +29,9 @@ const PRIVATE_PREFIXES = [
   "/community/*/edit",
   "/community/*/solutions/",
   "/profile/me",
+  /* Results are a thin listing over pages that each have their own canonical
+     URL, and every distinct `q` is another near-duplicate of it. */
+  "/search",
 ];
 
 export default function robots(): MetadataRoute.Robots {
