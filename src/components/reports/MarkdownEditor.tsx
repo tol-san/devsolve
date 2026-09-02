@@ -60,8 +60,8 @@ export function MarkdownEditor({
       }
       className={`w-full max-w-full min-w-0 rounded-xl border transition-colors overflow-hidden ${
         error
-          ? "border-red-500 ring-1 ring-red-500"
-          : "border-border dark:border-neutral-700 focus-within:ring-2 focus-within:ring-blue-600"
+          ? "border-destructive ring-1 ring-destructive/40"
+          : "border-border hover:border-border/80 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary"
       }`}
     >
       <MDEditor

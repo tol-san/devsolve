@@ -121,6 +121,38 @@ export interface ProblemResponse {
   updatedAt?: string;
 }
 
+export interface RelatedProblem {
+  id: string;
+  title: string;
+  status: "PUBLISHED" | "RESOLVED" | "CLOSED";
+  solved: boolean;
+  solutionCount: number;
+  viewCount: number;
+}
+
+export interface DuplicateCheckRequest {
+  title: string;
+  description?: string;
+  excludeId?: string;
+}
+
+export interface DuplicateSuggestion {
+  id: string;
+  title: string;
+  status: "PUBLISHED" | "RESOLVED" | "CLOSED";
+  solved: boolean;
+  solutionCount: number;
+  viewCount: number;
+  verdict: "DUPLICATE" | "NEAR_DUPLICATE" | "RELATED" | null;
+  confidence: number | null;
+  reason: string | null;
+}
+
+export interface DuplicateCheckResponse {
+  aiReviewed: boolean;
+  suggestions: DuplicateSuggestion[];
+}
+
 export const problemsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     /** POST /api/problems -> POST /api/v1/problems. */
@@ -308,6 +340,37 @@ export const problemsApi = baseApi.injectEndpoints({
       },
       providesTags: [{ type: "Problem", id: "LIST" }],
     }),
+
+    /**
+     * GET /api/problems/related — fast live trigram similarity lookup for title.
+     * Free, answers in milliseconds, used while typing.
+     */
+    getRelatedProblems: builder.query<
+      RelatedProblem[],
+      { q: string; excludeId?: string; limit?: number }
+    >({
+      query: ({ q, excludeId, limit = 5 }) => {
+        const params: Record<string, string> = { q };
+        if (excludeId) params.excludeId = excludeId;
+        if (limit) params.limit = String(limit);
+        return { url: "/problems/related", params };
+      },
+    }),
+
+    /**
+     * POST /api/problems/duplicate-check — AI on-demand candidate duplicate check.
+     * Authenticated, rate-limited, reads candidates with a model.
+     */
+    checkDuplicateProblems: builder.mutation<
+      DuplicateCheckResponse,
+      DuplicateCheckRequest
+    >({
+      query: (body) => ({
+        url: "/problems/duplicate-check",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
   overrideExisting: true,
 });
@@ -325,4 +388,8 @@ export const {
   useDeleteProblemMutation,
   useSetAcceptedSolutionMutation,
   useRemoveAcceptedSolutionMutation,
+  useGetRelatedProblemsQuery,
+  useLazyGetRelatedProblemsQuery,
+  useCheckDuplicateProblemsMutation,
 } = problemsApi;
+

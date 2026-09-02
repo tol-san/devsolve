@@ -26,6 +26,7 @@ import {
   SubmissionTypeBadge,
 } from "@/components/admin/showcases/ShowcaseSubmissionBadges";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
+import { ShowcaseCodeBlock } from "@/components/showcases/detail/ShowcaseCodeBlock";
 import { useGetShowcaseReviewDetailQuery } from "@/lib/redux/services/admin/showcaseReviewApi";
 
 /**
@@ -197,9 +198,10 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
                       <MarkdownView source={step.description} />
 
                       {step.codeSnippet && (
-                        <pre className="overflow-x-auto rounded-xl bg-slate-900 p-4 font-mono text-xs leading-relaxed text-blue-300">
-                          {step.codeSnippet}
-                        </pre>
+                        <ShowcaseCodeBlock
+                          code={step.codeSnippet}
+                          title={step.title}
+                        />
                       )}
 
                       <div className="grid gap-3 sm:grid-cols-2">

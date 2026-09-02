@@ -22,6 +22,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
+import { ShowcaseCodeBlock } from "@/components/showcases/detail/ShowcaseCodeBlock";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { Button } from "@/components/ui/button";
 import { VoteControl } from "@/components/ui/vote-control";
@@ -58,10 +59,10 @@ interface ShowcaseDetailProps {
 }
 
 const CARD =
-  "rounded-2xl border border-slate-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs";
+  "rounded-2xl border border-border bg-card shadow-xs";
 
 const SIDEBAR_HEADING =
-  "font-bold uppercase tracking-wider text-xs text-slate-400 dark:text-neutral-500";
+  "font-bold uppercase tracking-wider text-xs text-muted-foreground";
 
 function formatDate(iso?: string) {
   if (!iso) return "—";
@@ -310,15 +311,10 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
                         <MarkdownView source={step.description} />
 
                         {step.codeSnippet && (
-                          <figure className="space-y-1.5">
-                            <figcaption className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                              <Code2 aria-hidden="true" className="size-3.5" />
-                              Code
-                            </figcaption>
-                            <pre className="overflow-x-auto rounded-xl bg-slate-900 p-4 font-mono text-sm leading-relaxed text-blue-300">
-                              {step.codeSnippet}
-                            </pre>
-                          </figure>
+                          <ShowcaseCodeBlock
+                            code={step.codeSnippet}
+                            title={step.title}
+                          />
                         )}
 
                         {step.imageUrl && (

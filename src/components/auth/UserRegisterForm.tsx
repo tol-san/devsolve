@@ -96,7 +96,7 @@ export function UserRegisterForm() {
         accountType: "USER",
       }).unwrap();
 
-      router.push(localePath("/dashboard"));
+      void handleLogin("/dashboard");
     } catch (err: unknown) {
       const message =
         (err as { data?: { message?: string } })?.data?.message ??

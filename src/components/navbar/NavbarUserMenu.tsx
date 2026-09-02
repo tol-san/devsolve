@@ -92,11 +92,11 @@ export function NavbarUserMenu({
           variant="outline"
           onClick={onLogin}
           disabled={isLoggingIn}
-          className="hidden h-9 xl:h-10 rounded-lg border-border bg-card px-3 xl:px-4 text-xs xl:text-sm font-semibold text-foreground shadow-xs transition-all hover:border-blue-400 hover:bg-muted disabled:cursor-not-allowed md:inline-flex"
+          className="hidden h-9 sm:h-10 rounded-lg border-border bg-card px-3 sm:px-4 text-xs sm:text-sm font-semibold text-foreground shadow-2xs transition-all hover:border-primary/40 hover:bg-muted disabled:cursor-not-allowed md:inline-flex cursor-pointer"
         >
           {isLoggingIn ? (
             <>
-              <Loader2 className="size-3.5 xl:size-4 animate-spin" />
+              <Loader2 className="size-3.5 sm:size-4 animate-spin" />
               {t("nav.connecting")}
             </>
           ) : (
@@ -108,7 +108,7 @@ export function NavbarUserMenu({
           <Button
             nativeButton={false}
             render={<Link href="/account-type" />}
-            className="group h-9 xl:h-10 rounded-lg bg-primary px-3 xl:px-4 text-xs xl:text-sm font-semibold text-primary-foreground shadow-xs transition-all hover:bg-blue-700"
+            className="group h-9 sm:h-10 rounded-lg bg-primary px-3 sm:px-4 text-xs sm:text-sm font-semibold text-primary-foreground shadow-2xs transition-all hover:bg-primary/90 cursor-pointer"
           >
             {t("nav.getStarted")}
             <ArrowRight className="hidden size-4 transition-transform duration-200 group-hover:translate-x-1 xl:block" />
@@ -126,7 +126,7 @@ export function NavbarUserMenu({
             type="button"
             aria-label={identity.isCompany ? "Organization menu" : "Account menu"}
             className={cn(
-              "hidden cursor-pointer items-center gap-2 rounded-full border border-border bg-card p-1 pr-2 shadow-xs transition-colors hover:border-blue-400 hover:bg-muted sm:inline-flex"
+              "hidden cursor-pointer items-center gap-2 rounded-full border border-border bg-card p-1 pr-2 shadow-2xs transition-colors hover:border-primary/40 hover:bg-muted sm:inline-flex"
             )}
           />
         }
@@ -139,7 +139,7 @@ export function NavbarUserMenu({
               className="rounded-full"
             />
           )}
-          <AvatarFallback className="bg-blue-600 text-xs font-bold text-white rounded-full">
+          <AvatarFallback className="bg-primary text-xs font-bold text-primary-foreground rounded-full">
             {getInitials(identity.name)}
           </AvatarFallback>
         </Avatar>

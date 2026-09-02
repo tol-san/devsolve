@@ -12,11 +12,16 @@ import {
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
+  AlertCircle,
   Check,
+  CheckCircle2,
   Circle,
+  Clock,
+  FileText,
   LoaderCircle,
   Plus,
   Send,
+  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -53,6 +58,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import { parseApiError } from "@/lib/api/errors";
+import { ProblemDuplicatePanel } from "@/components/discussions/create/ProblemDuplicatePanel";
 import { useGetActiveCategoriesQuery } from "@/lib/redux/services/categoriesApi";
 import {
   useCreateProblemDraftMutation,
@@ -120,10 +126,10 @@ const SEVERITY_SELECT_ITEMS = [
 ];
 
 const CARD_CLASS =
-  "rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900";
+  "rounded-2xl border border-border bg-card shadow-xs transition-colors";
 
 const CONTROL_CLASS =
-  "h-12 rounded-xl border-slate-300 bg-white text-base dark:border-neutral-700 dark:bg-neutral-900";
+  "h-12 rounded-xl border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary text-base transition-colors shadow-2xs";
 
 const SERVER_FIELDS = new Set([
   "categoryId",
@@ -328,6 +334,23 @@ export function CreateProblemForm({
       shouldDirty: true,
       shouldValidate: true,
     });
+
+  const handleInsertTemplate = (template: "expected" | "steps" | "logs") => {
+    let snippet = "";
+    if (template === "expected") {
+      snippet = `\n\n### Expected Behavior\nDescribe what you expected to happen...\n\n### Actual Behavior\nDescribe what actually happened instead...\n`;
+    } else if (template === "steps") {
+      snippet = `\n\n### Steps to Reproduce\n1. Go to '...'\n2. Click on '...'\n3. Scroll down to '...'\n4. See error\n`;
+    } else if (template === "logs") {
+      snippet = `\n\n### Error / Stack Trace\n\`\`\`text\n[Paste error log or console output here]\n\`\`\`\n`;
+    }
+    const current = description ?? "";
+    setValue(
+      "description",
+      current ? `${current.trimEnd()}${snippet}` : snippet.trimStart(),
+      { shouldValidate: true, shouldDirty: true },
+    );
+  };
 
   const submitting = isSubmitting || mutationLoading;
   const titleLength = title.trim().length;
@@ -595,50 +618,73 @@ export function CreateProblemForm({
               className={CARD_CLASS}
               aria-labelledby="problem-details-heading"
             >
-              <CardHeader className="border-b border-slate-100 dark:border-neutral-800">
-                <div className="flex items-start gap-3">
-                  <Badge variant="outline" className="mt-0.5 font-mono">
-                    01
-                  </Badge>
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <CardTitle>
-                      <h2
-                        id="problem-details-heading"
-                        className="text-lg font-bold"
+              <CardHeader className="border-b border-border/70 pb-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-linear-to-br from-primary/15 to-primary/5 text-primary border border-primary/20 shadow-2xs shrink-0">
+                    <FileText className="size-5" />
+                  </div>
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className="font-mono text-[10px] uppercase tracking-wider py-0 px-1.5 text-primary border-primary/30 bg-primary/5 font-semibold"
                       >
-                        Problem details
-                      </h2>
-                    </CardTitle>
-                    <CardDescription>
-                      Give the community enough context to understand and
-                      reproduce what is going wrong.
+                        Step 01
+                      </Badge>
+                      <CardTitle>
+                        <h2
+                          id="problem-details-heading"
+                          className="text-xl font-bold tracking-tight text-foreground"
+                        >
+                          Problem details
+                        </h2>
+                      </CardTitle>
+                    </div>
+                    <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                      Give the community enough context to understand, diagnose, and reproduce what is going wrong.
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent>
-                <FieldGroup>
+              <CardContent className="pt-6">
+                <FieldGroup className="space-y-6">
+                  {/* ── Problem Title ── */}
                   <Field
                     data-invalid={Boolean(errors.title)}
                     data-disabled={submitting || undefined}
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <FieldLabel htmlFor="problem-title">
+                      <FieldLabel htmlFor="problem-title" className="text-sm font-semibold text-foreground">
                         Problem title
-                        <span aria-hidden="true" className="text-destructive">
+                        <span aria-hidden="true" className="text-destructive font-bold ml-0.5">
                           *
                         </span>
                         <span className="sr-only"> (required)</span>
                       </FieldLabel>
-                      <Badge variant="secondary" className="tabular-nums">
-                        {title.length}/180
-                      </Badge>
+
+                      {/* Dynamic Title Length Badge */}
+                      {titleLength === 0 ? (
+                        <Badge variant="outline" className="text-[11px] text-muted-foreground font-mono bg-muted/30 border-border/60">
+                          0/180 (min 10)
+                        </Badge>
+                      ) : titleLength < 10 ? (
+                        <Badge variant="outline" className="text-[11px] text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10 font-mono font-medium flex items-center gap-1">
+                          <Clock className="size-3" />
+                          <span>{10 - titleLength} more chars needed</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[11px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 font-mono font-medium flex items-center gap-1">
+                          <CheckCircle2 className="size-3" />
+                          <span>{titleLength}/180</span>
+                        </Badge>
+                      )}
                     </div>
+
                     <Input
                       id="problem-title"
                       maxLength={180}
-                      placeholder="e.g. OAuth callback intermittently loses PKCE state"
+                      placeholder="e.g. OAuth callback intermittently loses PKCE state during redirect"
                       aria-invalid={Boolean(errors.title)}
                       aria-describedby={
                         errors.title
@@ -650,31 +696,91 @@ export function CreateProblemForm({
                       className={CONTROL_CLASS}
                       {...register("title")}
                     />
+
                     <FieldDescription id="problem-title-help">
-                      Use 10–180 characters and name the behavior, not only the
-                      symptom.
+                      Be specific: name the behavior, conditions, and component rather than only the symptom.
                     </FieldDescription>
-                    <FieldError id="problem-title-error">
-                      {errors.title?.message}
-                    </FieldError>
+
+                    {errors.title?.message && (
+                      <div id="problem-title-error" className="flex items-center gap-1.5 text-xs font-medium text-destructive mt-1.5">
+                        <AlertCircle className="size-3.5 shrink-0" />
+                        <span>{errors.title.message}</span>
+                      </div>
+                    )}
+
+                    {/* "Has someone already asked this?" Live & AI Duplicate Panel */}
+                    <ProblemDuplicatePanel
+                      title={title}
+                      description={description}
+                      excludeId={problem?.id}
+                    />
                   </Field>
 
+                  {/* ── Problem Description ── */}
                   <Field
                     data-invalid={Boolean(errors.description)}
                     data-disabled={submitting || undefined}
+                    className="pt-2"
                   >
                     <div className="flex items-center justify-between gap-3">
-                      <FieldLabel htmlFor="problem-description">
+                      <FieldLabel htmlFor="problem-description" className="text-sm font-semibold text-foreground">
                         Description
-                        <span aria-hidden="true" className="text-destructive">
+                        <span aria-hidden="true" className="text-destructive font-bold ml-0.5">
                           *
                         </span>
                         <span className="sr-only"> (required)</span>
                       </FieldLabel>
-                      <Badge variant="secondary" className="tabular-nums">
-                        {description.length.toLocaleString()}/20,000
-                      </Badge>
+
+                      {/* Dynamic Description Length Badge */}
+                      {descriptionLength === 0 ? (
+                        <Badge variant="outline" className="text-[11px] text-muted-foreground font-mono bg-muted/30 border-border/60">
+                          0/20,000 (min 30)
+                        </Badge>
+                      ) : descriptionLength < 30 ? (
+                        <Badge variant="outline" className="text-[11px] text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10 font-mono font-medium flex items-center gap-1">
+                          <Clock className="size-3" />
+                          <span>{30 - descriptionLength} more chars needed</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[11px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 font-mono font-medium flex items-center gap-1">
+                          <CheckCircle2 className="size-3" />
+                          <span>{descriptionLength.toLocaleString()}/20,000</span>
+                        </Badge>
+                      )}
                     </div>
+
+                    {/* Quick Template Helper Chips */}
+                    <div className="flex flex-wrap items-center gap-1.5 py-1">
+                      <span className="text-[11px] text-muted-foreground font-medium mr-1 flex items-center gap-1">
+                        <Sparkles className="size-3 text-primary" />
+                        Quick templates:
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertTemplate("expected")}
+                        disabled={submitting}
+                        className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted hover:border-primary/40 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        + Expected vs Actual
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertTemplate("steps")}
+                        disabled={submitting}
+                        className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted hover:border-primary/40 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        + Steps to Reproduce
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInsertTemplate("logs")}
+                        disabled={submitting}
+                        className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted hover:border-primary/40 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        + Error / Log Snippet
+                      </button>
+                    </div>
+
                     <Controller
                       control={control}
                       name="description"
@@ -700,13 +806,17 @@ export function CreateProblemForm({
                         />
                       )}
                     />
+
                     <FieldDescription id="problem-description-help">
-                      Markdown is supported. Include error output, environment
-                      details, and reproduction steps when relevant.
+                      Markdown and syntax highlighting are supported. Include error output, environment details, and reproduction steps when relevant.
                     </FieldDescription>
-                    <FieldError id="problem-description-error">
-                      {errors.description?.message}
-                    </FieldError>
+
+                    {errors.description?.message && (
+                      <div id="problem-description-error" className="flex items-center gap-1.5 text-xs font-medium text-destructive mt-1.5">
+                        <AlertCircle className="size-3.5 shrink-0" />
+                        <span>{errors.description.message}</span>
+                      </div>
+                    )}
                   </Field>
                 </FieldGroup>
               </CardContent>

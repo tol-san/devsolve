@@ -101,11 +101,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
       aria-label={`${LOCALE_SHORT[locale]} - Switch to ${LOCALE_NAMES[next]}`}
       title={LOCALE_NAMES[next]}
       className={cn(
-        "inline-flex h-9 xl:h-10 cursor-pointer items-center gap-1.5 xl:gap-2 rounded-full border border-slate-200/80 bg-white px-2 xl:px-2.5 text-xs xl:text-sm font-semibold text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.05)] transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 dark:border-neutral-800 dark:bg-neutral-900/80 dark:text-neutral-100 dark:hover:border-blue-500/40 dark:hover:bg-neutral-800 dark:hover:text-blue-300 dark:focus-visible:ring-blue-500/30",
+        "inline-flex h-9 sm:h-10 cursor-pointer items-center gap-1.5 sm:gap-2 rounded-full border border-border/80 bg-card px-2.5 sm:px-3 text-xs sm:text-sm font-semibold text-foreground shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
         className,
       )}
     >
-      <Flag className="h-3.5 w-5 xl:h-4 xl:w-6 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+      <Flag className="h-3.5 w-5 sm:h-4 sm:w-6 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
       <span className="tabular-nums">{LOCALE_SHORT[locale]}</span>
     </button>
   );

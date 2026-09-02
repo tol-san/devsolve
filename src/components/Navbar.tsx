@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SearchDropdown } from "@/components/search/SearchDropdown";
+import { NavbarSearch } from "@/components/search/NavbarSearch";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -508,23 +508,19 @@ const Navbar = () => {
             />
           ) : null}
         </AnimatePresence>
-
         <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-3 sm:px-6">
-          {/* Translucent + blurred, because page content now passes directly
-              behind it rather than under an opaque band. */}
+          {/* Translucent + blurred floating capsule */}
           <div
             className={cn(
-              "pointer-events-auto flex min-h-16 items-center rounded-2xl border px-4 backdrop-blur-xl transition-shadow duration-300 sm:px-6",
-              "border-slate-200/80 bg-white dark:border-neutral-800/80 dark:bg-neutral-950/85",
+              "pointer-events-auto flex min-h-16 items-center rounded-2xl border px-3 sm:px-5 backdrop-blur-xl transition-shadow duration-300",
+              "border-border/80 bg-card/85 dark:bg-card/90",
               scrolled
                 ? "shadow-[0_0_0_1px_rgba(30,41,59,0.05),0_14px_34px_-12px_rgba(15,23,42,0.45)] dark:shadow-[0_16px_38px_rgba(0,0,0,0.5)]"
                 : "shadow-[0_0_0_1px_rgba(30,41,59,0.04),0_8px_24px_-14px_rgba(15,23,42,0.35)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.28)]",
             )}
           >
-            {/* Gaps tighten where the bar is tightest. `min-w-0` on the middle
-                track is what stops the nav pushing into the actions instead of
-                staying inside its column. */}
-            <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 lg:gap-3 xl:gap-4">
+            <div className="flex w-full items-center justify-between gap-2 lg:gap-3 xl:gap-6">
+              {/* Brand Logo */}
               <Link
                 href={lp("/")}
                 aria-label="Go to DevSolve homepage"
@@ -541,9 +537,7 @@ const Navbar = () => {
                   }}
                   className="flex items-center"
                 >
-                  {/* Narrows through the band where the nav is fighting for
-                      room, back to full size once there is space again. */}
-                  <span className="relative block h-11 w-38 sm:w-40 lg:w-36 xl:h-12 xl:w-44">
+                  <span className="relative block h-10 w-36 sm:h-11 sm:w-40 xl:h-12 xl:w-44">
                     {/* Light Mode Logo */}
                     <Image
                       src="/devsolve-logo.png"
@@ -566,11 +560,12 @@ const Navbar = () => {
                 </motion.div>
               </Link>
 
+              {/* Desktop Nav Links */}
               <nav
                 aria-label="Main navigation"
-                className="hidden min-w-0 items-center justify-center lg:flex"
+                className="hidden items-center justify-center lg:flex"
               >
-                <div className="flex min-w-0 items-center gap-0.5 xl:gap-1">
+                <div className="flex items-center gap-0.5 xl:gap-1.5">
                   {visibleNavLinks.map((link) => {
                     const isActive = isNavLinkActive(pathname, link);
 
@@ -586,8 +581,8 @@ const Navbar = () => {
                             className={cn(
                               "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg text-xs xl:text-sm font-semibold transition-all duration-200",
                               isActive
-                                ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
+                                ? "bg-primary/10 text-primary"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
                             )}
                           >
                             {/* The label navigates straight to /discussions;
@@ -600,7 +595,7 @@ const Navbar = () => {
                                 setCommunityMenuOpen(false);
                                 setMobileMenuOpen(false);
                               }}
-                              className="inline-flex h-9 items-center rounded-l-lg pl-2 pr-0.5 xl:pl-3.5 xl:pr-1.5"
+                              className="inline-flex h-9 items-center rounded-l-lg pl-2.5 pr-0.5 xl:pl-3.5 xl:pr-1.5"
                             >
                               {t(link.tKey ?? "") || link.name}
                             </Link>
@@ -616,7 +611,7 @@ const Navbar = () => {
                                   openCommunityMenu();
                                 }
                               }}
-                              className="inline-flex h-9 items-center rounded-r-lg pl-0.5 pr-2 xl:pl-1.5 xl:pr-3.5"
+                              className="inline-flex h-9 items-center rounded-r-lg pl-0.5 pr-2 xl:pl-1.5 xl:pr-3 cursor-pointer"
                             >
                               <ChevronDown
                                 className={cn(
@@ -629,7 +624,7 @@ const Navbar = () => {
                             {isActive ? (
                               <motion.span
                                 layoutId="navbar-active-indicator"
-                                className="absolute -bottom-[8px] left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-blue-600 dark:bg-blue-400"
+                                className="absolute -bottom-[8px] left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-primary"
                                 transition={{
                                   type: "spring",
                                   stiffness: 380,
@@ -659,24 +654,21 @@ const Navbar = () => {
                                   mass: 0.7,
                                 }}
                                 style={{ transformOrigin: "top center" }}
-                                // Padding, not margin: the gap under the
-                                // trigger stays hoverable so the pointer can
-                                // travel into the panel.
                                 className="absolute left-1/2 top-full z-20 w-84 -translate-x-1/2 pt-2.5"
                               >
                                 {/* Notch, tying the island back to its trigger */}
                                 <span
                                   aria-hidden="true"
-                                  className="absolute left-1/2 top-1.75 size-3 -translate-x-1/2 rotate-45 rounded-[3px] border-l border-t border-slate-200/90 bg-white dark:border-neutral-800 dark:bg-neutral-950"
+                                  className="absolute left-1/2 top-1.75 size-3 -translate-x-1/2 rotate-45 rounded-[3px] border-l border-t border-border bg-card"
                                 />
 
-                                <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-2 shadow-[0_18px_44px_-14px_rgba(15,23,42,0.3)] dark:border-neutral-800 dark:bg-neutral-950 dark:shadow-[0_22px_50px_-16px_rgba(0,0,0,0.6)]">
+                                <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10">
                                   <div
                                     aria-hidden="true"
-                                    className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-b from-blue-50/80 to-transparent dark:from-blue-500/10"
+                                    className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-b from-primary/10 to-transparent"
                                   />
 
-                                  <p className="relative z-10 px-3 pb-1 pt-1.5 text-xs font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-neutral-500">
+                                  <p className="relative z-10 px-3 pb-1 pt-1.5 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
                                     {t("nav.startDiscussion") || "Start a discussion"}
                                   </p>
 
@@ -700,18 +692,18 @@ const Navbar = () => {
                                             setMobileMenuOpen(false);
                                           }}
                                           className={cn(
-                                            "group/item flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 dark:focus-visible:ring-blue-500/40",
+                                            "group/item flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
                                             isItemActive
-                                              ? "bg-blue-50 dark:bg-blue-500/15"
-                                              : "hover:bg-slate-50 dark:hover:bg-neutral-900/80",
+                                              ? "bg-primary/10"
+                                              : "hover:bg-muted",
                                           )}
                                         >
                                           <span
                                             className={cn(
                                               "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-colors duration-200",
                                               isItemActive
-                                                ? "bg-blue-600 text-white ring-blue-600"
-                                                : "bg-blue-50 text-blue-600 ring-blue-100 group-hover/item:bg-blue-600 group-hover/item:text-white group-hover/item:ring-blue-600 dark:bg-neutral-900 dark:text-blue-300 dark:ring-neutral-800 dark:group-hover/item:bg-blue-500 dark:group-hover/item:text-white dark:group-hover/item:ring-blue-500",
+                                                ? "bg-primary text-primary-foreground ring-primary"
+                                                : "bg-primary/10 text-primary ring-primary/20 group-hover/item:bg-primary group-hover/item:text-primary-foreground group-hover/item:ring-primary",
                                             )}
                                           >
                                             <CommunityMenuIcon
@@ -724,14 +716,14 @@ const Navbar = () => {
                                               className={cn(
                                                 "flex items-center gap-1.5 text-sm font-semibold",
                                                 isItemActive
-                                                  ? "text-blue-700 dark:text-blue-300"
-                                                  : "text-slate-900 dark:text-neutral-100",
+                                                  ? "text-primary"
+                                                  : "text-foreground",
                                               )}
                                             >
                                               {t(item.tKey ?? "") || item.name}
                                               <ArrowRight className="size-3.5 -translate-x-1 opacity-0 transition-all duration-200 group-hover/item:translate-x-0 group-hover/item:opacity-100" />
                                             </span>
-                                            <span className="mt-0.5 block text-sm leading-5 text-slate-500 dark:text-neutral-400">
+                                            <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">
                                               {(item.descTKey && t(item.descTKey)) || item.description}
                                             </span>
                                           </span>
@@ -747,8 +739,7 @@ const Navbar = () => {
                       );
                     }
 
-                    // A link is either a dropdown (handled above) or a plain
-                    // href — this narrows the optional away for both.
+                    // Plain link
                     if (!link.href) {
                       return null;
                     }
@@ -760,11 +751,11 @@ const Navbar = () => {
                         aria-current={isActive ? "page" : undefined}
                         onClick={() => setMobileMenuOpen(false)}
                         className={cn(
-                          "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg px-2 xl:px-3 text-xs xl:text-sm font-semibold transition-all duration-200",
+                          "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg px-2.5 xl:px-3.5 text-xs xl:text-sm font-semibold transition-all duration-200",
                           link.guestOnly && "hidden xl:inline-flex",
                           isActive
-                            ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
                         )}
                       >
                         <span>{t(link.tKey ?? "") || link.name}</span>
@@ -772,7 +763,7 @@ const Navbar = () => {
                         {isActive ? (
                           <motion.span
                             layoutId="navbar-active-indicator"
-                            className="absolute -bottom-2 left-1/2 h-0.75 w-6 -translate-x-1/2 rounded-full bg-blue-600 dark:bg-blue-400"
+                            className="absolute -bottom-2 left-1/2 h-0.75 w-6 -translate-x-1/2 rounded-full bg-primary"
                             transition={{
                               type: "spring",
                               stiffness: 380,
@@ -786,8 +777,8 @@ const Navbar = () => {
                 </div>
               </nav>
 
-              {/* Header actions: on responsive matches dashboard header (LanguageSwitcher, NotificationTrigger, ThemeToggle, Hamburger), on desktop includes NavbarUserMenu */}
-              <div className="flex shrink-0 items-center justify-end gap-2">
+              {/* Header actions */}
+              <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
                 <LanguageSwitcher className="hidden lg:inline-flex" />
 
                 {sessionUser && <NotificationTrigger />}
@@ -800,19 +791,14 @@ const Navbar = () => {
                       ? "Switch to light mode"
                       : "Switch to dark mode"
                   }
-                  className="size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-700 shadow-2xs transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 cursor-pointer inline-flex"
-                  iconClassName="size-5"
+                  className="size-9 sm:size-10 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-colors hover:bg-muted cursor-pointer inline-flex"
+                  iconClassName="size-4.5 sm:size-5"
                 />
 
-                {/* Search sits with the account controls rather than in the
-                    nav itself: it is a tool, not a destination. Desktop only —
-                    the drawer has its own entry point. */}
-                <div className="hidden xl:block w-56 2xl:w-72">
-                  <SearchDropdown />
-                </div>
+                {/* Search tool with global Cmd+K / Ctrl+K and modal dialog */}
+                <NavbarSearch />
 
-                {/* Signed out: Log in + Get Started. Signed in: the account
-                    menu, so a session is visible outside /dashboard too. (Desktop only) */}
+                {/* Signed out: Log in + Get Started. Signed in: account menu (Desktop only) */}
                 <div className="hidden lg:flex items-center gap-2">
                   <NavbarUserMenu
                     onLogin={handleLogin}
@@ -824,6 +810,7 @@ const Navbar = () => {
                   />
                 </div>
 
+                {/* Mobile hamburger menu toggle */}
                 <Button
                   size="icon"
                   variant="ghost"
@@ -835,7 +822,7 @@ const Navbar = () => {
                       ? "Close navigation menu"
                       : "Open navigation menu"
                   }
-                  className="cursor-pointer rounded-xl text-slate-700 hover:bg-slate-100 dark:text-neutral-200 dark:hover:bg-neutral-800 lg:hidden"
+                  className="size-9 sm:size-10 cursor-pointer rounded-xl text-foreground hover:bg-muted lg:hidden inline-flex items-center justify-center"
                 >
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.span
@@ -847,9 +834,9 @@ const Navbar = () => {
                       className="inline-flex items-center justify-center"
                     >
                       {mobileMenuOpen ? (
-                        <X className="size-6" />
+                        <X className="size-5 sm:size-6" />
                       ) : (
-                        <Menu className="size-6" />
+                        <Menu className="size-5 sm:size-6" />
                       )}
                     </motion.span>
                   </AnimatePresence>
@@ -886,15 +873,7 @@ const Navbar = () => {
               style={{ transformOrigin: "top center" }}
               className="pointer-events-auto relative z-10 overflow-hidden px-4 pb-4 sm:px-6 lg:hidden"
             >
-              {/* The panel is as tall as its contents, which on a short screen
-                  — a landscape phone, or a signed-in reader with the Community
-                  submenu expanded — runs past the bottom of the viewport. It
-                  is capped to the room left under the island and scrolls
-                  inside itself; `overscroll-contain` keeps that scroll from
-                  chaining to the page behind once it bottoms out. */}
-              {/* Fully opaque: this is a reading surface stacked over a busy
-                  hero, and the scrim behind it already supplies the dimming. */}
-              <div className="mx-auto max-h-[calc(100dvh-var(--navbar-height)-1rem)] w-full max-w-7xl overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_24px_rgba(15,23,42,0.08)] dark:border-neutral-800/80 dark:bg-neutral-950 dark:shadow-[0_12px_32px_rgba(0,0,0,0.3)]">
+              <div className="mx-auto max-h-[calc(100dvh-var(--navbar-height)-1rem)] w-full max-w-7xl overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-3 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10">
                 <nav
                   aria-label="Mobile navigation"
                   className="flex flex-col gap-1"
@@ -910,19 +889,17 @@ const Navbar = () => {
                             className={cn(
                               "flex min-h-10 w-full items-center justify-between rounded-xl text-sm font-semibold transition-colors",
                               isActive
-                                ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
+                                ? "bg-primary/10 text-primary ring-1 ring-primary/20"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
                             )}
                           >
-                            {/* Same split as desktop: label navigates, the
-                                chevron only expands the submenu. */}
                             <Link
                               href={lp(link.href ?? "/discussions")}
                               onClick={() => setMobileMenuOpen(false)}
                               aria-current={isActive ? "page" : undefined}
                               className="flex min-h-10 flex-1 items-center gap-3 pl-3"
                             >
-                              {Icon && <Icon className="size-4.5 shrink-0 text-slate-500 dark:text-neutral-400" />}
+                              {Icon && <Icon className="size-4.5 shrink-0 text-muted-foreground" />}
                               <span>{t(link.tKey ?? "") || link.name}</span>
                             </Link>
                             <button
@@ -932,7 +909,7 @@ const Navbar = () => {
                               onClick={() =>
                                 setMobileCommunityOpen((current) => !current)
                               }
-                              className="flex min-h-10 items-center pl-3 pr-3"
+                              className="flex min-h-10 items-center pl-3 pr-3 cursor-pointer"
                             >
                               <motion.span
                                 animate={{ rotate: mobileCommunityOpen ? 180 : 0 }}
@@ -1001,8 +978,8 @@ const Navbar = () => {
                                           className={cn(
                                             "group flex items-center justify-between rounded-2xl px-3.5 py-2.5 transition-all duration-200",
                                             isItemActive
-                                              ? "bg-slate-100 text-blue-700 dark:bg-neutral-900 dark:text-blue-300"
-                                              : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
+                                              ? "bg-muted text-primary"
+                                              : "text-foreground hover:bg-muted",
                                           )}
                                         >
                                           <div className="flex min-w-0 items-center gap-3">
@@ -1010,15 +987,15 @@ const Navbar = () => {
                                               className={cn(
                                                 "flex size-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
                                                 isItemActive
-                                                  ? "bg-blue-600 text-white dark:bg-blue-600 dark:text-white"
-                                                  : "bg-slate-100 text-slate-700 group-hover:bg-blue-600 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-300 dark:group-hover:bg-blue-600 dark:group-hover:text-white",
+                                                  ? "bg-primary text-primary-foreground"
+                                                  : "bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground",
                                               )}
                                             >
                                               <CommunityMenuIcon
                                                 icon={item.icon}
                                               />
                                             </span>
-                                            <span className="truncate text-sm font-bold text-slate-900 dark:text-neutral-100">
+                                            <span className="truncate text-sm font-bold text-foreground">
                                               {t(item.tKey ?? "") || item.name}
                                             </span>
                                           </div>
@@ -1026,8 +1003,8 @@ const Navbar = () => {
                                             className={cn(
                                               "size-4 transition-all duration-200",
                                               isItemActive
-                                                ? "text-slate-400 opacity-100 translate-x-0 dark:text-neutral-400"
-                                                : "text-slate-400 opacity-0 -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100 dark:text-neutral-400",
+                                                ? "text-muted-foreground opacity-100 translate-x-0"
+                                                : "text-muted-foreground opacity-0 -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100",
                                             )}
                                           />
                                         </Link>
@@ -1055,14 +1032,14 @@ const Navbar = () => {
                         className={cn(
                           "relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
                           isActive
-                            ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-950 dark:text-neutral-300 dark:hover:bg-neutral-900/80 dark:hover:text-white",
+                            ? "bg-primary/10 text-primary ring-1 ring-primary/20"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
                         )}
                       >
                         {isActive && (
                           <motion.span
                             layoutId="mobile-navbar-active-rail"
-                            className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-blue-600 dark:bg-blue-400"
+                            className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary"
                             transition={{
                               type: "spring",
                               stiffness: 400,
@@ -1070,34 +1047,31 @@ const Navbar = () => {
                             }}
                           />
                         )}
-                        {Icon && <Icon className="size-4.5 shrink-0 text-slate-500 dark:text-neutral-400" />}
+                        {Icon && <Icon className="size-4.5 shrink-0 text-muted-foreground" />}
                         <span>{t(link.tKey ?? "") || link.name}</span>
                       </Link>
                     );
                   })}
 
-                  <div className="mt-3 grid gap-2 border-t border-slate-200 pt-4 dark:border-neutral-800">
+                  <div className="mt-3 grid gap-2 border-t border-border pt-4">
                     {sessionUser ? (
                       <>
-                        {/* The same account actions the desktop dropdown has,
-                            flattened — a dropdown inside a drawer is a menu
-                            inside a menu. */}
                         {isNavbarIdentityPending ? (
                           <div
                             aria-hidden="true"
-                            className="flex animate-pulse items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900"
+                            className="flex animate-pulse items-center gap-3 rounded-xl border border-border bg-card p-3"
                           >
-                            <div className="size-9 shrink-0 rounded-lg bg-slate-200 dark:bg-neutral-800" />
+                            <div className="size-9 shrink-0 rounded-lg bg-muted" />
                             <div className="flex min-w-0 flex-1 flex-col gap-2">
-                              <div className="h-3.5 w-28 rounded bg-slate-200 dark:bg-neutral-800" />
-                              <div className="h-3 w-20 rounded bg-slate-200 dark:bg-neutral-800" />
+                              <div className="h-3.5 w-28 rounded bg-muted" />
+                              <div className="h-3 w-20 rounded bg-muted" />
                             </div>
                           </div>
                         ) : (
                           <Link
                             href={navbarIdentity.profileHref}
                             onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900"
+                            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
                           >
                             <Avatar
                               className={cn(
@@ -1121,7 +1095,7 @@ const Navbar = () => {
                               )}
                               <AvatarFallback
                                 className={cn(
-                                  "bg-blue-600 text-xs font-bold text-white",
+                                  "bg-primary text-xs font-bold text-primary-foreground",
                                   navbarIdentity.isCompany && "rounded-lg",
                                 )}
                               >
@@ -1129,17 +1103,17 @@ const Navbar = () => {
                               </AvatarFallback>
                             </Avatar>
                             <span className="min-w-0">
-                              <span className="block truncate text-sm font-bold text-slate-900 dark:text-neutral-100">
+                              <span className="block truncate text-sm font-bold text-foreground">
                                 {navbarIdentity.name}
                               </span>
-                              <span className="block truncate text-sm text-slate-500 dark:text-neutral-400">
+                              <span className="block truncate text-sm text-muted-foreground">
                                 {navbarIdentity.detail ||
                                   navbarIdentity.profileLabel}
                               </span>
                               {navbarIdentity.status &&
                                 navbarIdentity.status !==
                                 navbarIdentity.detail && (
-                                  <span className="mt-0.5 block truncate text-sm font-medium text-slate-500 dark:text-neutral-400">
+                                  <span className="mt-0.5 block truncate text-sm font-medium text-muted-foreground">
                                     {navbarIdentity.status}
                                   </span>
                                 )}
@@ -1155,7 +1129,7 @@ const Navbar = () => {
                               onClick={() => setMobileMenuOpen(false)}
                             />
                           }
-                          className="h-10 rounded-lg bg-primary text-sm font-semibold text-white hover:bg-[#1D4ED8] dark:bg-blue-600"
+                          className="h-10 rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
                         >
                           <LayoutDashboard className="size-4" />
                           Dashboard
@@ -1165,7 +1139,7 @@ const Navbar = () => {
                           type="button"
                           variant="outline"
                           onClick={handleSignOut}
-                          className="h-10 rounded-lg border-slate-300 bg-white text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:border-neutral-700/80 dark:bg-neutral-900/80 dark:hover:bg-rose-950/40"
+                          className="h-10 rounded-lg border-border bg-card text-sm font-semibold text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
                         >
                           <LogOut className="size-4" />
                           Log out
@@ -1181,7 +1155,7 @@ const Navbar = () => {
                               onClick={() => setMobileMenuOpen(false)}
                             />
                           }
-                          className="h-10 rounded-lg bg-primary text-sm font-semibold text-white hover:bg-[#1D4ED8] dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500"
+                          className="h-10 rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
                         >
                           {t("nav.getStarted")}
                           <ArrowRight className="size-4" />
@@ -1192,7 +1166,7 @@ const Navbar = () => {
                           variant="outline"
                           onClick={handleLogin}
                           disabled={isLoggingIn}
-                          className="h-10 rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-neutral-700/80 dark:bg-neutral-900/80 dark:text-neutral-100 dark:hover:border-blue-500/40 dark:hover:bg-neutral-800 dark:hover:text-blue-200"
+                          className="h-10 rounded-lg border-border bg-card text-sm font-semibold text-foreground hover:bg-muted"
                         >
                           {isLoggingIn ? (
                             <>
@@ -1211,7 +1185,7 @@ const Navbar = () => {
                         type="button"
                         variant="outline"
                         onClick={toggle}
-                        className="h-10 flex-1 rounded-lg border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-neutral-700/80 dark:bg-neutral-900/80 dark:text-neutral-100 dark:hover:border-blue-500/40 dark:hover:bg-neutral-800 dark:hover:text-blue-200"
+                        className="h-10 flex-1 rounded-lg border-border bg-card text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
                       >
                         {mounted && isDark ? (
                           <>

@@ -154,22 +154,22 @@ export const problemCreateSchema = z.object({
     .refine(isCleanText, profanityMessage("Title"))
     .refine(isReadableText, readabilityMessage("Title")),
   problemType: z.enum(PROBLEM_TYPES, {
-    message: `problemType must be one of ${PROBLEM_TYPES.join(", ")}`,
+    message: "Please select a problem type",
   }),
   sdlcPhase: z
     .enum(SDLC_PHASES, {
-      message: `sdlcPhase must be one of ${SDLC_PHASES.join(", ")}`,
+      message: "Please select a valid SDLC phase",
     })
     .optional(),
   description: z
     .string()
     .min(30, "Description must be at least 30 characters")
-    .max(20_000, "Description must not exceed 20000 characters")
+    .max(20_000, "Description must not exceed 20,000 characters")
     .refine(isCleanText, profanityMessage("Description"))
     .refine(isReadableText, readabilityMessage("Description")),
   severity: z
     .enum(PROBLEM_SEVERITIES, {
-      message: `severity must be one of ${PROBLEM_SEVERITIES.join(", ")}`,
+      message: "Please select a valid severity",
     })
     .optional(),
   expectedBehavior: z

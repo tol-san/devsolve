@@ -21,6 +21,10 @@ const DEBOUNCE_MS = 275;
 type SearchDropdownProps = {
   className?: string;
   placeholder?: string;
+  /** Focus the field on mount, for the overlay that opens on a tap. */
+  autoFocus?: boolean;
+  /** Fired once the reader has gone somewhere, so a host can close itself. */
+  onDone?: () => void;
 };
 
 /**
@@ -36,7 +40,12 @@ type SearchDropdownProps = {
  * A 503 is expected rather than exceptional — search can be switched off on a
  * deployment — so it is said plainly once and never retried in a loop.
  */
-export function SearchDropdown({ className, placeholder }: SearchDropdownProps) {
+export function SearchDropdown({
+  className,
+  placeholder,
+  autoFocus,
+  onDone,
+}: SearchDropdownProps) {
   const router = useRouter();
   const listboxId = useId();
 
@@ -89,7 +98,13 @@ export function SearchDropdown({ className, placeholder }: SearchDropdownProps) 
   const goToResults = () => {
     if (!hasTerm) return;
     setOpen(false);
+    onDone?.();
     router.push(`/search?q=${encodeURIComponent(term)}`);
+  };
+
+  const dismiss = () => {
+    setOpen(false);
+    onDone?.();
   };
 
   return (
@@ -103,6 +118,7 @@ export function SearchDropdown({ className, placeholder }: SearchDropdownProps) 
           aria-controls={listboxId}
           aria-label="Search DevSolve"
           value={input}
+          autoFocus={autoFocus}
           maxLength={MAX_QUERY_LENGTH}
           placeholder={placeholder ?? "Search programs, people, write-ups…"}
           onChange={(event) => {
@@ -167,7 +183,7 @@ export function SearchDropdown({ className, placeholder }: SearchDropdownProps) 
                     {group.totalHits > group.hits.length && (
                       <Link
                         href={`/search?q=${encodeURIComponent(term)}&type=${group.type}`}
-                        onClick={() => setOpen(false)}
+                        onClick={dismiss}
                         className="text-xs font-semibold text-primary hover:underline"
                       >
                         See all {group.totalHits}
@@ -180,7 +196,7 @@ export function SearchDropdown({ className, placeholder }: SearchDropdownProps) 
                       key={`${hit.type}-${hit.id}`}
                       hit={hit}
                       compact
-                      onNavigate={() => setOpen(false)}
+                      onNavigate={dismiss}
                     />
                   ))}
                 </section>
