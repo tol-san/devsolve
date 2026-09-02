@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import StatusBadge from "@/components/reports/StatusBadge";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import { MarkdownView } from "@/components/ui/markdown-view";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -508,9 +509,12 @@ export function ReportQuickViewModal({
                   )}
                 </div>
                 {reportDetail?.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
-                    {reportDetail.description}
-                  </p>
+                  <div className="max-h-56 overflow-y-auto pr-1 text-xs leading-relaxed text-foreground/90">
+                    <MarkdownView
+                      source={reportDetail.description}
+                      className="[&.wmde-markdown]:!text-xs sm:[&.wmde-markdown]:!text-xs [&.wmde-markdown]:!leading-relaxed text-foreground"
+                    />
+                  </div>
                 )}
               </div>
             )}
