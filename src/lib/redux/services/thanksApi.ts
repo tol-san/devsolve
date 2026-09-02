@@ -57,6 +57,7 @@ export const thanksApi = baseApi.injectEndpoints({
       },
       providesTags: (_result, _error, { userId }) => [
         { type: "Profile", id: `${userId}-recognitions` },
+        { type: "Profile" },
       ],
     }),
   }),
