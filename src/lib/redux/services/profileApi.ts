@@ -281,13 +281,53 @@ function acceptedRateOf(total: number, valid: number): number {
 function severityStatsOf(reports: ReportApiResponse[]): SeverityStats {
   const counts = { critical: 0, high: 0, medium: 0, low: 0, rejected: 0, duplicate: 0 };
   for (const report of reports) {
-    if (report.state === "REJECTED") counts.rejected += 1;
-    else if (report.state === "DUPLICATE") counts.duplicate += 1;
-    else if (report.severity === "CRITICAL") counts.critical += 1;
-    else if (report.severity === "HIGH") counts.high += 1;
-    else if (report.severity === "MEDIUM") counts.medium += 1;
-    else if (report.severity === "LOW") counts.low += 1;
+    const state = report.state?.toUpperCase();
+    const sev = report.severity?.toUpperCase();
+
+    if (state === "REJECTED") counts.rejected += 1;
+    else if (state === "DUPLICATE") counts.duplicate += 1;
+    else if (sev === "CRITICAL") counts.critical += 1;
+    else if (sev === "HIGH") counts.high += 1;
+    else if (sev === "MEDIUM") counts.medium += 1;
+    else if (sev === "LOW") counts.low += 1;
   }
+  return { ...counts, retests: 0 };
+}
+
+interface HacktivitySummaryApiResponse {
+  id: string;
+  eventType?: string;
+  report?: {
+    id?: string;
+    severity?: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+    disclosureStatus?: "DISCLOSED" | "NOT_DISCLOSED";
+  };
+}
+
+function severityStatsFromHacktivity(
+  activities: HacktivitySummaryApiResponse[],
+  raw: UserProfileApiResponse
+): SeverityStats {
+  const counts = { critical: 0, high: 0, medium: 0, low: 0, rejected: 0, duplicate: 0 };
+  const seenReports = new Set<string>();
+
+  for (const item of activities) {
+    const reportId = item.report?.id || item.id;
+    if (seenReports.has(reportId)) continue;
+    seenReports.add(reportId);
+
+    const sev = item.report?.severity?.toUpperCase();
+    if (sev === "CRITICAL") counts.critical += 1;
+    else if (sev === "HIGH") counts.high += 1;
+    else if (sev === "MEDIUM") counts.medium += 1;
+    else if (sev === "LOW") counts.low += 1;
+  }
+
+  // Ensure criticalReports from raw profile is at least included
+  if (typeof raw.criticalReports === "number" && raw.criticalReports > counts.critical) {
+    counts.critical = raw.criticalReports;
+  }
+
   return { ...counts, retests: 0 };
 }
 
@@ -309,7 +349,8 @@ function toProfileOverview(
   raw: UserProfileApiResponse,
   social: { followers: number; following: number },
   reports: ReportApiResponse[],
-  isOwnProfile: boolean
+  hacktivities: HacktivitySummaryApiResponse[] = [],
+  isOwnProfile: boolean = false
 ): ProfileOverviewResponse {
   const displayName = fullNameOf(raw, "DevSolve user");
   const { total: totalReports, valid: validReports } = reportCountsOf(raw, reports);
@@ -361,20 +402,9 @@ function toProfileOverview(
     rewardedReports: typeof raw.rewardedReports === "number" ? raw.rewardedReports : 0,
   };
 
-  /* Same limitation: a per-severity breakdown needs the individual reports.
-     The public profile exposes one aggregate, `criticalReports`, so that is
-     the only band that can be filled in. */
   const severity = isOwnProfile
     ? severityStatsOf(reports)
-    : {
-        critical: raw.criticalReports ?? 0,
-        high: 0,
-        medium: 0,
-        low: 0,
-        rejected: 0,
-        duplicate: 0,
-        retests: 0,
-      };
+    : severityStatsFromHacktivity(hacktivities, raw);
 
   // No badges endpoint exists yet — an empty grid is honest; the mock badge
   // set was fabricated achievement data with no backing from the backend.
@@ -424,22 +454,29 @@ export const profileApi = baseApi.injectEndpoints({
 
         const raw = profileResult.data as UserProfileApiResponse;
 
-        /* `me` is the only route that is self by construction. A handle or an
-           id may well be the viewer's own, but proving it needs the session,
-           which the profile screens hold and this query does not — they widen
-           this before rendering owner controls. */
-        const isSelf = isMeRoute;
+        /* Determine if this profile belongs to the currently signed-in user */
+        let isSelf = isMeRoute;
+        if (!isSelf) {
+          const meResult = await fetchWithBQ("/user-profiles/me");
+          if (!meResult.error && meResult.data) {
+            const meRaw = meResult.data as UserProfileApiResponse;
+            if (
+              (meRaw.id && raw.id && meRaw.id === raw.id) ||
+              (meRaw.username && raw.username && meRaw.username.toLowerCase() === raw.username.toLowerCase())
+            ) {
+              isSelf = true;
+            }
+          }
+        }
 
         /* Reports are confidential: `/reports/mine` is the only per-user report
-           endpoint the API has, so there is nothing to fetch for anyone else.
-           This used to fall back to `/user-profiles/{id}/problems` and read the
-           result as reports — but problems carry `status`, not `state`, and no
-           `severity` or `rewards`, so every field derived from them came out
-           empty anyway. It just cost a 100-row request to produce zeros. */
-        const [followingResult, followersResult, reportsResult] = await Promise.all([
+           endpoint the API has, so for own profiles we pull it to compute accurate
+           severity breakdowns. For other users, we pull public hacktivity. */
+        const [followingResult, followersResult, reportsResult, hacktivityResult] = await Promise.all([
           fetchWithBQ(isSelf ? `/follows/mine?size=1` : `/follows/users/${raw.id}/following?size=1`),
           fetchWithBQ(`/follows/USER/${raw.id}/followers?size=1`),
           isSelf ? fetchWithBQ(`/reports/mine?size=100`) : Promise.resolve(null),
+          !isSelf && raw.id ? fetchWithBQ(`/user-profiles/${raw.id}/hacktivity?size=100`) : Promise.resolve(null),
         ]);
 
         const followingCount = !followingResult.error
@@ -452,6 +489,10 @@ export const profileApi = baseApi.injectEndpoints({
           reportsResult && !reportsResult.error
             ? (reportsResult.data as { content?: ReportApiResponse[] } | undefined)?.content ?? []
             : [];
+        const hacktivities =
+          hacktivityResult && !hacktivityResult.error
+            ? (hacktivityResult.data as { content?: HacktivitySummaryApiResponse[] } | undefined)?.content ?? []
+            : [];
 
         return {
           data: toProfileOverview(
@@ -461,6 +502,7 @@ export const profileApi = baseApi.injectEndpoints({
               following: followingCount ?? 0,
             },
             reports,
+            hacktivities,
             isSelf
           ),
         };

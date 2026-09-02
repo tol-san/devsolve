@@ -73,6 +73,8 @@ export default function ProfilePage() {
   );
 
   const profile = { ...rawProfile, isOwnProfile };
+  const effectiveStats = isOwnProfile && me?.stats ? me.stats : stats;
+  const effectiveSeverity = isOwnProfile && me?.severity ? me.severity : severity;
 
   const handleExitEdit = () => {
     setIsEditing(false);
@@ -150,7 +152,7 @@ export default function ProfilePage() {
       />
 
       {/* ── Key Metrics Stat Strip ──────────────────────────────────── */}
-      <StatsCards stats={stats} />
+      <StatsCards stats={effectiveStats} />
 
       {/* ── Two-Column Main Content Layout ──────────────────────────── */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start xl:gap-8">
@@ -158,7 +160,7 @@ export default function ProfilePage() {
         <div className="w-full shrink-0 lg:sticky lg:top-6 lg:w-80">
           <ProfileSidebar
             profile={profile}
-            stats={stats}
+            stats={effectiveStats}
           />
         </div>
 
@@ -166,8 +168,8 @@ export default function ProfilePage() {
         <div className="min-w-0 flex-1">
           <Suspense fallback={null}>
             <ProfileTabsContainer
-              stats={stats}
-              severity={severity}
+              stats={effectiveStats}
+              severity={effectiveSeverity}
               badges={badges}
               username={username}
               userId={profile.id}

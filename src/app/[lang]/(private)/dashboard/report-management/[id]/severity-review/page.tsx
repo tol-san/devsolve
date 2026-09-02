@@ -57,18 +57,24 @@ export default function ReportSeverityReviewPage() {
   }
 
   return (
-    <motion.section
+    <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="flex flex-col gap-6 pb-12 w-full"
+      className="space-y-6 w-full pb-12 min-w-0"
     >
       {!outcome && <ReportSeverityReviewHeader detail={detail} />}
-      <div className={outcome ? "w-full max-w-4xl mx-auto" : "grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]"}>
-        <ReportSeverityAdjustmentForm detail={detail} onOutcomeChange={setOutcome} />
-        {!outcome && <ReportSeverityReviewSidebar detail={detail} />}
+      <div className={outcome ? "w-full max-w-4xl mx-auto min-w-0" : "grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start min-w-0"}>
+        <div className="min-w-0 w-full">
+          <ReportSeverityAdjustmentForm detail={detail} onOutcomeChange={setOutcome} />
+        </div>
+        {!outcome && (
+          <div className="min-w-0 w-full">
+            <ReportSeverityReviewSidebar detail={detail} />
+          </div>
+        )}
       </div>
-    </motion.section>
+    </motion.div>
   );
 }
 

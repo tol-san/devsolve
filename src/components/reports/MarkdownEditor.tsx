@@ -58,7 +58,7 @@ export function MarkdownEditor({
             ? "light"
             : "auto"
       }
-      className={`w-full rounded-xl border transition-colors overflow-hidden ${
+      className={`w-full max-w-full min-w-0 rounded-xl border transition-colors overflow-hidden ${
         error
           ? "border-red-500 ring-1 ring-red-500"
           : "border-border dark:border-neutral-700 focus-within:ring-2 focus-within:ring-blue-600"
@@ -83,11 +83,11 @@ export function MarkdownEditor({
           "aria-describedby": ariaDescribedBy,
           placeholder,
           style: {
-            fontSize: "18px",
+            fontSize: "16px",
             lineHeight: "1.7",
           },
         }}
-        className="!text-lg [&_textarea]:!text-[18px] [&_textarea]:!leading-relaxed [&_.w-md-editor-text-input]:!text-[18px] [&_.w-md-editor-text-input]:!leading-relaxed [&_.w-md-editor-text-pre]:!text-[18px] [&_.w-md-editor-text-pre]:!leading-relaxed [&_.w-md-editor-text-pre_code]:!text-[18px] [&_.wmde-markdown]:!text-[17px] [&_.wmde-markdown]:!leading-relaxed"
+        className="!text-base sm:!text-lg max-w-full [&_.w-md-editor-toolbar]:flex-wrap [&_.w-md-editor-toolbar_ul]:flex-wrap [&_.w-md-editor-toolbar]:gap-0.5 [&_textarea]:!text-[15px] sm:[&_textarea]:!text-[18px] [&_textarea]:!leading-relaxed [&_.w-md-editor-text-input]:!text-[15px] sm:[&_.w-md-editor-text-input]:!text-[18px] [&_.w-md-editor-text-input]:!leading-relaxed [&_.w-md-editor-text-pre]:!text-[15px] sm:[&_.w-md-editor-text-pre]:!text-[18px] [&_.w-md-editor-text-pre]:!leading-relaxed [&_.w-md-editor-text-pre_code]:!text-[15px] sm:[&_.w-md-editor-text-pre_code]:!text-[18px] [&_.wmde-markdown]:!text-[15px] sm:[&_.wmde-markdown]:!text-[17px] [&_.wmde-markdown]:!leading-relaxed"
       />
     </div>
   );

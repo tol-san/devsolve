@@ -63,41 +63,41 @@ export function ReportSeverityReviewSidebar({
   const profileHref = `/profile/${encodeURIComponent(profileIdentifier)}`;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 min-w-0">
       {/* 1. Submitter Snapshot & Intelligence Card */}
-      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs">
-        <CardHeader className="gap-2 pb-3">
-          <CardTitle className="text-xl font-bold text-foreground flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <User className="size-4.5 text-blue-600 dark:text-blue-400" />
+      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
+        <CardHeader className="gap-2 p-4 sm:p-6 pb-3">
+          <CardTitle className="text-lg sm:text-xl font-bold text-foreground flex items-center justify-between min-w-0">
+            <span className="flex items-center gap-2 truncate">
+              <User className="size-4.5 text-blue-600 dark:text-blue-400 shrink-0" />
               Submitter Info
             </span>
             {profile && (
-              <Badge variant="outline" className="text-[10px] font-semibold border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <Badge variant="outline" className="text-[10px] font-semibold border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
                 Verified
               </Badge>
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3.5">
-          <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-muted/40">
+        <CardContent className="flex flex-col gap-3.5 p-4 sm:p-6 pt-0 sm:pt-0 min-w-0">
+          <div className="flex items-center justify-between gap-2.5 sm:gap-3 p-3 rounded-xl border border-border bg-muted/40 min-w-0">
             <Link
               href={profileHref}
-              className="flex items-center gap-3 min-w-0 group cursor-pointer"
+              className="flex items-center gap-2.5 sm:gap-3 min-w-0 group cursor-pointer flex-1 overflow-hidden"
             >
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={avatarUrl}
                   alt={displayName}
-                  className="size-11 shrink-0 rounded-full object-cover ring-2 ring-blue-500/20 shadow-2xs group-hover:scale-105 transition-transform"
+                  className="size-10 sm:size-11 shrink-0 rounded-full object-cover ring-2 ring-blue-500/20 shadow-2xs group-hover:scale-105 transition-transform"
                 />
               ) : (
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-sm shadow-2xs group-hover:scale-105 transition-transform">
+                <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs sm:text-sm shadow-2xs group-hover:scale-105 transition-transform">
                   {detail.submitterInitials}
                 </div>
               )}
-              <div className="min-w-0 text-left">
+              <div className="min-w-0 flex-1 text-left overflow-hidden">
                 <p className="font-bold text-sm sm:text-base text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {displayName}
                 </p>
@@ -143,36 +143,36 @@ export function ReportSeverityReviewSidebar({
 
           {/* Submitter Stats if available */}
           {stats && (
-            <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted/30 p-2.5 text-center">
-              <div className="space-y-0.5">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground">Reputation</p>
-                <p className="text-xs sm:text-sm font-bold text-foreground flex items-center justify-center gap-1">
-                  <Trophy className="size-3.5 text-amber-500" />
-                  {stats.reputation.toLocaleString()}
+            <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted/30 p-2.5 text-center min-w-0">
+              <div className="space-y-0.5 min-w-0">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground truncate">Reputation</p>
+                <p className="text-xs sm:text-sm font-bold text-foreground flex items-center justify-center gap-1 truncate">
+                  <Trophy className="size-3.5 text-amber-500 shrink-0" />
+                  <span>{stats.reputation.toLocaleString()}</span>
                 </p>
               </div>
-              <div className="space-y-0.5 border-l border-border">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground">Disclosures</p>
-                <p className="text-xs sm:text-sm font-bold text-foreground flex items-center justify-center gap-1">
-                  <ShieldCheck className="size-3.5 text-emerald-500" />
-                  {stats.reportsSubmitted ?? (stats as any).totalReports ?? 0}
+              <div className="space-y-0.5 border-l border-border min-w-0">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground truncate">Disclosures</p>
+                <p className="text-xs sm:text-sm font-bold text-foreground flex items-center justify-center gap-1 truncate">
+                  <ShieldCheck className="size-3.5 text-emerald-500 shrink-0" />
+                  <span>{stats.reportsSubmitted ?? (stats as any).totalReports ?? 0}</span>
                 </p>
               </div>
             </div>
           )}
 
           {/* Location & Metadata */}
-          <div className="flex flex-col gap-1.5 text-xs text-muted-foreground px-1">
+          <div className="flex flex-col gap-1.5 text-xs text-muted-foreground px-1 min-w-0">
             {location && (
               <span className="flex items-center gap-1.5 truncate">
                 <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
-                <span>{location}</span>
+                <span className="truncate">{location}</span>
               </span>
             )}
             {memberSince && (
               <span className="flex items-center gap-1.5 truncate">
                 <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
-                <span>Submitted: {memberSince}</span>
+                <span className="truncate">Submitted: {memberSince}</span>
               </span>
             )}
           </div>
@@ -181,7 +181,7 @@ export function ReportSeverityReviewSidebar({
             <Button
               variant="outline"
               size="sm"
-              className="w-full h-9 rounded-xl border-border bg-card hover:bg-muted font-semibold text-foreground text-xs gap-1.5 cursor-pointer shadow-2xs"
+              className="w-full h-9 rounded-xl border-border bg-card hover:bg-muted font-semibold text-foreground text-xs gap-1.5 cursor-pointer shadow-2xs justify-center"
             >
               <span>View Full Profile</span>
               <ExternalLink className="size-3.5 text-blue-600 dark:text-blue-400" />
@@ -191,54 +191,55 @@ export function ReportSeverityReviewSidebar({
       </Card>
 
       {/* 2. Current Submission Snapshot */}
-      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs">
-        <CardHeader className="gap-2">
-          <CardTitle className="text-xl font-bold text-foreground">
+      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
+        <CardHeader className="gap-2 p-4 sm:p-6 pb-2 sm:pb-2">
+          <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
             Current Submission
           </CardTitle>
-          <p className="text-sm leading-6 text-muted-foreground">
+          <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
             Snapshot of the researcher-submitted severity before the company decision.
           </p>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <div className="rounded-2xl border border-border bg-muted/50 p-4">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-6 pt-0 sm:pt-0 min-w-0">
+          <div className="rounded-2xl border border-border bg-muted/50 p-3.5 sm:p-4 min-w-0">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Submitted severity
             </span>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2.5 flex flex-wrap gap-2">
               <Badge
                 variant="outline"
-                className="border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
+                className="border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs"
               >
                 {detail.severity} ({detail.cvssScore})
               </Badge>
               <Badge
                 variant="outline"
-                className="border-border bg-card text-muted-foreground"
+                className="border-border bg-card text-muted-foreground text-xs"
               >
                 {detail.status}
               </Badge>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-muted/50 p-4">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-muted/50 p-3.5 sm:p-4 min-w-0">
+            <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Reward estimate
             </span>
-            <p className="mt-3 text-lg font-bold text-emerald-600 dark:text-emerald-400">
+            <p className="mt-2 text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate">
               {detail.bountyRange}
             </p>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs">
-        <CardHeader className="gap-2">
-          <CardTitle className="text-xl font-bold text-foreground">
+      {/* 3. Review Checklist */}
+      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
+        <CardHeader className="gap-2 p-4 sm:p-6 pb-2 sm:pb-2">
+          <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
             Review Checklist
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-6 pt-0 sm:pt-0 min-w-0">
           {[
             {
               icon: ShieldCheck,
@@ -261,14 +262,14 @@ export function ReportSeverityReviewSidebar({
             return (
               <div
                 key={item.title}
-                className="flex gap-3 rounded-2xl border border-border bg-muted/50 p-4"
+                className="flex items-start gap-3 rounded-2xl border border-border bg-muted/50 p-3.5 sm:p-4 min-w-0"
               >
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-card text-foreground ring-1 ring-border">
-                  <Icon className="size-5" />
+                <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-card text-foreground ring-1 ring-border mt-0.5">
+                  <Icon className="size-4.5 sm:size-5" />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                  <p className="text-sm leading-6 text-muted-foreground">{item.description}</p>
+                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground truncate">{item.title}</p>
+                  <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">{item.description}</p>
                 </div>
               </div>
             );

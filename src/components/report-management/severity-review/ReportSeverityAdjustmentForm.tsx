@@ -214,7 +214,7 @@ export function ReportSeverityAdjustmentForm({
   // Success State Card View (Executive Resolution Dashboard)
   if (approvalSuccess) {
     return (
-      <Card className="rounded-3xl border border-emerald-500/30 bg-card p-6 sm:p-10 text-card-foreground shadow-2xl overflow-hidden relative">
+      <Card className="rounded-3xl border border-emerald-500/30 bg-card p-4 sm:p-8 md:p-10 text-card-foreground shadow-2xl overflow-hidden relative min-w-0">
         {/* Ambient Top Glow */}
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none" />
 
@@ -222,15 +222,15 @@ export function ReportSeverityAdjustmentForm({
           initial={{ opacity: 0, scale: 0.96, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
-          className="relative z-10 flex flex-col items-center text-center space-y-7"
+          className="relative z-10 flex flex-col items-center text-center space-y-6 sm:space-y-7 min-w-0"
         >
           {/* Animated Hero Badge */}
-          <div className="flex size-20 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-8 ring-emerald-500/10 shadow-lg">
-            <CheckCircle2 className="size-10" />
+          <div className="flex size-16 sm:size-20 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-8 ring-emerald-500/10 shadow-lg shrink-0">
+            <CheckCircle2 className="size-8 sm:size-10" />
           </div>
 
           {/* Title & Tag Strip */}
-          <div className="space-y-3 max-w-2xl">
+          <div className="space-y-2.5 sm:space-y-3 max-w-2xl min-w-0">
             <div className="flex flex-wrap items-center justify-center gap-2">
               <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1 rounded-full shadow-xs">
                 APPROVED & CONFIRMED
@@ -243,10 +243,10 @@ export function ReportSeverityAdjustmentForm({
               </Badge>
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
+            <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground leading-tight break-words">
               Vulnerability Report Approved & Reward Dispatched
             </h2>
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+            <p className="text-xs sm:text-base text-muted-foreground leading-relaxed">
               The submission was formally accepted. Severity was adjusted to{" "}
               <strong className="text-foreground font-bold">{selectedSeverity}</strong>, and an authorized bounty of{" "}
               <strong className="text-emerald-600 dark:text-emerald-400 font-bold">${bountyAmount} USD</strong> has been allocated to{" "}
@@ -261,8 +261,8 @@ export function ReportSeverityAdjustmentForm({
           </div>
 
           {/* 4-Column Executive Metrics Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 w-full text-left">
-            <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 w-full text-left min-w-0">
+            <div className="p-3.5 sm:p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
               <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
                 Final Severity
               </span>
@@ -272,7 +272,7 @@ export function ReportSeverityAdjustmentForm({
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+            <div className="p-3.5 sm:p-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
               <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1 truncate">
                 <Coins className="size-3.5 shrink-0" />
                 <span>Bounty Award</span>
@@ -283,7 +283,7 @@ export function ReportSeverityAdjustmentForm({
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+            <div className="p-3.5 sm:p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
               <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1 truncate">
                 <ShieldCheck className="size-3.5 shrink-0" />
                 <span>Status Outcome</span>
@@ -296,7 +296,7 @@ export function ReportSeverityAdjustmentForm({
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+            <div className="p-3.5 sm:p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
               <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 truncate">
                 <User className="size-3.5 shrink-0" />
                 <span>Researcher</span>
@@ -314,7 +314,7 @@ export function ReportSeverityAdjustmentForm({
           </div>
 
           {/* Audit & Workflow Breakdown Box */}
-          <div className="w-full rounded-2xl border border-border bg-muted/30 p-5 text-left space-y-3.5">
+          <div className="w-full rounded-2xl border border-border bg-muted/30 p-4 sm:p-5 text-left space-y-3.5 min-w-0">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Automated Triage Actions Logged
             </h4>
@@ -345,18 +345,18 @@ export function ReportSeverityAdjustmentForm({
           </div>
 
           {/* Action Toolbar */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2 w-full">
-            <Link href={`/dashboard/report-management/${detail.id}`}>
-              <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-10 px-6 cursor-pointer gap-2 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2 w-full">
+            <Link href={`/dashboard/report-management/${detail.id}`} className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm h-10 px-5 cursor-pointer gap-2 shadow-xs justify-center">
                 <span>View Updated Report Details</span>
                 <ArrowRight className="size-4" />
               </Button>
             </Link>
 
-            <Link href="/dashboard/report-management">
+            <Link href="/dashboard/report-management" className="w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="rounded-xl border-border bg-card font-semibold text-xs h-10 px-4 cursor-pointer gap-2"
+                className="w-full sm:w-auto rounded-xl border-border bg-card font-semibold text-xs sm:text-sm h-10 px-4 cursor-pointer gap-2 justify-center"
               >
                 <ArrowLeft className="size-4" />
                 <span>Return to Report Queue</span>
@@ -367,7 +367,7 @@ export function ReportSeverityAdjustmentForm({
               type="button"
               variant="ghost"
               onClick={handleCopyResolution}
-              className="rounded-xl text-xs h-10 px-3.5 gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+              className="w-full sm:w-auto rounded-xl text-xs sm:text-sm h-10 px-3.5 gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground justify-center"
             >
               {copiedSummary ? (
                 <>
@@ -389,20 +389,20 @@ export function ReportSeverityAdjustmentForm({
 
   if (rejectionSuccess) {
     return (
-      <Card className="rounded-3xl border border-red-500/30 bg-card p-6 sm:p-10 text-card-foreground shadow-2xl overflow-hidden relative">
+      <Card className="rounded-3xl border border-red-500/30 bg-card p-4 sm:p-8 md:p-10 text-card-foreground shadow-2xl overflow-hidden relative min-w-0">
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-red-500/15 blur-3xl rounded-full pointer-events-none" />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
-          className="relative z-10 flex flex-col items-center text-center space-y-7"
+          className="relative z-10 flex flex-col items-center text-center space-y-6 sm:space-y-7 min-w-0"
         >
-          <div className="flex size-20 items-center justify-center rounded-3xl bg-red-500/15 text-red-600 dark:text-red-400 ring-8 ring-red-500/10 shadow-lg">
-            <ShieldX className="size-10" />
+          <div className="flex size-16 sm:size-20 items-center justify-center rounded-3xl bg-red-500/15 text-red-600 dark:text-red-400 ring-8 ring-red-500/10 shadow-lg shrink-0">
+            <ShieldX className="size-8 sm:size-10" />
           </div>
 
-          <div className="space-y-3 max-w-2xl">
+          <div className="space-y-2.5 sm:space-y-3 max-w-2xl min-w-0">
             <div className="flex items-center justify-center gap-2">
               <Badge className="bg-red-600 text-white font-bold text-xs px-3 py-1 rounded-full shadow-xs">
                 REJECTED & CLOSED
@@ -412,30 +412,30 @@ export function ReportSeverityAdjustmentForm({
               </Badge>
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
+            <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground leading-tight break-words">
               Report Submission Rejected
             </h2>
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+            <p className="text-xs sm:text-base text-muted-foreground leading-relaxed">
               Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`} has been marked as rejected. Triage reasoning has been documented and feedback was shared back to researcher <strong>{detail.submitter}</strong>.
             </p>
           </div>
 
           {decisionReason && (
-            <div className="w-full max-w-lg rounded-2xl border border-border bg-muted/40 p-4 text-left text-xs space-y-1">
+            <div className="w-full max-w-lg rounded-2xl border border-border bg-muted/40 p-4 text-left text-xs space-y-1 min-w-0">
               <span className="font-bold text-foreground uppercase tracking-wider text-[10px]">Rejection Reason</span>
               <p className="text-muted-foreground leading-relaxed">{decisionReason}</p>
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <Link href="/dashboard/report-management">
-              <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-10 px-6 cursor-pointer gap-2 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2 w-full">
+            <Link href="/dashboard/report-management" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm h-10 px-6 cursor-pointer gap-2 shadow-xs justify-center">
                 <ArrowLeft className="size-4" />
                 <span>Return to Report Queue</span>
               </Button>
             </Link>
-            <Link href={`/dashboard/report-management/${detail.id}`}>
-              <Button variant="outline" className="rounded-xl border-border bg-card font-semibold text-xs h-10 px-4 cursor-pointer gap-2">
+            <Link href={`/dashboard/report-management/${detail.id}`} className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto rounded-xl border-border bg-card font-semibold text-xs sm:text-sm h-10 px-4 cursor-pointer gap-2 justify-center">
                 <span>View Closed Report</span>
                 <ArrowRight className="size-4" />
               </Button>
@@ -448,24 +448,24 @@ export function ReportSeverityAdjustmentForm({
 
   return (
     <>
-      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs">
-        <CardHeader className="gap-2">
-          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+      <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
+        <CardHeader className="gap-2 p-4 sm:p-6 pb-2 sm:pb-2 min-w-0">
+          <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground break-words">
             Severity Adjustment & Triage Decision
           </CardTitle>
-          <p className="text-base text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Confirm the final company severity rating, award bounty rewards, and provide feedback to the researcher.
           </p>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-6">
+        <CardContent className="flex flex-col gap-5 sm:gap-6 p-4 sm:p-6 pt-0 sm:pt-0 min-w-0">
           {/* 1. Severity Rating Selector */}
-          <FieldGroup>
-            <Field className="rounded-2xl border border-border bg-muted/40 p-5">
-              <FieldLabel className="text-foreground font-semibold text-base">
+          <FieldGroup className="min-w-0">
+            <Field className="rounded-2xl border border-border bg-muted/40 p-4 sm:p-5 min-w-0">
+              <FieldLabel className="text-foreground font-semibold text-sm sm:text-base">
                 1. Select Verified Severity
               </FieldLabel>
-              <FieldContent>
+              <FieldContent className="min-w-0">
                 <ToggleGroup
                   value={[selectedSeverity]}
                   onValueChange={(value) => {
@@ -474,7 +474,7 @@ export function ReportSeverityAdjustmentForm({
                       handleSeverityChange(next as SeverityOption);
                     }
                   }}
-                  className="flex w-full flex-wrap gap-2 mt-2"
+                  className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mt-2 w-full"
                 >
                   {SEVERITY_OPTIONS.map((option) => (
                     <ToggleGroupItem
@@ -482,7 +482,7 @@ export function ReportSeverityAdjustmentForm({
                       value={option}
                       variant="outline"
                       className={cn(
-                        "rounded-xl border px-5 py-2.5 font-semibold text-sm cursor-pointer transition-all",
+                        "rounded-xl border px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-xs sm:text-sm cursor-pointer transition-all w-full flex items-center justify-center text-center",
                         getSeverityClass(option, selectedSeverity === option)
                       )}
                     >
@@ -490,7 +490,7 @@ export function ReportSeverityAdjustmentForm({
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
-                <FieldDescription className="text-muted-foreground mt-3">
+                <FieldDescription className="text-xs sm:text-sm text-muted-foreground mt-3">
                   Claimed researcher severity:{" "}
                   <span className="font-semibold text-foreground">
                     {detail.severity} ({detail.cvssScore})
@@ -504,13 +504,13 @@ export function ReportSeverityAdjustmentForm({
             </Field>
 
             {/* 2. Bounty Allocation (Money only) */}
-            <div className="rounded-2xl border border-border bg-muted/20 p-5">
-              <Field>
-                <FieldLabel htmlFor="bounty-reward" className="text-foreground font-semibold flex items-center gap-1.5">
-                  <DollarSign className="size-4 text-emerald-600 dark:text-emerald-400" />
-                  Bounty Reward Amount (USD) <span className="text-rose-500 font-bold">*</span>
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5 min-w-0">
+              <Field className="min-w-0">
+                <FieldLabel htmlFor="bounty-reward" className="text-foreground font-semibold text-sm sm:text-base flex items-center gap-1.5">
+                  <DollarSign className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Bounty Reward Amount (USD)</span> <span className="text-rose-500 font-bold">*</span>
                 </FieldLabel>
-                <FieldContent className="mt-1.5">
+                <FieldContent className="mt-1.5 min-w-0">
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
                     <Input
@@ -522,10 +522,10 @@ export function ReportSeverityAdjustmentForm({
                       value={bountyAmount}
                       onChange={(e) => setBountyAmount(e.target.value)}
                       placeholder="e.g. 750.00"
-                      className="pl-7 bg-card text-foreground font-semibold text-base"
+                      className="pl-7 bg-card text-foreground font-semibold text-base w-full"
                     />
                   </div>
-                  <FieldDescription className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                  <FieldDescription className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
                     Bounties are money, paid by your organization, and this
                     field is the whole of it. Reputation is separate: DevSolve
                     awards it automatically from the finding&apos;s severity
@@ -536,26 +536,26 @@ export function ReportSeverityAdjustmentForm({
             </div>
 
             {/* 3. Internal Adjustment Explanation */}
-            <Field>
-              <FieldLabel htmlFor="adjustment-explanation" className="text-foreground font-semibold">
+            <Field className="min-w-0">
+              <FieldLabel htmlFor="adjustment-explanation" className="text-foreground font-semibold text-sm sm:text-base">
                 Internal team explanation for adjustment
               </FieldLabel>
-              <FieldContent>
+              <FieldContent className="min-w-0">
                 <Textarea
                   id="adjustment-explanation"
                   value={explanation}
                   onChange={(e) => setExplanation(e.target.value)}
                   placeholder="Document why the severity was adjusted from the initial researcher claim. This note is retained for internal audit and security team records."
-                  className="min-h-28 border border-border bg-card text-foreground text-base focus-visible:ring-1 focus-visible:ring-ring"
+                  className="min-h-28 border border-border bg-card text-foreground text-sm sm:text-base focus-visible:ring-1 focus-visible:ring-ring w-full"
                 />
               </FieldContent>
             </Field>
           </FieldGroup>
 
           {/* 4. Feedback to Researcher Box */}
-          <div className="rounded-3xl border border-border bg-muted/40 p-5 space-y-4">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold">
+          <div className="rounded-2xl sm:rounded-3xl border border-border bg-muted/40 p-4 sm:p-5 space-y-4 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs">
                 Feedback to Researcher
               </Badge>
               <span className="text-xs text-muted-foreground">
@@ -563,12 +563,12 @@ export function ReportSeverityAdjustmentForm({
               </span>
             </div>
 
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="findings-summary" className="text-foreground font-semibold">
+            <FieldGroup className="min-w-0">
+              <Field className="min-w-0">
+                <FieldLabel htmlFor="findings-summary" className="text-foreground font-semibold text-sm sm:text-base">
                   Summary of validation findings (Markdown supported)
                 </FieldLabel>
-                <FieldContent className="mt-2">
+                <FieldContent className="mt-2 min-w-0 max-w-full">
                   <MarkdownEditor
                     id="findings-summary"
                     value={findingsSummary}
@@ -579,32 +579,32 @@ export function ReportSeverityAdjustmentForm({
                 </FieldContent>
               </Field>
 
-              <Field>
-                <FieldLabel htmlFor="decision-reason" className="text-foreground font-semibold">
+              <Field className="min-w-0">
+                <FieldLabel htmlFor="decision-reason" className="text-foreground font-semibold text-sm sm:text-base">
                   Reason for severity determination
                 </FieldLabel>
-                <FieldContent>
+                <FieldContent className="min-w-0">
                   <Textarea
                     id="decision-reason"
                     value={decisionReason}
                     onChange={(e) => setDecisionReason(e.target.value)}
                     placeholder="Explain the impact assessment, prerequisites, and severity rating clearly."
-                    className="min-h-20 border border-border bg-card text-foreground text-base focus-visible:ring-1 focus-visible:ring-ring"
+                    className="min-h-20 border border-border bg-card text-foreground text-sm sm:text-base focus-visible:ring-1 focus-visible:ring-ring w-full"
                   />
                 </FieldContent>
               </Field>
 
-              <Field>
-                <FieldLabel htmlFor="improvement-suggestions" className="text-foreground font-semibold">
+              <Field className="min-w-0">
+                <FieldLabel htmlFor="improvement-suggestions" className="text-foreground font-semibold text-sm sm:text-base">
                   Suggestions for future reports (Optional)
                 </FieldLabel>
-                <FieldContent>
+                <FieldContent className="min-w-0">
                   <Textarea
                     id="improvement-suggestions"
                     value={improvementSuggestions}
                     onChange={(e) => setImprovementSuggestions(e.target.value)}
                     placeholder="Help the researcher submit higher-fidelity reports in future scopes."
-                    className="min-h-20 border border-border bg-card text-foreground text-base focus-visible:ring-1 focus-visible:ring-ring"
+                    className="min-h-20 border border-border bg-card text-foreground text-sm sm:text-base focus-visible:ring-1 focus-visible:ring-ring w-full"
                   />
                 </FieldContent>
               </Field>
@@ -612,16 +612,16 @@ export function ReportSeverityAdjustmentForm({
           </div>
 
           {/* 5. Internal File Attachments */}
-          <div className="rounded-2xl border border-dashed border-blue-500/30 bg-blue-500/5 p-5">
-            <div className="flex flex-col items-center justify-center gap-3 text-center">
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-card text-blue-600 dark:text-blue-400 ring-1 ring-border">
+          <div className="rounded-2xl border border-dashed border-blue-500/30 bg-blue-500/5 p-4 sm:p-5 min-w-0">
+            <div className="flex flex-col items-center justify-center gap-3 text-center min-w-0">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-card text-blue-600 dark:text-blue-400 ring-1 ring-border shrink-0">
                 <CloudUpload className="size-6" />
               </div>
-              <div className="flex flex-col gap-1">
-                <p className="text-base font-semibold text-foreground">
+              <div className="flex flex-col gap-1 min-w-0">
+                <p className="text-sm sm:text-base font-semibold text-foreground">
                   Upload internal notes, logs, or verification screenshots
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Upload logs, validation transcripts, or remediation notes supporting the decision.
                 </p>
               </div>
@@ -630,7 +630,7 @@ export function ReportSeverityAdjustmentForm({
                 className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
               >
                 <FileText className="size-4" />
-                Choose files
+                <span>Choose files</span>
               </label>
               <input
                 id={fileInputId}
@@ -647,12 +647,12 @@ export function ReportSeverityAdjustmentForm({
             </div>
 
             {selectedFiles.length > 0 ? (
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2 max-w-full">
                 {selectedFiles.map((fileName) => (
                   <Badge
                     key={fileName}
                     variant="outline"
-                    className="border-border bg-muted text-muted-foreground"
+                    className="border-border bg-muted text-muted-foreground max-w-full truncate text-xs"
                   >
                     {fileName}
                   </Badge>
@@ -662,23 +662,26 @@ export function ReportSeverityAdjustmentForm({
           </div>
 
           {/* 6. Action Bar */}
-          <div className="flex flex-col gap-4 rounded-2xl border border-border bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-1">
-              <p className="text-base font-semibold text-foreground">
-                Triage Decision for Report #{detail.reportId}
+          <div className="flex flex-col gap-4 rounded-2xl border border-border bg-muted/40 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between min-w-0">
+            <div className="flex flex-col gap-1 min-w-0">
+              <p className="text-sm sm:text-base font-semibold text-foreground truncate">
+                Triage Decision for Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
               </p>
-              <p className="text-sm text-muted-foreground">
-                Target: <span className="font-semibold text-foreground">{selectedSeverity}</span> · Bounty: <span className="font-semibold text-emerald-600 dark:text-emerald-400">${bountyAmount} USD</span>
+              <p className="text-xs sm:text-sm text-muted-foreground flex flex-wrap gap-1 items-center">
+                <span>Target:</span>
+                <span className="font-semibold text-foreground">{selectedSeverity}</span>
+                <span>· Bounty:</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">${bountyAmount} USD</span>
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setShowRejectModal(true)}
                 disabled={isApproving || isRejecting}
-                className="rounded-xl border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 cursor-pointer font-semibold"
+                className="w-full sm:w-auto rounded-xl border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 cursor-pointer font-semibold text-xs sm:text-sm h-10 px-4 justify-center"
               >
                 <ShieldX className="size-4" />
                 <span>Reject Submission</span>
@@ -688,7 +691,7 @@ export function ReportSeverityAdjustmentForm({
                 type="button"
                 onClick={() => setShowApprovalModal(true)}
                 disabled={isApproving || isRejecting}
-                className="rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white cursor-pointer px-5 shadow-xs gap-2"
+                className="w-full sm:w-auto rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white cursor-pointer px-4 sm:px-5 shadow-xs gap-2 text-xs sm:text-sm h-10 justify-center"
               >
                 <CheckCircle2 className="size-4" />
                 <span>Approve Report & Issue Bounty</span>
@@ -702,7 +705,7 @@ export function ReportSeverityAdjustmentForm({
       <AnimatePresence>
         {showApprovalModal && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"
             onClick={() => setShowApprovalModal(false)}
           >
             <motion.div
@@ -710,20 +713,20 @@ export function ReportSeverityAdjustmentForm({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2 }}
-              className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl flex flex-col"
+              className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-border bg-emerald-500/10 px-5 py-4 rounded-t-2xl">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+              <div className="flex items-center justify-between border-b border-border bg-emerald-500/10 px-4 sm:px-5 py-3.5 sm:py-4 shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
                     <CheckCircle2 className="size-5" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-base text-foreground">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-sm sm:text-base text-foreground truncate">
                       Confirm Report Approval
                     </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Report #{detail.reportId}
+                    <p className="text-xs text-muted-foreground font-mono truncate">
+                      Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
                     </p>
                   </div>
                 </div>
@@ -731,18 +734,18 @@ export function ReportSeverityAdjustmentForm({
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowApprovalModal(false)}
-                  className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+                  className="size-8 rounded-lg text-muted-foreground hover:text-foreground shrink-0"
                 >
                   <X className="size-4" />
                 </Button>
               </div>
 
-              <div className="p-5 sm:p-6 space-y-4 text-sm leading-relaxed">
+              <div className="p-4 sm:p-6 space-y-4 text-xs sm:text-sm leading-relaxed overflow-y-auto min-w-0">
                 <p className="text-muted-foreground">
                   You are about to officially approve this vulnerability report and authorize the reward payment to <strong>{detail.submitter}</strong>.
                 </p>
 
-                <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-2.5">
+                <div className="rounded-xl border border-border bg-muted/40 p-3.5 sm:p-4 space-y-2.5 min-w-0">
                   <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-muted-foreground">Final Severity:</span>
                     <Badge className="bg-blue-600 text-white font-bold text-xs">
@@ -761,13 +764,13 @@ export function ReportSeverityAdjustmentForm({
                       href={`/profile/${encodeURIComponent(detail.submitterId || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_"))}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-semibold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline inline-flex items-center gap-1 group"
+                      className="font-semibold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline inline-flex items-center gap-1 group truncate max-w-[200px]"
                       title={`View ${detail.submitter}'s public profile`}
                     >
-                      <span>{detail.submitter}</span>
+                      <span className="truncate">{detail.submitter}</span>
                     </Link>
                   </div>
-                  <p className="text-sm text-muted-foreground pt-1 border-t border-border/70 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-muted-foreground pt-1 border-t border-border/70 leading-relaxed">
                     Bounties are paid directly by your organization. Reputation
                     is separate and automatic: DevSolve awards it on the
                     finding&apos;s severity the moment the report is resolved.
@@ -775,14 +778,14 @@ export function ReportSeverityAdjustmentForm({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 border-t border-border bg-card px-5 py-3.5">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 border-t border-border bg-card px-4 sm:px-5 py-3.5 shrink-0">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowApprovalModal(false)}
                   disabled={isApproving}
-                  className="rounded-xl text-xs h-9 px-4 cursor-pointer"
+                  className="w-full sm:w-auto rounded-xl text-xs h-9 px-4 cursor-pointer justify-center"
                 >
                   Cancel
                 </Button>
@@ -792,7 +795,7 @@ export function ReportSeverityAdjustmentForm({
                   size="sm"
                   onClick={handleConfirmApproval}
                   disabled={isApproving}
-                  className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-5 gap-2 cursor-pointer shadow-xs"
+                  className="w-full sm:w-auto rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-5 gap-2 cursor-pointer shadow-xs justify-center"
                 >
                   {isApproving ? (
                     <>
@@ -816,7 +819,7 @@ export function ReportSeverityAdjustmentForm({
       <AnimatePresence>
         {showRejectModal && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"
             onClick={() => setShowRejectModal(false)}
           >
             <motion.div
@@ -824,20 +827,20 @@ export function ReportSeverityAdjustmentForm({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.2 }}
-              className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col"
+              className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-border bg-red-500/10 px-5 py-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex size-9 items-center justify-center rounded-xl bg-red-500/20 text-red-600 dark:text-red-400">
+              <div className="flex items-center justify-between border-b border-border bg-red-500/10 px-4 sm:px-5 py-3.5 sm:py-4 shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-red-500/20 text-red-600 dark:text-red-400 shrink-0">
                     <ShieldX className="size-5" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-base text-foreground">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-sm sm:text-base text-foreground truncate">
                       Confirm Report Rejection
                     </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Report #{detail.reportId}
+                    <p className="text-xs text-muted-foreground font-mono truncate">
+                      Report {detail.reportId.startsWith("#") ? detail.reportId : `#${detail.reportId}`}
                     </p>
                   </div>
                 </div>
@@ -845,13 +848,13 @@ export function ReportSeverityAdjustmentForm({
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowRejectModal(false)}
-                  className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
+                  className="size-8 rounded-lg text-muted-foreground hover:text-foreground shrink-0"
                 >
                   <X className="size-4" />
                 </Button>
               </div>
 
-              <div className="p-5 sm:p-6 space-y-4 text-sm leading-relaxed">
+              <div className="p-4 sm:p-6 space-y-4 text-xs sm:text-sm leading-relaxed overflow-y-auto min-w-0">
                 <div className="flex items-start gap-2.5 text-xs text-amber-600 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
                   <AlertTriangle className="size-4 shrink-0 mt-0.5" />
                   <span>Are you sure you want to reject this submission? This will close the report and notify <strong>{detail.submitter}</strong>.</span>
@@ -865,19 +868,19 @@ export function ReportSeverityAdjustmentForm({
                     value={decisionReason}
                     onChange={(e) => setDecisionReason(e.target.value)}
                     placeholder="Provide clear rationale (e.g. Out of Scope, Intended Behavior, Duplicate, Missing PoC)."
-                    className="min-h-24 bg-card text-foreground text-sm"
+                    className="min-h-24 bg-card text-foreground text-xs sm:text-sm w-full"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 border-t border-border bg-card px-5 py-3.5">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 border-t border-border bg-card px-4 sm:px-5 py-3.5 shrink-0">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowRejectModal(false)}
                   disabled={isRejecting}
-                  className="rounded-xl text-xs h-9 px-4 cursor-pointer"
+                  className="w-full sm:w-auto rounded-xl text-xs h-9 px-4 cursor-pointer justify-center"
                 >
                   Cancel
                 </Button>
@@ -887,7 +890,7 @@ export function ReportSeverityAdjustmentForm({
                   size="sm"
                   onClick={handleConfirmRejection}
                   disabled={isRejecting}
-                  className="rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs h-9 px-5 gap-2 cursor-pointer shadow-xs"
+                  className="w-full sm:w-auto rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs h-9 px-5 gap-2 cursor-pointer shadow-xs justify-center"
                 >
                   {isRejecting ? (
                     <>
