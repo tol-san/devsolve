@@ -20,14 +20,15 @@ import {
 /* Left-to-right reading order: 2nd (index 1), 1st (index 0), 3rd (index 2) */
 const COLUMNS = [1, 0, 2];
 
-/* Pedestal card heights: 2nd & 3rd place taller main body with subtle, gentle end curve */
+/* Pedestal card heights: taller height & wider layout to eliminate empty padding */
 const RISER_HEIGHTS = [
-  "h-[250px] sm:h-[295px]", // 1st Place (Center - tallest)
-  "h-[180px] sm:h-[220px]", // 2nd Place (Left - taller main body)
-  "h-[180px] sm:h-[220px]", // 3rd Place (Right - taller main body)
+  "h-[250px] sm:h-[335px]", // 1st Place (Center - tallest)
+  "h-[210px] sm:h-[285px]", // 2nd Place (Left)
+  "h-[210px] sm:h-[285px]", // 3rd Place (Right)
 ];
 
-const AVATAR_SIZES = [76, 60, 60];
+/* Equal avatar sizes across 1st, 2nd, and 3rd place */
+const AVATAR_SIZES = [68, 68, 68];
 const BUILD_DELAY = [0.34, 0.06, 0.2];
 
 /** Points tick up once on mount */
@@ -193,10 +194,11 @@ function PodiumColumn({
 
   const rankBadgeText = place === 0 ? "1ST" : place === 1 ? "2ND" : "3RD";
 
+  /* Content padding positioning rank badges cleanly inside pedestal fill */
   const contentPadding = {
     0: "pt-4 pb-3.5",
-    1: "pt-8 sm:pt-9 pb-3.5",
-    2: "pt-8 sm:pt-9 pb-3.5",
+    1: "pt-9 sm:pt-11 pb-3",
+    2: "pt-9 sm:pt-11 pb-3",
   }[place];
 
   return (
@@ -270,7 +272,7 @@ function PodiumColumn({
               {entry.displayName}
             </p>
 
-            <div className="mt-1 flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-medium text-muted-foreground">
+            <div className="mt-1 hidden sm:flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-medium text-muted-foreground">
               {flagCode ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -290,7 +292,7 @@ function PodiumColumn({
 
         {/* ── BOTTOM CONNECTED RISER PEDESTAL CARD ── */}
         <div className={`relative w-full ${RISER_HEIGHTS[place]}`}>
-          {/* 2nd Place Single SVG Background (Soft desaturated eye-friendly indigo gradient) */}
+          {/* 2nd Place Single SVG Background (Top line at y=20 for a close, tight gap below profile) */}
           {place === 1 && (
             <svg
               viewBox="0 0 100 200"
@@ -305,13 +307,13 @@ function PodiumColumn({
                 </linearGradient>
               </defs>
               <path
-                d="M 0,65 C 0,35 15,22 36,22 L 78,22 C 90,22 98,10 100,0 L 100,200 L 0,200 Z"
+                d="M 0,55 C 0,35 15,20 36,20 L 80,20 C 90,20 97,16 100,12 L 100,200 L 0,200 Z"
                 fill="url(#podium-2nd-grad-full)"
               />
             </svg>
           )}
 
-          {/* 3rd Place Single SVG Background (Soft desaturated eye-friendly rose gradient) */}
+          {/* 3rd Place Single SVG Background (Top line at y=20 for a close, tight gap below profile) */}
           {place === 2 && (
             <svg
               viewBox="0 0 100 200"
@@ -326,7 +328,7 @@ function PodiumColumn({
                 </linearGradient>
               </defs>
               <path
-                d="M 0,0 C 2,10 10,22 22,22 L 64,22 C 85,22 100,35 100,65 L 100,200 L 0,200 Z"
+                d="M 0,12 C 3,16 10,20 20,20 L 64,20 C 85,20 100,35 100,55 L 100,200 L 0,200 Z"
                 fill="url(#podium-3rd-grad-full)"
               />
             </svg>
@@ -378,34 +380,34 @@ function PodiumColumn({
             </div>
 
             {/* Bottom Metrics Box (Soft white glass backdrop for all 3 pedestals with white text) */}
-            <div className="w-[94%] sm:w-[90%] max-w-[220px] rounded-2xl py-1.5 sm:py-2 px-1 backdrop-blur-xs bg-white/20 shadow-2xs text-white">
+            <div className="w-[94%] sm:w-[90%] max-w-[220px] rounded-2xl py-1 sm:py-2 px-1 backdrop-blur-xs bg-white/20 shadow-2xs text-white">
               <div className="grid grid-cols-3 divide-x divide-white/25 text-center">
                 {/* Valid */}
                 <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
-                  <span className="text-sm sm:text-base font-black leading-tight text-white drop-shadow-xs">
+                  <span className="text-xs sm:text-base font-black leading-tight text-white drop-shadow-xs">
                     {formatNumber(entry.validReports ?? 0)}
                   </span>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
+                  <span className="hidden sm:block text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
                     valid
                   </span>
                 </div>
 
                 {/* Critical */}
                 <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
-                  <span className="text-sm sm:text-base font-black leading-tight text-white drop-shadow-xs">
+                  <span className="text-xs sm:text-base font-black leading-tight text-white drop-shadow-xs">
                     {formatNumber(entry.criticalReports)}
                   </span>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
+                  <span className="hidden sm:block text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
                     critical
                   </span>
                 </div>
 
                 {/* Recognitions all-time; findings inside a window */}
                 <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
-                  <span className="text-sm sm:text-base font-black leading-tight text-white drop-shadow-xs">
+                  <span className="text-xs sm:text-base font-black leading-tight text-white drop-shadow-xs">
                     {formatNumber(entry.recognitionCount)}
                   </span>
-                  <span className="text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
+                  <span className="hidden sm:block text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
                     {RANKED_COUNT_LABEL[period].plural}
                   </span>
                 </div>
@@ -450,7 +452,7 @@ export default function LeaderboardPodium({
         </p>
       </div>
 
-      <div className="relative overflow-hidden rounded-3xl bg-card border border-border/50 p-3 pb-0 pt-8 sm:p-8 sm:pb-0 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl bg-card border border-border/50 p-2 pb-0 pt-5 sm:p-4 sm:pb-0 sm:pt-6 shadow-sm">
         {/* Floating Confetti Accents */}
         <FloatingConfetti />
 
@@ -462,8 +464,8 @@ export default function LeaderboardPodium({
           DevSolve
         </span>
 
-        {/* 3 Columns Flex with zero gap (gap-0) so pedestals connect seamlessly into a wave */}
-        <div className="relative flex items-end justify-center w-full max-w-4xl mx-auto gap-0 pt-2">
+        {/* 3 Columns Flex expanding across max-w-6xl to fill outer container completely */}
+        <div className="relative flex items-end justify-center w-full max-w-6xl mx-auto gap-0 pt-2">
           {COLUMNS.map((place) => (
             <PodiumColumn
               key={podium[place].id}
