@@ -87,6 +87,15 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
   const target = program ?? organization;
   const targetHref = program ? programHref : organizationHref;
 
+  const recTitle =
+    typeof activity.recognition === "string"
+      ? activity.recognition
+      : activity.recognition?.title;
+  const recDesc =
+    typeof activity.recognition === "object"
+      ? activity.recognition?.description
+      : undefined;
+
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 sm:p-5.5 shadow-xs transition-all duration-200 hover:border-border hover:shadow-md">
       {/* Severity rail indicator */}
@@ -227,7 +236,7 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
             </div>
           </div>
 
-          {/* Finding Title or Disclosure State */}
+          {/* Finding Title, Disclosure State, or Recognition */}
           {activity.disclosureStatus === "DISCLOSED" && activity.title ? (
             <h3 className="text-base sm:text-lg font-bold leading-snug tracking-tight text-foreground text-pretty transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
               {activity.title}
@@ -243,23 +252,22 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
                 — awaiting public release by program
               </span>
             </div>
-          ) : (
-            <div className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-muted/40 px-3 py-1.5 text-xs sm:text-sm font-medium text-muted-foreground">
-              <Lock aria-hidden className="size-4 shrink-0 text-muted-foreground/80" />
-              <span className="font-medium text-foreground/80">
-                Undisclosed finding
-              </span>
-              <span className="text-xs text-muted-foreground/70 font-normal hidden sm:inline">
-                — vulnerability details remain confidential
-              </span>
-            </div>
-          )}
+          ) : null}
 
-          {activity.recognition ? (
-            <p className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground">
-              <Sparkles aria-hidden className="size-3.5 shrink-0 text-amber-500" />
-              <span className="truncate">{activity.recognition}</span>
-            </p>
+          {/* Recognition Title & Gratitude Note */}
+          {recTitle ? (
+            <div className="space-y-2">
+              <p className="flex items-center gap-1.5 text-sm sm:text-base font-semibold text-foreground">
+                <Sparkles aria-hidden className="size-4 shrink-0 text-amber-500" />
+                <span>{recTitle}</span>
+              </p>
+
+              {recDesc ? (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10 p-3 text-xs sm:text-sm font-medium text-foreground leading-relaxed">
+                  &ldquo;{recDesc}&rdquo;
+                </div>
+              ) : null}
+            </div>
           ) : null}
 
           {/* Classification Tags & Metadata */}

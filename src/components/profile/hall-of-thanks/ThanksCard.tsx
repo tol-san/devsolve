@@ -7,7 +7,6 @@ import {
   Building2,
   Clock,
   ExternalLink,
-  Lock,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -121,26 +120,15 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
           </div>
         </div>
 
-        {/* Confidentiality Status Pill */}
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-xl border border-border/80 bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-            <Lock className="size-3.5 text-muted-foreground/80" />
-            <span className="font-medium text-foreground/80">Undisclosed finding</span>
-            <span className="text-xs text-muted-foreground/70 font-normal hidden sm:inline">
-              — vulnerability details remain confidential
-            </span>
-          </div>
-        </div>
-
         {/* Accolade Title */}
-        <div className="flex items-center gap-2 text-sm sm:text-base font-semibold text-foreground">
+        <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-foreground">
           <Sparkles className="size-4 text-amber-500 shrink-0" />
           <span>{recognition.title}</span>
         </div>
 
-        {/* Company Gratitude Message / Note (if any) */}
+        {/* Company Gratitude Message / Note */}
         {recognition.description && (
-          <div className="p-3.5 rounded-xl border border-border/70 bg-muted/30 text-xs sm:text-sm text-foreground/90 leading-relaxed italic">
+          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10 p-3.5 text-sm sm:text-base font-medium text-foreground leading-relaxed">
             &ldquo;{recognition.description}&rdquo;
           </div>
         )}

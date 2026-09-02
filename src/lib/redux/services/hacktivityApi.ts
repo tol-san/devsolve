@@ -102,7 +102,13 @@ function toActivity(entry: HacktivityApiEntry): HacktivityActivity {
     disclosureStatus,
     isDisclosed,
     reportId: entry.report?.id,
-    recognition: entry.recognition?.title?.trim() || undefined,
+    recognition: entry.recognition
+      ? {
+          id: entry.recognition.id,
+          title: entry.recognition.title?.trim(),
+          description: entry.recognition.description?.trim(),
+        }
+      : null,
     reward: rewardOf(entry.reward),
   };
 }

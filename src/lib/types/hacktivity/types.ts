@@ -138,7 +138,11 @@ export interface HacktivityActivity {
   isDisclosed: boolean;
   /** The report behind the row, present whether or not it may be named. */
   reportId?: string;
-  recognition?: string;
+  recognition?: {
+    id?: string;
+    title?: string;
+    description?: string;
+  } | null;
   reward: Reward;
 }
 

@@ -68,18 +68,35 @@ function Description({ activity }: { activity: HacktivityActivity }) {
   );
 
   switch (activity.eventType) {
-    case "RECOGNITION_AWARDED":
+    case "RECOGNITION_AWARDED": {
+      const title =
+        typeof activity.recognition === "string"
+          ? activity.recognition
+          : activity.recognition?.title;
+      const desc =
+        typeof activity.recognition === "object"
+          ? activity.recognition?.description
+          : undefined;
+
       return (
-        <p className="text-sm text-foreground">
-          Was recognised
-          <Target activity={activity} />
-          {activity.recognition && (
-            <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
-              {activity.recognition}
-            </span>
+        <div className="space-y-1">
+          <p className="text-sm text-foreground">
+            Was recognised
+            <Target activity={activity} />
+            {title && (
+              <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                {title}
+              </span>
+            )}
+          </p>
+          {desc && (
+            <p className="text-xs text-muted-foreground italic">
+              &ldquo;{desc}&rdquo;
+            </p>
           )}
-        </p>
+        </div>
       );
+    }
 
     case "BOUNTY_AWARDED":
       return (
