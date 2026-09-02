@@ -12,8 +12,14 @@ const rawBaseQuery = fetchBaseQuery({
   // which adds the Bearer token and forwards server-to-server to the backend.
   // Never point directly at NEXT_PUBLIC_BACKEND_API_URL from the client.
   baseUrl: "/api",
-  // Upstream VirusTotal scanning blocks on attachment uploads and report submissions,
-  // taking up to ~95s on never-seen files. Setting a 120s timeout prevents premature client aborts.
+  /* Sized for the slowest thing a request can legitimately do, which is now
+     sending a 10 MiB attachment over a poor connection — not scanning.
+     Uploads used to block on VirusTotal polling for up to ~95s on a file it
+     had never seen; the guard now asks by hash, submits unrecognised content
+     once, and collects the verdict in the background, so that wait is gone.
+     The ceiling is kept rather than tightened: it costs nothing on a request
+     that finishes, and lowering it would abort large uploads that are merely
+     slow. */
   timeout: 120000,
   prepareHeaders: async (headers) => {
     // The token lives with better-auth against the session cookie, not in

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { attachmentUrl } from "@/lib/api/attachment-url";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "motion/react";
@@ -563,8 +564,12 @@ function Loaded({
                         /\.(png|jpe?g|webp|gif|svg)$/i.test(
                           file.originalFileName || file.downloadUrl || "",
                         );
+                      /* `downloadUrl` arrives relative (`/api/v1/…`), so it
+                         used to win this `||` and resolve against our own
+                         origin — the constructed path below was never
+                         reached. It is mapped onto the same proxy route now. */
                       const fileUrl =
-                        file.downloadUrl ||
+                        attachmentUrl(file.downloadUrl) ||
                         (file.id && id
                           ? `/api/problems/${id}/attachments/${file.id}/download`
                           : undefined);

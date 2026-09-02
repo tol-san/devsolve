@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { attachmentUrl } from "@/lib/api/attachment-url";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
@@ -432,7 +433,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                     file.fileName || file.downloadUrl || "",
                   );
                 const fileUrl =
-                  file.downloadUrl ||
+                  attachmentUrl(file.downloadUrl) ||
                   (file.id && solution.id
                     ? `/api/solutions/${solution.id}/attachments/${file.id}/download`
                     : undefined);

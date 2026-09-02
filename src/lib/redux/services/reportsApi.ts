@@ -14,6 +14,7 @@ import {
   toApiSeverity,
   type ApiSeverity as SharedApiSeverity,
 } from "@/lib/reports/severity";
+import { attachmentUrl } from "@/lib/api/attachment-url";
 import {
   ReportItem,
   ReportsFilterParams,
@@ -458,7 +459,14 @@ function toReportDetail(
         ? `${Math.round((att.sizeBytes || att.fileSize || att.size || 0) / 1024)} KB`
         : undefined,
     type: att.mimeType || att.contentType || att.type || "file",
-    url: att.downloadUrl || (att as any).fileUrl || (att as any).url || undefined,
+    /* Mapped onto our own download route. The upstream sends a relative
+       `/api/v1/…` path, which in an `<img src>` resolves against this origin
+       and 404s — and a report's attachments are private, so the proxy is also
+       what supplies the caller's token. */
+    url:
+      attachmentUrl(
+        att.downloadUrl || (att as any).fileUrl || (att as any).url,
+      ) || undefined,
   }));
 
   const description =

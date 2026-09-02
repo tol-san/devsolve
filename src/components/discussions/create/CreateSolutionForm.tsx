@@ -43,6 +43,7 @@ import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import {
   useCreateSolutionMutation,
   useUploadSolutionAttachmentMutation,
+  useDeleteSolutionAttachmentMutation,
   useUpdateSolutionMutation,
   type SolutionResponse,
 } from "@/lib/redux/services/solutionsApi";
@@ -65,7 +66,11 @@ import {
   type AttachedFile,
 } from "@/components/reports/FileUploadDropzone";
 import { ContentScanStatus } from "@/components/security/ContentScanStatus";
-import { contentScanErrorMessage } from "@/lib/api/error-message";
+import { ExistingAttachments } from "@/components/discussions/create/ExistingAttachments";
+import {
+  apiErrorMessage,
+  contentScanErrorMessage,
+} from "@/lib/api/error-message";
 
 /**
  * Answering a problem, on its own page.
@@ -127,6 +132,33 @@ export function CreateSolutionForm({
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
 
   const isEdit = Boolean(solution);
+  const [deleteAttachment] = useDeleteSolutionAttachmentMutation();
+
+  /**
+   * Removing a stored file from this answer.
+   *
+   * Sends the answer's current `version` as `If-Match`, which this endpoint
+   * requires: if someone else has edited the answer since this form loaded,
+   * the delete is refused with a 412 rather than applied to a stale view.
+   */
+  const handleRemoveAttachment = async (attachmentId: string) => {
+    if (!solution?.id) return;
+    try {
+      await deleteAttachment({
+        solutionId: solution.id,
+        version: solution.version ?? 0,
+        attachmentId,
+      }).unwrap();
+      toast.success("Attachment removed");
+    } catch (error) {
+      toast.error("That attachment could not be removed", {
+        description: apiErrorMessage(
+          error,
+          "The answer service did not respond. Nothing was deleted.",
+        ),
+      });
+    }
+  };
   const submitting = creating || saving || uploading;
 
   const back = cancelHref ?? `/community/${problemId}`;
@@ -822,10 +854,22 @@ export function CreateSolutionForm({
                   </h2>
                 </CardTitle>
                 <CardDescription>
-                  Optional evidence is scanned before it is stored with your answer.
+                  Optional evidence is checked against known threats before it
+                  is stored. Anything new to our scanner finishes checking
+                  shortly after upload.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
+                {/* Same gap as the problem editor: the dropzone holds only
+                    this session's picks, so stored evidence was invisible. */}
+                {solution?.attachments?.length ? (
+                  <ExistingAttachments
+                    attachments={solution.attachments}
+                    disabled={submitting}
+                    onRemove={handleRemoveAttachment}
+                  />
+                ) : null}
+
                 <FileUploadDropzone
                   files={attachedFiles}
                   onAddFiles={(files) => setAttachedFiles((current) => [...current, ...files])}

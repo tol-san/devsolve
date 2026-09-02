@@ -69,7 +69,20 @@ export function extractScanErrorDetails(error: unknown): ExtractedScanDetails | 
   return null;
 }
 
-/** Friendly, actionable copy for the statuses returned by content scanning. */
+/**
+ * Friendly, actionable copy for the statuses content scanning returns.
+ *
+ * The guard no longer waits for a verdict. It asks VirusTotal about the file's
+ * hash — which is the check that catches malware, since a file is known-bad
+ * precisely because someone submitted it before — and anything unrecognised is
+ * submitted once and let through, with the verdict collected in the
+ * background. So the statuses a person can actually hit changed shape:
+ *
+ * - `422` still means refused before a byte was stored: the hash is known bad.
+ * - `429` / `503` now mean VirusTotal refused the *submission*, which is the
+ *   failure to expect on a rate-limited key.
+ * - `504` should be rare, as nothing polls for a verdict in line any more.
+ */
 export function contentScanErrorMessage(
   error: unknown,
   subject = "This content",
@@ -92,16 +105,19 @@ export function contentScanErrorMessage(
         const verdictText = details.verdict ? ` [${details.verdict}]` : "";
         return `${subject} was rejected by security scanning${verdictText}${countsText}.`;
       }
-      return `${subject} was flagged as unsafe by security scanning and was not accepted.`;
+      return `${subject} matches a known threat and was not stored.`;
     }
     case 429:
-      return "VirusTotal is rate-limited right now. Wait a minute, then try again.";
+      return "Security scanning is rate-limited right now, so this could not be checked. Wait a minute, then try again.";
     case 502:
-      return "The security scanning service is temporarily unavailable. Your content was not accepted; try again shortly.";
+      return "The security scanning service is unreachable. Your content was not accepted; try again shortly.";
+    /* Was "not configured — proceeding with standard upload", which both
+       contradicted the refusal it accompanies and no longer describes what
+       this status means: the scanner declined to take the file. */
     case 503:
-      return "VirusTotal scanning is not configured on this environment. Proceeding with standard upload.";
+      return "The security scanning service would not accept this file. Your content was not stored; try again shortly.";
     case 504:
-      return "VirusTotal did not return a final verdict in time. Your content was not accepted; try again shortly.";
+      return "Security scanning did not answer in time. Your content was not accepted; try again shortly.";
     default:
       return backendMessage || `${subject} could not be checked or uploaded.`;
   }

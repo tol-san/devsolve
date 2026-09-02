@@ -213,6 +213,29 @@ export const solutionsApi = baseApi.injectEndpoints({
     }),
 
     /**
+     * Removing one stored file from an answer.
+     *
+     * Immediate, like the problem equivalent, and additionally guarded: this
+     * endpoint requires `If-Match`, so a version that has moved on is refused
+     * with a 412 rather than quietly deleting from a stale view. Quoted the
+     * way the upstream ETag is, matching the upload above.
+     */
+    deleteSolutionAttachment: builder.mutation<
+      void,
+      { solutionId: string; version: number; attachmentId: string }
+    >({
+      query: ({ solutionId, version, attachmentId }) => ({
+        url: `/solutions/${solutionId}/attachments/${attachmentId}`,
+        method: "DELETE",
+        headers: { "If-Match": `"${version}"` },
+      }),
+      invalidatesTags: (_result, _error, { solutionId }) => [
+        { type: "Solution", id: solutionId },
+        { type: "Solution", id: "MINE" },
+      ],
+    }),
+
+    /**
      * One answer in full for the edit form.
      *
      * The public detail endpoint keeps returning the last approved copy while
@@ -345,6 +368,7 @@ export const {
   useGetMyProfileQuery,
   useCreateSolutionMutation,
   useUploadSolutionAttachmentMutation,
+  useDeleteSolutionAttachmentMutation,
   useUpdateSolutionMutation,
   useDeleteSolutionMutation,
 } = solutionsApi;

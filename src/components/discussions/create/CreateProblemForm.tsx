@@ -59,6 +59,7 @@ import {
   useCreateProblemMutation,
   useSubmitProblemMutation,
   useUploadProblemAttachmentMutation,
+  useDeleteProblemAttachmentMutation,
   useUpdateProblemMutation,
   type ProblemResponse,
 } from "@/lib/redux/services/problemsApi";
@@ -74,12 +75,16 @@ import {
   type ProblemType,
 } from "@/lib/validations/problem";
 import { cn } from "@/lib/utils";
+import { ExistingAttachments } from "@/components/discussions/create/ExistingAttachments";
 import {
   FileUploadDropzone,
   type AttachedFile,
 } from "@/components/reports/FileUploadDropzone";
 import { ContentScanStatus } from "@/components/security/ContentScanStatus";
-import { contentScanErrorMessage } from "@/lib/api/error-message";
+import {
+  apiErrorMessage,
+  contentScanErrorMessage,
+} from "@/lib/api/error-message";
 
 type ProblemFormInput = z.input<typeof createProblemFormSchema>;
 type ProblemFormValues = z.output<typeof createProblemFormSchema>;
@@ -179,6 +184,27 @@ export function CreateProblemForm({
 }: CreateProblemFormProps) {
   const router = useRouter();
   const isEdit = Boolean(problem);
+  const [deleteAttachment] = useDeleteProblemAttachmentMutation();
+
+  /**
+   * Removing a stored file. It leaves the problem immediately — the editor
+   * says so before asking — and the refreshed problem arrives through the
+   * invalidated tag, which is what takes the row off the list.
+   */
+  const handleRemoveAttachment = async (attachmentId: string) => {
+    if (!problem?.id) return;
+    try {
+      await deleteAttachment({ problemId: problem.id, attachmentId }).unwrap();
+      toast.success("Attachment removed");
+    } catch (error) {
+      toast.error("That attachment could not be removed", {
+        description: apiErrorMessage(
+          error,
+          "The problem service did not respond. Nothing was deleted.",
+        ),
+      });
+    }
+  };
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [tagDraft, setTagDraft] = useState("");
   const [tagDraftError, setTagDraftError] = useState<string | null>(null);
@@ -1258,10 +1284,23 @@ export function CreateProblemForm({
                   </h2>
                 </CardTitle>
                 <CardDescription>
-                  Optional files are security-scanned before the problem is sent to review.
+                  Optional files are checked against known threats before they
+                  are stored. Anything new to our scanner finishes checking
+                  shortly after upload.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
+                {/* What is already stored. The dropzone below can only hold
+                    files picked in this session, so without this an author
+                    editing a problem saw none of their own evidence. */}
+                {problem?.attachments?.length ? (
+                  <ExistingAttachments
+                    attachments={problem.attachments}
+                    disabled={submitting}
+                    onRemove={handleRemoveAttachment}
+                  />
+                ) : null}
+
                 <FileUploadDropzone
                   files={attachedFiles}
                   onAddFiles={(files) => setAttachedFiles((current) => [...current, ...files])}

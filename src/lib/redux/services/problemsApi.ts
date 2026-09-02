@@ -154,6 +154,28 @@ export const problemsApi = baseApi.injectEndpoints({
       ],
     }),
 
+    /**
+     * Removing one stored file from a problem.
+     *
+     * Takes effect at once rather than on save: there is no draft of an
+     * attachment list to reconcile, so the editor must say so before asking.
+     * The refreshed problem is re-read through the invalidated tag, which is
+     * what drops the row from the editor's list.
+     */
+    deleteProblemAttachment: builder.mutation<
+      void,
+      { problemId: string; attachmentId: string }
+    >({
+      query: ({ problemId, attachmentId }) => ({
+        url: `/problems/${problemId}/attachments/${attachmentId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, { problemId }) => [
+        { type: "Problem", id: problemId },
+        { type: "Problem", id: "MINE" },
+      ],
+    }),
+
     /** GET /api/problems/{id} -> GET /api/v1/problems/{id}. */
     getProblemById: builder.query<ProblemResponse, string>({
       query: (id) => `/problems/${id}`,
@@ -294,6 +316,7 @@ export const {
   useCreateProblemMutation,
   useCreateProblemDraftMutation,
   useUploadProblemAttachmentMutation,
+  useDeleteProblemAttachmentMutation,
   useUpdateProblemMutation,
   useSubmitProblemMutation,
   useGetProblemByIdQuery,

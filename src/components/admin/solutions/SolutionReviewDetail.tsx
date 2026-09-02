@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { attachmentUrl } from "@/lib/api/attachment-url";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
@@ -351,6 +352,7 @@ export function SolutionReviewDetail({ id }: { id: string }) {
                       /\.(png|jpe?g|webp|gif|svg)$/i.test(
                         file.originalFileName || file.downloadUrl || "",
                       );
+                    const fileUrl = attachmentUrl(file.downloadUrl);
 
                     return (
                       <div
@@ -367,14 +369,18 @@ export function SolutionReviewDetail({ id }: { id: string }) {
                               .join(" · ") || "—"}
                           </p>
                         </div>
-                        {file.downloadUrl?.startsWith("https://") && (
+                        {/* Was gated on `startsWith("https://")`, which no
+                            relative `downloadUrl` ever satisfied — so preview
+                            and download were hidden on every attachment the
+                            API returned. */}
+                        {fileUrl && (
                           <div className="flex items-center gap-2">
                             {isImg && (
                               <button
                                 type="button"
                                 onClick={() =>
                                   setPreviewImage({
-                                    src: file.downloadUrl!,
+                                    src: fileUrl,
                                     alt: file.originalFileName ?? "Attachment",
                                     title:
                                       file.originalFileName ??
@@ -391,7 +397,7 @@ export function SolutionReviewDetail({ id }: { id: string }) {
                               </button>
                             )}
                             <a
-                              href={file.downloadUrl}
+                              href={fileUrl}
                               target="_blank"
                               rel="noreferrer noopener"
                               className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-700 transition hover:bg-white dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"

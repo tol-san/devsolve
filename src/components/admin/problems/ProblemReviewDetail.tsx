@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { attachmentUrl } from "@/lib/api/attachment-url";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
@@ -269,7 +270,7 @@ export function ProblemReviewDetail({ id }: { id: string }) {
                       file.originalFileName || file.downloadUrl || "",
                     );
                   const fileUrl =
-                    file.downloadUrl ||
+                    attachmentUrl(file.downloadUrl) ||
                     (file.id && problem.id
                       ? `/api/problems/${problem.id}/attachments/${file.id}/download`
                       : undefined);
