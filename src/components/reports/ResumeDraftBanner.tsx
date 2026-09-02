@@ -71,12 +71,12 @@ export function ResumeDraftBanner({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex flex-wrap shrink-0 items-center gap-2 w-full sm:w-auto justify-end">
         <Button
           type="button"
           size="sm"
           onClick={onResume}
-          className="cursor-pointer rounded-xl"
+          className="cursor-pointer rounded-xl flex-1 sm:flex-initial"
         >
           <Check data-icon="inline-start" />
           Resume
@@ -86,7 +86,7 @@ export function ResumeDraftBanner({
           size="sm"
           variant="ghost"
           onClick={onDiscard}
-          className="cursor-pointer rounded-xl text-blue-900/70 hover:bg-blue-100 hover:text-blue-900 dark:text-blue-300/80 dark:hover:bg-blue-500/20 dark:hover:text-blue-200"
+          className="cursor-pointer rounded-xl text-blue-900/70 hover:bg-blue-100 hover:text-blue-900 dark:text-blue-300/80 dark:hover:bg-blue-500/20 dark:hover:text-blue-200 flex-1 sm:flex-initial"
         >
           <X data-icon="inline-start" />
           Start fresh

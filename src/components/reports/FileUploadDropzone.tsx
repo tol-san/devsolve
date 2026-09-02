@@ -149,13 +149,11 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
 
   return (
     <div className="space-y-3 font-sans">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
         <label className="text-sm font-semibold text-foreground">
           Attachments & Evidence <span className="text-muted-foreground font-normal">(Optional)</span>
         </label>
-        <span className="text-sm text-muted-foreground font-medium">
-          PDF, Word, images, TXT, LOG · 10 MiB each
-        </span>
+        <span className="text-xs sm:text-sm text-muted-foreground font-medium">PDF, Word, images, TXT, LOG · 10 MiB each</span>
       </div>
 
       {/* Hidden File Input */}
@@ -175,7 +173,7 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
         onDrop={handleDrop}
         onClick={() => !disabled && fileInputRef.current?.click()}
         aria-disabled={disabled || activeFiles.length >= maxFiles}
-        className="border-2 border-dashed border-border hover:border-primary bg-muted/40 rounded-2xl p-6 text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-2 group aria-disabled:pointer-events-none aria-disabled:opacity-60 shadow-2xs"
+        className="border-2 border-dashed border-border hover:border-primary bg-muted/40 rounded-2xl p-5 sm:p-6 text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-2 group aria-disabled:pointer-events-none aria-disabled:opacity-60"
       >
         <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform shadow-2xs">
           <UploadCloud className="w-6 h-6" />
@@ -184,7 +182,7 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
           <p className="text-sm font-semibold text-foreground">
             Click to upload or drag & drop evidence
           </p>
-          <p className="text-sm text-muted-foreground font-medium">
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium">
             Attach screenshots, HTTP raw request logs, or PoC code files
           </p>
         </div>

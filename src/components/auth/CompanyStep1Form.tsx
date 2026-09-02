@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CustomSelect } from "@/components/auth/CustomSelect";
 import { JOB_TITLES } from "@/lib/constants/auth";
+import { cn } from "@/lib/utils";
 import type { CompanyRegisterFormValues } from "@/lib/validations/auth";
 
 interface CompanyStep1FormProps {
@@ -43,7 +44,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
     Boolean(confirmPassword && confirmPassword.length >= 8) &&
     Boolean(agreeTermsStep1);
 
-
   return (
     <motion.form
       key="step1"
@@ -59,10 +59,10 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
     >
       {/* Header */}
       <div className="mb-6 text-center sm:text-left">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
           Create your account
         </h1>
-        <p className="text-slate-500 text-sm sm:text-base mt-1 font-medium">
+        <p className="text-muted-foreground text-sm sm:text-base mt-1 font-medium">
           Welcome to the technical elite. Begin your journey today.
         </p>
       </div>
@@ -71,26 +71,27 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       <div>
         <Label
           htmlFor="fullName"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          FULL NAME <span className="text-red-500">*</span>
+          FULL NAME <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <User className="w-4 h-4" />
-          </div>
           <Input
             id="fullName"
             type="text"
             placeholder="Tada Battambang"
             {...register("fullName")}
-            className={`w-full h-11 pl-10 pr-4 bg-white border ${
-              errors.fullName ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-            } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+            className={cn(
+              "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.fullName ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+            )}
           />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+            <User className="size-4" />
+          </div>
         </div>
         {errors.fullName && (
-          <p className="text-xs text-red-500 mt-1">{errors.fullName.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.fullName.message}</p>
         )}
       </div>
 
@@ -98,22 +99,22 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       <div>
         <Label
           htmlFor="jobTitle"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          JOB TITLE <span className="text-red-500">*</span>
+          JOB TITLE <span className="text-destructive">*</span>
         </Label>
         <CustomSelect
           value={jobTitle}
           options={JOB_TITLES}
           placeholder="Select job title (e.g. IT Company)"
-          icon={<Briefcase className="w-4 h-4" />}
+          icon={<Briefcase className="size-4" />}
           error={Boolean(errors.jobTitle)}
           onSelect={(selectedVal) => {
             setValue("jobTitle", selectedVal, { shouldValidate: true });
           }}
         />
         {errors.jobTitle && (
-          <p className="text-xs text-red-500 mt-1">{errors.jobTitle.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.jobTitle.message}</p>
         )}
       </div>
 
@@ -121,26 +122,27 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       <div>
         <Label
           htmlFor="email"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          WORK EMAIL <span className="text-red-500">*</span>
+          WORK EMAIL <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Mail className="w-4 h-4" />
-          </div>
           <Input
             id="email"
             type="email"
             placeholder="tada@battambang.org"
             {...register("email")}
-            className={`w-full h-11 pl-10 pr-4 bg-white border ${
-              errors.email ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-            } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+            className={cn(
+              "w-full h-11 pl-10 pr-4 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.email ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+            )}
           />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+            <Mail className="size-4" />
+          </div>
         </div>
         {errors.email && (
-          <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.email.message}</p>
         )}
       </div>
 
@@ -148,33 +150,34 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       <div>
         <Label
           htmlFor="password"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          PASSWORD <span className="text-red-500">*</span>
+          PASSWORD <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Key className="w-4 h-4" />
-          </div>
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
             placeholder="At least 8 characters"
             {...register("password")}
-            className={`w-full h-11 pl-10 pr-10 bg-white border ${
-              errors.password ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-            } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+            className={cn(
+              "w-full h-11 pl-10 pr-10 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.password ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+            )}
           />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+            <Key className="size-4" />
+          </div>
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
-            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
         </div>
         {errors.password && (
-          <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.password.message}</p>
         )}
       </div>
 
@@ -182,33 +185,34 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       <div>
         <Label
           htmlFor="confirmPassword"
-          className="block text-xs sm:text-sm font-semibold text-slate-800 mb-1.5 uppercase tracking-wide"
+          className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 uppercase tracking-wide"
         >
-          CONFIRM PASSWORD <span className="text-red-500">*</span>
+          CONFIRM PASSWORD <span className="text-destructive">*</span>
         </Label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <ShieldCheck className="w-4 h-4" />
-          </div>
           <Input
             id="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
             placeholder="Re-enter your password"
             {...register("confirmPassword")}
-            className={`w-full h-11 pl-10 pr-10 bg-white border ${
-              errors.confirmPassword ? "border-red-400 focus:ring-red-400" : "border-slate-300 focus:border-blue-500"
-            } rounded-xl text-slate-900 text-sm placeholder:text-slate-400 transition-all`}
+            className={cn(
+              "w-full h-11 pl-10 pr-10 bg-card border rounded-xl text-foreground text-sm placeholder:text-muted-foreground transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+              errors.confirmPassword ? "border-destructive focus:ring-destructive/30" : "border-border hover:border-muted-foreground/40"
+            )}
           />
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+            <ShieldCheck className="size-4" />
+          </div>
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
-            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
         </div>
         {errors.confirmPassword && (
-          <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>
+          <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>
         )}
       </div>
 
@@ -218,21 +222,21 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
           <input
             type="checkbox"
             {...register("agreeTermsStep1")}
-            className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+            className="mt-0.5 w-4 h-4 rounded border-border bg-card text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
           />
-          <span className="text-xs text-slate-600 leading-snug">
+          <span className="text-xs text-muted-foreground leading-snug">
             I agree to DevSolve&apos;s{" "}
-            <Link href="#" className="text-blue-600 hover:text-blue-700 font-bold hover:underline">
+            <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="#" className="text-blue-600 hover:text-blue-700 font-bold hover:underline">
+            <Link href="#" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
               Privacy Policy
             </Link>
           </span>
         </label>
         {errors.agreeTermsStep1 && (
-          <p className="text-xs text-red-500 mt-1 pl-6.5">
+          <p className="text-xs text-destructive mt-1 pl-6.5">
             {errors.agreeTermsStep1.message}
           </p>
         )}
@@ -243,19 +247,20 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         <Button
           type="submit"
           disabled={!isStep1Complete}
-          className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          className="w-full h-11 sm:h-12 bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 active:scale-[0.99] text-white font-semibold rounded-xl text-sm sm:text-base shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           <span>Continue to Company details</span>
           <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </div>
 
-      <div className="mt-4 text-center text-xs sm:text-sm text-slate-500">
+      <div className="mt-4 text-center text-xs sm:text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/account-type" className="text-blue-600 hover:text-blue-700 font-bold hover:underline">
+        <Link href="/account-type" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold hover:underline">
           Log in
         </Link>
       </div>
     </motion.form>
   );
 }
+

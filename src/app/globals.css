@@ -279,6 +279,16 @@
     @apply bg-background text-foreground font-sans;
   }
 
+  /* Browser autofill override to preserve dynamic theme background and text color */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--card) inset !important;
+    -webkit-text-fill-color: var(--foreground) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   html {
     @apply font-sans;
     /* Hash links and scrollIntoView land below the sticky header instead of
