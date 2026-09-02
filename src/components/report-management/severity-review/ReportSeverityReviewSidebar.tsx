@@ -41,13 +41,13 @@ export function ReportSeverityReviewSidebar({
   const profile = profileOverview?.profile;
   const stats = profileOverview?.stats;
 
-  const displayName = profile?.fullName || detail.submitter;
+  const displayName = profile?.displayName || (profile as any)?.fullName || detail.submitter;
   const username = profile?.username || detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_");
-  const contactEmail = profile?.email || detail.submitterEmail || "";
+  const contactEmail = (profile as any)?.email || detail.submitterEmail || "";
   const avatarUrl = profile?.avatarUrl || (detail as any).submitterAvatarUrl;
   const biography = profile?.bio;
-  const location = profile?.location || profile?.country;
-  const memberSince = profile?.joinedDate || detail.submittedDate;
+  const location = profile?.location || (profile as any)?.country;
+  const memberSince = profile?.memberSince || (profile as any)?.joinedDate || detail.submittedDate;
 
   const handleCopyEmail = async () => {
     if (!contactEmail) return;
@@ -155,7 +155,7 @@ export function ReportSeverityReviewSidebar({
                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Disclosures</p>
                 <p className="text-xs sm:text-sm font-bold text-foreground flex items-center justify-center gap-1">
                   <ShieldCheck className="size-3.5 text-emerald-500" />
-                  {stats.totalReports}
+                  {stats.reportsSubmitted ?? (stats as any).totalReports ?? 0}
                 </p>
               </div>
             </div>

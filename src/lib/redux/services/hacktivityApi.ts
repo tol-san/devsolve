@@ -153,8 +153,31 @@ export const hacktivityApi = baseApi.injectEndpoints({
       query: () => "/hacktivity/stats",
       providesTags: ["Post"],
     }),
+
+    /**
+     * One researcher's activity, for the Hacktivity tab on a profile.
+     *
+     * Keyed on the profile's UUID, which is the only thing the endpoint
+     * accepts. This used to be assembled from `/reports/mine` — the signed-in
+     * user's own reports, which take no user parameter — so it could only ever
+     * describe the viewer, and opening someone else's profile showed an empty
+     * tab. It also saw nothing but resolved reports: recognitions, bounties
+     * and disclosures are activity too, and they arrive here.
+     */
+    getUserHacktivity: builder.query<
+      HacktivityFeed,
+      { userId: string } & HacktivityQueryParams
+    >({
+      query: ({ userId, ...params }) =>
+        `/user-profiles/${userId}/hacktivity?${queryStringOf(params)}`,
+      transformResponse: toFeed,
+      providesTags: ["Post"],
+    }),
   }),
 });
 
-export const { useGetHacktivityFeedQuery, useGetHacktivityStatsQuery } =
-  hacktivityApi;
+export const {
+  useGetHacktivityFeedQuery,
+  useGetHacktivityStatsQuery,
+  useGetUserHacktivityQuery,
+} = hacktivityApi;

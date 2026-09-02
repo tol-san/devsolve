@@ -2,33 +2,111 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronRight, Eye, ShieldAlert, CircleAlert, CheckCircle2, ShieldCheck, Clock, RotateCcw, X } from "lucide-react";
 
 import type { ManagedReport } from "@/components/report-management/types";
 import { reportListGridClass } from "@/components/report-management/report-list-layout";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 function getTypeBadgeClass(type: ManagedReport["type"]) {
   return type === "Bounty"
-    ? "border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20"
-    : "border-violet-200 bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20";
+    ? "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300"
+    : "border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-300";
 }
 
-function getStatusBadgeClass(status: ManagedReport["status"]) {
-  return status === "Open"
-    ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
-    : "border-border bg-muted text-muted-foreground";
+function getWorkflowStatusBadge(report: ManagedReport) {
+  if (report.queueState === "APPROVED") {
+    return (
+      <Badge
+        variant="outline"
+        className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1.5"
+      >
+        <CheckCircle2 className="size-3 text-emerald-500" />
+        <span>CONFIRMED</span>
+      </Badge>
+    );
+  }
+
+  if (report.queueState === "RETESTING" || (report as any).state === "RETESTING") {
+    return (
+      <Badge
+        variant="outline"
+        className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 inline-flex items-center gap-1.5"
+      >
+        <RotateCcw className="size-3 text-cyan-500 animate-spin-slow" />
+        <span>RETESTING</span>
+      </Badge>
+    );
+  }
+
+  if (report.queueState === "UNDER_REVIEW") {
+    return (
+      <Badge
+        variant="outline"
+        className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300 inline-flex items-center gap-1.5"
+      >
+        <Clock className="size-3 text-blue-500" />
+        <span>TRIAGING</span>
+      </Badge>
+    );
+  }
+
+  if (report.status === "Closed" || report.queueState === "CLOSED") {
+    return (
+      <Badge
+        variant="outline"
+        className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-purple-500/25 bg-purple-500/10 text-purple-700 dark:text-purple-300 inline-flex items-center gap-1.5"
+      >
+        <ShieldCheck className="size-3 text-purple-500" />
+        <span>RESOLVED</span>
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      variant="outline"
+      className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300 inline-flex items-center gap-1.5"
+    >
+      <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
+      <span>PENDING</span>
+    </Badge>
+  );
 }
 
-function getSeverityBadgeClass(severity: ManagedReport["severity"]) {
-  if (severity === "Critical") return "border-red-200 bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
-  if (severity === "High") return "border-amber-200 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
-  if (severity === "Medium") return "border-sky-200 bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20";
-  return "border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
+function getSeverityBadge(severity: ManagedReport["severity"]) {
+  switch (severity) {
+    case "Critical":
+      return (
+        <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-red-600 text-white shadow-2xs">
+          CRITICAL
+        </Badge>
+      );
+    case "High":
+      return (
+        <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-orange-500 text-white shadow-2xs">
+          HIGH
+        </Badge>
+      );
+    case "Medium":
+      return (
+        <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-amber-500 text-white shadow-2xs">
+          MEDIUM
+        </Badge>
+      );
+    default:
+      return (
+        <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-blue-600 text-white shadow-2xs">
+          LOW
+        </Badge>
+      );
+  }
 }
 
 const badgeBaseClass =
-  "h-7 min-w-[84px] justify-center rounded-full px-3 text-[12px] font-medium";
+  "h-7 min-w-[84px] justify-center rounded-full px-3 text-[12px] font-semibold";
 
 type ManagedReportCardProps = {
   report: ManagedReport;
@@ -69,33 +147,33 @@ export function ManagedReportCard({
         }
       }}
     >
-      <div className="px-6 py-5 transition-colors duration-200 group-hover:bg-muted/50">
-        <div className={cn(reportListGridClass, "hidden lg:grid")}>
+      <div className="px-6 py-4.5 transition-colors duration-200 group-hover:bg-muted/40">
+        <div className={cn(reportListGridClass, "hidden lg:grid items-center")}>
           <div className="min-w-0">
-            <div className="flex items-start gap-4">
-              <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border border-border">
+            <div className="flex items-start gap-3.5">
+              <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted border border-border shadow-2xs">
                 {report.programLogo ? (
                   <Image
                     src={report.programLogo}
                     alt={`${report.title} logo`}
-                    width={48}
-                    height={48}
-                    className="size-11 object-contain"
+                    width={44}
+                    height={44}
+                    className="size-10 object-contain"
                   />
                 ) : (
-                  <span className="text-sm font-semibold text-foreground">
+                  <span className="text-sm font-bold text-foreground">
                     {report.authorInitials}
                   </span>
                 )}
               </div>
 
-              <div className="min-w-0 flex-1 space-y-2">
-                <div className="space-y-1.5">
-                  <h3 className="truncate text-base font-semibold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="space-y-0.5">
+                  <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary transition-colors">
                     {report.title}
                   </h3>
-                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                    <span>{reportId}</span>
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                    <span className="font-mono font-medium text-foreground">{reportId}</span>
                     <span className="text-muted-foreground/60">&bull;</span>
                     <span className="truncate">{report.author}</span>
                     <span className="text-muted-foreground/60">&bull;</span>
@@ -103,25 +181,25 @@ export function ManagedReportCard({
                   </p>
                 </div>
 
-                <p className="line-clamp-2 text-base leading-relaxed text-muted-foreground">
+                <p className="line-clamp-1 text-sm leading-relaxed text-muted-foreground">
                   {report.summary}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             {visibleAssets.map((asset) => (
               <span
                 key={asset}
-                className="inline-flex max-w-[165px] truncate rounded-full border border-border bg-muted px-3 py-1 text-[12px] font-medium text-foreground"
+                className="inline-flex max-w-[165px] truncate rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-foreground"
                 title={asset}
               >
                 {asset}
               </span>
             ))}
             {hiddenAssetsCount > 0 ? (
-              <span className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-[12px] font-medium text-muted-foreground">
+              <span className="inline-flex rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                 +{hiddenAssetsCount} more
               </span>
             ) : null}
@@ -137,27 +215,18 @@ export function ManagedReportCard({
           </div>
 
           <div className="flex items-center justify-center">
-            <Badge
-              variant="outline"
-              className={cn(badgeBaseClass, getStatusBadgeClass(report.status))}
-            >
-              {report.status}
-            </Badge>
+            {getWorkflowStatusBadge(report)}
           </div>
 
           <div className="flex items-center justify-center">
-            <Badge
-              variant="outline"
-              className={cn(badgeBaseClass, getSeverityBadgeClass(report.severity))}
-            >
-              {report.severity}
-            </Badge>
+            {getSeverityBadge(report.severity)}
           </div>
         </div>
 
+        {/* Mobile View */}
         <div className="space-y-3 lg:hidden">
           <div className="flex items-start gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border border-border">
+            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted border border-border">
               {report.programLogo ? (
                 <Image
                   src={report.programLogo}
@@ -167,19 +236,19 @@ export function ManagedReportCard({
                   className="size-10 object-contain"
                 />
               ) : (
-                <span className="text-sm font-semibold text-foreground">
+                <span className="text-sm font-bold text-foreground">
                   {report.authorInitials}
                 </span>
               )}
             </div>
 
-            <div className="min-w-0 flex-1 space-y-3">
-              <div className="space-y-1.5">
-                <h3 className="truncate text-[16px] font-semibold leading-6 text-foreground">
+            <div className="min-w-0 flex-1 space-y-2.5">
+              <div className="space-y-1">
+                <h3 className="truncate text-base font-semibold leading-snug text-foreground">
                   {report.title}
                 </h3>
-                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
-                  <span>{reportId}</span>
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                  <span className="font-mono">{reportId}</span>
                   <span className="text-muted-foreground/60">&bull;</span>
                   <span className="truncate">{report.author}</span>
                   <span className="text-muted-foreground/60">&bull;</span>
@@ -187,46 +256,19 @@ export function ManagedReportCard({
                 </p>
               </div>
 
-              <p className="line-clamp-1 text-[13px] leading-6 text-muted-foreground">
+              <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                 {report.summary}
               </p>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 pt-1">
                 <Badge
                   variant="outline"
                   className={cn(badgeBaseClass, getTypeBadgeClass(report.type))}
                 >
                   {report.type}
                 </Badge>
-                <Badge
-                  variant="outline"
-                  className={cn(badgeBaseClass, getStatusBadgeClass(report.status))}
-                >
-                  {report.status}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className={cn(badgeBaseClass, getSeverityBadgeClass(report.severity))}
-                >
-                  {report.severity}
-                </Badge>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {visibleAssets.map((asset) => (
-                  <span
-                    key={asset}
-                    className="inline-flex max-w-[165px] truncate rounded-full border border-border bg-muted px-3 py-1 text-[12px] font-medium text-foreground"
-                    title={asset}
-                  >
-                    {asset}
-                  </span>
-                ))}
-                {hiddenAssetsCount > 0 ? (
-                  <span className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-[12px] font-medium text-muted-foreground">
-                    +{hiddenAssetsCount} more
-                  </span>
-                ) : null}
+                {getWorkflowStatusBadge(report)}
+                {getSeverityBadge(report.severity)}
               </div>
             </div>
           </div>

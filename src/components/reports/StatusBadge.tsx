@@ -6,15 +6,38 @@ import {
   Award,
   AlertCircle,
   XCircle,
+  RotateCcw,
+  ShieldCheck,
 } from "lucide-react";
 import type { ReportItem } from "@/lib/types/reports/types";
 
 interface StatusBadgeProps {
   status: ReportItem["status"] | string;
+  className?: string;
 }
 
-export default function StatusBadge({ status }: StatusBadgeProps) {
+export default function StatusBadge({ status, className }: StatusBadgeProps) {
   switch (status) {
+    case "RETESTING":
+      return (
+        <Badge
+          variant="outline"
+          className={`bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-300 dark:border-cyan-500/30 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 w-fit shadow-2xs ${className || ""}`}
+        >
+          <RotateCcw className="w-3.5 h-3.5 text-cyan-500 animate-spin-slow" />
+          RETESTING
+        </Badge>
+      );
+    case "VALID_CONFIRMED":
+      return (
+        <Badge
+          variant="outline"
+          className={`bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/20 font-semibold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 w-fit ${className || ""}`}
+        >
+          <ShieldCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+          VALID CONFIRMED
+        </Badge>
+      );
     case "TRIAGING":
       return (
         <Badge

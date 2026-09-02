@@ -7,6 +7,7 @@ import { Crown, Globe } from "lucide-react";
 import {
   LeaderboardEntry,
   LeaderboardPeriod,
+  RANKED_COUNT_LABEL,
 } from "@/lib/types/leaderboard/types";
 import ResearcherAvatar from "./ResearcherAvatar";
 import {
@@ -148,9 +149,11 @@ function LaurelWreathIcon({ rank }: { rank: number }) {
 function PodiumColumn({
   entry,
   place,
+  period,
 }: {
   entry: LeaderboardEntry;
   place: number;
+  period: LeaderboardPeriod;
 }) {
   const reduce = useReducedMotion();
   const isChampion = place === 0;
@@ -397,13 +400,13 @@ function PodiumColumn({
                   </span>
                 </div>
 
-                {/* Thanks */}
+                {/* Recognitions all-time; findings inside a window */}
                 <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
                   <span className="text-sm sm:text-base font-black leading-tight text-white drop-shadow-xs">
                     {formatNumber(entry.recognitionCount)}
                   </span>
                   <span className="text-[10px] sm:text-[11px] font-bold text-white/90 mt-0.5">
-                    thanks
+                    {RANKED_COUNT_LABEL[period].plural}
                   </span>
                 </div>
               </div>
@@ -466,6 +469,7 @@ export default function LeaderboardPodium({
               key={podium[place].id}
               entry={podium[place]}
               place={place}
+              period={period}
             />
           ))}
         </div>

@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Crown, Medal, Users, ShieldAlert, Award, CheckCircle2 } from "lucide-react";
-import { LeaderboardEntry } from "@/lib/types/leaderboard/types";
+import {
+  LeaderboardEntry,
+  LeaderboardPeriod,
+  RANKED_COUNT_LABEL,
+} from "@/lib/types/leaderboard/types";
 import {
   Select,
   SelectContent,
@@ -26,6 +30,8 @@ const PAGE_SIZES = [10, 25, 50];
 
 type Props = {
   entries: LeaderboardEntry[];
+  /** Decides what `recognitionCount` means, and so what the badge says. */
+  period: LeaderboardPeriod;
   page: number;
   pageSize: number;
   onPageChange: (page: number) => void;
@@ -71,7 +77,15 @@ function ReputationPill({ value, isCurrentUser }: { value: number; isCurrentUser
   );
 }
 
-function ResearcherCard({ entry, index }: { entry: LeaderboardEntry; index: number }) {
+function ResearcherCard({
+  entry,
+  index,
+  period,
+}: {
+  entry: LeaderboardEntry;
+  index: number;
+  period: LeaderboardPeriod;
+}) {
   const medal = entry.rank <= 3 ? MEDALS[entry.rank - 1] : null;
   const hasValidReports = entry.validReports != null && entry.totalReports != null;
   const validRate =
@@ -188,9 +202,16 @@ function ResearcherCard({ entry, index }: { entry: LeaderboardEntry; index: numb
             </span>
           )}
 
-          {/* Recognition Count */}
+          {/* Recognitions all-time; findings resolved on a windowed board */}
           {entry.recognitionCount > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+            <span
+              title={`${entry.recognitionCount} ${
+                entry.recognitionCount === 1
+                  ? RANKED_COUNT_LABEL[period].singular
+                  : RANKED_COUNT_LABEL[period].plural
+              }`}
+              className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+            >
               <Award size={12} />
               <span>{entry.recognitionCount}</span>
             </span>
@@ -216,6 +237,7 @@ function ResearcherCard({ entry, index }: { entry: LeaderboardEntry; index: numb
 
 export default function LeaderboardTable({
   entries,
+  period,
   page,
   pageSize,
   onPageChange,
@@ -247,7 +269,12 @@ export default function LeaderboardTable({
       {/* ── Card List ── */}
       <div className="space-y-3">
         {visible.map((entry, index) => (
-          <ResearcherCard key={entry.id} entry={entry} index={index} />
+          <ResearcherCard
+            key={entry.id}
+            entry={entry}
+            index={index}
+            period={period}
+          />
         ))}
       </div>
 

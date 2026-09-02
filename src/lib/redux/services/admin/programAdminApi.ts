@@ -48,7 +48,7 @@ export const programAdminApi = proxyApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: "AdminProgram", id }],
     }),
 
-    approveProgram: builder.mutation<any, { id: string }>({
+    approveProgram: builder.mutation<any, { id: string; reason?: string }>({
       query: ({ id }) => ({
         url: `/admin/programs/${id}/approve`,
         method: "PATCH",

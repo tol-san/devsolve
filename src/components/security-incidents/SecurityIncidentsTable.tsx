@@ -22,11 +22,22 @@ import {
   Eye,
   Lock,
   ArrowUpRight,
+  UserX,
+  Ban,
+  MoreVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectTrigger,
@@ -38,13 +49,18 @@ import {
   useGetAdminSecurityIncidentsQuery,
   useGetOrgSecurityIncidentsQuery,
 } from "@/lib/redux/services/securityIncidentsApi";
+import { useGetAdminUsersQuery } from "@/lib/redux/services/admin/adminUsersApi";
 import { SecurityIncidentDetailModal } from "@/components/security-incidents/SecurityIncidentDetailModal";
+import { ModerationActionDialog } from "@/components/admin/ModerationActionDialog";
+import { UserStatusBadge } from "@/components/admin/users/UserStatusBadge";
 import type {
   SecurityIncident,
+  MalwareUploader,
   MalwareVerdict,
   IncidentSortColumn,
   SortDirection,
 } from "@/lib/types/security-incidents/types";
+import type { ModerationActionType } from "@/lib/types/admin/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -96,6 +112,13 @@ export function SecurityIncidentsTable({
   const [selectedIncident, setSelectedIncident] = useState<SecurityIncident | null>(null);
   const [copiedHashId, setCopiedHashId] = useState<string | null>(null);
 
+  // Moderate target user for Admin actions
+  const [moderateTarget, setModerateTarget] = useState<{
+    user: MalwareUploader;
+    filename?: string;
+    actionType?: ModerationActionType;
+  } | null>(null);
+
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -133,6 +156,25 @@ export function SecurityIncidentsTable({
 
   const activeQuery = scope === "admin" ? adminQuery : orgQuery;
   const { data, isLoading, isFetching, isError, error, refetch } = activeQuery;
+
+  // Fetch admin users to cross-reference real-time live account statuses (Active, Suspended, Removed, etc.)
+  const { data: adminUsersData, refetch: refetchAdminUsers } = useGetAdminUsersQuery(
+    { pageSize: 100 },
+    { skip: scope !== "admin" }
+  );
+
+  const userStatusMap = useMemo(() => {
+    const map = new Map<string, string>();
+    if (adminUsersData?.content) {
+      for (const u of adminUsersData.content) {
+        if (u.id) map.set(u.id, u.status);
+        if (u.email) map.set(u.email.toLowerCase(), u.status);
+        if (u.fullName) map.set(u.fullName.toLowerCase(), u.status);
+        if (u.username) map.set(u.username.toLowerCase(), u.status);
+      }
+    }
+    return map;
+  }, [adminUsersData]);
 
   const incidents = useMemo(() => data?.content ?? [], [data]);
   const totalElements = data?.totalElements ?? 0;
@@ -564,30 +606,79 @@ export function SecurityIncidentsTable({
                         </td>
 
                         {/* Uploader / Researcher */}
-                        <td className="py-3.5 px-4 min-w-[160px]">
-                          <div className="space-y-0.5 text-xs">
-                            {item.uploader.username ? (
-                              <Link
-                                href={`/profile/${item.uploader.username}`}
-                                onClick={(e) => e.stopPropagation()}
-                                target="_blank"
-                                className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
-                              >
-                                <span>@{item.uploader.username}</span>
-                                <ArrowUpRight className="size-3" />
-                              </Link>
-                            ) : (
-                              <span className="font-mono text-muted-foreground">
-                                {item.uploader.id.slice(0, 8)}... (Deleted)
-                              </span>
-                            )}
-                            {item.uploader.email && (
-                              <p className="text-muted-foreground truncate max-w-[160px]">
-                                {item.uploader.email}
-                              </p>
-                            )}
-                          </div>
-                        </td>
+                        {(() => {
+                          const uploaderStatus =
+                            item.uploader.status ||
+                            userStatusMap.get(item.uploader.id) ||
+                            (item.uploader.email
+                              ? userStatusMap.get(item.uploader.email.toLowerCase())
+                              : undefined) ||
+                            (item.uploader.username
+                              ? userStatusMap.get(item.uploader.username.toLowerCase())
+                              : undefined) ||
+                            "ACTIVE";
+                          const isSuspended = uploaderStatus.toUpperCase() === "SUSPENDED";
+
+                          return (
+                            <td className="py-3.5 px-4 min-w-[180px]">
+                              <div className="space-y-1 text-xs">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {item.uploader.username ? (
+                                    <Link
+                                      href={`/profile/${item.uploader.username}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      target="_blank"
+                                      className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                                    >
+                                      <span>@{item.uploader.username}</span>
+                                      <ArrowUpRight className="size-3" />
+                                    </Link>
+                                  ) : (
+                                    <span className="font-mono text-muted-foreground">
+                                      {item.uploader.id.slice(0, 8)}... (Deleted)
+                                    </span>
+                                  )}
+
+                                  {/* Status badge */}
+                                  {item.uploader.id && (
+                                    <UserStatusBadge status={uploaderStatus} size="xs" />
+                                  )}
+
+                                  {scope === "admin" && item.uploader.id && (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setModerateTarget({
+                                          user: { ...item.uploader, status: uploaderStatus },
+                                          filename: item.filename,
+                                          actionType: isSuspended ? "REINSTATE" : "SUSPEND",
+                                        });
+                                      }}
+                                      title={
+                                        isSuspended
+                                          ? "Reinstate user account"
+                                          : "Suspend user account"
+                                      }
+                                      className="opacity-70 hover:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                                    >
+                                      {isSuspended ? (
+                                        <RotateCcw className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                                      ) : (
+                                        <UserX className="size-3.5 text-orange-600 dark:text-orange-400" />
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
+                                {item.uploader.email && (
+                                  <p className="text-muted-foreground truncate max-w-[170px]">
+                                    {item.uploader.email}
+                                  </p>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })()}
 
                         {/* Target Organization (Admin only) */}
                         {scope === "admin" && (
@@ -627,19 +718,142 @@ export function SecurityIncidentsTable({
 
                         {/* Action */}
                         <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedIncident(item);
-                            }}
-                            className="h-8 px-3 rounded-xl text-xs font-semibold gap-1 text-primary hover:text-primary hover:bg-primary/10 cursor-pointer"
-                          >
-                            <Eye className="size-3.5" />
-                            <span>Inspect</span>
-                          </Button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedIncident(item);
+                              }}
+                              className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1 text-primary hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              title="Inspect Incident Details"
+                            >
+                              <Eye className="size-3.5" />
+                              <span>Inspect</span>
+                            </Button>
+
+                            {scope === "admin" && item.uploader.id && (() => {
+                              const uploaderStatus =
+                                item.uploader.status ||
+                                userStatusMap.get(item.uploader.id) ||
+                                (item.uploader.email
+                                  ? userStatusMap.get(item.uploader.email.toLowerCase())
+                                  : undefined) ||
+                                (item.uploader.username
+                                  ? userStatusMap.get(item.uploader.username.toLowerCase())
+                                  : undefined) ||
+                                "ACTIVE";
+                              const isSuspended = uploaderStatus.toUpperCase() === "SUSPENDED";
+
+                              return (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="inline-flex items-center justify-center size-8 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs transition-colors"
+                                    title="Moderate User"
+                                  >
+                                    <MoreVertical className="size-4" />
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    align="end"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-56 rounded-2xl shadow-xl border border-border bg-popover text-popover-foreground"
+                                  >
+                                    <div className="px-3 py-2 space-y-1">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="text-xs font-bold text-foreground truncate">
+                                          {item.uploader.username ? `@${item.uploader.username}` : item.uploader.id.slice(0, 8)}
+                                        </span>
+                                        <UserStatusBadge status={uploaderStatus} size="xs" />
+                                      </div>
+                                      {item.uploader.email && (
+                                        <p className="text-[11px] text-muted-foreground truncate">
+                                          {item.uploader.email}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <DropdownMenuSeparator />
+                                    {isSuspended ? (
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setModerateTarget({
+                                            user: { ...item.uploader, status: uploaderStatus },
+                                            filename: item.filename,
+                                            actionType: "REINSTATE",
+                                          });
+                                        }}
+                                        className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 cursor-pointer"
+                                      >
+                                        <RotateCcw className="size-4 mr-2" />
+                                        Reinstate Account
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setModerateTarget({
+                                            user: { ...item.uploader, status: uploaderStatus },
+                                            filename: item.filename,
+                                            actionType: "SUSPEND",
+                                          });
+                                        }}
+                                        className="text-xs font-semibold text-orange-600 dark:text-orange-400 cursor-pointer"
+                                      >
+                                        <UserX className="size-4 mr-2" />
+                                        Suspend User
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setModerateTarget({
+                                          user: { ...item.uploader, status: uploaderStatus },
+                                          filename: item.filename,
+                                          actionType: "BAN",
+                                        });
+                                      }}
+                                      className="text-xs font-semibold text-purple-600 dark:text-purple-400 cursor-pointer"
+                                    >
+                                      <Ban className="size-4 mr-2" />
+                                      Permanently Ban User
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setModerateTarget({
+                                          user: { ...item.uploader, status: uploaderStatus },
+                                          filename: item.filename,
+                                          actionType: "WARN",
+                                        });
+                                      }}
+                                      className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer"
+                                    >
+                                      <ShieldAlert className="size-4 mr-2" />
+                                      Issue Security Warning
+                                    </DropdownMenuItem>
+                                    {item.uploader.username && (
+                                      <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(`/profile/${item.uploader.username}`, "_blank");
+                                          }}
+                                          className="text-xs font-medium text-foreground cursor-pointer"
+                                        >
+                                          <User className="size-4 mr-2 text-muted-foreground" />
+                                          View Profile
+                                        </DropdownMenuItem>
+                                      </>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              );
+                            })()}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -692,7 +906,57 @@ export function SecurityIncidentsTable({
         isOpen={selectedIncident !== null}
         onClose={() => setSelectedIncident(null)}
         scope={scope}
+        uploaderStatus={
+          selectedIncident
+            ? selectedIncident.uploader.status ||
+              userStatusMap.get(selectedIncident.uploader.id) ||
+              (selectedIncident.uploader.email
+                ? userStatusMap.get(selectedIncident.uploader.email.toLowerCase())
+                : undefined) ||
+              (selectedIncident.uploader.username
+                ? userStatusMap.get(selectedIncident.uploader.username.toLowerCase())
+                : undefined) ||
+              "ACTIVE"
+            : undefined
+        }
+        onModerateUser={(user, actionType) => {
+          setModerateTarget({
+            user,
+            filename: selectedIncident?.filename,
+            actionType,
+          });
+        }}
       />
+
+      {/* Admin Moderation Action Dialog for Uploader / Researcher */}
+      {scope === "admin" && (
+        <ModerationActionDialog
+          target={
+            moderateTarget
+              ? {
+                  id: moderateTarget.user.id,
+                  name: moderateTarget.user.username
+                    ? `@${moderateTarget.user.username}`
+                    : `User (${moderateTarget.user.id.slice(0, 8)})`,
+                  subtitle:
+                    moderateTarget.user.email ||
+                    (moderateTarget.filename
+                      ? `Blocked upload: ${moderateTarget.filename}`
+                      : undefined),
+                  type: "USER",
+                  status: moderateTarget.user.status || undefined,
+                }
+              : null
+          }
+          actionType={moderateTarget?.actionType ?? "SUSPEND"}
+          isOpen={!!moderateTarget}
+          onClose={() => setModerateTarget(null)}
+          onSuccess={() => {
+            void refetch();
+            void refetchAdminUsers();
+          }}
+        />
+      )}
     </div>
   );
 }

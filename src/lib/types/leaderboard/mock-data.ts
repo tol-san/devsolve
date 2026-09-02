@@ -141,12 +141,15 @@ function buildRawEntry(person: Person, index: number, period: LeaderboardPeriod)
     critical * (0.5 + rand() * 0.9) + high * 0.18 + rand() * 2,
   );
 
+  /* Severity alone. Recognition is public credit and pays no reputation, so
+     the term for it was dropped rather than zeroed — this fixture is only a
+     plausible-looking stand-in, and the real board reads `reputation` from
+     the API rather than deriving it from counts. */
   const reputation =
     critical * REPUTATION_POINTS.critical +
     high * REPUTATION_POINTS.high +
     medium * REPUTATION_POINTS.medium +
-    low * REPUTATION_POINTS.low +
-    recognitionCount * REPUTATION_POINTS.recognition;
+    low * REPUTATION_POINTS.low;
 
   return {
     id: `${person.username}-${period}`,

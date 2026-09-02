@@ -28,17 +28,15 @@ const ITEMS: { label: string; points: number; dot: string; glow: string }[] = [
     dot: "bg-muted-foreground",
     glow: "rgba(115,115,115,0.35)",
   },
-  {
-    label: "Recognition",
-    points: REPUTATION_POINTS.recognition,
-    dot: "bg-emerald-500",
-    glow: "rgba(16,185,129,0.35)",
-  },
 ];
 
 /**
  * How reputation is earned. Deliberately stated in points, not payouts — a
  * Critical at a startup and a Critical at a bank move the board identically.
+ *
+ * Severity is the whole ladder: the platform pays this automatically when a
+ * report is resolved. Recognition used to appear here for +25 and no longer
+ * does — it is public credit and awards no reputation.
  */
 export default function PointsLegend({ className = "" }: { className?: string }) {
   const reduce = useReducedMotion();

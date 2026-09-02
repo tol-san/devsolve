@@ -15,11 +15,13 @@ import type {
 } from "@/components/report-management/review-queue/types";
 import { useGetManagedReportsQuery } from "@/lib/redux/services/reportsApi";
 
+import type { ReportWorkflowState } from "@/components/report-management/types";
+
 function toReviewQueue(
-  queueState?: "PENDING" | "UNDER_REVIEW" | "APPROVED" | "CLOSED",
+  queueState?: ReportWorkflowState,
 ): ReviewQueueLaneKey | null {
   if (queueState === "PENDING") return "Pending Intake";
-  if (queueState === "UNDER_REVIEW") return "Under Review";
+  if (queueState === "UNDER_REVIEW" || queueState === "RETESTING") return "Under Review";
   if (queueState === "APPROVED") return "Approval Ready";
   return null;
 }

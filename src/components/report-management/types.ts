@@ -1,7 +1,7 @@
 export type ReportType = "Bounty" | "Response";
 export type ReportStatus = "Open" | "Closed";
 export type ReportSeverity = "Critical" | "High" | "Medium" | "Low";
-export type ReportWorkflowState = "PENDING" | "UNDER_REVIEW" | "APPROVED" | "CLOSED";
+export type ReportWorkflowState = "PENDING" | "UNDER_REVIEW" | "RETESTING" | "APPROVED" | "CLOSED";
 
 export type ManagedReport = {
   id: string | number;
@@ -35,7 +35,16 @@ export type ReportManagementDetail = {
   type: ReportType;
   status: ReportStatus;
   isReviewed?: boolean;
-  rawStatus?: "SUBMITTED" | "TRIAGING" | "ACCEPTED" | "RESOLVED" | "REJECTED";
+  rawStatus?:
+    | "SUBMITTED"
+    | "TRIAGING"
+    | "NEEDS_MORE_INFO"
+    | "VALID_CONFIRMED"
+    | "RETESTING"
+    | "RESOLVED"
+    | "REJECTED"
+    | string;
+  retestHistory?: import("@/lib/redux/services/reportsApi").RetestSummary[];
   severity: ReportSeverity;
   cvssScore: string;
   submittedDate: string;

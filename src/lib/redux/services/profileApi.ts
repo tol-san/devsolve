@@ -5,7 +5,6 @@ import {
   SeverityStats,
   ProfileBadge,
   Severity,
-  HacktivityEntry,
   CommunityPost,
   ThanksEntry,
   EditProfileFormData,
@@ -469,51 +468,6 @@ export const profileApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
-    getHacktivity: builder.query<HacktivityEntry[], string>({
-      async queryFn(username, _api, _extraOptions, fetchWithBQ) {
-        /* This is built from `/reports/mine`, which is the signed-in user's
-           own reports and takes no user parameter — the API exposes no
-           per-user report endpoint, because reports are confidential. The
-           argument used to be ignored outright, so opening anyone else's
-           profile rendered the *viewer's* reports under their name. A UUID
-           segment means another user, and there is nothing to show. */
-        if (UUID_PATTERN.test(username)) {
-          return { data: [] };
-        }
-
-        const reportsResult = await fetchWithBQ(`/reports/mine?size=50&sort=submittedAt,DESC`);
-        if (reportsResult.error) return { error: reportsResult.error };
-
-        const resolved = (
-          (reportsResult.data as { content?: ReportApiResponse[] } | undefined)?.content ?? []
-        ).filter((report) => report.state === "RESOLVED");
-
-        const programIds = Array.from(new Set(resolved.map((report) => report.programId).filter(Boolean)));
-        const programResults = await Promise.all(programIds.map((id) => fetchWithBQ(`/programs/${id}`)));
-        const programNames = new Map<string, string>();
-        programIds.forEach((id, index) => {
-          const result = programResults[index];
-          if (!result.error) programNames.set(id, (result.data as ProgramApiResponse).name);
-        });
-
-        const entries: HacktivityEntry[] = resolved
-          .map((report) => ({
-            id: report.id,
-            type: "resolved" as const,
-            actorHandle: `@${username}`,
-            date: report.resolvedAt || report.submittedAt || new Date().toISOString(),
-            severity: report.severity && report.severity !== "NONE" ? (report.severity.toLowerCase() as Severity) : undefined,
-            program: programNames.get(report.programId) ?? "Unknown Program",
-            bounty: report.rewards?.length ? report.rewards.reduce((sum, reward) => sum + (reward.amount ?? 0), 0) : undefined,
-          }))
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        return { data: entries };
-      },
-      providesTags: ["Profile"],
-    }),
-
-    
     getCommunityPosts: builder.query<CommunityPost[], string>({
       async queryFn(userId, _api, _extraOptions, fetchWithBQ) {
         if (!userId) return { data: [] };
@@ -754,7 +708,7 @@ export const profileApi = baseApi.injectEndpoints({
         const { total, valid } = reportCountsOf(raw, reports);
         return {
           data: {
-            memberSince: memberSinceOf(raw.createdAt, mockProfile.memberSince),
+            memberSince: memberSinceOf(raw.createdAt, ""),
             totalSubmissions: total,
             acceptedReports: valid,
             reputationPoints: raw.reputation ?? 0,
@@ -946,7 +900,6 @@ export const profileApi = baseApi.injectEndpoints({
 export const {
   useGetProfileByUsernameQuery,
   useGetPublicProfilesQuery,
-  useGetHacktivityQuery,
   useGetCommunityPostsQuery,
   useGetThanksQuery,
   useGetEditProfileFormQuery,

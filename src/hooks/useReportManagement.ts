@@ -1,18 +1,33 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 
 import type {
   ManagedReport,
   ReportStatus,
   ReportSeverity,
   ReportType,
+  ReportWorkflowState,
 } from "@/components/report-management/types";
 import { useGetManagedReportsQuery } from "@/lib/redux/services/reportsApi";
 
-type TypeFilter = "All Types" | ReportType;
-type SeverityFilter = "All" | ReportSeverity;
-type StatusFilter = "All Statuses" | ReportStatus;
+export type TypeFilter = "All Types" | ReportType;
+export type SeverityFilter = "All" | ReportSeverity;
+export type StatusFilter = "All Statuses" | ReportStatus;
+export type QueueTabFilter = "ALL" | "PENDING" | "UNDER_REVIEW" | "RETESTING" | "APPROVED" | "CLOSED";
+export type ReportSortOption =
+  | "NEWEST"
+  | "OLDEST"
+  | "SEVERITY_DESC"
+  | "SEVERITY_ASC"
+  | "TITLE_ASC";
+
+const SEVERITY_WEIGHTS: Record<ReportSeverity, number> = {
+  Critical: 4,
+  High: 3,
+  Medium: 2,
+  Low: 1,
+};
 
 function paginateReports(
   reports: ManagedReport[],
@@ -38,24 +53,38 @@ export function useReportManagement() {
     isError,
     refetch,
   } = useGetManagedReportsQuery();
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("All Types");
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("All");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All Statuses");
+  const [queueTab, setQueueTab] = useState<QueueTabFilter>("ALL");
+  const [sortOption, setSortOption] = useState<ReportSortOption>("NEWEST");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredReports = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
+  // Debounce search input to avoid recalculating on each keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-    return reports.filter((report) => {
+  const filteredReports = useMemo(() => {
+    const query = debouncedSearch.toLowerCase();
+
+    let list = reports.filter((report) => {
       const matchesSearch =
         query.length === 0 ||
         report.title.toLowerCase().includes(query) ||
         (report.reportId?.toLowerCase().includes(query) ?? false) ||
         report.author.toLowerCase().includes(query) ||
         report.authorEmail.toLowerCase().includes(query) ||
-        report.assets.some((asset) => asset.toLowerCase().includes(query));
+        report.assets.some((asset) => asset.toLowerCase().includes(query)) ||
+        report.summary.toLowerCase().includes(query);
 
       const matchesType =
         typeFilter === "All Types" || report.type === typeFilter;
@@ -66,12 +95,50 @@ export function useReportManagement() {
       const matchesStatus =
         statusFilter === "All Statuses" || report.status === statusFilter;
 
-      return matchesSearch && matchesType && matchesSeverity && matchesStatus;
+      const matchesQueue =
+        queueTab === "ALL" ||
+        report.queueState === queueTab ||
+        (queueTab === "RETESTING" && ((report as any).state === "RETESTING" || report.queueState === "RETESTING")) ||
+        (queueTab === "PENDING" && !report.queueState);
+
+      return matchesSearch && matchesType && matchesSeverity && matchesStatus && matchesQueue;
     });
-  }, [reports, searchTerm, severityFilter, statusFilter, typeFilter]);
+
+    // Apply sorting
+    list.sort((a, b) => {
+      switch (sortOption) {
+        case "OLDEST": {
+          const dateA = a.submittedAtIso ? new Date(a.submittedAtIso).getTime() : 0;
+          const dateB = b.submittedAtIso ? new Date(b.submittedAtIso).getTime() : 0;
+          return dateA - dateB;
+        }
+        case "SEVERITY_DESC": {
+          const weightA = SEVERITY_WEIGHTS[a.severity] ?? 0;
+          const weightB = SEVERITY_WEIGHTS[b.severity] ?? 0;
+          return weightB - weightA;
+        }
+        case "SEVERITY_ASC": {
+          const weightA = SEVERITY_WEIGHTS[a.severity] ?? 0;
+          const weightB = SEVERITY_WEIGHTS[b.severity] ?? 0;
+          return weightA - weightB;
+        }
+        case "TITLE_ASC":
+          return a.title.localeCompare(b.title);
+        case "NEWEST":
+        default: {
+          const dateA = a.submittedAtIso ? new Date(a.submittedAtIso).getTime() : 0;
+          const dateB = b.submittedAtIso ? new Date(b.submittedAtIso).getTime() : 0;
+          return dateB - dateA;
+        }
+      }
+    });
+
+    return list;
+  }, [reports, debouncedSearch, severityFilter, statusFilter, typeFilter, queueTab, sortOption]);
 
   const typeCounts = useMemo(() => {
     return {
+      all: reports.length,
       bounty: reports.filter((report) => report.type === "Bounty").length,
       response: reports.filter((report) => report.type === "Response").length,
     };
@@ -93,16 +160,55 @@ export function useReportManagement() {
     };
   }, [reports]);
 
+  const queueCounts = useMemo(() => {
+    return {
+      all: reports.length,
+      pending: reports.filter((r) => r.queueState === "PENDING" || !r.queueState).length,
+      underReview: reports.filter((r) => r.queueState === "UNDER_REVIEW").length,
+      retesting: reports.filter((r) => r.queueState === "RETESTING" || (r as any).state === "RETESTING").length,
+      approved: reports.filter((r) => r.queueState === "APPROVED").length,
+      closed: reports.filter((r) => r.queueState === "CLOSED" || r.status === "Closed").length,
+    };
+  }, [reports]);
+
   const metrics = useMemo(() => {
     return {
       total: reports.length,
-      pending: reports.filter((report) => report.queueState === "PENDING").length,
-      underReview: reports.filter(
-        (report) => report.queueState === "UNDER_REVIEW",
-      ).length,
-      approved: reports.filter((report) => report.queueState === "APPROVED").length,
+      pending: queueCounts.pending,
+      underReview: queueCounts.underReview,
+      approved: queueCounts.approved,
     };
-  }, [reports]);
+  }, [reports, queueCounts]);
+
+  const handleMetricClick = useCallback((metricType: "total" | "pending" | "underReview" | "approved") => {
+    switch (metricType) {
+      case "pending":
+        setQueueTab("PENDING");
+        break;
+      case "underReview":
+        setQueueTab("UNDER_REVIEW");
+        break;
+      case "approved":
+        setQueueTab("APPROVED");
+        break;
+      case "total":
+      default:
+        setQueueTab("ALL");
+        break;
+    }
+    setCurrentPage(1);
+  }, []);
+
+  const handleClearAllFilters = useCallback(() => {
+    setSearchTerm("");
+    setDebouncedSearch("");
+    setTypeFilter("All Types");
+    setSeverityFilter("All");
+    setStatusFilter("All Statuses");
+    setQueueTab("ALL");
+    setSortOption("NEWEST");
+    setCurrentPage(1);
+  }, []);
 
   const pagination = useMemo(() => {
     return paginateReports(filteredReports, currentPage, rowsPerPage);
@@ -115,12 +221,17 @@ export function useReportManagement() {
   return {
     searchTerm,
     setSearchTerm,
+    debouncedSearch,
     typeFilter,
     setTypeFilter,
     severityFilter,
     setSeverityFilter,
     statusFilter,
     setStatusFilter,
+    queueTab,
+    setQueueTab,
+    sortOption,
+    setSortOption,
     rowsPerPage,
     setRowsPerPage,
     currentPage: pagination.currentPage,
@@ -133,7 +244,10 @@ export function useReportManagement() {
     typeCounts,
     severityCounts,
     statusCounts,
+    queueCounts,
     metrics,
+    handleMetricClick,
+    handleClearAllFilters,
     isLoading,
     isFetching,
     isError,

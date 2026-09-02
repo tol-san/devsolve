@@ -6,6 +6,11 @@ import {
 } from "@/lib/validations/report";
 import { formatDate, formatDateTime, toDate } from "@/lib/format/datetime";
 import {
+  formatBountyAmount,
+  hasBountyReward,
+  openRetestAttempt,
+} from "@/lib/reports/retest";
+import {
   ReportItem,
   ReportsFilterParams,
   ReportDetail,
@@ -20,13 +25,71 @@ export * from "@/lib/types/reports/types";
 export * from "@/lib/types/reports/mock-data";
 
 type ApiSeverity = "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
-type ApiState = "NEW" | "TRIAGING" | "NEEDS_MORE_INFO" | "VALID_CONFIRMED" | "RESOLVED" | "REJECTED" | "DUPLICATE";
+type ApiState =
+  | "NEW"
+  | "TRIAGING"
+  | "NEEDS_MORE_INFO"
+  | "VALID_CONFIRMED"
+  | "RETESTING"
+  | "RESOLVED"
+  | "REJECTED"
+  | "DUPLICATE";
+
+/** `ReportEnvironment` upstream — the environments a retest can be run in. */
+export type ReportEnvironment =
+  | "PRODUCTION"
+  | "STAGING"
+  | "DEVELOPMENT"
+  | "TESTING"
+  | "LOCAL";
+
+/** The two answers a researcher can give. There is no third, and no opt-in. */
+export type RetestVerdict = "VERIFIED_FIXED" | "STILL_VULNERABLE";
+
+export interface ActorSummary {
+  id: string;
+  name: string;
+}
+
+/**
+ * One retest attempt, exactly as `RetestSummary` arrives.
+ *
+ * Every field the backend can leave empty is `null` rather than absent.
+ *
+ * `bountyReward` is documented as a decimal string — `NUMERIC(10,2)` upstream
+ * — but the live API serialises it as a JSON number, so both shapes reach the
+ * screen and the type says so. Neither is ever put through `toFixed` or
+ * arithmetic: see `formatBountyAmount` in `src/lib/reports/retest.ts` for what
+ * a float round-trip costs a value stored to the cent.
+ *
+ * There is no status field: what an attempt means is derived from
+ * `completedAt` and `verdict` by `retestAttemptStatus`.
+ */
+export interface RetestSummary {
+  id: string;
+  /** 1, 2, 3 — never reused, so it identifies the attempt in conversation. */
+  attemptNumber: number;
+  environment: ReportEnvironment | null;
+  targetEndpoint: string | null;
+  requestedAt: string;
+  /** The deadline to answer. Null on attempts that predate deadlines. */
+  dueAt: string | null;
+  requestedBy: ActorSummary;
+  requestNotes: string | null;
+  /** A decimal, as a string or a number. Never parse it to a float. */
+  bountyReward: string | number | null;
+  /** Null while the attempt is still open. */
+  completedAt: string | null;
+  completedBy: ActorSummary | null;
+  verdict: RetestVerdict | null;
+  resultNotes: string | null;
+  attachmentIds: string[] | null;
+}
 
 // Real shape of GET /api/v1/reports/mine content items (per the live OpenAPI
 // spec at devsolve-api.quizzy.it.com/v3/api-docs). No program display name is
 // included anywhere on this object — only programId — so it's resolved
-// separately per report via GET /programs/{id}, same as getHacktivity in
-// profileApi.ts.
+// separately per report via GET /programs/{id}.
 interface ReportApiResponse {
   id: string;
   programId: string;
@@ -36,7 +99,18 @@ interface ReportApiResponse {
   triageSeverity?: ApiSeverity;
   severity?: ApiSeverity;
   state: ApiState;
-  rewards?: { amount: number }[];
+  rewards?: { amount?: number; note?: string; awardedAt?: string }[];
+  retestHistory?: RetestSummary[];
+  /**
+   * What the platform paid the reporter for this finding, and when.
+   *
+   * Both are null until the report is resolved, and null on reports resolved
+   * before reputation became automatic — those were deliberately not
+   * backfilled, so an absent value means "unknown", not zero. `0` itself is a
+   * real award on a NONE-severity finding.
+   */
+  reputationPoints?: number | null;
+  reputationAwardedAt?: string | null;
   submittedAt?: string;
   triagedAt?: string;
   resolvedAt?: string;
@@ -102,6 +176,8 @@ interface ProgramApiResponse {
   name: string;
   organizationId?: string;
   engagementType?: string;
+  /** Whether this program pays money. Reputation is paid either way. */
+  offersBounties?: boolean;
   assets?: Array<{
     id?: string;
     identifier?: string;
@@ -138,6 +214,8 @@ function toStatus(state: ApiState): ReportItem["status"] {
     case "TRIAGING":
     case "NEEDS_MORE_INFO":
       return "TRIAGING";
+    case "RETESTING":
+      return "RETESTING";
     case "VALID_CONFIRMED":
       return "ACCEPTED";
     case "RESOLVED":
@@ -145,6 +223,8 @@ function toStatus(state: ApiState): ReportItem["status"] {
     case "REJECTED":
     case "DUPLICATE":
       return "REJECTED";
+    default:
+      return "SUBMITTED";
   }
 }
 
@@ -154,6 +234,8 @@ function toActivityBadge(status: ReportItem["status"]): string {
       return "RECEIVED";
     case "TRIAGING":
       return "UNDER TRIAGE";
+    case "RETESTING":
+      return "RETEST REQUESTED";
     case "ACCEPTED":
       return "STATUS UPDATE";
     case "RESOLVED":
@@ -167,6 +249,16 @@ function toBountyDisplay(
   report: ReportApiResponse,
   status: ReportItem["status"]
 ): Pick<ReportItem, "bountyOrRep" | "isBountyHighlight" | "isBountyDim"> {
+  /* The bonus on the *open* attempt, which is the one still to be earned —
+     `bountyReward` is a decimal string, so it is formatted, never parsed. */
+  const openRetest = openRetestAttempt(report.retestHistory);
+  if (status === "RETESTING" && hasBountyReward(openRetest?.bountyReward)) {
+    return {
+      bountyOrRep: `+${formatBountyAmount(openRetest?.bountyReward)} Bonus`,
+      isBountyHighlight: true,
+    };
+  }
+
   const total =
     report.rewards?.reduce(
       (sum, reward) => sum + (Number(reward.amount) || 0),
@@ -319,6 +411,12 @@ function toReportItem(
     type: "Bounty",
     severity: toSeverity(report),
     status,
+    rawStatus: report.state,
+    retestHistory: report.retestHistory,
+    /* Passed through untouched. Never recomputed from `severity`: a severity
+       corrected after resolution does not change what was already paid. */
+    reputationPoints: report.reputationPoints ?? null,
+    reputationAwardedAt: report.reputationAwardedAt ?? null,
     ...toBountyDisplay(report, status),
     lastActivityDate: toLastActivityDate(report),
     lastActivityBadge: toActivityBadge(status),
@@ -330,6 +428,7 @@ function toReportDetail(
   report: ReportApiResponse,
   programName: string,
   organizationId?: string,
+  programOffersBounties?: boolean,
 ): ReportDetail {
   const item = toReportItem(report, programName, organizationId);
 
@@ -455,8 +554,108 @@ function toReportDetail(
        used to render a "DevSolve Triage Bot" notice that no one had written. */
     comments: [],
     updates,
-    retestHistory: [],
+    retestHistory: report.retestHistory || [],
+    /* The organization's half of what a resolution pays, itemised. The
+       reputation half is on `item` and is never added to these. */
+    rewards: (report.rewards ?? [])
+      .filter((reward) => typeof reward.amount === "number")
+      .map((reward) => ({
+        amount: reward.amount as number,
+        note: reward.note || undefined,
+        awardedAt: reward.awardedAt || undefined,
+      })),
+    programOffersBounties: programOffersBounties ?? null,
   };
+}
+
+/** `RequestRetestRequest` upstream. Everything but the report is optional. */
+export interface RequestRetestArgs {
+  id: string;
+  /** Defaults to `STAGING` when the organization does not choose. */
+  environment?: ReportEnvironment;
+  /** ≤ 1000 characters. */
+  targetEndpoint?: string;
+  /** ≤ 2000 characters. */
+  notes?: string;
+  /**
+   * The bonus, as the decimal string the form holds it in.
+   *
+   * `RequestRetestRequest.bountyReward` is a JSON *number* upstream with a
+   * minimum of 0.01, so it is converted once on the way out — a string would
+   * be at the mercy of the deserialiser's coercion settings. It is carried as
+   * text this far because that is what an input yields, and parsing it any
+   * earlier would round-trip a value stored to the cent through a float twice.
+   */
+  bountyReward?: string;
+}
+
+/** `SubmitRetestRequest` upstream. Only the reporter may send one. */
+export interface SubmitRetestArgs {
+  id: string;
+  verdict: RetestVerdict;
+  /** ≤ 5000 characters. */
+  notes?: string;
+  /** Must already be attachments on this report, or the backend answers 400. */
+  attachmentIds?: string[];
+}
+
+/** `TriageReportRequest`, narrowed to the one transition `RESOLVED` allows. */
+export interface ReopenReportArgs {
+  id: string;
+  triageSeverity: ApiSeverity;
+}
+
+/**
+ * Writing a mutation's `ReportResponse` straight into the detail cache.
+ *
+ * The three retest calls each answer with the report as it now stands, so the
+ * screen can be correct without a second read and without guessing at the
+ * transition — which matters most for `STILL_VULNERABLE`, where the state
+ * moves to `VALID_CONFIRMED` and `resolvedAt` is cleared. A rejected call
+ * writes nothing: the error travels to the caller, which shows the backend's
+ * own wording.
+ */
+async function applyReportResponse(
+  id: string,
+  dispatch: (action: unknown) => unknown,
+  queryFulfilled: Promise<{ data: ReportDetail }>,
+): Promise<void> {
+  try {
+    const { data } = await queryFulfilled;
+    dispatch(reportsApi.util.upsertQueryData("getReportById", id, data));
+  } catch {
+    /* Surfaced by the component that called it. */
+  }
+}
+
+/**
+ * The program name and organization a `ReportResponse` does not carry.
+ *
+ * The report names only `programId`, so every screen that shows a report needs
+ * this second read. It is shared by the detail query and by the three retest
+ * mutations, which all answer with a full `ReportResponse` and are mapped
+ * through the same transform so the cache never holds two different shapes of
+ * the same report.
+ */
+async function toDetailWithProgram(
+  report: ReportApiResponse,
+  fetchWithBQ: (arg: string) => Promise<{ data?: unknown; error?: unknown }>,
+): Promise<ReportDetail> {
+  let programName = report.programName || "Security Program";
+  let organizationId: string | undefined;
+  let offersBounties: boolean | undefined;
+
+  if (report.programId) {
+    const progResult = await fetchWithBQ(`/programs/${report.programId}`);
+    if (!progResult.error && progResult.data) {
+      const program = progResult.data as ProgramApiResponse;
+      programName = program.name || programName;
+      organizationId = program.organizationId;
+      offersBounties = program.offersBounties;
+    }
+  }
+
+  return toReportDetail(report, programName, organizationId, offersBounties);
 }
 
 export const reportsApi = baseApi.injectEndpoints({
@@ -512,9 +711,13 @@ export const reportsApi = baseApi.injectEndpoints({
         }
 
         if (params?.status && params.status !== "All") {
-          if (params.status === "Open") {
+          if (params.status === "Retesting" || params.status === "RETESTING") {
             results = results.filter(
-              (item) => item.status === "TRIAGING" || item.status === "SUBMITTED"
+              (item) => item.status === "RETESTING" || item.rawStatus === "RETESTING"
+            );
+          } else if (params.status === "Open") {
+            results = results.filter(
+              (item) => item.status === "TRIAGING" || item.status === "SUBMITTED" || item.status === "RETESTING"
             );
           } else if (params.status === "Resolved") {
             results = results.filter(
@@ -567,6 +770,7 @@ export const reportsApi = baseApi.injectEndpoints({
         const reportData = reportResult.data as ReportApiResponse;
         let programName = reportData.programName || "Security Program";
         let organizationId: string | undefined;
+        let offersBounties: boolean | undefined;
         /* Fetched whenever the program is not already named on the report, and
            now also for the organization id, which the report never carries. */
         if (reportData.programId) {
@@ -575,10 +779,18 @@ export const reportsApi = baseApi.injectEndpoints({
             const program = progResult.data as ProgramApiResponse;
             programName = program.name || programName;
             organizationId = program.organizationId;
+            offersBounties = program.offersBounties;
           }
         }
 
-        return { data: toReportDetail(reportData, programName, organizationId) };
+        return {
+          data: toReportDetail(
+            reportData,
+            programName,
+            organizationId,
+            offersBounties,
+          ),
+        };
       },
       providesTags: (_result, _error, id) => [{ type: "Report", id }],
     }),
@@ -793,13 +1005,29 @@ export const reportsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [{ type: "Report", id }, "Report"],
     }),
 
+    /**
+     * Public credit for a finding — and only that.
+     *
+     * Recognition used to be how reputation was awarded. It no longer is:
+     * reputation is paid automatically when a report is resolved, priced by
+     * severity. This adds a row to the hacktivity feed and increments
+     * `recognitionCount`, and awards no points, so no copy attached to it
+     * should promise any.
+     *
+     * The report must already be `RESOLVED`, and a report can be recognised
+     * once — a second attempt answers 409, which is a statement of fact
+     * ("already recognised") rather than a failure to report as an error.
+     * `Leaderboard` is still invalidated because `recognitionCount` is a
+     * column on it; `reputation` is untouched by this call.
+     */
     awardRecognition: builder.mutation<
       { success: boolean; message?: string },
       {
         userId: string;
         programId: string;
         reportId: string;
-        title?: string;
+        /** Required upstream — the headline the credit is given under. */
+        title: string;
         description?: string;
       }
     >({
@@ -809,6 +1037,177 @@ export const reportsApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: ["Profile", "Leaderboard", "Report"],
+    }),
+
+    resolveReport: builder.mutation<
+      { success: boolean; message: string; reportId?: string },
+      {
+        id: string;
+        severity?: "Critical" | "High" | "Medium" | "Low" | "Info" | string;
+        resolutionNote?: string;
+        comment?: string;
+      }
+    >({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        const triageSeverity = (payload.severity || "MEDIUM").toUpperCase();
+        const triageResult = await fetchWithBQ({
+          url: `/reports/${payload.id}/triage`,
+          method: "PATCH",
+          body: {
+            triageSeverity,
+            state: "RESOLVED",
+          },
+        });
+
+        if (triageResult.error) {
+          return { error: triageResult.error };
+        }
+
+        const note = payload.resolutionNote || payload.comment;
+        if (note) {
+          await fetchWithBQ({
+            url: "/comments",
+            method: "POST",
+            body: {
+              commentableType: "REPORT",
+              commentableId: payload.id,
+              content: `**[Report Resolved]** ${note}`,
+              internal: false,
+            },
+          });
+        }
+
+        return {
+          data: {
+            success: true,
+            message: `Report #${payload.id} successfully marked as Resolved.`,
+            reportId: payload.id,
+          },
+        };
+      },
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Report", id },
+        "Report",
+        "Profile",
+        "Leaderboard",
+      ],
+    }),
+
+    /**
+     * The organization asks the reporter to re-run their proof of concept.
+     *
+     * `POST /reports/{id}/retest/request`, allowed only from `RESOLVED` and
+     * only with `TRIAGE_REPORTS` or `MANAGE_PROGRAM_STATE`. The upstream
+     * answers with the whole updated `ReportResponse`, which is written into
+     * the detail cache verbatim — the new attempt carries a `dueAt` and an
+     * `attemptNumber` that nothing on this side could work out for itself.
+     */
+    requestRetest: builder.mutation<ReportDetail, RequestRetestArgs>({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        const result = await fetchWithBQ({
+          url: `/reports/${payload.id}/retest/request`,
+          method: "POST",
+          body: {
+            environment: payload.environment || "STAGING",
+            targetEndpoint: payload.targetEndpoint || undefined,
+            notes: payload.notes || undefined,
+            /* The wire type is a number; the two-decimal values this field
+               accepts are all exactly representable, so the conversion here is
+               lossless and the upstream's `minimum: 0.01` sees a number. */
+            bountyReward: payload.bountyReward
+              ? Number(payload.bountyReward)
+              : undefined,
+          },
+        });
+
+        if (result.error) return { error: result.error };
+
+        return {
+          data: await toDetailWithProgram(
+            result.data as ReportApiResponse,
+            fetchWithBQ as never,
+          ),
+        };
+      },
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await applyReportResponse(id, dispatch, queryFulfilled);
+      },
+      /* The lists only, deliberately: the detail entry was just written from
+         the response, and re-fetching it would replace truth with a second
+         read that can only agree or race. */
+      invalidatesTags: ["Report"],
+    }),
+
+    /**
+     * The reporter answers. Two verdicts, no accept step, no third option.
+     *
+     * `VERIFIED_FIXED` leaves the report `RESOLVED`; `STILL_VULNERABLE` sends
+     * it back to `VALID_CONFIRMED` and clears `resolvedAt`. Neither is assumed
+     * here — the returned report says which happened. The bonus, when the
+     * attempt carried one, is paid on *either* answer and lands in `rewards`,
+     * so `Profile` and `Leaderboard` are invalidated alongside.
+     */
+    submitRetest: builder.mutation<ReportDetail, SubmitRetestArgs>({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        const result = await fetchWithBQ({
+          url: `/reports/${payload.id}/retest/submit`,
+          method: "POST",
+          body: {
+            verdict: payload.verdict,
+            notes: payload.notes || undefined,
+            attachmentIds: payload.attachmentIds?.length
+              ? payload.attachmentIds
+              : undefined,
+          },
+        });
+
+        if (result.error) return { error: result.error };
+
+        return {
+          data: await toDetailWithProgram(
+            result.data as ReportApiResponse,
+            fetchWithBQ as never,
+          ),
+        };
+      },
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await applyReportResponse(id, dispatch, queryFulfilled);
+      },
+      invalidatesTags: ["Report", "Profile", "Leaderboard"],
+    }),
+
+    /**
+     * Reopening a resolved report without waiting for a retest.
+     *
+     * `PATCH /reports/{id}/triage`. From `RESOLVED` the only target the
+     * backend accepts is `VALID_CONFIRMED` — anything else is a 409 — so the
+     * state is fixed here rather than taken from the caller. The severity must
+     * travel with it because `TriageReportRequest` carries both.
+     */
+    reopenResolvedReport: builder.mutation<ReportDetail, ReopenReportArgs>({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        const result = await fetchWithBQ({
+          url: `/reports/${payload.id}/triage`,
+          method: "PATCH",
+          body: {
+            triageSeverity: payload.triageSeverity,
+            state: "VALID_CONFIRMED",
+          },
+        });
+
+        if (result.error) return { error: result.error };
+
+        return {
+          data: await toDetailWithProgram(
+            result.data as ReportApiResponse,
+            fetchWithBQ as never,
+          ),
+        };
+      },
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await applyReportResponse(id, dispatch, queryFulfilled);
+      },
+      invalidatesTags: ["Report"],
     }),
   }),
 });
@@ -823,4 +1222,8 @@ export const {
   useApproveReportMutation,
   useRejectReportMutation,
   useAwardRecognitionMutation,
+  useResolveReportMutation,
+  useRequestRetestMutation,
+  useSubmitRetestMutation,
+  useReopenResolvedReportMutation,
 } = reportsApi;

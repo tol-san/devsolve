@@ -8,6 +8,7 @@ export interface MalwareUploader {
   id: string; // UUID
   username: string | null;
   email: string | null;
+  status?: "ACTIVE" | "SUSPENDED" | "BANNED" | "PENDING" | "REMOVED" | string | null;
 }
 
 export interface IncidentOrganization {

@@ -359,13 +359,20 @@ export function buildReportManagementDetailFromApiReport(
     LOW: "Low",
   };
   const severity = sevMap[report.severity] || "Medium";
+  const rawStatus = (report.status || "") as string;
   const isReviewed =
-    report.status === "ACCEPTED" ||
-    report.status === "RESOLVED" ||
-    report.status === "REJECTED";
+    rawStatus === "ACCEPTED" ||
+    rawStatus === "VALID_CONFIRMED" ||
+    rawStatus === "RESOLVED" ||
+    rawStatus === "REJECTED";
+
+  const isClosed =
+    rawStatus === "RESOLVED" ||
+    rawStatus === "REJECTED" ||
+    rawStatus === "DUPLICATE";
 
   const status: import("@/components/report-management/types").ReportStatus =
-    isReviewed ? "Closed" : "Open";
+    isClosed ? "Closed" : "Open";
 
   const submittedDate = report.submittedAt
     ? formatDateTime(report.submittedAt)
@@ -412,7 +419,10 @@ export function buildReportManagementDetailFromApiReport(
     type: report.type || "Bounty",
     status,
     isReviewed,
-    rawStatus: report.status,
+    /* The backend's own state, not the collapsed UI status: the retest gates
+       turn on `RESOLVED` and `VALID_CONFIRMED` exactly, and `status` folds
+       several states into one label. */
+    rawStatus: report.rawStatus || report.status,
     severity,
     cvssScore: report.cvssScore || "N/A",
     submittedDate,
@@ -454,6 +464,7 @@ export function buildReportManagementDetailFromApiReport(
         : "No external documentation provided",
     internalAssetLink: report.targetEndpoint || report.program || "Asset identifier",
     relatedReport: "#RPT-NONE",
+    retestHistory: (report as any).retestHistory || [],
   };
 }
 

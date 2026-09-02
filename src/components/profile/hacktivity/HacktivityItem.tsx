@@ -1,101 +1,172 @@
-import { Award, CheckCircle2, RotateCw, TrendingUp } from "lucide-react";
-import { HacktivityEntry, Severity } from "@/lib/types/profile/types";
+import { Award, CheckCircle2, Coins, Megaphone } from "lucide-react";
+import type { HacktivityActivity, Severity } from "@/lib/types/hacktivity/types";
+import { formatDate } from "@/lib/format/datetime";
+import { cn } from "@/lib/utils";
 
 interface HacktivityItemProps {
-  entry: HacktivityEntry;
+  activity: HacktivityActivity;
 }
 
 const SEVERITY_COLOR: Record<Severity, string> = {
-  critical: "text-red-500",
-  high: "text-orange-500",
-  medium: "text-amber-500",
-  low: "text-blue-500",
+  CRITICAL: "text-red-600 dark:text-red-400",
+  HIGH: "text-orange-600 dark:text-orange-400",
+  MEDIUM: "text-amber-600 dark:text-amber-400",
+  LOW: "text-blue-600 dark:text-blue-400",
+  NONE: "text-muted-foreground",
 };
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const ICON = {
+  REPORT_RESOLVED: {
+    Glyph: CheckCircle2,
+    tone: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  },
+  RECOGNITION_AWARDED: {
+    Glyph: Award,
+    tone: "bg-amber-500/10 text-amber-600 dark:text-amber-300",
+  },
+  BOUNTY_AWARDED: {
+    Glyph: Coins,
+    tone: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  },
+  REPORT_DISCLOSED: {
+    Glyph: Megaphone,
+    tone: "bg-blue-500/10 text-blue-600 dark:text-blue-300",
+  },
+} as const;
+
+function titleCase(severity: Severity): string {
+  return severity.charAt(0) + severity.slice(1).toLowerCase();
 }
 
-function Icon({ entry }: { entry: HacktivityEntry }) {
-  const wrapper = "flex h-8 w-8 shrink-0 items-center justify-center rounded-full";
-  switch (entry.type) {
-    case "resolved":
-      return (
-        <div className={`${wrapper} bg-emerald-50 dark:bg-emerald-500/10`}>
-          <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-300" />
-        </div>
-      );
-    case "badge":
-      return (
-        <div className={`${wrapper} bg-amber-50 dark:bg-amber-500/10`}>
-          <Award size={16} className="text-amber-500 dark:text-amber-300" />
-        </div>
-      );
-    case "rank":
-      return (
-        <div className={`${wrapper} bg-blue-50 dark:bg-blue-500/10`}>
-          <TrendingUp size={16} className="text-blue-600 dark:text-blue-300" />
-        </div>
-      );
-    case "retest":
-      return (
-        <div className={`${wrapper} bg-indigo-50 dark:bg-indigo-500/10`}>
-          <RotateCw size={16} className="text-indigo-500 dark:text-indigo-300" />
-        </div>
-      );
-  }
-}
+/** The program, named only when the row carries one. */
+function Target({ activity }: { activity: HacktivityActivity }) {
+  const name = activity.program?.name || activity.organization?.name;
+  if (!name) return null;
 
-function Description({ entry }: { entry: HacktivityEntry }) {
-  if (entry.type === "resolved") {
-    return (
-      <p className="text-sm text-slate-800 dark:text-neutral-200">
-        <span className="font-semibold">{entry.actorHandle}</span> resolved a{" "}
-        <span className={`font-semibold ${entry.severity ? SEVERITY_COLOR[entry.severity] : ""}`}>
-          {entry.severity && entry.severity[0].toUpperCase() + entry.severity.slice(1)}
-        </span>{" "}
-        bug for <span className="font-bold text-slate-900 dark:text-neutral-100">{entry.program}</span>
-      </p>
-    );
-  }
-  if (entry.type === "badge") {
-    return (
-      <p className="text-sm text-slate-800 dark:text-neutral-200">
-        <span className="font-semibold">{entry.actorHandle}</span> earned the badge{" "}
-        <span className="ml-1 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
-          {entry.badgeName}
-        </span>
-      </p>
-    );
-  }
-  if (entry.type === "rank") {
-    return (
-      <p className="text-sm text-slate-800 dark:text-neutral-200">
-        <span className="font-semibold">{entry.actorHandle}</span> climbed to{" "}
-        <span className="font-semibold text-blue-600 dark:text-blue-400">{entry.rankLabel}</span>
-      </p>
-    );
-  }
   return (
-    <p className="text-sm text-slate-800 dark:text-neutral-200">
-      <span className="font-semibold">{entry.actorHandle}</span> completed a retest for{" "}
-      <span className="font-bold text-slate-900 dark:text-neutral-100">{entry.program}</span>
-    </p>
+    <>
+      {" for "}
+      <span className="font-bold text-foreground">{name}</span>
+    </>
   );
 }
 
-export default function HacktivityItem({ entry }: HacktivityItemProps) {
+/**
+ * What happened, in the words of the event.
+ *
+ * The researcher is the subject of the page they are on, so the sentence
+ * starts with the action rather than repeating their handle on every row.
+ * A report is named only when `title` survived the disclosure check in
+ * `toActivity` — an undisclosed finding is described, never titled.
+ */
+function Description({ activity }: { activity: HacktivityActivity }) {
+  const severity = activity.severity;
+  const severityText = severity && severity !== "NONE" && (
+    <span className={cn("font-semibold", SEVERITY_COLOR[severity])}>
+      {titleCase(severity)}
+    </span>
+  );
+
+  switch (activity.eventType) {
+    case "RECOGNITION_AWARDED":
+      return (
+        <p className="text-sm text-foreground">
+          Was recognised
+          <Target activity={activity} />
+          {activity.recognition && (
+            <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+              {activity.recognition}
+            </span>
+          )}
+        </p>
+      );
+
+    case "BOUNTY_AWARDED":
+      return (
+        <p className="text-sm text-foreground">
+          Earned a bounty {severityText && <>for a {severityText} finding</>}
+          <Target activity={activity} />
+        </p>
+      );
+
+    case "REPORT_DISCLOSED":
+      return (
+        <p className="text-sm text-foreground">
+          Disclosed {severityText ? <>a {severityText}</> : "a"} finding
+          <Target activity={activity} />
+          {activity.title && (
+            <span className="mt-0.5 block font-medium text-muted-foreground">
+              {activity.title}
+            </span>
+          )}
+        </p>
+      );
+
+    case "REPORT_RESOLVED":
+    default:
+      return (
+        <p className="text-sm text-foreground">
+          Resolved {severityText ? <>a {severityText}</> : "a"} report
+          <Target activity={activity} />
+          {activity.title && (
+            <span className="mt-0.5 block font-medium text-muted-foreground">
+              {activity.title}
+            </span>
+          )}
+        </p>
+      );
+  }
+}
+
+/** Money when it was paid, points when that is what the program gives. */
+function RewardBadge({ reward }: { reward: HacktivityActivity["reward"] }) {
+  if (reward.kind === "cash") {
+    return (
+      <span className="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+        {reward.currency === "USD" ? "$" : `${reward.currency} `}
+        {reward.amount.toLocaleString()}
+      </span>
+    );
+  }
+
+  if (reward.kind === "points") {
+    return (
+      <span className="shrink-0 text-sm font-semibold text-muted-foreground">
+        {reward.points.toLocaleString()} pts
+      </span>
+    );
+  }
+
+  return null;
+}
+
+export default function HacktivityItem({ activity }: HacktivityItemProps) {
+  const { Glyph, tone } =
+    ICON[activity.eventType as keyof typeof ICON] ?? ICON.REPORT_RESOLVED;
+
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-slate-100 py-4 last:border-0 dark:border-neutral-800">
-      <div className="flex items-start gap-3">
-        <Icon entry={entry} />
-        <div>
-          <Description entry={entry} />
-          <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-neutral-400">{formatDate(entry.date)}</p>
+    <div className="flex items-start justify-between gap-4 border-b border-border py-4 last:border-0">
+      <div className="flex min-w-0 items-start gap-3">
+        <div
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-full",
+            tone,
+          )}
+        >
+          <Glyph size={16} />
+        </div>
+        <div className="min-w-0">
+          <Description activity={activity} />
+          <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+            {formatDate(activity.createdAt)}
+            {activity.weakness?.cweId && (
+              <span className="ml-2 font-mono">{activity.weakness.cweId}</span>
+            )}
+          </p>
         </div>
       </div>
 
-      {entry.bounty ? <span className="shrink-0 text-sm font-semibold text-emerald-600">${entry.bounty.toLocaleString()}</span> : null}
+      <RewardBadge reward={activity.reward} />
     </div>
   );
 }

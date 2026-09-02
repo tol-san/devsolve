@@ -38,6 +38,12 @@ export interface LeaderboardEntry {
   totalReports: number | null;
   validReports: number | null;
   criticalReports: number;
+  /**
+   * On `all`, the number of recognitions this researcher has received.
+   * On a windowed board it is instead the number of findings they resolved
+   * inside that window — the ones that earned the `reputation` beside it.
+   * The column header changes with the period; see `RANKED_COUNT_LABEL`.
+   */
   recognitionCount: number;
   severity: SeverityBreakdown;
   /** Highest severity this researcher has landed in the window. */
@@ -77,14 +83,24 @@ export interface LeaderboardStats {
   programsLive: number;
 }
 
-/** How reputation points are earned. Surfaced in the UI so the ranking is
- *  legible, and deliberately payout-independent. */
+/**
+ * What each severity pays, as the platform prices it.
+ *
+ * Mirrors `ReputationPolicy` upstream: reputation is awarded automatically
+ * when a report is resolved, so this is the whole ladder. Recognition is not
+ * on it — being recognised is public credit and awards no reputation, which
+ * is why the entry that used to sit here was removed rather than zeroed.
+ *
+ * Surfaced so the ranking is legible, and deliberately payout-independent: a
+ * Critical at a startup and a Critical at a bank move the board identically.
+ * For display only — what a given report actually earned is read from its own
+ * `reputationPoints`, never recomputed from severity counts.
+ */
 export const REPUTATION_POINTS = {
-  critical: 45,
-  high: 20,
-  medium: 8,
-  low: 3,
-  recognition: 25,
+  critical: 100,
+  high: 40,
+  medium: 15,
+  low: 5,
 } as const;
 
 export const SEVERITY_ORDER: SeverityLabel[] = [
@@ -98,4 +114,20 @@ export const PERIOD_LABELS: Record<LeaderboardPeriod, string> = {
   all: "All time",
   month: "This month",
   week: "This week",
+};
+
+/**
+ * What `recognitionCount` counts, which depends on the window.
+ *
+ * The field name is the API's and did not change, but its meaning did: on a
+ * windowed board it is the findings resolved in that window, not recognitions.
+ * One static header would be wrong on two of the three periods.
+ */
+export const RANKED_COUNT_LABEL: Record<
+  LeaderboardPeriod,
+  { column: string; singular: string; plural: string }
+> = {
+  all: { column: "Recognitions", singular: "recognition", plural: "recognitions" },
+  month: { column: "Findings", singular: "finding", plural: "findings" },
+  week: { column: "Findings", singular: "finding", plural: "findings" },
 };

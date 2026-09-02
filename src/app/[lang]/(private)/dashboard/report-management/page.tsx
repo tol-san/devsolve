@@ -21,23 +21,32 @@ function ReportManagementContent() {
   const {
     searchTerm,
     setSearchTerm,
+    debouncedSearch,
     typeFilter,
     setTypeFilter,
     severityFilter,
     setSeverityFilter,
     statusFilter,
     setStatusFilter,
+    queueTab,
+    setQueueTab,
+    sortOption,
+    setSortOption,
     rowsPerPage,
     currentPage,
     setCurrentPage,
     filteredCount,
+    totalCount,
     paginatedReports,
     totalPages,
     pageNumbers,
     typeCounts,
     severityCounts,
     statusCounts,
+    queueCounts,
     metrics,
+    handleMetricClick,
+    handleClearAllFilters,
     isLoading,
     isFetching,
     isError,
@@ -48,15 +57,9 @@ function ReportManagementContent() {
     searchTerm.trim().length > 0 ||
     typeFilter !== "All Types" ||
     severityFilter !== "All" ||
-    statusFilter !== "All Statuses";
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setTypeFilter("All Types");
-    setSeverityFilter("All");
-    setStatusFilter("All Statuses");
-    setCurrentPage(1);
-  };
+    statusFilter !== "All Statuses" ||
+    queueTab !== "ALL" ||
+    sortOption !== "NEWEST";
 
   return (
     <motion.section
@@ -70,13 +73,23 @@ function ReportManagementContent() {
       </motion.div>
 
       <motion.div variants={pageEnterItem}>
-        <ReportMetricsGrid metrics={metrics} isLoading={isLoading} />
+        <ReportMetricsGrid
+          metrics={metrics}
+          activeQueue={queueTab}
+          onMetricClick={handleMetricClick}
+          isLoading={isLoading}
+        />
       </motion.div>
 
       <motion.div variants={pageEnterItem} id="report-filters">
         <ReportFiltersBar
           searchTerm={searchTerm}
           onSearchTermChange={setSearchTerm}
+          queueTab={queueTab}
+          onQueueTabChange={setQueueTab}
+          queueCounts={queueCounts}
+          sortOption={sortOption}
+          onSortOptionChange={setSortOption}
           typeFilter={typeFilter}
           onTypeFilterChange={setTypeFilter}
           severityFilter={severityFilter}
@@ -86,14 +99,14 @@ function ReportManagementContent() {
           typeCounts={typeCounts}
           severityCounts={severityCounts}
           statusCounts={statusCounts}
-          onClearFilters={clearFilters}
+          onClearFilters={handleClearAllFilters}
         />
       </motion.div>
 
       <motion.section variants={pageEnterItem} className="space-y-3">
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 sm:px-6 py-3.5 shadow-xs">
           <p className="text-sm font-medium text-foreground">
-            Showing {filteredCount} reports
+            Showing <strong className="font-semibold text-foreground">{filteredCount}</strong> of {totalCount} reports
           </p>
 
           <Button
@@ -187,7 +200,7 @@ function ReportManagementContent() {
             {hasActiveFilters ? (
               <button
                 type="button"
-                onClick={clearFilters}
+                onClick={handleClearAllFilters}
                 className="mt-5 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted cursor-pointer"
               >
                 Clear filters

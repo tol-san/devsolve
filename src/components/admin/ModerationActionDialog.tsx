@@ -86,15 +86,20 @@ const REASON_PRESETS: Record<ModerationActionType, string[]> = {
   WARN: [
     "First warning for community guidelines violation.",
     "Inappropriate content or comments detected.",
+    "Refused file upload flagged by VirusTotal security scanner.",
     "Please adhere to respectful collaboration standards.",
   ],
   SUSPEND: [
     "Repeated violations of community guidelines.",
+    "Malicious file upload attempt detected via VirusTotal guard.",
+    "Suspended pending investigation of suspicious file uploads.",
     "Suspicious activity requiring investigation.",
     "Harassment or abusive conduct reported.",
   ],
   BAN: [
     "Severe or persistent terms of service violations.",
+    "Permanent ban for uploading/distributing malware payloads.",
+    "Critical security violation: Attempted malicious payload deployment.",
     "Confirmed malicious actor or fraudulent activity.",
   ],
   REMOVE: [

@@ -525,8 +525,11 @@ export function ReportSeverityAdjustmentForm({
                       className="pl-7 bg-card text-foreground font-semibold text-base"
                     />
                   </div>
-                  <FieldDescription className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                    Bounties are paid by your organization. A researcher&apos;s reputation is set by the platform from the finding&apos;s severity when the report is recognised.
+                  <FieldDescription className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                    Bounties are money, paid by your organization, and this
+                    field is the whole of it. Reputation is separate: DevSolve
+                    awards it automatically from the finding&apos;s severity
+                    when the report is resolved.
                   </FieldDescription>
                 </FieldContent>
               </Field>
@@ -764,8 +767,10 @@ export function ReportSeverityAdjustmentForm({
                       <span>{detail.submitter}</span>
                     </Link>
                   </div>
-                  <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/70 leading-relaxed">
-                    Bounties are paid directly by your organization. Reputation is assigned separately by the platform upon resolution recognition.
+                  <p className="text-sm text-muted-foreground pt-1 border-t border-border/70 leading-relaxed">
+                    Bounties are paid directly by your organization. Reputation
+                    is separate and automatic: DevSolve awards it on the
+                    finding&apos;s severity the moment the report is resolved.
                   </p>
                 </div>
               </div>

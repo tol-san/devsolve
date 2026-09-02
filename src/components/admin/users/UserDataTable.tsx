@@ -44,6 +44,7 @@ interface UserDataTableProps<TData, TValue> {
   totalElements?: number;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
+  onResetFilters?: () => void;
 }
 
 export function UserDataTable<TData, TValue>({
@@ -55,6 +56,7 @@ export function UserDataTable<TData, TValue>({
   totalElements,
   onPageChange,
   onPageSizeChange,
+  onResetFilters,
 }: UserDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [localPagination, setLocalPagination] = useState({
@@ -157,8 +159,19 @@ export function UserDataTable<TData, TValue>({
                         No matching users found
                       </CardTitle>
                       <CardDescription className="text-sm text-muted-foreground">
-                        Try another search or status filter.
+                        Try adjusting your search query, role filter, or status filter.
                       </CardDescription>
+                      {onResetFilters && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={onResetFilters}
+                          className="mt-1.5 h-8 rounded-xl px-4 text-xs font-semibold cursor-pointer border-border hover:bg-muted"
+                        >
+                          Reset all filters
+                        </Button>
+                      )}
                     </CardHeader>
                   </Card>
                 </TableCell>

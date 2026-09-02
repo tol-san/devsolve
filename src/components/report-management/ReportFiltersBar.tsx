@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ShieldCheck, Tag } from "lucide-react";
+import { AlertTriangle, ArrowUpDown, ShieldCheck, Tag } from "lucide-react";
 
 import {
   ActiveFilters,
@@ -9,16 +9,32 @@ import {
   FilterRow,
   FilterSearch,
   FilterSelect,
+  FilterTabs,
   type ActiveFilter,
 } from "@/components/ui/filter-bar";
-
-type TypeFilter = "All Types" | "Bounty" | "Response";
-type SeverityFilter = "All" | "Critical" | "High" | "Medium" | "Low";
-type StatusFilter = "All Statuses" | "Open" | "Closed";
+import type {
+  TypeFilter,
+  SeverityFilter,
+  StatusFilter,
+  QueueTabFilter,
+  ReportSortOption,
+} from "@/hooks/useReportManagement";
 
 type ReportFiltersBarProps = {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
+  queueTab?: QueueTabFilter;
+  onQueueTabChange?: (value: QueueTabFilter) => void;
+  queueCounts?: {
+    all: number;
+    pending: number;
+    underReview: number;
+    retesting?: number;
+    approved: number;
+    closed: number;
+  };
+  sortOption?: ReportSortOption;
+  onSortOptionChange?: (value: ReportSortOption) => void;
   typeFilter: TypeFilter;
   onTypeFilterChange: (value: TypeFilter) => void;
   severityFilter: SeverityFilter;
@@ -42,11 +58,27 @@ type ReportFiltersBarProps = {
   onClearFilters: () => void;
 };
 
-/**
- * The counts ride in the labels rather than in a badge beside them: a select
- * shows one option at a time, so "Bounty (12)" is the only place the number
- * can be read without opening the menu.
- */
+const QUEUE_TABS: {
+  key: QueueTabFilter;
+  label: string;
+  countKey: "all" | "pending" | "underReview" | "retesting" | "approved" | "closed";
+}[] = [
+  { key: "ALL", label: "All reports", countKey: "all" },
+  { key: "PENDING", label: "Pending", countKey: "pending" },
+  { key: "UNDER_REVIEW", label: "Under Review", countKey: "underReview" },
+  { key: "RETESTING", label: "Retesting", countKey: "retesting" },
+  { key: "APPROVED", label: "Approved & Triaged", countKey: "approved" },
+  { key: "CLOSED", label: "Closed / Resolved", countKey: "closed" },
+];
+
+const SORT_ITEMS: Record<ReportSortOption, string> = {
+  NEWEST: "Newest Submitted",
+  OLDEST: "Oldest Submitted",
+  SEVERITY_DESC: "Highest Severity",
+  SEVERITY_ASC: "Lowest Severity",
+  TITLE_ASC: "Title (A to Z)",
+};
+
 function withCount(label: string, count: number | undefined) {
   return typeof count === "number" ? `${label} (${count})` : label;
 }
@@ -54,6 +86,11 @@ function withCount(label: string, count: number | undefined) {
 export function ReportFiltersBar({
   searchTerm,
   onSearchTermChange,
+  queueTab = "ALL",
+  onQueueTabChange,
+  queueCounts,
+  sortOption = "NEWEST",
+  onSortOptionChange,
   typeFilter,
   onTypeFilterChange,
   severityFilter,
@@ -85,57 +122,71 @@ export function ReportFiltersBar({
     Closed: withCount("Closed", statusCounts.closed),
   };
 
-  const activeFilters: ActiveFilter[] = [
-    ...(typeFilter !== "All Types"
-      ? [
-          {
-            key: "type",
-            label: typeFilter,
-            clear: () => onTypeFilterChange("All Types"),
-          },
-        ]
-      : []),
-    ...(severityFilter !== "All"
-      ? [
-          {
-            key: "severity",
-            label: severityFilter,
-            clear: () => onSeverityFilterChange("All"),
-          },
-        ]
-      : []),
-    ...(statusFilter !== "All Statuses"
-      ? [
-          {
-            key: "status",
-            label: statusFilter,
-            clear: () => onStatusFilterChange("All Statuses"),
-          },
-        ]
-      : []),
-    ...(searchTerm.trim()
-      ? [
-          {
-            key: "search",
-            label: `"${searchTerm.trim()}"`,
-            clear: () => onSearchTermChange(""),
-          },
-        ]
-      : []),
-  ];
+  const activeFilters: ActiveFilter[] = [];
+
+  if (searchTerm.trim()) {
+    activeFilters.push({
+      key: "search",
+      label: `"${searchTerm.trim()}"`,
+      clear: () => onSearchTermChange(""),
+    });
+  }
+
+  if (typeFilter !== "All Types") {
+    activeFilters.push({
+      key: "type",
+      label: `Type: ${typeFilter}`,
+      clear: () => onTypeFilterChange("All Types"),
+    });
+  }
+
+  if (severityFilter !== "All") {
+    activeFilters.push({
+      key: "severity",
+      label: `Severity: ${severityFilter}`,
+      clear: () => onSeverityFilterChange("All"),
+    });
+  }
+
+  if (statusFilter !== "All Statuses") {
+    activeFilters.push({
+      key: "status",
+      label: `Status: ${statusFilter}`,
+      clear: () => onStatusFilterChange("All Statuses"),
+    });
+  }
+
+  if (sortOption !== "NEWEST") {
+    activeFilters.push({
+      key: "sort",
+      label: `Sort: ${SORT_ITEMS[sortOption] ?? sortOption}`,
+      clear: () => onSortOptionChange?.("NEWEST"),
+    });
+  }
 
   return (
     <FilterBar>
+      {onQueueTabChange && queueCounts && (
+        <FilterTabs
+          label="Report Queue State"
+          value={queueTab}
+          onChange={onQueueTabChange}
+          tabs={QUEUE_TABS.map((tab) => ({
+            value: tab.key,
+            label: tab.label,
+            count: queueCounts[tab.countKey] ?? 0,
+          }))}
+        />
+      )}
+
       <FilterRow>
         <FilterSearch
           value={searchTerm}
           onChange={onSearchTermChange}
           label="Search reports"
-          placeholder="Search reports..."
+          placeholder="Search by title, report ID (#RPT), researcher, or asset..."
         />
 
-        {/* All three are shown rather than folded behind a "more filters"
-            toggle: on a triage queue they are the job, not an advanced case. */}
         <FilterControls>
           <FilterSelect
             icon={Tag}
@@ -162,6 +213,17 @@ export function ReportFiltersBar({
               onStatusFilterChange(value as StatusFilter)
             }
           />
+          {onSortOptionChange && (
+            <FilterSelect
+              icon={ArrowUpDown}
+              label="Sort by"
+              items={SORT_ITEMS}
+              value={sortOption}
+              onValueChange={(value) =>
+                onSortOptionChange(value as ReportSortOption)
+              }
+            />
+          )}
         </FilterControls>
       </FilterRow>
 

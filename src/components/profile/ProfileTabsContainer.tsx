@@ -8,7 +8,8 @@ import HacktivityTab from "./hacktivity/HacktivityTab";
 import CommunityTab from "./community/CommunityTab";
 import HallOfThanksTab from "./hall-of-thanks/HallOfThanksTab";
 import { ProfileStats, SeverityStats, ProfileBadge } from "@/lib/types/profile/types";
-import { useGetHacktivityQuery, useGetCommunityPostsQuery, useGetThanksQuery } from "@/lib/redux/services/profileApi";
+import { useGetCommunityPostsQuery, useGetThanksQuery } from "@/lib/redux/services/profileApi";
+import { useGetUserHacktivityQuery } from "@/lib/redux/services/hacktivityApi";
 
 interface ProfileTabsContainerProps {
   stats: ProfileStats;
@@ -41,9 +42,12 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
   );
 
   // skip: RTK Query only fetches when skip is false, so each query only fires once its tab is active
-  const { data: hacktivity, isLoading: hacktivityLoading } = useGetHacktivityQuery(username, {
-    skip: activeTab !== "hacktivity",
-  });
+  /* Keyed on the profile's id, not the handle: `/user-profiles/{id}/hacktivity`
+     is the only endpoint that answers for somebody other than the viewer. */
+  const { data: hacktivity, isLoading: hacktivityLoading } = useGetUserHacktivityQuery(
+    { userId, size: 20 },
+    { skip: activeTab !== "hacktivity" || !userId },
+  );
   const { data: communityPosts, isLoading: communityLoading } = useGetCommunityPostsQuery(userId, {
     skip: activeTab !== "community" || !userId,
   });
@@ -62,7 +66,7 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
           (hacktivityLoading ? (
             <div className="p-6 text-sm text-slate-400 dark:text-neutral-500">Loading hacktivity...</div>
           ) : (
-            <HacktivityTab entries={hacktivity ?? []} />
+            <HacktivityTab activities={hacktivity?.activities ?? []} />
           ))}
 
         {activeTab === "community" &&

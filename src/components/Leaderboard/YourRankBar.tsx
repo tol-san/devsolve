@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ArrowUpRight, Crosshair } from "lucide-react";
-import { LeaderboardEntry, LeaderboardPeriod } from "@/lib/types/leaderboard/types";
+import {
+  LeaderboardEntry,
+  LeaderboardPeriod,
+  RANKED_COUNT_LABEL,
+} from "@/lib/types/leaderboard/types";
 import ResearcherAvatar from "./ResearcherAvatar";
 import RankMovement from "./RankMovement";
 import { PERIOD_LABEL_SHORT, formatNumber, profileHref } from "./leaderboard-ui";
@@ -68,7 +72,12 @@ export default function YourRankBar({
               <span className="hidden sm:inline text-slate-500 dark:text-muted-foreground/60">·</span>
               <span>{formatNumber(entry.criticalReports)} critical</span>
               <span className="hidden sm:inline text-slate-500 dark:text-muted-foreground/60">·</span>
-              <span>{formatNumber(entry.recognitionCount)} thanks</span>
+              <span>
+                {formatNumber(entry.recognitionCount)}{" "}
+                {entry.recognitionCount === 1
+                  ? RANKED_COUNT_LABEL[period].singular
+                  : RANKED_COUNT_LABEL[period].plural}
+              </span>
               {topPercent != null && (
                 <span className="rounded-md bg-white/10 dark:bg-muted px-1.5 py-0.5 text-xs font-semibold text-white dark:text-foreground">
                   Top {topPercent}%

@@ -11,6 +11,7 @@ import { ReportDetailProofOfConcept } from "@/components/report-management/Repor
 import { ReportDetailReferences } from "@/components/report-management/ReportDetailReferences";
 import { ReportDetailSidebar } from "@/components/report-management/ReportDetailSidebar";
 import { ReportDetailTargetScope } from "@/components/report-management/ReportDetailTargetScope";
+import { RetestHistoryTimeline } from "@/components/report-management/RetestHistoryTimeline";
 import {
   buildReportDetailFromManagedReport,
   buildReportManagementDetailFromApiReport,
@@ -26,12 +27,17 @@ export default function ReportManagementDetailPage() {
   const params = useParams<{ id: string }>();
   const reportId = params?.id ?? "";
 
-  const { data: apiReport, isLoading: isReportLoading } = useGetReportByIdQuery(
+  const { data: apiReport, isLoading: isReportLoading, refetch: refetchReport } = useGetReportByIdQuery(
     reportId,
     { skip: !reportId }
   );
-  const { data: managedReports = [], isLoading: isListLoading } =
+  const { data: managedReports = [], isLoading: isListLoading, refetch: refetchList } =
     useGetManagedReportsQuery();
+
+  const handleRefresh = React.useCallback(() => {
+    void refetchReport();
+    void refetchList();
+  }, [refetchReport, refetchList]);
 
   const detail = React.useMemo(() => {
     if (apiReport) {
@@ -83,6 +89,9 @@ export default function ReportManagementDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Left Column (2/3 Width: Write-up, PoC, Scope & References) */}
         <div className="lg:col-span-2 space-y-6 min-w-0">
+          {detail.retestHistory && detail.retestHistory.length > 0 && (
+            <RetestHistoryTimeline history={detail.retestHistory} />
+          )}
           <ReportDetailAssessment detail={detail} />
           <ReportDetailProofOfConcept detail={detail} />
           <ReportDetailTargetScope detail={detail} />
@@ -91,7 +100,7 @@ export default function ReportManagementDetailPage() {
 
         {/* Right Column (1/3 Width: Sticky Triage Actions, CVSS, Submitter) */}
         <div className="lg:col-span-1 space-y-6 min-w-0">
-          <ReportDetailSidebar detail={detail} />
+          <ReportDetailSidebar detail={detail} onRefresh={handleRefresh} />
         </div>
       </div>
     </motion.div>

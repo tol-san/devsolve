@@ -16,6 +16,7 @@ import {
   Globe,
   Lock,
   Mail,
+  RotateCcw,
   ShieldAlert,
   ShieldCheck,
   Tag,
@@ -29,6 +30,11 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MarkdownView } from "@/components/ui/markdown-view";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
+import {
+  awaitingVerdictLabel,
+  openRetestAttempt,
+  retestDeadline,
+} from "@/lib/reports/retest";
 import { cn } from "@/lib/utils";
 
 type ReportDetailHeaderProps = {
@@ -36,35 +42,66 @@ type ReportDetailHeaderProps = {
 };
 
 function getStatusBadge(detail: ReportManagementDetail) {
-  if (detail.rawStatus === "ACCEPTED") {
+  const raw = (detail.rawStatus || (detail as any).state || detail.status || "").toUpperCase();
+  const lastRetest = detail.retestHistory && detail.retestHistory.length > 0
+    ? detail.retestHistory[detail.retestHistory.length - 1]
+    : null;
+  const isReopenedFromFailedRetest =
+    (raw === "VALID_CONFIRMED" || raw === "ACCEPTED") && lastRetest?.verdict === "STILL_VULNERABLE";
+
+  if (isReopenedFromFailedRetest) {
     return (
       <Badge
         variant="outline"
-        className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+        className="bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs"
       >
-        <CheckCircle2 className="size-3.5 text-emerald-500" />
-        TRIAGED & ACCEPTED
+        <ShieldAlert className="size-3.5 text-rose-500" />
+        REOPENED &bull; RETEST FAILED
       </Badge>
     );
   }
 
-  if (detail.rawStatus === "RESOLVED") {
+  if (raw === "RESOLVED") {
     return (
       <Badge
         variant="outline"
-        className="bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+        className="bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/25 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
       >
         <ShieldCheck className="size-3.5 text-purple-500" />
-        RESOLVED & PAID
+        RESOLVED &amp; PAID
       </Badge>
     );
   }
 
-  if (detail.rawStatus === "REJECTED") {
+  if (raw === "RETESTING" || raw === "NEEDS_MORE_INFO" || raw === "WAITING_FOR_RETEST") {
     return (
       <Badge
         variant="outline"
-        className="bg-red-500/10 text-red-700 dark:text-red-300 border-red-200 dark:border-red-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+        className="bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/30 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs"
+      >
+        <RotateCcw className="size-3.5 text-cyan-500 animate-spin-slow" />
+        RETESTING IN PROGRESS
+      </Badge>
+    );
+  }
+
+  if (raw === "ACCEPTED" || raw === "VALID_CONFIRMED" || detail.isReviewed) {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/25 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+      >
+        <CheckCircle2 className="size-3.5 text-emerald-500" />
+        TRIAGED &amp; CONFIRMED
+      </Badge>
+    );
+  }
+
+  if (raw === "REJECTED" || raw === "DUPLICATE") {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/25 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
       >
         <X className="size-3.5 text-red-500" />
         REJECTED
@@ -72,24 +109,12 @@ function getStatusBadge(detail: ReportManagementDetail) {
     );
   }
 
-  if (detail.isReviewed || detail.status === "Closed") {
-    return (
-      <Badge
-        variant="outline"
-        className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
-      >
-        <CheckCircle2 className="size-3.5 text-emerald-500" />
-        TRIAGED
-      </Badge>
-    );
-  }
-
   return (
     <Badge
       variant="outline"
-      className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+      className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
     >
-      <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 animate-pulse" />
+      <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
       PENDING REVIEW
     </Badge>
   );
@@ -132,6 +157,7 @@ function getSeverityBadge(
 
 export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
 
   const profileIdentifier = detail.submitterId || detail.submitter;
   const { data: profileOverview } = useGetProfileByUsernameQuery(
@@ -142,14 +168,15 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
   );
 
   const profile = profileOverview?.profile;
-  const displayName = profile?.fullName || detail.submitter;
+  const displayName =
+    profile?.displayName || (profile as any)?.fullName || detail.submitter;
   const username =
     profile?.username ||
     detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_");
 
   const rawEmail = detail.submitterEmail?.trim();
   const contactEmail =
-    profile?.email ||
+    (profile as any)?.email ||
     (rawEmail &&
     !rawEmail.includes("@devsolve.local") &&
     !rawEmail.includes("@devsolve.io")
@@ -159,6 +186,36 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
   const cleanReportId = detail.reportId.startsWith("#")
     ? detail.reportId
     : `#${detail.reportId}`;
+
+  const handleCopyId = async () => {
+    try {
+      await navigator.clipboard.writeText(cleanReportId);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const rawStatus = (detail.rawStatus || (detail as any).state || detail.status || "").toUpperCase();
+  const isResolved = rawStatus === "RESOLVED";
+  const isWaitingForRetest =
+    rawStatus === "RETESTING" ||
+    rawStatus === "WAITING_FOR_RETEST";
+  const isReviewed =
+    (rawStatus === "ACCEPTED" || rawStatus === "VALID_CONFIRMED" || detail.isReviewed) &&
+    !isWaitingForRetest &&
+    !isResolved;
+
+  const lastRetest = detail.retestHistory && detail.retestHistory.length > 0
+    ? detail.retestHistory[detail.retestHistory.length - 1]
+    : null;
+  /* The attempt still owed an answer, which is the one carrying a deadline. */
+  const openRetest = openRetestAttempt(detail.retestHistory);
+  const openRetestDue = retestDeadline(openRetest?.dueAt);
+  const isReopenedFromFailedRetest =
+    (rawStatus === "VALID_CONFIRMED" || rawStatus === "ACCEPTED") &&
+    lastRetest?.verdict === "STILL_VULNERABLE";
 
   return (
     <div className="space-y-5">
@@ -179,9 +236,23 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             Report Management
           </Link>
           <span className="text-muted-foreground/60">/</span>
-          <span className="font-semibold text-foreground">
-            {cleanReportId}
-          </span>
+          <div className="inline-flex items-center gap-1.5 bg-muted/60 px-2 py-0.5 rounded-lg border border-border">
+            <span className="font-mono font-bold text-foreground text-xs">
+              {cleanReportId}
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyId}
+              className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              title="Copy Report ID"
+            >
+              {copiedId ? (
+                <span className="text-[10px] font-bold text-emerald-500">Copied</span>
+              ) : (
+                <span className="text-[10px] font-medium opacity-75">Copy</span>
+              )}
+            </button>
+          </div>
         </nav>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -207,7 +278,27 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <span>Preview Summary</span>
           </Button>
 
-          {detail.isReviewed ? (
+          {isWaitingForRetest ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="outline"
+                className="h-9 px-3 gap-1.5 rounded-xl border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center"
+              >
+                <RotateCcw className="size-3.5 text-blue-500" />
+                <span>Waiting for Retest</span>
+              </Badge>
+
+              <Link href={`/dashboard/report-management/${detail.id}/severity-review`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl border-border bg-card text-foreground hover:bg-muted font-semibold text-xs h-9 px-3 gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <span>Edit Severity</span>
+                </Button>
+              </Link>
+            </div>
+          ) : isReviewed ? (
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant="outline"
@@ -462,6 +553,61 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               </div>
             </div>
           </div>
+
+          {/* Retest Status Context Banners */}
+          {isWaitingForRetest && (
+            <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-cyan-800 dark:text-cyan-200 font-bold text-sm">
+                  <RotateCcw className="size-4 text-cyan-500 animate-spin-slow shrink-0" />
+                  <span>Retest in progress (attempt #{openRetest?.attemptNumber || lastRetest?.attemptNumber || 1})</span>
+                </div>
+                {openRetest?.environment && (
+                  <Badge variant="outline" className="text-xs font-bold uppercase border-cyan-500/30 bg-background text-cyan-700 dark:text-cyan-300 w-fit">
+                    {openRetest.environment}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <strong className="text-foreground">{displayName}</strong> has been
+                asked to re-run their proof of concept on the deployed fix.
+              </p>
+              {/* The deadline the attempt lapses on, when it has one. */}
+              <p
+                className={cn(
+                  "text-sm font-semibold",
+                  openRetestDue?.isOverdue
+                    ? "text-rose-700 dark:text-rose-300"
+                    : "text-cyan-900 dark:text-cyan-200",
+                )}
+              >
+                {awaitingVerdictLabel(openRetest?.dueAt)}
+              </p>
+              {openRetest?.targetEndpoint && (
+                <div className="flex items-center gap-1.5 text-sm font-mono text-foreground bg-background/80 px-2.5 py-1 rounded-lg border border-border/70 truncate">
+                  <Globe className="size-3 text-cyan-500 shrink-0" />
+                  <span className="truncate">{openRetest.targetEndpoint}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {isReopenedFromFailedRetest && (
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 space-y-2.5">
+              <div className="flex items-center gap-2 text-rose-800 dark:text-rose-200 font-bold text-sm">
+                <ShieldAlert className="size-4 text-rose-500 shrink-0" />
+                <span>Report Reopened &mdash; Remediation Failed on Retest Attempt #{lastRetest?.attemptNumber}</span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Researcher <strong className="text-foreground">{displayName}</strong> verified the patch on {lastRetest?.environment || "Staging"} and flagged this vulnerability as <strong className="text-rose-600 dark:text-rose-400">Still Vulnerable</strong>.
+              </p>
+              {lastRetest?.resultNotes && (
+                <div className="p-2.5 rounded-lg bg-background border border-border text-xs font-medium text-foreground italic leading-relaxed">
+                  &ldquo;{lastRetest.resultNotes}&rdquo;
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

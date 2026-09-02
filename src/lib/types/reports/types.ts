@@ -18,7 +18,20 @@ export interface ReportItem {
   avatarLetter: string;
   type: "Bounty" | "Response";
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
-  status: "TRIAGING" | "RESOLVED" | "ACCEPTED" | "SUBMITTED" | "REJECTED";
+  status: "TRIAGING" | "RESOLVED" | "ACCEPTED" | "SUBMITTED" | "REJECTED" | "RETESTING";
+  rawStatus?: string;
+  retestHistory?: RetestSummary[];
+  /**
+   * Reputation the platform awarded for this finding, priced from its
+   * severity when the report was resolved.
+   *
+   * Null until resolution, and null on reports resolved before reputation
+   * became automatic — render nothing for those rather than a zero. `0` is a
+   * real award on a NONE-severity finding and means "credited, scores
+   * nothing". Awarded once: never recompute it from `severity`.
+   */
+  reputationPoints?: number | null;
+  reputationAwardedAt?: string | null;
   bountyOrRep: string;
   isBountyHighlight?: boolean;
   isBountyDim?: boolean;
@@ -62,6 +75,9 @@ export interface RetestItem {
   bountyBonus?: string;
 }
 
+export type { RetestSummary } from "@/lib/redux/services/reportsApi";
+import type { RetestSummary } from "@/lib/redux/services/reportsApi";
+
 export interface ReportDetail extends ReportItem {
   submittedAgo: string;
   claimedSeverity: string;
@@ -97,7 +113,19 @@ export interface ReportDetail extends ReportItem {
   }[];
   comments: CommentItem[];
   updates: ActivityUpdate[];
-  retestHistory: RetestItem[];
+  retestHistory?: RetestSummary[];
+  /**
+   * The bounties the organization paid, as recorded. Separate from
+   * `reputationPoints`, which the platform pays: the two are different
+   * currencies from different payers and are never summed.
+   */
+  rewards: { amount: number; note?: string; awardedAt?: string }[];
+  /**
+   * Whether the program offers money at all. Null when the program could not
+   * be read — the screen then shows reputation alone rather than an empty
+   * money slot it cannot justify.
+   */
+  programOffersBounties: boolean | null;
 }
 
 export interface SubmitReportPayload {

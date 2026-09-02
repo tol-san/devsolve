@@ -17,6 +17,10 @@ import {
   Clock,
   Shield,
   ArrowUpRight,
+  UserX,
+  Ban,
+  RotateCcw,
+  MoreVertical,
 } from "lucide-react";
 import {
   Dialog,
@@ -26,9 +30,19 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { SecurityIncident } from "@/lib/types/security-incidents/types";
+import { UserStatusBadge } from "@/components/admin/users/UserStatusBadge";
+import type { SecurityIncident, MalwareUploader } from "@/lib/types/security-incidents/types";
+import type { ModerationActionType } from "@/lib/types/admin/types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -63,6 +77,8 @@ interface SecurityIncidentDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   scope?: "admin" | "org";
+  uploaderStatus?: string | null;
+  onModerateUser?: (user: MalwareUploader, actionType: ModerationActionType) => void;
 }
 
 export function SecurityIncidentDetailModal({
@@ -70,6 +86,8 @@ export function SecurityIncidentDetailModal({
   isOpen,
   onClose,
   scope = "admin",
+  uploaderStatus,
+  onModerateUser,
 }: SecurityIncidentDetailModalProps) {
   const [copiedHash, setCopiedHash] = useState(false);
 
@@ -261,39 +279,110 @@ export function SecurityIncidentDetailModal({
             </div>
 
             {/* Uploader Details */}
-            <div className="p-4 rounded-xl border border-border bg-card space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <User className="size-3.5 text-primary" />
-                <span>Uploader / Researcher</span>
-              </div>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-xs">Handle:</span>
-                  {incident.uploader.username ? (
-                    <Link
-                      href={`/profile/${incident.uploader.username}`}
-                      target="_blank"
-                      className="font-semibold text-primary hover:underline text-xs inline-flex items-center gap-1"
-                    >
-                      <span>@{incident.uploader.username}</span>
-                      <ArrowUpRight className="size-3" />
-                    </Link>
-                  ) : (
-                    <span className="font-mono text-xs text-muted-foreground">
-                      {incident.uploader.id.slice(0, 8)}... (Deleted)
-                    </span>
-                  )}
-                </div>
-                {incident.uploader.email && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground text-xs">Email:</span>
-                    <span className="font-mono text-foreground text-xs truncate max-w-[180px]">
-                      {incident.uploader.email}
-                    </span>
+            {(() => {
+              const resolvedStatus =
+                uploaderStatus || incident.uploader.status || "ACTIVE";
+              const isSuspended = resolvedStatus.toUpperCase() === "SUSPENDED";
+
+              return (
+                <div className="p-4 rounded-xl border border-border bg-card space-y-2.5">
+                  <div className="flex items-center justify-between flex-wrap gap-1">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      <User className="size-3.5 text-primary" />
+                      <span>Uploader / Researcher</span>
+                    </div>
+                    {scope === "admin" && incident.uploader.id && onModerateUser && (
+                      <div className="flex items-center gap-1">
+                        {isSuspended ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              onModerateUser(
+                                { ...incident.uploader, status: resolvedStatus },
+                                "REINSTATE"
+                              )
+                            }
+                            className="h-6 px-2 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-lg cursor-pointer"
+                            title="Reinstate uploader account"
+                          >
+                            <RotateCcw className="size-3 mr-1" />
+                            <span>Reinstate</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              onModerateUser(
+                                { ...incident.uploader, status: resolvedStatus },
+                                "SUSPEND"
+                              )
+                            }
+                            className="h-6 px-2 text-[11px] font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-500/10 rounded-lg cursor-pointer"
+                            title="Suspend uploader account"
+                          >
+                            <UserX className="size-3 mr-1" />
+                            <span>Suspend</span>
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            onModerateUser(
+                              { ...incident.uploader, status: resolvedStatus },
+                              "BAN"
+                            )
+                          }
+                          className="h-6 px-2 text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 rounded-lg cursor-pointer"
+                          title="Ban uploader account"
+                        >
+                          <Ban className="size-3 mr-1" />
+                          <span>Ban</span>
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-xs">Handle:</span>
+                      {incident.uploader.username ? (
+                        <Link
+                          href={`/profile/${incident.uploader.username}`}
+                          target="_blank"
+                          className="font-semibold text-primary hover:underline text-xs inline-flex items-center gap-1"
+                        >
+                          <span>@{incident.uploader.username}</span>
+                          <ArrowUpRight className="size-3" />
+                        </Link>
+                      ) : (
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {incident.uploader.id.slice(0, 8)}... (Deleted)
+                        </span>
+                      )}
+                    </div>
+                    {incident.uploader.email && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground text-xs">Email:</span>
+                        <span className="font-mono text-foreground text-xs truncate max-w-[180px]">
+                          {incident.uploader.email}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-1 border-t border-border/50">
+                      <span className="text-muted-foreground text-xs font-medium">
+                        Account Status:
+                      </span>
+                      <UserStatusBadge status={resolvedStatus} size="sm" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Target Scope */}
             <div className="p-4 rounded-xl border border-border bg-card space-y-2.5">
@@ -346,7 +435,7 @@ export function SecurityIncidentDetailModal({
         </div>
 
         {/* Footer Actions */}
-        <DialogFooter className="p-4 border-t border-border bg-muted/20 flex flex-row items-center justify-between sm:justify-between">
+        <DialogFooter className="p-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
           <a
             href={vtLookupUrl}
             target="_blank"
@@ -357,15 +446,101 @@ export function SecurityIncidentDetailModal({
             <span>Open in VirusTotal GUI</span>
           </a>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-            className="rounded-xl px-5 text-xs font-semibold cursor-pointer"
-          >
-            Close
-          </Button>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            {scope === "admin" && incident.uploader.id && onModerateUser && (() => {
+              const resolvedStatus =
+                uploaderStatus || incident.uploader.status || "ACTIVE";
+              const isSuspended = resolvedStatus.toUpperCase() === "SUSPENDED";
+
+              return (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground cursor-pointer shadow-2xs transition-colors"
+                  >
+                    <ShieldAlert className="size-3.5 text-primary" />
+                    <span>Moderate User</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-xl border border-border bg-popover text-popover-foreground">
+                    <div className="px-3 py-2 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-foreground truncate">
+                          {incident.uploader.username ? `@${incident.uploader.username}` : incident.uploader.id.slice(0, 8)}
+                        </span>
+                        <UserStatusBadge status={resolvedStatus} size="xs" />
+                      </div>
+                      {incident.uploader.email && (
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {incident.uploader.email}
+                        </p>
+                      )}
+                    </div>
+                    <DropdownMenuSeparator />
+                    {isSuspended ? (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          onModerateUser(
+                            { ...incident.uploader, status: resolvedStatus },
+                            "REINSTATE"
+                          )
+                        }
+                        className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 cursor-pointer"
+                      >
+                        <RotateCcw className="size-4 mr-2" />
+                        Reinstate Account
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          onModerateUser(
+                            { ...incident.uploader, status: resolvedStatus },
+                            "SUSPEND"
+                          )
+                        }
+                        className="text-xs font-semibold text-orange-600 dark:text-orange-400 cursor-pointer"
+                      >
+                        <UserX className="size-4 mr-2" />
+                        Suspend Account
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      onClick={() =>
+                        onModerateUser(
+                          { ...incident.uploader, status: resolvedStatus },
+                          "BAN"
+                        )
+                      }
+                      className="text-xs font-semibold text-purple-600 dark:text-purple-400 cursor-pointer"
+                    >
+                      <Ban className="size-4 mr-2" />
+                      Permanently Ban Account
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        onModerateUser(
+                          { ...incident.uploader, status: resolvedStatus },
+                          "WARN"
+                        )
+                      }
+                      className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer"
+                    >
+                      <ShieldAlert className="size-4 mr-2" />
+                      Issue Security Warning
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              );
+            })()}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              className="rounded-xl px-5 text-xs font-semibold cursor-pointer h-9"
+            >
+              Close
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

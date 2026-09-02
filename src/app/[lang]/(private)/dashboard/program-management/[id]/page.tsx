@@ -76,7 +76,8 @@ function ProgramDetailPageContent({
   const { id } = use(params);
   const searchParams = useSearchParams();
 
-  const { isAdmin } = useSidebarAuth();
+  const { user } = useSidebarAuth();
+  const isAdmin = user?.roles?.includes("ADMIN") ?? false;
   const {
     hasCompanyAccess: isCompanyUser,
     can,

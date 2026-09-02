@@ -247,6 +247,7 @@ export interface ReportConfirmationItem {
 export interface AdminUserSummaryItem {
   id: string;
   fullName?: string;
+  username?: string;
   email?: string;
   avatarUrl?: string;
   country?: string;

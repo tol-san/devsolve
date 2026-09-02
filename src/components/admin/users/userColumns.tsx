@@ -57,39 +57,52 @@ function UserActionsCell({
   return (
     <div className="flex items-center justify-end">
       <DropdownMenu>
-        <DropdownMenuTrigger className="inline-flex size-8 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer shadow-2xs">
+        <DropdownMenuTrigger className="inline-flex size-8 items-center justify-center rounded-xl border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer shadow-2xs">
           <MoreHorizontal className="size-4" />
           <span className="sr-only">Actions</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
           sideOffset={6}
-          className="w-56 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-800 dark:bg-slate-900"
+          className="w-56 rounded-2xl border border-border bg-popover text-popover-foreground p-1.5 shadow-lg"
         >
           {onModerateUser && (
             <DropdownMenuGroup className="flex flex-col gap-0.5">
               <DropdownMenuItem
                 onClick={() => onModerateUser(user, "WARN")}
                 disabled={isRemoved}
-                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-amber-700 dark:text-amber-300"
+                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-amber-600 dark:text-amber-400"
               >
                 <AlertTriangle className="size-3.5" />
                 <span>{isRemoved ? "Warn (user removed)" : "Warn user"}</span>
               </DropdownMenuItem>
 
+              {isSuspended ? (
+                <DropdownMenuItem
+                  onClick={() => onModerateUser(user, "REINSTATE")}
+                  className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400"
+                >
+                  <RotateCcw className="size-3.5" />
+                  <span>Reinstate account</span>
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => onModerateUser(user, "SUSPEND")}
+                  disabled={isRemoved}
+                  className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400"
+                >
+                  <UserX className="size-3.5" />
+                  <span>{isRemoved ? "Suspend (user removed)" : "Suspend account"}</span>
+                </DropdownMenuItem>
+              )}
+
               <DropdownMenuItem
-                onClick={() => onModerateUser(user, "SUSPEND")}
-                disabled={isSuspended || isRemoved}
-                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-destructive focus:text-destructive"
+                onClick={() => onModerateUser(user, "BAN")}
+                disabled={isRemoved}
+                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-purple-600 dark:text-purple-400"
               >
-                <UserX className="size-3.5" />
-                <span>
-                  {isRemoved
-                    ? "Suspend (user removed)"
-                    : isSuspended
-                    ? "Suspend (already suspended)"
-                    : "Suspend account"}
-                </span>
+                <Ban className="size-3.5" />
+                <span>{isRemoved ? "Ban (user removed)" : "Ban user"}</span>
               </DropdownMenuItem>
 
               <DropdownMenuItem
@@ -99,28 +112,6 @@ function UserActionsCell({
               >
                 <Trash2 className="size-3.5" />
                 <span>{isRemoved ? "Remove (already removed)" : "Remove account"}</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={() => onModerateUser(user, "BAN")}
-                disabled={isRemoved}
-                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-destructive focus:text-destructive"
-              >
-                <Ban className="size-3.5" />
-                <span>{isRemoved ? "Ban (user removed)" : "Ban user"}</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={() => onModerateUser(user, "REINSTATE")}
-                disabled={isActive}
-                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200"
-              >
-                <RotateCcw className="size-3.5" />
-                <span>
-                  {isActive
-                    ? "Reinstate (already active)"
-                    : "Reinstate account"}
-                </span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           )}
@@ -140,7 +131,7 @@ export function getUserColumns({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="px-0 hover:bg-transparent font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-xs uppercase tracking-wider"
+          className="px-0 hover:bg-transparent font-bold text-foreground cursor-pointer text-xs uppercase tracking-wider"
         >
           User
           <ArrowUpDown data-icon="inline-end" />
@@ -157,19 +148,19 @@ export function getUserColumns({
           .toUpperCase() || "U";
         return (
           <div className="flex items-center gap-3 py-0.5">
-            <Avatar className="size-9 shrink-0 border border-slate-200 dark:border-slate-700">
+            <Avatar className="size-9 shrink-0 border border-border">
               {user.avatarUrl && (
                 <AvatarImage src={user.avatarUrl} alt={displayName} />
               )}
-              <AvatarFallback className="bg-slate-100 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+              <AvatarFallback className="bg-muted text-sm font-semibold text-foreground">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <div className="truncate text-sm font-semibold text-foreground">
                 {displayName}
               </div>
-              <div className="truncate text-sm text-slate-500 dark:text-slate-400">
+              <div className="truncate text-sm text-muted-foreground">
                 {user.email}
               </div>
             </div>
@@ -183,7 +174,7 @@ export function getUserColumns({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="px-0 hover:bg-transparent font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-xs uppercase tracking-wider"
+          className="px-0 hover:bg-transparent font-bold text-foreground cursor-pointer text-xs uppercase tracking-wider"
         >
           Role
           <ArrowUpDown data-icon="inline-end" />
@@ -193,7 +184,7 @@ export function getUserColumns({
         const role = row.original.role;
         const opt = ROLE_OPTIONS.find((r) => r.value === role) ?? ROLE_OPTIONS[0];
         return (
-          <Badge variant="secondary" className="rounded-lg">
+          <Badge variant="secondary" className="rounded-lg font-semibold text-xs">
             {opt.label}
           </Badge>
         );
@@ -205,7 +196,7 @@ export function getUserColumns({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="px-0 hover:bg-transparent font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-xs uppercase tracking-wider"
+          className="px-0 hover:bg-transparent font-bold text-foreground cursor-pointer text-xs uppercase tracking-wider"
         >
           Status
           <ArrowUpDown data-icon="inline-end" />
@@ -219,7 +210,7 @@ export function getUserColumns({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="px-0 hover:bg-transparent font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-xs uppercase tracking-wider"
+          className="px-0 hover:bg-transparent font-bold text-foreground cursor-pointer text-xs uppercase tracking-wider"
         >
           Activity
           <ArrowUpDown data-icon="inline-end" />
@@ -231,10 +222,10 @@ export function getUserColumns({
         const rep = u.reputation ?? 0;
         return (
           <div className="flex flex-col gap-0.5 text-sm">
-            <div className="font-semibold text-slate-700 dark:text-slate-300">
+            <div className="font-semibold text-foreground">
               {reports} report{reports === 1 ? "" : "s"}
             </div>
-            <div className="text-slate-400 dark:text-slate-500">
+            <div className="text-muted-foreground text-xs">
               {rep} rep points
             </div>
           </div>
@@ -247,7 +238,7 @@ export function getUserColumns({
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="px-0 hover:bg-transparent font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-xs uppercase tracking-wider"
+          className="px-0 hover:bg-transparent font-bold text-foreground cursor-pointer text-xs uppercase tracking-wider"
         >
           Joined Date
           <ArrowUpDown data-icon="inline-end" />
@@ -264,7 +255,7 @@ export function getUserColumns({
           });
         }
         return (
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+          <span className="text-sm font-medium text-muted-foreground">
             {formatted}
           </span>
         );
@@ -273,7 +264,7 @@ export function getUserColumns({
     {
       id: "actions",
       header: () => (
-        <div className="text-right text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+        <div className="text-right text-xs font-bold text-foreground uppercase tracking-wider">
           Actions
         </div>
       ),

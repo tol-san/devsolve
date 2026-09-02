@@ -102,6 +102,7 @@ export default function LeaderboardClient() {
 
         <LeaderboardTable
           entries={entries}
+          period={filters.period}
           page={page}
           pageSize={pageSize}
           onPageChange={setPage}
