@@ -164,7 +164,7 @@ export function SectionBackdrop({
   tone,
   seed = 1,
   particles = true,
-  beams = true,
+  beams = false,
   aurora = true,
   cells = true,
   gridSize = 88,
