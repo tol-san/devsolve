@@ -26,8 +26,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const query = request.nextUrl.search || "";
   try {
-    const upstream = await upstreamFetch("/recognitions", token, {
+    const upstream = await upstreamFetch(`/recognitions${query}`, token, {
       method: "POST",
       body: JSON.stringify(body),
     });

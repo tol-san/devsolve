@@ -119,6 +119,7 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
 
     try {
       const successes: string[] = [];
+      const warnings: string[] = [];
       let alreadyThankedEncountered = false;
 
       // 1. Award Public Hall of Fame Recognition (POST /api/v1/recognitions)
@@ -140,9 +141,8 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
             setIsThanked(true);
             successes.push("Already recognized in Hall of Fame");
           } else {
-            console.error("Failed to award recognition:", recErr);
-            toast.error(mapped.message);
-            return;
+            console.warn("Public recognition award skipped or refused:", recErr);
+            warnings.push(mapped.message);
           }
         }
       }
@@ -159,7 +159,7 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
           successes.push(`Bonus bounty of $${numericBonus} USD authorized`);
         } catch (rewErr) {
           console.error("Failed to record reward:", rewErr);
-          toast.error(apiErrorMessage(rewErr, "Could not issue bonus bounty."));
+          warnings.push(apiErrorMessage(rewErr, "Could not issue bonus bounty."));
         }
       }
 
@@ -179,7 +179,7 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
             console.warn("Comment already exists in thread, skipping duplicate.");
           } else {
             console.error("Failed to post comment:", commErr);
-            toast.error(apiErrorMessage(commErr, "Could not post discussion comment."));
+            warnings.push(apiErrorMessage(commErr, "Could not post discussion comment."));
           }
         }
       }
@@ -188,11 +188,16 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
         if (alreadyThankedEncountered && successes.length === 1) {
           toast.info(`Report ${cleanReportId} has already been thanked & recognized.`);
         } else {
-          toast.success(`Success for ${submitterName}: ${successes.join(", ")}.`);
+          toast.success(`Sent to ${submitterName}: ${successes.join(", ")}.`);
+        }
+        if (warnings.length > 0) {
+          toast.warning(warnings.join(" "));
         }
         setIsOpen(false);
         setThankYouNote("");
         setBonusBounty("");
+      } else if (warnings.length > 0) {
+        toast.error(warnings[0]);
       }
     } catch (err) {
       console.error("Failed to process gratitude:", err);
