@@ -1,17 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
 import {
   CalendarDays,
-  Check,
   Pencil,
   Settings,
-  Share2,
   ShieldCheck,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Profile } from "@/lib/types/profile/types";
 import FollowButton from "@/components/profile/FollowButton";
 import { isUuid } from "@/components/Leaderboard/leaderboard-ui";
@@ -54,18 +49,6 @@ export default function ProfileHeroBanner({
     (sessionUserId && id && sessionUserId === id) ||
     (sessionUsername && username && username.toLowerCase() === sessionUsername)
   );
-
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyLink = () => {
-    if (typeof window === "undefined") return;
-    const url = window.location.href;
-    void navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      toast.success("Profile link copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
@@ -174,41 +157,20 @@ export default function ProfileHeroBanner({
                     <span>Edit profile</span>
                   </Link>
                 )}
-                <Link
-                  href="/dashboard/profile/settings"
-                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-2xs transition-colors hover:bg-accent cursor-pointer"
-                >
-                  <Settings className="size-4" />
-                  <span>Settings</span>
-                </Link>
-              </>
-            ) : (
-              <FollowButton type="USER" targetId={id} />
-            )}
-
-            {/* Share Profile Button */}
-            <motion.button
-              whileTap={{ scale: 0.96 }}
-              type="button"
-              onClick={handleCopyLink}
-              title="Share profile"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-semibold text-muted-foreground shadow-2xs transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
-            >
-              {copied ? (
-                <>
-                  <Check className="size-4 text-emerald-500" />
-                  <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
+                  <Link
+                    href="/dashboard/profile/settings"
+                    className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-2xs transition-colors hover:bg-accent cursor-pointer"
+                  >
+                    <Settings className="size-4" />
+                    <span>Settings</span>
+                  </Link>
                 </>
               ) : (
-                <>
-                  <Share2 className="size-4" />
-                  <span className="hidden sm:inline">Share</span>
-                </>
+                <FollowButton type="USER" targetId={id} />
               )}
-            </motion.button>
+            </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
