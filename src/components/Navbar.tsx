@@ -7,10 +7,12 @@ import { usePathname } from "next/navigation";
 import {
   AlertCircle,
   ArrowRight,
+  BookOpen,
   Building2,
   CheckCircle2,
   ChevronDown,
   Clock,
+  ExternalLink,
   Flame,
   Globe,
   Home,
@@ -63,6 +65,7 @@ type NavLink = {
   href?: string;
   items?: NavItem[];
   icon?: LucideIcon;
+  external?: boolean;
   /**
    * Dropped from the bar once there is a session — an introduction to the
    * platform is for people deciding whether to join, not for members who
@@ -109,6 +112,13 @@ const navLinks: NavLink[] = [
     ],
   },
   { name: "Leaderboard", tKey: "nav.leaderboard", href: "/leaderboard", icon: Trophy },
+  {
+    name: "Docs",
+    tKey: "nav.docs",
+    href: "https://docs.devsolve.app/",
+    icon: BookOpen,
+    external: true,
+  },
   { name: "About", tKey: "nav.about", href: "/about", guestOnly: true, icon: Info },
 ];
 
@@ -137,6 +147,9 @@ function organizationStatusLabel(status?: string): string {
 }
 
 function isHrefActive(pathname: string, href: string) {
+  if (href.startsWith("http://") || href.startsWith("https://")) {
+    return false;
+  }
   if (href === "/") {
     return pathname === "/" || pathname === "/en" || pathname === "/km";
   }
@@ -145,6 +158,9 @@ function isHrefActive(pathname: string, href: string) {
 }
 
 function isNavLinkActive(pathname: string, link: NavLink) {
+  if (link.external) {
+    return false;
+  }
   if (link.href) {
     return isHrefActive(pathname, link.href);
   }
@@ -705,6 +721,20 @@ export const Navbar = () => {
 
                       if (!link.href) return null;
 
+                      if (link.external) {
+                        return (
+                          <a
+                            key={link.href}
+                            href={link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-[10px] px-3.5 text-sm font-medium transition-colors duration-150 text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                          >
+                            <span>{t(link.tKey ?? "") || link.name}</span>
+                          </a>
+                        );
+                      }
+
                       return (
                         <Link
                           key={link.href}
@@ -966,6 +996,27 @@ export const Navbar = () => {
                       }
 
                       if (!link.href) return null;
+
+                      if (link.external) {
+                        return (
+                          <a
+                            key={`${link.href}-mobile`}
+                            href={link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="group flex min-h-10 items-center justify-between rounded-xl px-3.5 text-sm font-semibold transition-all duration-150 active:scale-[0.99] text-foreground hover:bg-muted/70"
+                          >
+                            <div className="flex items-center gap-3">
+                              {Icon && (
+                                <Icon className="size-4.5 shrink-0 transition-colors text-muted-foreground" />
+                              )}
+                              <span>{t(link.tKey ?? "") || link.name}</span>
+                            </div>
+                            <ExternalLink className="size-3.5 text-muted-foreground/60" />
+                          </a>
+                        );
+                      }
 
                       return (
                         <Link

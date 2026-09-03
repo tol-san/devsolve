@@ -3,7 +3,7 @@
 import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, Shield } from "lucide-react";
+import { ArrowRight, BookOpen, Shield } from "lucide-react";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { PRIMARY, useInk } from "./SectionBackdrop";
 import { HeroHubDiagram } from "./HeroHubDiagram";
@@ -30,6 +30,26 @@ export function HeroPlatform() {
       {/* ── Top Headline, Subheadline & CTAs ── */}
       <div className="relative z-10 mx-auto w-full max-w-5xl px-4 sm:px-6 pt-6 sm:pt-10 text-center">
 
+        {/* ── Documentation Announcement Badge ── */}
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={hydrated ? { opacity: 1, y: 0 } : undefined}
+          transition={{ duration: 0.4 }}
+          className="mb-4 inline-flex items-center"
+        >
+          <a
+            href="https://docs.devsolve.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-50/80 px-3.5 py-1 text-xs font-medium text-blue-700 shadow-xs backdrop-blur-md transition-all hover:border-blue-500/40 hover:bg-blue-100 hover:shadow-sm dark:border-blue-400/20 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/50"
+          >
+            <span className="flex size-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+            <span className="font-semibold">{t("hero.docsBadgeTitle") || "Documentation"}</span>
+            <span className="text-blue-600/40 dark:text-blue-300/40">·</span>
+            <span>{t("hero.docsBadgeDesc") || "Explore Developer & Security Guides"}</span>
+            <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+          </a>
+        </motion.div>
 
         {/* Main Title */}
         <motion.h1
@@ -80,6 +100,16 @@ export function HeroPlatform() {
             <Shield className="h-4 w-4 text-[#2563EB] dark:text-blue-400" />
             <span>{t("hero.exploreBounties") || "Explore Programs"}</span>
           </Link>
+
+          <a
+            href="https://docs.devsolve.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200/90 bg-white/90 px-6 py-3.5 text-sm font-semibold text-slate-700 shadow-xs backdrop-blur-md transition-all hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 dark:border-neutral-700 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          >
+            <BookOpen className="h-4 w-4 text-[#2563EB] dark:text-blue-400" />
+            <span>{t("hero.readDocs") || "Documentation"}</span>
+          </a>
         </motion.div>
       </div>
 
