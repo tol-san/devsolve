@@ -44,6 +44,7 @@ const footerNavSections = [
     links: [
       { name: "Hacktivity", tKey: "footer.links.hacktivity", href: "/hacktivity" },
       { name: "Leaderboard", tKey: "footer.links.leaderboard", href: "/leaderboard" },
+      { name: "Documentation", tKey: "footer.links.docs", href: "https://docs.devsolve.app/", external: true },
       { name: "For companies", tKey: "footer.links.company", href: "/company" },
       { name: "About", tKey: "footer.links.about", href: "/about" },
     ],
@@ -181,13 +182,24 @@ export default function Footer() {
                     <li key={link.name}>
                       {/* Nudges toward the reader on hover, the way the
                           landing's list links do. */}
-                      <Link
-                        href={lp(link.href)}
-                        prefetch={false}
-                        className="inline-block text-sm font-medium tracking-[-0.01em] text-slate-600 transition-all duration-200 hover:translate-x-0.5 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
-                      >
-                        {t(link.tKey) || link.name}
-                      </Link>
+                      {"external" in link && link.external ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-sm font-medium tracking-[-0.01em] text-slate-600 transition-all duration-200 hover:translate-x-0.5 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
+                        >
+                          {t(link.tKey) || link.name}
+                        </a>
+                      ) : (
+                        <Link
+                          href={lp(link.href)}
+                          prefetch={false}
+                          className="inline-block text-sm font-medium tracking-[-0.01em] text-slate-600 transition-all duration-200 hover:translate-x-0.5 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
+                        >
+                          {t(link.tKey) || link.name}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
