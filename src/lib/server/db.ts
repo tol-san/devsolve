@@ -291,3 +291,109 @@ export async function getProblemFromDb(id: string): Promise<any | null> {
   }
 }
 
+/**
+ * Fetch full showcase submission details directly from database as a fallback
+ * for pending moderation items and review queues.
+ */
+export async function getShowcaseFromDb(id: string): Promise<any | null> {
+  if (!id) return null;
+  try {
+    const sRes = await dbPool.query(
+      "SELECT * FROM showcases WHERE id = $1 AND deleted_at IS NULL LIMIT 1",
+      [id]
+    );
+    if (sRes.rows.length === 0) return null;
+    const s = sRes.rows[0];
+
+    let category = undefined;
+    if (s.category_id) {
+      const cRes = await dbPool.query(
+        "SELECT id, name, slug FROM categories WHERE id = $1 LIMIT 1",
+        [s.category_id]
+      );
+      if (cRes.rows.length > 0) category = cRes.rows[0];
+    }
+
+    let author = undefined;
+    if (s.author_id) {
+      const aRes = await dbPool.query(
+        "SELECT id, username, full_name, avatar_url, reputation FROM user_profiles WHERE id = $1 LIMIT 1",
+        [s.author_id]
+      );
+      if (aRes.rows.length > 0) {
+        author = {
+          id: aRes.rows[0].id,
+          username: aRes.rows[0].username,
+          name: aRes.rows[0].full_name || aRes.rows[0].username,
+          fullName: aRes.rows[0].full_name,
+          displayName: aRes.rows[0].full_name || aRes.rows[0].username,
+          avatarUrl: aRes.rows[0].avatar_url,
+          reputation: aRes.rows[0].reputation,
+        };
+      }
+    }
+
+    const stepsRes = await dbPool.query(
+      "SELECT * FROM showcase_steps WHERE showcase_id = $1 ORDER BY step_number ASC",
+      [id]
+    );
+
+    const tagsRes = await dbPool.query(
+      `SELECT t.id, t.name, t.slug
+       FROM showcase_tags st
+       JOIN tags t ON st.tag_id = t.id
+       WHERE st.showcase_id = $1`,
+      [id]
+    );
+
+    const authorName = author?.displayName || author?.name || "Unknown Author";
+
+    return {
+      id: s.id,
+      showcaseId: s.id,
+      submissionType: "INITIAL" as const,
+      title: s.title,
+      overview: s.overview,
+      coverImageUrl: s.cover_image_url,
+      liveUrl: s.live_url,
+      repoUrl: s.repo_url,
+      videoUrl: s.video_url,
+      reviewStatus: s.review_status,
+      rejectionReason: s.rejection_reason,
+      reviewedBy: s.reviewed_by,
+      reviewedAt: s.reviewed_at ? s.reviewed_at.toISOString() : null,
+      submittedAt: s.created_at ? s.created_at.toISOString() : new Date().toISOString(),
+      createdAt: s.created_at ? s.created_at.toISOString() : new Date().toISOString(),
+      updatedAt: s.updated_at ? s.updated_at.toISOString() : null,
+      viewCount: Number(s.view_count || 0),
+      authorId: s.author_id,
+      authorName,
+      author,
+      categoryId: s.category_id,
+      categoryName: category?.name,
+      category,
+      steps: stepsRes.rows.map((step: any) => ({
+        id: step.id,
+        showcaseId: s.id,
+        stepNumber: Number(step.step_number || 1),
+        title: step.title,
+        description: step.description,
+        codeSnippet: step.code_snippet,
+        imageUrl: step.image_url,
+        diagramUrl: step.diagram_url,
+        createdAt: step.created_at ? step.created_at.toISOString() : new Date().toISOString(),
+        updatedAt: step.updated_at ? step.updated_at.toISOString() : new Date().toISOString(),
+      })),
+      tags: tagsRes.rows.map((t: any) => ({
+        id: t.id,
+        name: t.name,
+        slug: t.slug,
+      })),
+    };
+  } catch (err) {
+    console.error(`[db] Failed to fetch showcase ${id} from DB:`, err);
+    return null;
+  }
+}
+
+

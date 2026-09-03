@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { ShowcaseReviewDetail } from "@/components/admin/showcases/ShowcaseReviewDetail";
 
 interface PageProps {

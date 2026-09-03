@@ -46,6 +46,20 @@ export function useNotificationStream(enabled = true) {
                 "Report",
               ]),
             );
+          } else if (notification.notifiableType === "PROBLEM" && notification.notifiableId) {
+            dispatch(
+              baseApi.util.invalidateTags([
+                { type: "Problem", id: notification.notifiableId },
+                "Problem",
+              ]),
+            );
+          } else if (notification.notifiableType === "SHOWCASE" && notification.notifiableId) {
+            dispatch(
+              baseApi.util.invalidateTags([
+                { type: "Showcase", id: notification.notifiableId },
+                "Showcase",
+              ]),
+            );
           }
 
           // Show interactive toast alert

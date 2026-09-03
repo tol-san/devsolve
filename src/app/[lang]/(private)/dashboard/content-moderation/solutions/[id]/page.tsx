@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { SolutionReviewDetail } from "@/components/admin/solutions/SolutionReviewDetail";
 
 interface PageProps {

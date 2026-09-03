@@ -14,6 +14,7 @@ import {
   Bookmark,
   CheckCircle2,
   CircleDot,
+  Clock,
   Download,
   Eye,
   FileText,
@@ -36,6 +37,7 @@ import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { Button } from "@/components/ui/button";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { VoteControl } from "@/components/ui/vote-control";
+import { AutoApprovalHoldNotice } from "@/components/notifications/AutoApprovalHoldNotice";
 import {
   useGetProblemByIdQuery,
   useIncrementProblemViewsMutation,
@@ -191,7 +193,8 @@ function Loaded({
   const { data: me } = useGetMyProfileQuery();
   const isSignedIn = Boolean(me?.id);
   const isOwnProblem = Boolean(me?.id && problem.author?.id === me.id);
-  const canAnswer = isSignedIn && !isOwnProblem;
+  const isPending = problem.status === "PENDING_APPROVAL";
+  const canAnswer = isSignedIn && !isOwnProblem && !isPending;
   const [reportingProblem, setReportingProblem] = useState(false);
   /* The backend decides who may accept; `canAcceptSolution` is that decision.
      Ownership is the fallback for a response that predates the field. */
@@ -239,22 +242,6 @@ function Loaded({
 
   const isAcceptedSolution = (solutionId: string, flag?: boolean) =>
     acceptedIds.size > 0 ? acceptedIds.has(solutionId) : Boolean(flag);
-
-  /* Polling for AI auto-approval: a problem can go PENDING -> PUBLISHED
-     within seconds without waiting for a moderator. */
-  useEffect(() => {
-    if (!problem || problem.status !== "PENDING_APPROVAL") return;
-    const t1 = setTimeout(() => {
-      void refetchProblem();
-    }, 5000);
-    const t2 = setTimeout(() => {
-      void refetchProblem();
-    }, 15000);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [problem, refetchProblem]);
 
   /* What the reader has already posted here. Only worth asking once they are
      signed in — a visitor has nothing of their own to be told about. */
@@ -386,21 +373,38 @@ function Loaded({
           <div className="min-w-0 space-y-6 lg:col-span-2 xl:col-span-3">
             {/* ── The problem ── */}
             <section className={`${CARD} p-4 sm:p-6`}>
+              {/* Inline AI auto-approval hold explanation (author-only when pending) */}
+              <AutoApprovalHoldNotice
+                notifiableId={id}
+                notifiableType="PROBLEM"
+                isAuthor={isOwnProblem}
+                isPending={isPending}
+                editHref={`/community/${id}/edit`}
+                className="mb-4"
+              />
+
               <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
-                    isResolved
-                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-                      : "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
-                  }`}
-                >
-                  {isResolved ? (
-                    <CheckCircle2 aria-hidden="true" className="size-3.5" />
-                  ) : (
-                    <CircleDot aria-hidden="true" className="size-3.5" />
-                  )}
-                  {isResolved ? "Solved" : "Open"}
-                </span>
+                {isPending ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
+                    <Clock aria-hidden="true" className="size-3.5" />
+                    Pending Review
+                  </span>
+                ) : (
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                      isResolved
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
+                        : "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300"
+                    }`}
+                  >
+                    {isResolved ? (
+                      <CheckCircle2 aria-hidden="true" className="size-3.5" />
+                    ) : (
+                      <CircleDot aria-hidden="true" className="size-3.5" />
+                    )}
+                    {isResolved ? "Solved" : "Open"}
+                  </span>
+                )}
 
                 {problem.problemType && (
                   <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-neutral-800 dark:text-neutral-300">

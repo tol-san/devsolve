@@ -7,6 +7,7 @@ import { motion } from "motion/react";
 import {
   ArrowLeft,
   Bookmark,
+  Clock,
   Code2,
   ExternalLink,
   Eye,
@@ -43,6 +44,8 @@ import {
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { authClient } from "@/lib/auth/auth-client";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
+import { useGetMyProfileQuery } from "@/lib/redux/services/solutionsApi";
+import { AutoApprovalHoldNotice } from "@/components/notifications/AutoApprovalHoldNotice";
 import { cn } from "@/lib/utils";
 
 /**
@@ -82,7 +85,15 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const { data: showcase, isLoading } = useGetShowcaseByIdQuery(id);
   const [reporting, setReporting] = useState(false);
   const { data: session } = authClient.useSession();
+  const { data: me } = useGetMyProfileQuery();
   const { handleLogin } = useKeycloakLogin();
+
+  const isPending = showcase?.reviewStatus === "PENDING";
+  const isAuthor = Boolean(
+    (me?.id && (showcase?.authorId === me.id || showcase?.author?.id === me.id)) ||
+    (session?.user?.id && (showcase?.authorId === session.user.id || showcase?.author?.id === session.user.id)) ||
+    (showcase?.authorName && (showcase.authorName === me?.fullName || showcase.authorName === session?.user?.name))
+  );
 
   /* The showcase response carries its steps; the dedicated endpoint is the
      fallback for when it comes back without them. */
@@ -186,12 +197,29 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
           <div className="lg:col-span-3 space-y-6">
             {/* Main Title Header Card */}
             <div className={`${CARD} p-6`}>
+              {/* Inline AI auto-approval hold explanation (author-only when pending) */}
+              <AutoApprovalHoldNotice
+                notifiableId={id}
+                notifiableType="SHOWCASE"
+                isAuthor={isAuthor}
+                isPending={isPending}
+                editHref={`/dashboard/showcases/${id}/edit`}
+                className="mb-4"
+              />
+
               <div className="flex items-center justify-between gap-4 mb-3">
                 <div className="flex items-center space-x-2">
                   <span className="inline-flex items-center space-x-1.5 rounded-full bg-blue-100 dark:bg-blue-500/15 px-3 py-1 text-xs font-bold text-blue-700 dark:text-blue-300">
                     <LayoutTemplate className="h-3.5 w-3.5" />
                     <span>Showcase</span>
                   </span>
+
+                  {isPending && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-800 dark:text-amber-300">
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>Pending Review</span>
+                    </span>
+                  )}
 
                   {showcase.categoryName && (
                     <span className="rounded-md bg-slate-100 dark:bg-neutral-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-neutral-300">

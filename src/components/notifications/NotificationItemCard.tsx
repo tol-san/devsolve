@@ -180,11 +180,20 @@ function getAdminNotificationLink(type: NotificationType, id: string): string {
   }
 }
 
+const AUTO_APPROVAL_HOLD_PATTERN = /^Your (problem|showcase) is waiting for review$/;
+
 function getNotificationLink(
   type: NotificationType,
   id: string,
   isAdmin: boolean,
+  title?: string,
 ): string {
+  // Auto-approval hold notices are author-specific and must always navigate directly to the post
+  if (title && AUTO_APPROVAL_HOLD_PATTERN.test(title)) {
+    if (type === "SHOWCASE") return `/showcases/${id}`;
+    if (type === "PROBLEM") return `/community/${id}`;
+  }
+
   if (isAdmin) return getAdminNotificationLink(type, id);
 
   switch (type) {
@@ -287,6 +296,7 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
     item.notifiableType,
     item.notifiableId,
     isAdmin,
+    item.title,
   );
   const isUnread = !item.read;
   const hasCommentAuthor =

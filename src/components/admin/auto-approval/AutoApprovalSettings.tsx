@@ -99,6 +99,7 @@ export function AutoApprovalSettings() {
     data: rules,
     isLoading,
     isError,
+    error,
     refetch,
   } = useGetAutoApprovalRulesQuery();
 
@@ -118,8 +119,18 @@ export function AutoApprovalSettings() {
       try {
         await updateRule({ target, enabled: false }).unwrap();
         toast.success(`Auto-approval disabled for ${TARGET_CONFIG[target].title}.`);
-      } catch {
-        toast.error(`Could not disable auto-approval for ${TARGET_CONFIG[target].title}.`);
+      } catch (err: unknown) {
+        const status =
+          typeof err === "object" && err !== null && "status" in err
+            ? (err as { status?: number }).status
+            : undefined;
+        if (status === 403) {
+          toast.error("Permission denied", {
+            description: "You need the platform ADMIN role to modify auto-approval settings.",
+          });
+        } else {
+          toast.error(`Could not disable auto-approval for ${TARGET_CONFIG[target].title}.`);
+        }
       }
     }
   };
@@ -134,8 +145,18 @@ export function AutoApprovalSettings() {
       toast.success(`Auto-approval enabled for ${TARGET_CONFIG[target].title}.`, {
         description: "AI check is now actively screening submissions for this kind.",
       });
-    } catch {
-      toast.error(`Could not enable auto-approval for ${TARGET_CONFIG[target].title}.`);
+    } catch (err: unknown) {
+      const status =
+        typeof err === "object" && err !== null && "status" in err
+          ? (err as { status?: number }).status
+          : undefined;
+      if (status === 403) {
+        toast.error("Permission denied", {
+          description: "You need the platform ADMIN role to modify auto-approval settings.",
+        });
+      } else {
+        toast.error(`Could not enable auto-approval for ${TARGET_CONFIG[target].title}.`);
+      }
     }
   };
 
@@ -144,6 +165,27 @@ export function AutoApprovalSettings() {
   }
 
   if (isError || !rules) {
+    const status =
+      typeof error === "object" && error !== null && "status" in error
+        ? (error as { status?: number }).status
+        : undefined;
+
+    if (status === 403) {
+      return (
+        <Card className="p-8 text-center border-border bg-card">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 mb-3">
+            <ShieldCheck className="size-6" />
+          </div>
+          <CardTitle className="text-lg font-bold text-foreground">
+            Administrator Access Required
+          </CardTitle>
+          <CardDescription className="text-sm text-muted-foreground mt-1.5 max-w-md mx-auto">
+            Viewing and configuring AI auto-approval settings requires the platform ADMIN realm role.
+          </CardDescription>
+        </Card>
+      );
+    }
+
     return (
       <Card className="p-8 text-center border-border bg-card">
         <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 mb-3">
@@ -160,7 +202,7 @@ export function AutoApprovalSettings() {
             type="button"
             variant="outline"
             onClick={() => void refetch()}
-            className="rounded-xl"
+            className="rounded-xl cursor-pointer"
           >
             <RotateCcw className="size-4 mr-1.5" />
             Try again
@@ -268,8 +310,8 @@ export function AutoApprovalSettings() {
 
                         {rule.enabled && !rule.available && (
                           <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 flex items-center gap-1.5 font-semibold text-xs">
-                            <AlertTriangle className="size-3.5" />
-                            Model unavailable
+                            <AlertTriangle className="size-3.5 text-amber-600 dark:text-amber-400" />
+                            Switch on · Model unavailable
                           </Badge>
                         )}
 
@@ -294,23 +336,22 @@ export function AutoApprovalSettings() {
                         {config.description}
                       </p>
 
-                      {/* Audit stamp: last changed by {updatedBy} on {updatedAt} */}
-                      <div className="pt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground font-medium">
+                      {/* Audit stamp: "last changed by X at Y" */}
+                      <div className="pt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground font-medium">
                         {rule.updatedBy || rule.updatedAt ? (
-                          <>
-                            {rule.updatedBy && (
-                              <span className="flex items-center gap-1">
-                                <User className="size-3 text-muted-foreground/70" />
-                                <span>Changed by {rule.updatedBy.slice(0, 8)}…</span>
-                              </span>
-                            )}
-                            {rule.updatedAt && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="size-3 text-muted-foreground/70" />
-                                <span>{formatServerLocalDateTime(rule.updatedAt)}</span>
-                              </span>
-                            )}
-                          </>
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="size-3.5 text-muted-foreground/80" aria-hidden="true" />
+                            <span>
+                              Last changed by{" "}
+                              <strong className="font-semibold text-foreground">
+                                {rule.updatedBy ? (rule.updatedBy.length > 12 ? `${rule.updatedBy.slice(0, 8)}…` : rule.updatedBy) : "system"}
+                              </strong>{" "}
+                              at{" "}
+                              <strong className="font-semibold text-foreground">
+                                {formatServerLocalDateTime(rule.updatedAt)}
+                              </strong>
+                            </span>
+                          </span>
                         ) : (
                           <span className="text-muted-foreground/60 italic">
                             Default state — not changed yet
@@ -324,12 +365,23 @@ export function AutoApprovalSettings() {
                   <div className="flex sm:flex-col items-center sm:items-end justify-between gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-border">
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-foreground sm:hidden">
-                        {rule.enabled ? "Enabled" : "Disabled"}
+                        {rule.enabled ? (rule.available ? "Enabled" : "Enabled (Inactive)") : "Disabled"}
                       </span>
+
+                      {/* When enabled but unavailable, show warning label so switch doesn't look like active automation */}
+                      {rule.enabled && !rule.available && (
+                        <span className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
+                          <AlertTriangle className="size-3.5" aria-hidden="true" />
+                          <span>Inactive</span>
+                        </span>
+                      )}
+
                       <div
                         title={
                           isSwitchDisabled
                             ? "No review model configured"
+                            : rule.enabled && !rule.available
+                            ? "Auto-approval switch is on, but no review model is configured. Submissions remain in manual queue."
                             : rule.enabled
                             ? "Click to disable auto-approval"
                             : "Click to enable auto-approval"
@@ -341,6 +393,9 @@ export function AutoApprovalSettings() {
                           disabled={isSwitchDisabled || isUpdating}
                           onCheckedChange={() => handleToggle(rule.target, rule.enabled)}
                           aria-label={`Toggle auto-approval for ${config.title}`}
+                          className={cn(
+                            rule.enabled && !rule.available && "data-[state=checked]:bg-amber-500 border-amber-600",
+                          )}
                         />
                       </div>
                     </div>
@@ -353,12 +408,12 @@ export function AutoApprovalSettings() {
                   </div>
                 </div>
 
-                {/* Notice banner if switch is ON but model is not available */}
+                {/* Prominent warning banner when switch is ON but model is unavailable */}
                 {rule.enabled && !rule.available && (
-                  <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
+                  <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-900 dark:text-amber-200">
                     <AlertTriangle className="size-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                     <p className="leading-relaxed">
-                      <strong>Auto-approval is turned on, but nothing is currently running.</strong> The server has no review model configured (e.g. GEMINI_API_KEY). Submissions will continue waiting for human moderators until the review model is initialized.
+                      <strong>Warning: Auto-approval is enabled, but no review model is configured.</strong> The toggle is switched on, but nothing is running because the server lacks a configured review model (e.g. GEMINI_API_KEY). Submissions will continue waiting in the queue for human moderator review.
                     </p>
                   </div>
                 )}

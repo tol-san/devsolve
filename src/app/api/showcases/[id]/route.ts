@@ -28,6 +28,8 @@ type Context = { params: Promise<{ id: string }> };
 
 const badId = () => badRequest("Showcase id must be a UUID");
 
+import { getShowcaseFromDb } from "@/lib/server/db";
+
 export async function GET(request: NextRequest, context: Context) {
   const { id: raw } = await context.params;
   const id = asUuid(raw);
@@ -37,8 +39,33 @@ export async function GET(request: NextRequest, context: Context) {
 
   try {
     const upstream = await upstreamFetch(`/showcases/${id}`, token);
-    return relay(upstream, "Unable to load that showcase.");
+    const raw = await upstream.text();
+    let body: any = null;
+    if (raw) {
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        body = { message: raw };
+      }
+    }
+
+    if (!upstream.ok || !body?.title) {
+      const dbShowcase = await getShowcaseFromDb(id);
+      if (dbShowcase) {
+        return Response.json(dbShowcase, { status: 200 });
+      }
+      return Response.json(
+        body ?? { message: "Showcase not found" },
+        { status: upstream.status }
+      );
+    }
+
+    return Response.json(body, { status: 200 });
   } catch {
+    const dbShowcase = await getShowcaseFromDb(id);
+    if (dbShowcase) {
+      return Response.json(dbShowcase, { status: 200 });
+    }
     return unreachable("showcase");
   }
 }
