@@ -2,9 +2,18 @@
 
 import React from "react";
 import { motion } from "motion/react";
-import { Shield, FileText, CircleDollarSign, CheckCircle2 } from "lucide-react";
+import {
+  Shield,
+  FileText,
+  CircleDollarSign,
+  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+} from "lucide-react";
 import { StatMetric } from "@/lib/types/dashboard/types";
 import { useT } from "@/lib/i18n/I18nProvider";
+import { cn } from "@/lib/utils";
 
 interface DashboardStatCardsProps {
   stats: StatMetric[];
@@ -15,32 +24,37 @@ const getStatConfig = (type: StatMetric["type"]) => {
     case "active_programs":
       return {
         icon: Shield,
-        iconBg: "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400",
-        borderHover: "hover:border-blue-300 dark:hover:border-blue-800",
+        iconBg: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20",
+        glow: "from-sky-500/10 via-transparent to-transparent",
+        badgeColor: "text-sky-600 dark:text-sky-400 bg-sky-500/10 border-sky-500/20",
       };
     case "total_reports":
       return {
         icon: FileText,
-        iconBg: "bg-purple-50 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400",
-        borderHover: "hover:border-purple-300 dark:hover:border-purple-800",
+        iconBg: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20",
+        glow: "from-violet-500/10 via-transparent to-transparent",
+        badgeColor: "text-violet-600 dark:text-violet-400 bg-violet-500/10 border-violet-500/20",
       };
     case "total_bounties":
       return {
         icon: CircleDollarSign,
-        iconBg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400",
-        borderHover: "hover:border-emerald-300 dark:hover:border-emerald-800",
+        iconBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
+        glow: "from-amber-500/10 via-transparent to-transparent",
+        badgeColor: "text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20",
       };
     case "valid_reports":
       return {
         icon: CheckCircle2,
-        iconBg: "bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400",
-        borderHover: "hover:border-amber-300 dark:hover:border-amber-800",
+        iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+        glow: "from-emerald-500/10 via-transparent to-transparent",
+        badgeColor: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
       };
     default:
       return {
         icon: Shield,
-        iconBg: "bg-slate-50 text-slate-600 dark:bg-neutral-950 dark:text-neutral-400",
-        borderHover: "hover:border-slate-300",
+        iconBg: "bg-primary/10 text-primary border border-primary/20",
+        glow: "from-primary/10 via-transparent to-transparent",
+        badgeColor: "text-primary bg-primary/10 border-primary/20",
       };
   }
 };
@@ -49,37 +63,74 @@ export const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({ stats })
   const t = useT();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat, idx) => {
         const config = getStatConfig(stat.type);
         const Icon = config.icon;
         const translatedTitle = t(`dashboard.stats.${stat.type}`);
-        const title = translatedTitle !== `dashboard.stats.${stat.type}` ? translatedTitle : stat.title;
+        const title =
+          translatedTitle !== `dashboard.stats.${stat.type}` ? translatedTitle : stat.title;
 
         return (
           <motion.div
             key={stat.id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: idx * 0.05 }}
-            className={`bg-white dark:bg-neutral-900 rounded-xl p-5 border border-slate-200 dark:border-neutral-800 shadow-xs transition-all ${config.borderHover}`}
+            whileHover={{ y: -3, transition: { duration: 0.2 } }}
+            transition={{ duration: 0.3, delay: idx * 0.05 }}
+            className={cn(
+              "group relative overflow-hidden rounded-2xl border border-border/80 bg-card/80 p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10 transition-all duration-200 hover:shadow-md hover:border-border",
+            )}
           >
-            <div className="flex items-start justify-between">
-              <span className="text-sm font-medium text-slate-600 dark:text-neutral-400">
+            {/* Top-right subtle radial glow */}
+            <div
+              className={cn(
+                "pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-gradient-to-br opacity-60 blur-xl transition-opacity group-hover:opacity-100",
+                config.glow,
+              )}
+            />
+
+            <div className="relative z-10 flex items-start justify-between">
+              <span className="text-sm font-semibold text-muted-foreground">
                 {title}
               </span>
-              <div className={`p-2 rounded-lg ${config.iconBg}`}>
-                <Icon className="w-5 h-5" />
+              <div className={cn("flex size-10 items-center justify-center rounded-xl p-2 shadow-2xs", config.iconBg)}>
+                <Icon className="size-5" />
               </div>
             </div>
 
-            <div className="mt-3 space-y-1">
-              <div className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
+            <div className="relative z-10 mt-3 space-y-1.5">
+              <div className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">
                 {stat.value}
               </div>
-              <p className="text-xs sm:text-sm font-normal text-slate-500 dark:text-neutral-400 flex items-center gap-1">
-                <span>{stat.subtext}</span>
-              </p>
+
+              <div className="flex items-center justify-between gap-2 pt-0.5">
+                <p className="text-xs sm:text-sm font-normal text-muted-foreground truncate">
+                  {stat.subtext}
+                </p>
+
+                {stat.changeText && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold border",
+                      stat.trend === "up"
+                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : stat.trend === "down"
+                        ? "border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                        : "border-border bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {stat.trend === "up" ? (
+                      <TrendingUp className="size-3" />
+                    ) : stat.trend === "down" ? (
+                      <TrendingDown className="size-3" />
+                    ) : (
+                      <Minus className="size-3" />
+                    )}
+                    <span>{stat.changeText}</span>
+                  </span>
+                )}
+              </div>
             </div>
           </motion.div>
         );

@@ -20,7 +20,10 @@
     "language": "ភាសា",
     "connecting": "កំពុងភ្ជាប់…",
     "lightMode": "Light Mode",
-    "darkMode": "Dark Mode"
+    "darkMode": "Dark Mode",
+    "search": "ស្វែងរក",
+    "searchAll": "ស្វែងរកទាំងអស់…",
+    "searchPlaceholder": "ស្វែងរកទាំងអស់ (កម្មវិធី, សមាជិក, បញ្ហា…)"
   },
   "seoPages": {
     "home": {

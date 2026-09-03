@@ -4,6 +4,7 @@ import "../globals.css";
 import { cn } from "@/lib/utils";
 import StoreProvider from "@/lib/redux/StoreProvider";
 import { Toaster } from "@/components/ui/sonner";
+import { SearchModal } from "@/components/search/SearchModal";
 import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -163,6 +164,7 @@ export default async function RootLayout({
               {children}
             </I18nProvider>
             <Toaster />
+            <SearchModal />
           </StoreProvider>
         </ThemeProvider>
       </body>

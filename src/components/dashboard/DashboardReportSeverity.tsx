@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+import { motion } from "motion/react";
 import { ReportSeverityDistribution } from "@/lib/types/dashboard/types";
 import { Badge } from "@/components/ui/badge";
 import { useT } from "@/lib/i18n/I18nProvider";
+import { cn } from "@/lib/utils";
 
 interface DashboardReportSeverityProps {
   distribution: ReportSeverityDistribution;
@@ -20,61 +22,76 @@ export const DashboardReportSeverity: React.FC<DashboardReportSeverityProps> = (
       level: t("dashboard.reportSeverity.critical"),
       rawLevel: "Critical",
       count: critical,
-      barClass: "bg-red-500",
-      badgeClass: "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400 border-red-200 dark:border-red-800/60",
+      barClass: "bg-gradient-to-r from-rose-500 to-red-600",
+      badgeClass: "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400",
     },
     {
       level: t("dashboard.reportSeverity.high"),
       rawLevel: "High",
       count: high,
-      barClass: "bg-orange-500",
-      badgeClass: "bg-orange-50 text-orange-700 dark:bg-orange-950/60 dark:text-orange-400 border-orange-200 dark:border-orange-800/60",
+      barClass: "bg-gradient-to-r from-orange-500 to-amber-500",
+      badgeClass: "border-orange-500/30 bg-orange-500/10 text-orange-600 dark:text-orange-400",
     },
     {
       level: t("dashboard.reportSeverity.medium"),
       rawLevel: "Medium",
       count: medium,
-      barClass: "bg-amber-500",
-      badgeClass: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-800/60",
+      barClass: "bg-gradient-to-r from-amber-500 to-yellow-500",
+      badgeClass: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
     },
     {
       level: t("dashboard.reportSeverity.low"),
       rawLevel: "Low",
       count: low,
-      barClass: "bg-emerald-500",
-      badgeClass: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60",
+      barClass: "bg-gradient-to-r from-emerald-500 to-teal-500",
+      badgeClass: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     },
   ];
 
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-xl border border-slate-200 dark:border-neutral-800 shadow-xs p-5 flex flex-col justify-between h-full">
+    <div className="flex flex-col justify-between h-full rounded-2xl border border-border/80 bg-card/80 p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10">
       <div>
-        <h2 className="text-base font-semibold text-slate-900 dark:text-neutral-100 pb-4 border-b border-slate-100 dark:border-neutral-800">
-          {t("dashboard.reportSeverity.title")}
-        </h2>
+        <div className="flex items-center justify-between pb-4 border-b border-border/70">
+          <h2 className="text-base font-semibold text-foreground">
+            {t("dashboard.reportSeverity.title")}
+          </h2>
+          <span className="text-xs font-semibold text-muted-foreground">
+            CVSS distribution
+          </span>
+        </div>
 
-        <div className="space-y-4 mt-4">
-          {severities.map((item) => {
+        <div className="space-y-4 mt-5">
+          {severities.map((item, idx) => {
             const percentage = total > 0 ? Math.round((item.count / total) * 100) : 0;
 
             return (
-              <div key={item.rawLevel} className="space-y-1.5">
+              <div key={item.rawLevel} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={`text-xs font-semibold px-2 py-0.5 shadow-none ${item.badgeClass}`}>
+                    <Badge
+                      variant="outline"
+                      className={cn("text-xs font-semibold px-2 py-0.5 shadow-none border", item.badgeClass)}
+                    >
                       {item.level}
                     </Badge>
                   </div>
-                  <span className="font-bold text-slate-900 dark:text-neutral-100">
-                    {item.count}
-                  </span>
+                  <div className="flex items-center gap-2 tabular-nums">
+                    <span className="font-bold text-foreground text-xs sm:text-sm">
+                      {item.count}
+                    </span>
+                    <span className="text-xs text-muted-foreground font-normal w-10 text-right">
+                      {percentage}%
+                    </span>
+                  </div>
                 </div>
 
                 {/* Progress Bar Track */}
-                <div className="w-full h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ease-out ${item.barClass}`}
-                    style={{ width: `${Math.max(percentage, 3)}%` }}
+                <div className="w-full h-2 bg-muted/80 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: item.count > 0 ? `${Math.max(percentage, 5)}%` : "0%" }}
+                    transition={{ duration: 0.6, delay: idx * 0.08, ease: "easeOut" }}
+                    className={cn("h-full rounded-full", item.barClass)}
                   />
                 </div>
               </div>

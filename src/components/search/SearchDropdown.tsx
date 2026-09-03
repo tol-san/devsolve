@@ -13,6 +13,7 @@ import {
 import { apiErrorStatus } from "@/lib/api/error-message";
 import { typeLabel } from "@/lib/search/presentation";
 import { SearchHitRow } from "@/components/search/SearchHitRow";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 /** Long enough that a fast typist fires one request, not eight. */
@@ -48,6 +49,7 @@ export function SearchDropdown({
 }: SearchDropdownProps) {
   const router = useRouter();
   const listboxId = useId();
+  const lp = useLocalePath();
 
   const [input, setInput] = useState("");
   const [term, setTerm] = useState("");
@@ -99,7 +101,7 @@ export function SearchDropdown({
     if (!hasTerm) return;
     setOpen(false);
     onDone?.();
-    router.push(`/search?q=${encodeURIComponent(term)}`);
+    router.push(lp(`/search?q=${encodeURIComponent(term)}`));
   };
 
   const dismiss = () => {
@@ -182,7 +184,9 @@ export function SearchDropdown({
                         "there are more" number. */}
                     {group.totalHits > group.hits.length && (
                       <Link
-                        href={`/search?q=${encodeURIComponent(term)}&type=${group.type}`}
+                        href={lp(
+                          `/search?q=${encodeURIComponent(term)}&type=${group.type}`,
+                        )}
                         onClick={dismiss}
                         className="text-xs font-semibold text-primary hover:underline"
                       >

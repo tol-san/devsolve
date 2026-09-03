@@ -164,41 +164,43 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           : "rounded-l-2xl border-l border-border",
       )}
     >
-      {/* Header Bar */}
-      <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-border bg-card/95 backdrop-blur-md shrink-0">
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="flex size-9 sm:size-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 shrink-0">
-            <Bell className="size-4.5 sm:size-5" />
-          </div>
-
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-extrabold text-foreground tracking-tight truncate">
-                {t("notifications.title") || "Notifications"}
-              </h2>
-              {unreadCount > 0 && (
-                <Badge className="bg-blue-600 text-white font-bold text-[10px] sm:text-xs px-2 py-0.5 rounded-full shadow-2xs">
-                  {unreadCount} new
-                </Badge>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground truncate hidden sm:block">
-              Stay updated with your reports, bounties, and activity
-            </p>
-          </div>
+      {/* Minimalist Header Bar */}
+      <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-border bg-card/95 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <h2 className="text-base font-semibold text-foreground tracking-tight">
+            {t("notifications.title") || "Notifications"}
+          </h2>
+          {unreadCount > 0 && (
+            <span className="rounded-full bg-primary/10 text-primary border border-primary/20 text-[11px] font-semibold px-2 py-0.5 tabular-nums">
+              {unreadCount} unread
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+          {/* Mark All Read */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleMarkAllRead}
+            disabled={isMarkingAll || allNotifications.length === 0}
+            className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground font-medium rounded-lg gap-1.5 cursor-pointer"
+            title="Mark all as read"
+          >
+            <CheckCheck className="size-3.5" />
+            <span className="hidden sm:inline">Mark all read</span>
+          </Button>
+
           {/* Refresh Button */}
           <Button
             size="icon"
             variant="ghost"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="size-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
+            className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
             title="Refresh"
           >
-            <RefreshCw className={cn("size-4", isFetching && "animate-spin")} />
+            <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
           </Button>
 
           {!isEmbedded && (
@@ -206,13 +208,13 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               size="icon"
               variant="ghost"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="size-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
-              title={isExpanded ? "Collapse width" : "Expand width"}
+              className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
+              title={isExpanded ? "Collapse" : "Expand"}
             >
               {isExpanded ? (
-                <Minimize2 className="size-4" />
+                <Minimize2 className="size-3.5" />
               ) : (
-                <Maximize2 className="size-4" />
+                <Maximize2 className="size-3.5" />
               )}
             </Button>
           )}
@@ -222,7 +224,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               size="icon"
               variant="ghost"
               onClick={onClose}
-              className="size-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
+              className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
               title="Close"
             >
               <X className="size-4" />
@@ -231,76 +233,61 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         </div>
       </div>
 
-      {/* Action / Filter Bar */}
-      <div className="flex flex-col gap-2.5 px-4 sm:px-6 py-3 border-b border-border bg-muted/30 shrink-0">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          {/* All vs Unread Status Tabs */}
-          <div className="flex items-center p-1 bg-muted rounded-xl border border-border text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => {
-                setUnreadOnly(false);
-                setPageNumber(0);
-              }}
-              className={cn(
-                "px-3 py-1.5 rounded-lg transition-all cursor-pointer",
-                !unreadOnly
-                  ? "bg-card text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {t("notifications.all") || "All"}
-              {data && data.totalElements > 0 && (
-                <span className="ml-1.5 text-[10px] text-muted-foreground">
-                  ({data.totalElements})
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setUnreadOnly(true);
-                setPageNumber(0);
-              }}
-              className={cn(
-                "px-3 py-1.5 rounded-lg transition-all cursor-pointer",
-                unreadOnly
-                  ? "bg-card text-foreground shadow-2xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {t("notifications.unread") || "Unread"}
-              {unreadCount > 0 && (
-                <span className="ml-1.5 text-[10px] text-primary font-bold">
-                  ({unreadCount})
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Mark All As Read Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleMarkAllRead}
-            disabled={isMarkingAll || allNotifications.length === 0}
-            className="h-8 px-3 border-border bg-card hover:bg-muted text-foreground font-semibold text-xs rounded-xl gap-1.5 cursor-pointer shadow-2xs transition-all active:scale-95"
+      {/* Streamlined Filter Bar */}
+      <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-2 border-b border-border/70 bg-muted/20 shrink-0 overflow-x-auto scrollbar-none text-xs">
+        {/* All vs Unread toggle */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              setUnreadOnly(false);
+              setPageNumber(0);
+            }}
+            className={cn(
+              "px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
+              !unreadOnly
+                ? "bg-foreground text-background font-semibold"
+                : "text-muted-foreground hover:text-foreground",
+            )}
           >
-            <CheckCheck className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>{t("notifications.markAllRead") || "Mark all as read"}</span>
-          </Button>
+            All
+            {data && data.totalElements > 0 && (
+              <span className="ml-1 opacity-70">
+                ({data.totalElements})
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setUnreadOnly(true);
+              setPageNumber(0);
+            }}
+            className={cn(
+              "px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
+              unreadOnly
+                ? "bg-foreground text-background font-semibold"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Unread
+            {unreadCount > 0 && (
+              <span className="ml-1 opacity-70">
+                ({unreadCount})
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Category Pill Bar */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-xs">
+        {/* Minimal Category Tabs */}
+        <div className="flex items-center gap-1 shrink-0">
           {[
-            { id: "all", label: "All Types", icon: Sparkles },
-            { id: "security", label: "Security & Reports", icon: ShieldAlert },
-            { id: "rewards", label: "Rewards", icon: Gift },
-            { id: "community", label: "Discussions", icon: MessageSquare },
-            { id: "team", label: "Team & Org", icon: Users },
+            { id: "all", label: "All" },
+            { id: "security", label: "Security" },
+            { id: "rewards", label: "Rewards" },
+            { id: "community", label: "Discussions" },
+            { id: "team", label: "Team" },
           ].map((cat) => {
-            const Icon = cat.icon;
             const isActive = activeCategory === cat.id;
 
             return (
@@ -309,35 +296,31 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                 type="button"
                 onClick={() => setActiveCategory(cat.id as FilterCategory)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-medium text-xs whitespace-nowrap transition-all cursor-pointer",
+                  "px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer",
                   isActive
-                    ? "bg-primary text-primary-foreground font-semibold shadow-2xs"
-                    : "bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted",
+                    ? "text-foreground font-semibold bg-muted"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon className="size-3" />
-                <span>{cat.label}</span>
+                {cat.label}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Notifications List Body */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3 overscroll-contain">
+      {/* Notifications List: Clean Divider List */}
+      <div className="flex-1 overflow-y-auto overscroll-contain divide-y divide-border/60">
         {isLoading ? (
-          // Skeleton Loading State
-          <div className="space-y-3 py-2 animate-pulse">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3.5 p-4 rounded-2xl bg-card border border-border"
-              >
-                <div className="size-10 rounded-2xl bg-muted shrink-0" />
+          // Minimal Skeleton Loading State
+          <div className="divide-y divide-border/50 animate-pulse">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-start gap-3 px-5 py-3.5">
+                <div className="size-7 rounded-lg bg-muted shrink-0 mt-0.5" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted rounded-md w-3/4" />
-                  <div className="h-3.5 bg-muted rounded-md w-full" />
-                  <div className="h-3 bg-muted rounded-md w-1/3" />
+                  <div className="h-3.5 bg-muted rounded w-2/5" />
+                  <div className="h-4 bg-muted rounded w-4/5" />
+                  <div className="h-3 bg-muted rounded w-3/5" />
                 </div>
               </div>
             ))}
@@ -349,28 +332,24 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              className="rounded-xl cursor-pointer"
+              className="rounded-lg cursor-pointer"
             >
               {t("notifications.retry") || "Retry"}
             </Button>
           </div>
         ) : filteredNotifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-8 sm:p-12 text-center text-muted-foreground font-medium text-sm space-y-3 min-h-[300px]">
-            <div className="flex size-14 items-center justify-center rounded-3xl bg-muted text-muted-foreground ring-1 ring-border shadow-inner">
-              <BellOff className="size-6 opacity-70" />
-            </div>
-            <div className="space-y-1 max-w-xs">
-              <p className="text-foreground font-bold text-base">
-                {t("notifications.emptyTitle") || "No notifications found"}
-              </p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {unreadOnly
-                  ? t("notifications.emptyUnread") || "You have read all your notifications."
-                  : activeCategory !== "all"
-                  ? "No notifications matching this category."
-                  : t("notifications.emptyAll") || "You have no notifications in your inbox."}
-              </p>
-            </div>
+          <div className="flex flex-col items-center justify-center p-8 sm:p-12 text-center text-muted-foreground font-medium text-sm space-y-2 min-h-[260px]">
+            <BellOff className="size-6 text-muted-foreground/60 mb-1" />
+            <p className="text-foreground font-semibold text-sm">
+              {t("notifications.emptyTitle") || "No notifications"}
+            </p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              {unreadOnly
+                ? t("notifications.emptyUnread") || "You have read all your notifications."
+                : activeCategory !== "all"
+                ? "No notifications matching this category."
+                : t("notifications.emptyAll") || "You have no notifications in your inbox."}
+            </p>
           </div>
         ) : (
           filteredNotifications.map((item, index) => (
@@ -386,36 +365,36 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       </div>
 
       {/* Footer Bar */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-border bg-card text-xs font-medium text-muted-foreground shrink-0">
+      <div className="flex items-center justify-between px-5 sm:px-6 py-2.5 border-t border-border bg-card text-xs text-muted-foreground shrink-0">
         <Link
           href="/dashboard/notifications"
           onClick={() => onClose?.()}
-          className="inline-flex items-center gap-1.5 font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
-          <span>Open Full Notification Center</span>
+          <span>Open notification center</span>
           <ExternalLink className="size-3" />
         </Link>
 
         {totalPages > 1 && (
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] text-muted-foreground mr-1">
-              Page {pageNumber + 1} of {totalPages}
+            <span className="text-xs text-muted-foreground mr-1 tabular-nums">
+              {pageNumber + 1} / {totalPages}
             </span>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => setPageNumber((prev) => Math.max(prev - 1, 0))}
               disabled={isFirstPage}
-              className="size-7 rounded-lg cursor-pointer"
+              className="size-7 rounded-md cursor-pointer hover:bg-muted"
             >
               <ChevronLeft className="size-3.5" />
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => setPageNumber((prev) => prev + 1)}
               disabled={isLastPage}
-              className="size-7 rounded-lg cursor-pointer"
+              className="size-7 rounded-md cursor-pointer hover:bg-muted"
             >
               <ChevronRight className="size-3.5" />
             </Button>
