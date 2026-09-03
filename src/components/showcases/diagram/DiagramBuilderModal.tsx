@@ -13,6 +13,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { DiagramCanvas } from "./DiagramCanvas";
 import type { AppNode } from "./types";
+import {
+  embedDiagramInPng,
+  extractDiagramFromBlobOrFile,
+  fetchAndExtractDiagram,
+} from "./pngMetadata";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +33,8 @@ interface DiagramBuilderModalProps {
   stepTitle?: string;
   initialNodes?: AppNode[];
   initialEdges?: Edge[];
+  initialDiagramUrl?: string;
+  initialFile?: File;
 }
 
 export function DiagramBuilderModal({
@@ -37,18 +44,45 @@ export function DiagramBuilderModal({
   stepTitle,
   initialNodes = [],
   initialEdges = [],
+  initialDiagramUrl,
+  initialFile,
 }: DiagramBuilderModalProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [currentNodes, setCurrentNodes] = useState<AppNode[]>(initialNodes);
   const [currentEdges, setCurrentEdges] = useState<Edge[]>(initialEdges);
 
-  // Sync state when initialNodes change on open
+  // Sync state when initialNodes change on open, or extract from existing file/URL
   React.useEffect(() => {
     if (open) {
-      setCurrentNodes(initialNodes);
-      setCurrentEdges(initialEdges);
+      if (initialNodes && initialNodes.length > 0) {
+        setCurrentNodes(initialNodes);
+        setCurrentEdges(initialEdges ?? []);
+      } else if (initialFile) {
+        extractDiagramFromBlobOrFile(initialFile).then((extracted) => {
+          if (extracted?.nodes?.length) {
+            setCurrentNodes(extracted.nodes);
+            setCurrentEdges(extracted.edges ?? []);
+          } else {
+            setCurrentNodes([]);
+            setCurrentEdges([]);
+          }
+        });
+      } else if (initialDiagramUrl) {
+        fetchAndExtractDiagram(initialDiagramUrl).then((extracted) => {
+          if (extracted?.nodes?.length) {
+            setCurrentNodes(extracted.nodes);
+            setCurrentEdges(extracted.edges ?? []);
+          } else {
+            setCurrentNodes([]);
+            setCurrentEdges([]);
+          }
+        });
+      } else {
+        setCurrentNodes(initialNodes ?? []);
+        setCurrentEdges(initialEdges ?? []);
+      }
     }
-  }, [open, initialNodes, initialEdges]);
+  }, [open, initialNodes, initialEdges, initialDiagramUrl, initialFile]);
 
   const handleExportAndAttach = async () => {
     try {
@@ -105,7 +139,21 @@ export function DiagramBuilderModal({
       while (n--) {
         u8arr[n] = bstr.charCodeAt(n);
       }
-      const file = new File([u8arr], filename, { type: mime });
+
+      // Embed React Flow graph metadata into standard PNG tEXt chunk
+      let finalPngBytes: Uint8Array = u8arr;
+      try {
+        finalPngBytes = embedDiagramInPng(u8arr, {
+          nodes: currentNodes,
+          edges: currentEdges,
+        });
+      } catch (embedErr) {
+        console.warn("Could not embed diagram metadata into PNG:", embedErr);
+      }
+
+      const file = new File([finalPngBytes as unknown as BlobPart], filename, {
+        type: mime,
+      });
 
       onSaveDiagram(file, dataUrl, currentNodes, currentEdges);
       toast.success("Diagram attached to step!");
