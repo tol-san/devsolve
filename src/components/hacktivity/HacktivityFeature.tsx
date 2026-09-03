@@ -20,6 +20,10 @@ import {
   HACKTIVITY_PAGE_SIZE,
   useGetHacktivityFeedQuery,
 } from "@/lib/redux/services/hacktivityApi";
+import type {
+  HacktivityFeed,
+  HacktivityStats,
+} from "@/lib/types/hacktivity/types";
 import { FeaturedDisclosures } from "./FeaturedDisclosures";
 import { HacktivityCard, HacktivityCardSkeleton } from "./HacktivityCard";
 import { HacktivityFilters } from "./HacktivityFilters";
@@ -28,27 +32,44 @@ import { TopResearchers } from "./TopResearchers";
 import { formatCount } from "./presentation";
 import { useHacktivityFilters } from "./useHacktivityFilters";
 
+interface HacktivityFeatureProps {
+  heading: string;
+  description: string;
+  initialFeed?: HacktivityFeed | null;
+  initialStats?: HacktivityStats | null;
+}
+
 export default function HacktivityFeature({
   heading,
   description,
-}: {
-  heading: string;
-  description: string;
-}) {
+  initialFeed,
+  initialStats,
+}: HacktivityFeatureProps) {
   const reduceMotion = useReducedMotion();
   const { state, setFilters, clearAll, isFiltered } = useHacktivityFilters();
   const feedRef = useRef<HTMLDivElement>(null);
   const pagedRef = useRef(false);
 
-  const { data, isLoading, isFetching, isError, refetch } =
-    useGetHacktivityFeedQuery({
-      q: state.q,
-      severity: state.severity,
-      eventType: state.eventType,
-      sort: state.sort,
-      page: state.page - 1,
-      size: HACKTIVITY_PAGE_SIZE,
-    });
+  const {
+    data: remoteData,
+    isLoading,
+    isFetching,
+    isError: isRemoteError,
+    refetch,
+  } = useGetHacktivityFeedQuery({
+    q: state.q,
+    severity: state.severity,
+    eventType: state.eventType,
+    sort: state.sort,
+    page: state.page - 1,
+    size: HACKTIVITY_PAGE_SIZE,
+  });
+
+  const isDefaultView = !isFiltered && state.page === 1;
+  const data =
+    remoteData ?? (isDefaultView ? initialFeed ?? undefined : undefined);
+  const isInitialLoading = isLoading && !data;
+  const isError = isRemoteError && !data;
 
   const activities = data?.activities ?? [];
   const total = data?.total ?? 0;
@@ -94,11 +115,11 @@ export default function HacktivityFeature({
             </p>
           </div>
 
-          <HacktivityStatsBar />
+          <HacktivityStatsBar initialStats={initialStats} />
         </header>
 
         {/* Featured Highlights Strip */}
-        <FeaturedDisclosures />
+        <FeaturedDisclosures initialActivities={initialFeed?.activities} />
 
         {/* Main Feed + Sidebar */}
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -141,7 +162,7 @@ export default function HacktivityFeature({
                 aria-live="polite"
                 className="text-xs sm:text-sm font-medium text-muted-foreground"
               >
-                {isLoading ? (
+                {isInitialLoading ? (
                   "Loading stream…"
                 ) : total === 0 ? (
                   "No activity found"
@@ -162,7 +183,7 @@ export default function HacktivityFeature({
             </div>
 
             {/* Stream List / States */}
-            {isLoading ? (
+            {isInitialLoading ? (
               <div className="flex flex-col gap-3.5">
                 {[0, 1, 2, 3, 4].map((index) => (
                   <HacktivityCardSkeleton key={index} />

@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import {
   EVENT_TYPES,
   SEVERITIES,
@@ -12,12 +12,16 @@ import {
 } from "@/lib/types/hacktivity/types";
 
 /**
- * The feed's filters, kept in the URL.
+ * The feed's filters, synchronized with the URL.
  *
  * A filtered feed is something people send each other — "look at this week's
  * criticals" is a link, not a description of which chips to press. Holding the
  * state here also means reload, back and forward all land where the reader
- * was, which component state cannot do.
+ * was.
+ *
+ * We synchronize with the URL via `window.history` and `popstate` on the client,
+ * avoiding Next.js `useSearchParams()` which causes the entire static page
+ * to bail out to a blank client-side render and triggers Soft 404s for search crawlers.
  */
 
 export const DEFAULT_SORT: Sort = "createdAt,DESC";
@@ -39,8 +43,16 @@ const PARAM = {
   page: "page",
 } as const;
 
+export const INITIAL_HACKTIVITY_FILTERS: HacktivityFilterState = {
+  q: "",
+  severity: [],
+  eventType: [],
+  sort: DEFAULT_SORT,
+  page: 1,
+};
+
 /** Anything the API would refuse is dropped rather than sent. */
-function parse(params: URLSearchParams): HacktivityFilterState {
+export function parse(params: URLSearchParams): HacktivityFilterState {
   const severity = params
     .getAll(PARAM.severity)
     .map((value) => value.toUpperCase() as Severity)
@@ -64,7 +76,7 @@ function parse(params: URLSearchParams): HacktivityFilterState {
 }
 
 /** Defaults are left out, so an unfiltered feed keeps a clean URL. */
-function serialise(state: HacktivityFilterState): string {
+export function serialise(state: HacktivityFilterState): string {
   const params = new URLSearchParams();
 
   if (state.q) params.set(PARAM.q, state.q);
@@ -77,23 +89,37 @@ function serialise(state: HacktivityFilterState): string {
 }
 
 export function useHacktivityFilters() {
-  const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [state, setState] = useState<HacktivityFilterState>(INITIAL_HACKTIVITY_FILTERS);
 
-  const state = useMemo(
-    () => parse(new URLSearchParams(searchParams.toString())),
-    [searchParams],
-  );
+  // Sync state from URL query on client mount and listen for back/forward navigation
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const readUrlState = () => {
+      const search = window.location.search;
+      if (!search) {
+        setState(INITIAL_HACKTIVITY_FILTERS);
+        return;
+      }
+      setState(parse(new URLSearchParams(search)));
+    };
+
+    readUrlState();
+
+    window.addEventListener("popstate", readUrlState);
+    return () => window.removeEventListener("popstate", readUrlState);
+  }, []);
 
   const write = useCallback(
     (next: HacktivityFilterState) => {
+      setState(next);
+      if (typeof window === "undefined") return;
       const query = serialise(next);
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
+      const targetUrl = query ? `${pathname}?${query}` : pathname;
+      window.history.pushState(null, "", targetUrl);
     },
-    [pathname, router],
+    [pathname],
   );
 
   /**
@@ -102,15 +128,26 @@ export function useHacktivityFilters() {
    */
   const setFilters = useCallback(
     (patch: Partial<HacktivityFilterState>) => {
-      const resetsPage = !("page" in patch);
-      write({ ...state, ...patch, page: resetsPage ? 1 : (patch.page ?? 1) });
+      setState((prev) => {
+        const resetsPage = !("page" in patch);
+        const next = { ...prev, ...patch, page: resetsPage ? 1 : (patch.page ?? 1) };
+        if (typeof window !== "undefined") {
+          const query = serialise(next);
+          const targetUrl = query ? `${pathname}?${query}` : pathname;
+          window.history.pushState(null, "", targetUrl);
+        }
+        return next;
+      });
     },
-    [state, write],
+    [pathname],
   );
 
   const clearAll = useCallback(() => {
-    write({ q: "", severity: [], eventType: [], sort: state.sort, page: 1 });
-  }, [state.sort, write]);
+    setState(INITIAL_HACKTIVITY_FILTERS);
+    if (typeof window !== "undefined") {
+      window.history.pushState(null, "", pathname);
+    }
+  }, [pathname]);
 
   /** Sort is a view of the feed, not something hiding rows from it. */
   const isFiltered =

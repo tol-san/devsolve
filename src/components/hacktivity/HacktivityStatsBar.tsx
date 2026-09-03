@@ -8,6 +8,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useGetHacktivityStatsQuery } from "@/lib/redux/services/hacktivityApi";
+import type { HacktivityStats } from "@/lib/types/hacktivity/types";
 import {
   formatCompactMoney,
   formatCount,
@@ -23,10 +24,15 @@ interface StatItem {
   title?: string;
 }
 
-export function HacktivityStatsBar() {
-  const { data, isLoading, isError } = useGetHacktivityStatsQuery();
+interface HacktivityStatsBarProps {
+  initialStats?: HacktivityStats | null;
+}
 
-  if (isLoading) {
+export function HacktivityStatsBar({ initialStats }: HacktivityStatsBarProps = {}) {
+  const { data: remoteData, isLoading, isError } = useGetHacktivityStatsQuery();
+  const data = remoteData ?? initialStats ?? undefined;
+
+  if (isLoading && !data) {
     return (
       <div className="grid grid-cols-2 gap-3 w-full sm:w-auto shrink-0" aria-hidden>
         {[0, 1, 2, 3].map((index) => (
@@ -39,7 +45,7 @@ export function HacktivityStatsBar() {
     );
   }
 
-  if (isError || !data) return null;
+  if ((isError && !data) || !data) return null;
 
   const stats: StatItem[] = [
     {

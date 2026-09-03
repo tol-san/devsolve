@@ -5,6 +5,12 @@ import type { SolutionResponse } from "@/lib/redux/services/solutionsApi";
 import type { Program } from "@/lib/types/programs/types";
 import type { DiscussionPost } from "@/lib/types/dicussion/types";
 import { authorNameOf } from "@/lib/discussions/format";
+import type {
+  HacktivityApiPage,
+  HacktivityFeed,
+  HacktivityStats,
+} from "@/lib/types/hacktivity/types";
+import { toFeed } from "@/lib/hacktivity/transform";
 
 /**
  * Server-side reads of public content, for the two things that cannot go
@@ -332,6 +338,31 @@ export const getInitialDiscussions = cache(
       };
     } catch {
       return null;
+    }
+  },
+);
+
+export interface InitialHacktivityData {
+  feed: HacktivityFeed | null;
+  stats: HacktivityStats | null;
+}
+
+export const getInitialHacktivity = cache(
+  async (): Promise<InitialHacktivityData> => {
+    try {
+      const [feedPage, stats] = await Promise.all([
+        backendJson<HacktivityApiPage>(
+          "/hacktivity?page=0&size=20&sort=createdAt,DESC",
+        ),
+        backendJson<HacktivityStats>("/hacktivity/stats"),
+      ]);
+
+      return {
+        feed: feedPage ? toFeed(feedPage) : null,
+        stats: stats ?? null,
+      };
+    } catch {
+      return { feed: null, stats: null };
     }
   },
 );

@@ -21,14 +21,20 @@ function pickFeatured(activities: HacktivityActivity[]): HacktivityActivity[] {
     .slice(0, FEATURED_COUNT);
 }
 
-export function FeaturedDisclosures() {
+interface FeaturedDisclosuresProps {
+  initialActivities?: HacktivityActivity[] | null;
+}
+
+export function FeaturedDisclosures({
+  initialActivities,
+}: FeaturedDisclosuresProps = {}) {
   const reduceMotion = useReducedMotion();
   const { data } = useGetHacktivityFeedQuery({
     size: 24,
     sort: "severity,DESC",
   });
 
-  const featured = pickFeatured(data?.activities ?? []);
+  const featured = pickFeatured(data?.activities ?? initialActivities ?? []);
 
   if (featured.length === 0) return null;
 

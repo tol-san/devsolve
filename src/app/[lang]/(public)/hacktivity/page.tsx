@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import HacktivityFeature from "@/components/hacktivity/HacktivityFeature";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getInitialHacktivity } from "@/lib/seo/content";
+
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
@@ -30,7 +32,10 @@ export default async function HacktivityPage({
 }) {
   const { lang } = await params;
   const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
-  const dict = await getDictionary(locale);
+  const [dict, initialData] = await Promise.all([
+    getDictionary(locale),
+    getInitialHacktivity(),
+  ]);
   const copy = dict.seoPages.hacktivity;
 
   return (
@@ -43,14 +48,12 @@ export default async function HacktivityPage({
         })}
       />
 
-      {/* The feed reads its filters from the URL, which needs a boundary here
-          so the rest of the page can still render on the server. */}
-      <Suspense fallback={null}>
-        <HacktivityFeature
-          heading={copy.heading}
-          description={copy.description}
-        />
-      </Suspense>
+      <HacktivityFeature
+        heading={copy.heading}
+        description={copy.description}
+        initialFeed={initialData.feed}
+        initialStats={initialData.stats}
+      />
     </>
   );
 }
