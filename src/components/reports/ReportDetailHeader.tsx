@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/format/datetime";
 
 interface ReportDetailHeaderProps {
+  title?: string;
+  backLabel?: string;
   reportId: string;
   program: string;
   submittedAgo?: string;
@@ -16,6 +18,8 @@ interface ReportDetailHeaderProps {
 }
 
 export function ReportDetailHeader({
+  title = "My Reports",
+  backLabel = "Back",
   reportId,
   program,
   submittedAgo,
@@ -37,7 +41,7 @@ export function ReportDetailHeader({
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              My Reports
+              {title}
             </h1>
             <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20 font-bold text-xs px-2.5 py-0.5 rounded-md font-mono">
               {reportId}
@@ -53,7 +57,7 @@ export function ReportDetailHeader({
           className="self-start sm:self-auto cursor-pointer rounded-xl bg-card text-foreground hover:bg-muted transition-all gap-2 px-4 shadow-xs"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back</span>
+          <span>{backLabel}</span>
         </Button>
       </header>
     </div>

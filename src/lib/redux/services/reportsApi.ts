@@ -175,7 +175,7 @@ interface ReportApiResponse {
   suggestedWeakness?: string | null;
   dispute?: {
     id?: string;
-    status: "OPEN" | "RESOLVED" | "DISMISSED";
+    status: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "DISMISSED";
     reason?: string;
     resolvedSeverity?: ApiSeverity | null;
   } | null;

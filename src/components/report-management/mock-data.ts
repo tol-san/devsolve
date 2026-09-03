@@ -446,48 +446,50 @@ export function buildReportManagementDetailFromApiReport(
     settledSeverity: severity,
     hasSeverityDisagreement,
     dispute: report.dispute ?? null,
+    reputationPoints: report.reputationPoints ?? null,
+    reputationAwardedAt: report.reputationAwardedAt ?? null,
+    rewards: report.rewards ?? [],
     weaknessObj: report.weaknessObj ?? null,
     suggestedWeakness: report.suggestedWeakness ?? null,
     cvssScore: report.cvssScore || "N/A",
     submittedDate,
-    bountyRange: report.bountyOrRep || "$500 - $2,500",
-    summary: report.description || "No description provided.",
-    assets: report.targetEndpoint ? [report.targetEndpoint] : [report.program || "Target Asset"],
-    affectedUrl: report.targetEndpoint || "https://api.target.com",
-    httpMethod: "GET",
-    parameter: "vulnerable_param",
+    bountyRange: report.bountyOrRep || "Pending Triage",
+    summary: report.description || "",
+    assets: report.targetEndpoint ? [report.targetEndpoint] : (report.program ? [report.program] : []),
+    affectedUrl: report.targetEndpoint || "",
+    httpMethod: (report as any).httpMethod || "GET",
+    parameter: (report as any).vulnerableParameter || "",
     environment: report.environment || "Production",
     environmentNote:
       report.environment === "PRODUCTION"
         ? "Live production environment"
-        : "Staging / QA environment",
-    vulnerabilityType: report.weakness || (report.suggestedWeakness ? "" : "Vulnerability Finding"),
-    cweIdentifier: report.weakness || (report.suggestedWeakness ? "" : "CWE-Unclassified"),
-    vectorString: report.cvssVector || "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
-    assessmentSummary: report.description || "No assessment summary.",
-    reproductionSteps:
-      report.reproduceSteps && report.reproduceSteps.length > 0
-        ? report.reproduceSteps
-        : [report.description || "Follow steps described in summary."],
-    impact: report.impact || "Direct security and operational impact on target environment.",
-    rootCause: "Insufficient server-side authorization or input validation.",
-    remediation: report.remediation || "Implement defensive authorization and validation checks.",
-    analystTip: "Validate vulnerability fix against current deployment.",
+        : report.environment === "STAGING"
+        ? "Staging environment"
+        : "",
+    vulnerabilityType: report.weakness || report.suggestedWeakness || "Finding",
+    cweIdentifier: report.weakness || report.suggestedWeakness || "",
+    vectorString: report.cvssVector || "",
+    assessmentSummary: report.description || "",
+    reproductionSteps: report.reproduceSteps || [],
+    impact:
+      report.impact &&
+      report.impact !== "Impact information has not been explicitly provided for this report."
+        ? report.impact
+        : "",
+    rootCause: "",
+    remediation: report.remediation || "",
+    analystTip: "",
     proofRequestLanguage: "HTTP",
-    proofRequest:
-      report.proofOfConcept ||
-      (report.reproduceSteps && report.reproduceSteps.length > 0
-        ? report.reproduceSteps.join("\n")
-        : "No raw request payload provided."),
-    expectedResult: "Endpoint should reject unauthorized or invalid access.",
-    actualResult: "Endpoint processed unauthorized request with sensitive data returned.",
+    proofRequest: report.proofOfConcept || "",
+    expectedResult: "",
+    actualResult: "",
     attachments,
     externalDocumentation:
       report.referenceLinks && report.referenceLinks.length > 0
         ? report.referenceLinks[0]
-        : "No external documentation provided",
-    internalAssetLink: report.targetEndpoint || report.program || "Asset identifier",
-    relatedReport: "#RPT-NONE",
+        : "",
+    internalAssetLink: report.targetEndpoint || report.program || "",
+    relatedReport: "",
     retestHistory: (report as any).retestHistory || [],
   };
 }

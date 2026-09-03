@@ -22,6 +22,7 @@ import {
   Send,
   ShieldAlert,
   ShieldCheck,
+  Scale,
   ShieldX,
   Sparkles,
   User,
@@ -33,6 +34,7 @@ import { apiErrorMessage } from "@/lib/api/error-message";
 import type { ReportManagementDetail } from "@/components/report-management/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { disputeStatusLabel, isDisputeBlocking } from "@/lib/reports/dispute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
@@ -47,7 +49,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import {
   useApproveReportMutation,
-  useAwardRecognitionMutation,
   useRejectReportMutation,
 } from "@/lib/redux/services/reportsApi";
 import { cn } from "@/lib/utils";
@@ -119,8 +120,6 @@ export function ReportSeverityAdjustmentForm({
     SEVERITY_DEFAULTS[initialSev]?.bounty || "750"
   );
   const [explanation, setExplanation] = useState("");
-  const [thankYouNote, setThankYouNote] = useState("");
-  const [awardHallOfFame, setAwardHallOfFame] = useState(true);
   const [findingsSummary, setFindingsSummary] = useState(
     detail?.assessmentSummary || ""
   );
@@ -142,6 +141,23 @@ export function ReportSeverityAdjustmentForm({
     }
   }, [detail?.severity, detail?.assessmentSummary]);
 
+  /* A disputed severity freezes triage until an administrator rules on it.
+     Read before anything is offered rather than discovered from the 409 it
+     would otherwise return, so nobody fills this form in for nothing. */
+  const dispute = detail.dispute ?? null;
+  const isBlockedByDispute = isDisputeBlocking(dispute);
+
+  const reportState = (
+    detail.rawStatus ||
+    detail.status ||
+    ""
+  ).toUpperCase();
+  /* Already triaged as valid. The severity can still move — reputation is not
+     priced until the report is resolved — but "approve" is no longer what the
+     button does, so it stops saying so. */
+  const isAlreadyConfirmed =
+    reportState === "VALID_CONFIRMED" || reportState === "ACCEPTED";
+
   // Dialog & Workflow State
   const searchParams = useSearchParams();
   const actionParam = searchParams?.get("action");
@@ -151,15 +167,19 @@ export function ReportSeverityAdjustmentForm({
   const [rejectionSuccess, setRejectionSuccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (actionParam === "reject") {
+    /* `?action=reject` comes from the sidebar. Honouring it while a dispute
+       stands would open a dialog whose confirm is refused, so the banner
+       explains the hold instead. */
+    if (actionParam === "reject" && !isBlockedByDispute) {
       setShowRejectModal(true);
     }
-  }, [actionParam]);
+  }, [actionParam, isBlockedByDispute]);
 
   // RTK Mutations
   const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
-  const [awardRecognition] = useAwardRecognitionMutation();
   const [rejectReport, { isLoading: isRejecting }] = useRejectReportMutation();
+
+  const actionsDisabled = isApproving || isRejecting || isBlockedByDispute;
 
   const handleSeverityChange = (option: SeverityOption) => {
     setSelectedSeverity(option);
@@ -167,6 +187,8 @@ export function ReportSeverityAdjustmentForm({
   };
 
   const handleConfirmApproval = async () => {
+    if (isBlockedByDispute) return;
+
     const numericBounty = parseFloat(bountyAmount.replace(/[^0-9.]/g, ""));
     if (isNaN(numericBounty) || numericBounty <= 0) {
       toast.error("A reward amount is required and must be greater than zero.");
@@ -177,30 +199,13 @@ export function ReportSeverityAdjustmentForm({
       await approveReport({
         id: String(detail.id),
         severity: selectedSeverity,
-        explanation: thankYouNote.trim() || explanation,
+        explanation: explanation || decisionReason || findingsSummary,
         findingsSummary,
         decisionReason,
         improvementSuggestions,
         bountyAmount: `$${numericBounty}`,
         files: selectedFiles,
       }).unwrap();
-
-      // Award Hall of Fame Recognition if enabled and researcher is known
-      const targetUserId = detail?.submitterId || (detail as any)?.reporterId || (detail as any)?.reporter?.id;
-      const targetProgramId = detail?.programId || (detail as any)?.programId || (detail as any)?.program?.id;
-      if (awardHallOfFame && targetUserId && targetProgramId) {
-        try {
-          await awardRecognition({
-            userId: String(targetUserId),
-            programId: String(targetProgramId),
-            reportId: String(detail.id),
-            title: `Hall of Fame - ${selectedSeverity} Vulnerability Finding`,
-            description: thankYouNote.trim() || `Publicly recognized for finding and disclosing vulnerability ${cleanReportId}.`,
-          }).unwrap();
-        } catch (recErr) {
-          console.warn("Public recognition award note:", recErr);
-        }
-      }
 
       setShowApprovalModal(false);
       setApprovalSuccess(true);
@@ -215,6 +220,8 @@ export function ReportSeverityAdjustmentForm({
   };
 
   const handleConfirmRejection = async () => {
+    if (isBlockedByDispute) return;
+
     try {
       await rejectReport({
         id: String(detail.id),
@@ -384,19 +391,7 @@ export function ReportSeverityAdjustmentForm({
                 <Check className="size-4 text-emerald-500 shrink-0" />
                 <span>Report status moved to APPROVED</span>
               </div>
-              {awardHallOfFame && (
-                <div className="flex items-center gap-2 font-medium text-amber-700 dark:text-amber-300">
-                  <Award className="size-4 text-amber-500 shrink-0" />
-                  <span>Public Hall of Fame recognition awarded</span>
-                </div>
-              )}
             </div>
-
-            {thankYouNote && (
-              <div className="pt-2 border-t border-border text-xs text-muted-foreground">
-                <strong className="text-foreground">Thank You Message to Researcher:</strong> &ldquo;{thankYouNote}&rdquo;
-              </div>
-            )}
 
             {decisionReason && (
               <div className="pt-2 border-t border-border text-xs text-muted-foreground">
@@ -509,6 +504,44 @@ export function ReportSeverityAdjustmentForm({
 
   return (
     <>
+      {/* Stated before the form, not after the submit: nothing below can be
+          acted on while the dispute stands, and only an administrator can
+          lift it — so this says who, not "try again". */}
+      {isBlockedByDispute && dispute && (
+        <div
+          role="status"
+          className="mb-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 sm:p-5"
+        >
+          <div className="flex items-start gap-3">
+            <Scale className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <div className="min-w-0 space-y-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h3 className="text-base font-bold text-amber-900 dark:text-amber-200">
+                  Triage is on hold — the severity is disputed
+                </h3>
+                <span className="rounded-md border border-amber-500/30 bg-background/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
+                  {disputeStatusLabel(dispute)}
+                </span>
+              </div>
+
+              <p className="text-sm leading-relaxed text-amber-900/90 dark:text-amber-200/90">
+                An administrator has to rule on this dispute before the report
+                can be approved or rejected. Nothing you change here will
+                release it, and the actions below stay disabled until it is
+                settled.
+              </p>
+
+              {dispute.reason && (
+                <p className="rounded-xl border border-amber-500/20 bg-background/60 p-3 text-sm leading-relaxed text-foreground">
+                  <span className="font-semibold">Reason given: </span>
+                  {dispute.reason}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
         <CardHeader className="gap-2 p-4 sm:p-6 pb-2 sm:pb-2 min-w-0">
           <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground break-words">
@@ -655,42 +688,7 @@ export function ReportSeverityAdjustmentForm({
                 </FieldContent>
               </Field>
 
-              <Field className="min-w-0">
-                <FieldLabel htmlFor="thank-you-note" className="text-foreground font-semibold text-sm sm:text-base">
-                  Thank you note & message to researcher
-                </FieldLabel>
-                <FieldContent className="min-w-0">
-                  <Textarea
-                    id="thank-you-note"
-                    value={thankYouNote}
-                    onChange={(e) => setThankYouNote(e.target.value)}
-                    placeholder="e.g. Thank you for your responsible disclosure! Your detailed proof-of-concept helped us deploy a rapid security patch."
-                    className="min-h-20 border border-border bg-card text-foreground text-sm sm:text-base focus-visible:ring-1 focus-visible:ring-ring w-full"
-                  />
-                  <FieldDescription className="text-xs text-muted-foreground mt-1.5">
-                    Attached as the formal gratitude note on the bounty payout record and dispatched to the researcher.
-                  </FieldDescription>
-                </FieldContent>
-              </Field>
 
-              {/* Hall of Fame Public Recognition Card */}
-              <div className="rounded-xl border border-border bg-muted/20 p-4 flex items-start justify-between gap-3 min-w-0">
-                <div className="space-y-1 min-w-0">
-                  <label htmlFor="hall-of-fame-toggle" className="text-sm font-semibold text-foreground cursor-pointer select-none block">
-                    Award Public Hall of Fame Recognition
-                  </label>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Honors <strong>{submitterName}</strong> on your company and program&apos;s public <em>Thanks & Hall of Fame</em> leaderboard for this finding.
-                  </p>
-                </div>
-                <input
-                  id="hall-of-fame-toggle"
-                  type="checkbox"
-                  checked={awardHallOfFame}
-                  onChange={(e) => setAwardHallOfFame(e.target.checked)}
-                  className="size-4 mt-0.5 rounded border-border text-primary focus:ring-primary/40 cursor-pointer accent-primary shrink-0"
-                />
-              </div>
 
               <Field className="min-w-0">
                 <FieldLabel htmlFor="improvement-suggestions" className="text-foreground font-semibold text-sm sm:text-base">
@@ -778,7 +776,12 @@ export function ReportSeverityAdjustmentForm({
                 type="button"
                 variant="outline"
                 onClick={() => setShowRejectModal(true)}
-                disabled={isApproving || isRejecting}
+                disabled={actionsDisabled}
+                title={
+                  isBlockedByDispute
+                    ? "An administrator must resolve the severity dispute first"
+                    : undefined
+                }
                 className="w-full sm:w-auto rounded-xl border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 cursor-pointer font-semibold text-xs sm:text-sm h-10 px-4 justify-center"
               >
                 <ShieldX className="size-4" />
@@ -788,11 +791,20 @@ export function ReportSeverityAdjustmentForm({
               <Button
                 type="button"
                 onClick={() => setShowApprovalModal(true)}
-                disabled={isApproving || isRejecting}
+                disabled={actionsDisabled}
+                title={
+                  isBlockedByDispute
+                    ? "An administrator must resolve the severity dispute first"
+                    : undefined
+                }
                 className="w-full sm:w-auto rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white cursor-pointer px-4 sm:px-5 shadow-xs gap-2 text-xs sm:text-sm h-10 justify-center"
               >
                 <CheckCircle2 className="size-4" />
-                <span>Approve Report & Issue Bounty</span>
+                <span>
+                  {isAlreadyConfirmed
+                    ? "Update severity"
+                    : "Approve Report & Issue Bounty"}
+                </span>
               </Button>
             </div>
           </div>
@@ -868,24 +880,6 @@ export function ReportSeverityAdjustmentForm({
                       <span className="truncate">{submitterName}</span>
                     </Link>
                   </div>
-
-                  {thankYouNote && (
-                    <div className="pt-2 border-t border-border/70 space-y-1">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Thank You Note:
-                      </span>
-                      <p className="text-xs text-foreground italic bg-card p-2 rounded-lg border border-border">
-                        &ldquo;{thankYouNote}&rdquo;
-                      </p>
-                    </div>
-                  )}
-
-                  {awardHallOfFame && (
-                    <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-semibold pt-1">
-                      <Award className="size-3.5" />
-                      <span>Public Hall of Fame Recognition will be granted</span>
-                    </div>
-                  )}
 
                   <p className="text-xs sm:text-sm text-muted-foreground pt-1 border-t border-border/70 leading-relaxed">
                     Bounties are paid directly by your organization. Reputation

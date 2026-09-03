@@ -23,6 +23,7 @@ import {
 
 interface ReportSummaryTabProps {
   report: ReportDetail;
+  sidebar?: React.ReactNode;
 }
 
 /** A titled card. Rendered only when there is something to put in it. */
@@ -46,7 +47,7 @@ function Section({
 /**
  * Everything the reporter wrote, rendered with full Markdown support.
  */
-export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
+export function ReportSummaryTab({ report, sidebar }: ReportSummaryTabProps) {
   const hasEvidence = report.attachments.length > 0;
   const hasReferences = report.referenceLinks.length > 0;
   const [previewAttachment, setPreviewAttachment] = useState<AttachmentItem | null>(null);
@@ -263,7 +264,7 @@ export function ReportSummaryTab({ report }: ReportSummaryTabProps) {
       </main>
 
       {/* Right Column: Sidebar */}
-      <ReportSidebarPanels report={report} />
+      {sidebar ?? <ReportSidebarPanels report={report} />}
 
       {/* Attachment Preview Modal */}
       <AttachmentPreviewModal

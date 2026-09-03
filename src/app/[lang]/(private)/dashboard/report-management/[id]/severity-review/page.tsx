@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 
 import { buildReportManagementDetailFromApiReport } from "@/components/report-management/mock-data";
 import { ReportSeverityAdjustmentForm } from "@/components/report-management/severity-review/ReportSeverityAdjustmentForm";
+import { ResolvedReviewLog } from "@/components/report-management/severity-review/ResolvedReviewLog";
 import { ReportSeverityReviewHeader } from "@/components/report-management/severity-review/ReportSeverityReviewHeader";
 import { ReportSeverityReviewSidebar } from "@/components/report-management/severity-review/ReportSeverityReviewSidebar";
 import { useGetReportByIdQuery } from "@/lib/redux/services/reportsApi";
@@ -32,6 +33,11 @@ export default function ReportSeverityReviewPage() {
     refetch,
   } = useGetReportByIdQuery(reportId, { skip: !reportId });
   const [outcome, setOutcome] = useState<"approved" | "rejected" | null>(null);
+
+  /* The backend's own state, not the collapsed UI status. */
+  const isResolved =
+    (apiReport?.rawStatus || apiReport?.status || "").toUpperCase() ===
+    "RESOLVED";
 
   const detail = useMemo(() => {
     if (apiReport) {
@@ -96,10 +102,19 @@ export default function ReportSeverityReviewPage() {
         }
       >
         <div className="min-w-0 w-full">
-          <ReportSeverityAdjustmentForm
-            detail={detail}
-            onOutcomeChange={setOutcome}
-          />
+          {/* A resolved report has nothing left to triage: it cannot be
+              approved again, and its reputation was priced and paid at
+              resolution, so editing the severity here would move a label away
+              from what was actually awarded. It becomes the record its label
+              already promised. */}
+          {isResolved ? (
+            <ResolvedReviewLog detail={detail} />
+          ) : (
+            <ReportSeverityAdjustmentForm
+              detail={detail}
+              onOutcomeChange={setOutcome}
+            />
+          )}
         </div>
         {!outcome && (
           <div className="min-w-0 w-full">

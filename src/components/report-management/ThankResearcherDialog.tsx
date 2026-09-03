@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 interface ThankResearcherDialogProps {
   detail: ReportManagementDetail;
   triggerClassName?: string;
+  triggerLabel?: string;
   variant?: "default" | "outline" | "secondary";
   size?: "default" | "sm" | "lg" | "icon";
 }
@@ -90,6 +91,7 @@ function mapRecognitionError(err: any): { message: string; isAlreadyThanked: boo
 export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
   detail,
   triggerClassName,
+  triggerLabel = "Induct to Hall of Thanks",
   variant = "outline",
   size = "sm",
 }) => {
@@ -242,7 +244,7 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
           triggerClassName,
         )}
       >
-        <span>Thank Researcher</span>
+        <span>{triggerLabel}</span>
       </Button>
 
       <AnimatePresence>

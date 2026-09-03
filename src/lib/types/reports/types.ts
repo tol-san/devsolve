@@ -1,6 +1,11 @@
 export interface DisputeDetail {
   id?: string;
-  status: "OPEN" | "RESOLVED" | "DISMISSED";
+  /**
+   * `DisputeStatus` upstream. `UNDER_REVIEW` was missing here: an admin who
+   * has picked a dispute up but not decided it still blocks triage, so
+   * treating it as resolved would have offered actions the backend refuses.
+   */
+  status: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "DISMISSED";
   reason?: string;
   resolvedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
   createdAt?: string;

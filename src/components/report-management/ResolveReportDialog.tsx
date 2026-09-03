@@ -14,7 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useResolveReportMutation } from "@/lib/redux/services/reportsApi";
+import {
+  useResolveReportMutation,
+  useAwardRecognitionMutation,
+} from "@/lib/redux/services/reportsApi";
 import { apiErrorMessage } from "@/lib/api/error-message";
 import { pointsFor } from "@/lib/reports/reputation";
 
@@ -45,7 +48,11 @@ export function ResolveReportDialog({
   onSuccess,
 }: ResolveReportDialogProps) {
   const [note, setNote] = useState("");
-  const [resolveReport, { isLoading }] = useResolveReportMutation();
+  const [awardHallOfThanks, setAwardHallOfThanks] = useState(true);
+  const [resolveReport, { isLoading: isResolving }] = useResolveReportMutation();
+  const [awardRecognition, { isLoading: isAwarding }] = useAwardRecognitionMutation();
+
+  const isLoading = isResolving || isAwarding;
 
   /* What resolving will cost, quoted from the same severity the call sends.
      This is the one place the policy table may be used: it describes a
@@ -60,6 +67,21 @@ export function ResolveReportDialog({
         severity,
         resolutionNote: note.trim() || undefined,
       }).unwrap();
+
+      if (awardHallOfThanks) {
+        try {
+          await awardRecognition({
+            reportId,
+            title: `Hall of Thanks - ${severity || "Security"} Finding`,
+            description:
+              note.trim() ||
+              `Publicly recognized for responsibly disclosing vulnerability #${reportId.slice(0, 8)}.`,
+          }).unwrap();
+          toast.success("Researcher inducted into Hall of Thanks!");
+        } catch (recErr) {
+          console.warn("Recognition award skipped or already granted:", recErr);
+        }
+      }
 
       toast.success("Report marked as Resolved", {
         description: `Vulnerability report #${reportId.slice(0, 8)} has been successfully resolved.`,
@@ -168,6 +190,29 @@ export function ResolveReportDialog({
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Hall of Thanks Induction Toggle */}
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 sm:p-3.5 flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="resolve-hall-of-thanks"
+              checked={awardHallOfThanks}
+              onChange={(e) => setAwardHallOfThanks(e.target.checked)}
+              className="size-4 rounded mt-0.5 text-blue-600 focus:ring-blue-500 border-border cursor-pointer shrink-0"
+            />
+            <label
+              htmlFor="resolve-hall-of-thanks"
+              className="text-xs space-y-0.5 cursor-pointer select-none"
+            >
+              <span className="font-bold text-foreground flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-amber-500" />
+                Induct researcher into Hall of Thanks
+              </span>
+              <p className="text-muted-foreground leading-relaxed text-[11px]">
+                Publicly honors {submitterName || "the researcher"} on your program &amp; organization&apos;s public Hall of Thanks leaderboard.
+              </p>
+            </label>
           </div>
         </div>
 
