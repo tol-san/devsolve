@@ -35,12 +35,34 @@ export const userRegisterSchema = z
 
 export type UserRegisterFormValues = z.infer<typeof userRegisterSchema>;
 
+/** Reusable validation for telephone numbers matching backend normalization rules. */
+export const phoneValidation = z
+  .string()
+  .min(1, "Phone number is required")
+  .max(30, "Phone number must not exceed 30 characters")
+  .refine((val) => val.trim().length > 0, {
+    message: "Phone number is required",
+  })
+  .refine((val) => /^\+?[0-9(][0-9\s().-]*[0-9]$/.test(val), {
+    message: "Phone number must start with a digit or '(' and end with a digit",
+  })
+  .refine(
+    (val) => {
+      const digits = val.replace(/\D/g, "");
+      return digits.length >= 8 && digits.length <= 15;
+    },
+    {
+      message: "Phone number must contain between 8 and 15 digits",
+    },
+  );
+
 /** Company Registration Form Schema (Client UI) */
 export const companyRegisterSchema = z
   .object({
     // Step 1 fields
     fullName: z.string().min(2, "Full name is required"),
     jobTitle: z.string().min(1, "Please select a job title"),
+    phone: phoneValidation,
     email: z.string().email("Please enter a valid work email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(8, "Please confirm your password"),
@@ -128,6 +150,7 @@ export const registerCompanyRequestSchema = z
   .object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),
     jobTitle: z.string().min(1, "Job title is required"),
+    phone: phoneValidation,
     email: z.string().email("Please enter a valid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),

@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Clock,
   Gavel,
   Gift,
   Loader2,
@@ -30,8 +29,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import type { Notification, NotificationType } from "@/lib/types/notifications/types";
 import {
   useLazyGetCommentByIdQuery,
@@ -355,10 +352,10 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        "group relative flex items-start gap-3 px-5 py-3 transition-colors cursor-pointer select-none",
+        "group relative flex items-start gap-3.5 px-5 sm:px-6 py-3.5 sm:py-4 transition-colors cursor-pointer select-none",
         isUnread
-          ? "bg-primary/[0.025] hover:bg-muted/50 dark:bg-primary/[0.04]"
-          : "bg-transparent hover:bg-muted/30",
+          ? "bg-primary/[0.03] hover:bg-muted/60 dark:bg-primary/[0.05]"
+          : "bg-transparent hover:bg-muted/40",
         isSelected && "bg-muted",
       )}
     >
@@ -373,22 +370,22 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
             checked={isSelected}
             onChange={() => onToggleSelect?.(item.id!)}
             aria-label="Select notification"
-            className="size-3.5 rounded border-border text-primary focus:ring-primary/40 cursor-pointer accent-primary"
+            className="size-4 rounded border-border text-primary focus:ring-primary/40 cursor-pointer accent-primary"
           />
         </div>
       )}
 
       {/* Subtle unread dot */}
-      <div className="shrink-0 pt-2 w-1.5 flex items-center justify-center">
+      <div className="shrink-0 pt-2 w-2 flex items-center justify-center">
         {isUnread && (
-          <span className="size-1.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0" />
+          <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0 ring-2 ring-blue-600/20" />
         )}
       </div>
 
       {/* Compact Understated Icon */}
       <div className="shrink-0 mt-0.5">
         {hasCommentAuthor ? (
-          <Avatar className="size-7 sm:size-8 rounded-full border border-border">
+          <Avatar className="size-8 sm:size-9 rounded-full border border-border/80">
             {item.authorAvatarUrl && (
               <AvatarImage
                 src={item.authorAvatarUrl}
@@ -396,36 +393,36 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
                 className="object-cover"
               />
             )}
-            <AvatarFallback className="font-bold text-[10px] bg-muted text-muted-foreground">
+            <AvatarFallback className="font-bold text-xs bg-muted text-muted-foreground">
               {getInitials(item.authorName)}
             </AvatarFallback>
           </Avatar>
         ) : (
-          <div className="flex size-7 sm:size-8 items-center justify-center rounded-lg bg-muted/70 text-muted-foreground group-hover:text-foreground transition-colors">
-            <IconComponent className="size-3.5 sm:size-4" />
+          <div className="flex size-8 sm:size-9 items-center justify-center rounded-xl bg-muted/80 text-muted-foreground border border-border/60 group-hover:text-foreground group-hover:bg-muted transition-colors">
+            <IconComponent className="size-4 sm:size-4.5" />
           </div>
         )}
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0 space-y-0.5">
+      <div className="flex-1 min-w-0 space-y-1">
         {/* Top Meta: Type & Time */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground min-w-0">
-            <span className="font-medium text-foreground/80 truncate">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+            <span className="font-semibold text-foreground/80 truncate">
               {config.label}
             </span>
             {hasCommentAuthor && item.authorName && (
               <>
-                <span>•</span>
-                <span className="truncate">{item.authorName}</span>
+                <span className="text-muted-foreground/40">•</span>
+                <span className="truncate font-medium text-foreground/70">{item.authorName}</span>
               </>
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-muted-foreground tabular-nums">
+          <div className="flex items-center gap-1.5 shrink-0 text-xs text-muted-foreground tabular-nums">
             {isResolvingComment ? (
-              <Loader2 className="size-3 animate-spin" />
+              <Loader2 className="size-3.5 animate-spin" />
             ) : (
               <span>{formatNotificationTime(item.createdAt)}</span>
             )}
@@ -438,10 +435,10 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
                   e.stopPropagation();
                   onMarkRead(item.id!);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
                 title="Mark as read"
               >
-                <Check className="size-3" />
+                <Check className="size-3.5" />
               </button>
             )}
           </div>
@@ -450,10 +447,10 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
         {/* Title */}
         <h3
           className={cn(
-            "text-sm leading-snug break-words transition-colors",
+            "text-[15px] sm:text-base leading-snug break-words transition-colors",
             isUnread
               ? "font-semibold text-foreground"
-              : "font-medium text-foreground/90",
+              : "font-medium text-foreground/85",
           )}
         >
           {item.title}
@@ -461,10 +458,10 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
 
         {/* Formatted Body */}
         {item.content && (
-          <div className="space-y-1">
+          <div className="space-y-1 pt-0.5">
             <p
               className={cn(
-                "text-xs leading-relaxed text-muted-foreground break-words",
+                "text-xs sm:text-sm leading-relaxed text-muted-foreground/90 break-words",
                 !isExpanded && isLongContent && "line-clamp-2",
               )}
             >
@@ -478,13 +475,13 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
                   e.stopPropagation();
                   setIsExpanded((prev) => !prev);
                 }}
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground cursor-pointer pt-0.5"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline cursor-pointer pt-0.5"
               >
                 <span>{isExpanded ? "Show less" : "Read more"}</span>
                 {isExpanded ? (
-                  <ChevronUp className="size-3" />
+                  <ChevronUp className="size-3.5" />
                 ) : (
-                  <ChevronDown className="size-3" />
+                  <ChevronDown className="size-3.5" />
                 )}
               </button>
             )}

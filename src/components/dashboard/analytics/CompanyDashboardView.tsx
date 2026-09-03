@@ -238,6 +238,39 @@ export function CompanyDashboardView() {
       );
     }
 
+    // 500: Backend-side error — analytics service is temporarily unavailable
+    if (status === 500 || status === 502 || status === 503) {
+      return (
+        <Card className="mx-auto max-w-lg rounded-2xl text-center border-border bg-card my-12 p-6 space-y-3">
+          <CardHeader className="justify-items-center">
+            <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground border border-border">
+              <AlertTriangle className="size-7" />
+            </span>
+            <CardTitle className="text-xl font-bold mt-2">Analytics Temporarily Unavailable</CardTitle>
+            <CardDescription className="text-base text-muted-foreground mt-1">
+              The analytics service encountered an error on the server side. This is not a problem
+              with your account. Please try again in a moment.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              If this keeps happening, contact support with trace ID from the developer console.
+            </p>
+          </CardContent>
+          <CardFooter className="justify-center">
+            <Button
+              type="button"
+              onClick={() => void refetch()}
+              className="rounded-xl"
+            >
+              <RefreshCw className="size-3.5 mr-1.5" />
+              Try Again
+            </Button>
+          </CardFooter>
+        </Card>
+      );
+    }
+
     // Generic error fallback
     return (
       <Card className="mx-auto max-w-lg rounded-2xl text-center border-border bg-card my-12 p-6 space-y-3">

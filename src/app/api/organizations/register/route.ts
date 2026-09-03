@@ -66,10 +66,12 @@ export async function POST(request: NextRequest) {
         ? "An organization with that email or name already exists"
         : "Company registration failed. Please try again.");
 
-    return NextResponse.json(
-      { message, details: body },
-      { status: upstream.status }
-    );
+    const payload =
+      typeof body === "object" && body !== null
+        ? { message, ...body }
+        : { message, details: body };
+
+    return NextResponse.json(payload, { status: upstream.status });
   }
 
   return NextResponse.json(body, { status: 201 });

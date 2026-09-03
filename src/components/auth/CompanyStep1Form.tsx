@@ -7,6 +7,7 @@ import { UseFormReturn } from "react-hook-form";
 import {
   User,
   Mail,
+  Phone,
   Key,
   Eye,
   EyeOff,
@@ -51,7 +52,7 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
       onSubmit={(e) => {
         e.preventDefault();
         onNext();
@@ -102,30 +103,68 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         )}
       </div>
 
-      {/* Job Title Custom Select */}
-      <div>
-        <Label
-          htmlFor="jobTitle"
-          className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
-        >
-          {t("auth.companyRegister.jobTitle")}{" "}
-          <span className="text-destructive">*</span>
-        </Label>
-        <CustomSelect
-          value={jobTitle}
-          options={JOB_TITLES}
-          placeholder={t("auth.companyRegister.jobTitlePlaceholder")}
-          icon={<Briefcase className="size-4" />}
-          error={Boolean(errors.jobTitle)}
-          onSelect={(selectedVal) => {
-            setValue("jobTitle", selectedVal, { shouldValidate: true });
-          }}
-        />
-        {errors.jobTitle && (
-          <p className="text-xs text-destructive mt-1 font-medium">
-            {errors.jobTitle.message}
-          </p>
-        )}
+      {/* Job Title & Phone Number */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Job Title Custom Select */}
+        <div>
+          <Label
+            htmlFor="jobTitle"
+            className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
+          >
+            {t("auth.companyRegister.jobTitle")}{" "}
+            <span className="text-destructive">*</span>
+          </Label>
+          <CustomSelect
+            value={jobTitle}
+            options={JOB_TITLES}
+            placeholder={t("auth.companyRegister.jobTitlePlaceholder")}
+            icon={<Briefcase className="size-4" />}
+            error={Boolean(errors.jobTitle)}
+            onSelect={(selectedVal) => {
+              setValue("jobTitle", selectedVal, { shouldValidate: true });
+            }}
+          />
+          {errors.jobTitle && (
+            <p className="text-xs text-destructive mt-1 font-medium">
+              {errors.jobTitle.message}
+            </p>
+          )}
+        </div>
+
+        {/* Phone Number */}
+        <div>
+          <Label
+            htmlFor="phone"
+            className="block text-xs sm:text-sm font-semibold text-slate-900 dark:text-foreground mb-1.5"
+          >
+            {t("auth.companyRegister.phone")}{" "}
+            <span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <Input
+              id="phone"
+              type="tel"
+              autoComplete="tel"
+              maxLength={30}
+              placeholder={t("auth.companyRegister.phonePlaceholder")}
+              {...register("phone")}
+              className={cn(
+                "w-full h-11 sm:h-12 pl-10 pr-4 bg-white dark:bg-card border rounded-xl text-slate-900 dark:text-foreground text-sm placeholder:text-slate-400 dark:placeholder:text-muted-foreground transition-all focus:border-blue-600 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                errors.phone
+                  ? "border-destructive focus:ring-destructive/30"
+                  : "border-slate-300 dark:border-border hover:border-slate-400 dark:hover:border-muted-foreground/40"
+              )}
+            />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground">
+              <Phone className="size-4" />
+            </div>
+          </div>
+          {errors.phone && (
+            <p className="text-xs text-destructive mt-1 font-medium">
+              {errors.phone.message}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Work Email */}

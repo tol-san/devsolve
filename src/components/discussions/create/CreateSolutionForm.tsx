@@ -285,8 +285,8 @@ export function CreateSolutionForm({
 
       toast.success(isEdit ? "Solution updated" : "Solution posted", {
         description: isEdit
-          ? "Your changes go back through review before publishing."
-          : "It goes live on this problem once a moderator approves it.",
+          ? "Your changes have been saved."
+          : "Your solution is now published on this problem.",
       });
       router.push(done);
     } catch (caught) {

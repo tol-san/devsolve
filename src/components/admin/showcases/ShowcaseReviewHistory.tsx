@@ -84,6 +84,11 @@ export function ShowcaseReviewHistory({
                 {entry.reviewedAt
                   ? ` · decided ${formatDateTime(entry.reviewedAt)}`
                   : ""}
+                {entry.reviewStatus === "APPROVED" &&
+                  (entry.reviewedBy ? ` by ${entry.reviewedBy}` : " · Auto-approved")}
+                {entry.reviewStatus === "REJECTED" &&
+                  entry.reviewedBy &&
+                  ` by ${entry.reviewedBy}`}
               </p>
 
               {entry.rejectionReason && (

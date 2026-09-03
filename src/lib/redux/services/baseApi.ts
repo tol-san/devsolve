@@ -147,6 +147,7 @@ export const baseApi = createApi({
     "VirusTotal",
     "SecurityIncident",
     "Leaderboard",
+    "AdminAutoApproval",
   ],
   endpoints: () => ({}),
 });

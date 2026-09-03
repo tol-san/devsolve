@@ -3,7 +3,7 @@
 import React, { useState, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
   Globe,
   Building2,
@@ -16,8 +16,6 @@ import {
   ExternalLink,
   Award,
   DollarSign,
-  CheckCircle2,
-  ArrowRight,
   ArrowLeft,
   Share2,
   Check,
@@ -27,9 +25,6 @@ import {
   Search,
   Clock,
   Zap,
-  Target,
-  FileCode2,
-  Sparkles,
   Info,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -37,6 +32,7 @@ import {
   useGetOrganizationByIdQuery,
   useGetOrganizationProgramsByIdQuery,
 } from "@/lib/redux/services/organizationsApi";
+import type { Program } from "@/lib/types/programs/types";
 
 const defaultCompanyProfile = {
   name: "CyberShield Security",
@@ -72,30 +68,30 @@ function CompanyProfileContent() {
   const searchParams = useSearchParams();
   const orgId = searchParams.get("id") || searchParams.get("orgId");
 
-  const { data: orgData, isLoading: isOrgLoading } = useGetOrganizationByIdQuery(
+  const { data: orgData } = useGetOrganizationByIdQuery(
     orgId!,
     { skip: !orgId }
   );
 
-  const { data: orgProgramsData, isLoading: isProgramsLoading } =
+  const { data: orgProgramsData } =
     useGetOrganizationProgramsByIdQuery(
       { id: orgId!, page: 1, size: 20 },
       { skip: !orgId }
     );
 
-  const fetchedPrograms: any[] = useMemo(() => {
+  const fetchedPrograms: Program[] = useMemo(() => {
     if (!orgProgramsData) return [];
-    if (Array.isArray(orgProgramsData)) return orgProgramsData;
-    return (
-      (orgProgramsData as any)?.content ||
-      (Array.isArray((orgProgramsData as any)?.data)
-        ? (orgProgramsData as any).data
-        : [])
-    );
+    if (Array.isArray(orgProgramsData)) return orgProgramsData as Program[];
+    const payload = orgProgramsData as {
+      content?: Program[];
+      data?: Program[];
+    };
+    return payload.content || payload.data || [];
   }, [orgProgramsData]);
 
   const activeProgramsCount =
-    (orgProgramsData as any)?.totalElements ?? fetchedPrograms.length;
+    (orgProgramsData as { totalElements?: number } | undefined)?.totalElements ??
+    fetchedPrograms.length;
 
   const displayProfile = useMemo(() => {
     return {
@@ -132,6 +128,9 @@ function CompanyProfileContent() {
   }, [orgData, activeProgramsCount]);
 
   const logoUrl = orgData?.logoUrl;
+  const coverUrl =
+    orgData?.coverUrl ||
+    (orgData as { coverImageUrl?: string } | undefined)?.coverImageUrl;
   const companyInitials = (displayProfile.name || "OR")
     .split(" ")
     .filter(Boolean)
@@ -167,7 +166,7 @@ function CompanyProfileContent() {
 
   const filteredPrograms = useMemo(() => {
     return fetchedPrograms.filter((p) => {
-      const title = p.name || p.title || "";
+      const title = p.name || (p as { title?: string }).title || "";
       const desc = p.description || "";
       const isBounty =
         p.offersBounties || (p.engagementType as string) === "BOUNTY";
@@ -209,11 +208,22 @@ function CompanyProfileContent() {
 
       {/* ── 1. Hero Cover & Profile Banner ──────────────────────────── */}
       <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-        {/* Decorative Cover Banner */}
-        <div className="relative h-36 sm:h-48 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.2),transparent_50%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
+        {/* Cover Banner */}
+        <div className="relative h-36 sm:h-56 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
+          {coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={coverUrl}
+              alt={`${displayProfile.name} cover`}
+              className="size-full object-cover"
+            />
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.2),transparent_50%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
+            </>
+          )}
         </div>
 
         {/* Profile Identity Bar */}
@@ -546,7 +556,7 @@ function CompanyProfileContent() {
                 <div className="space-y-3.5">
                   {filteredPrograms.map((program) => {
                     const title =
-                      program.name || (program as any).title || "Program";
+                      program.name || (program as { title?: string }).title || "Program";
                     const rawHandle =
                       program.handle ||
                       title.toLowerCase().replace(/\s+/g, "-");

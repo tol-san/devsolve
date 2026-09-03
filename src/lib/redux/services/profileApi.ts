@@ -4,7 +4,6 @@ import {
   ProfileStats,
   SeverityStats,
   ProfileBadge,
-  Severity,
   CommunityPost,
   ThanksEntry,
   EditProfileFormData,
@@ -78,13 +77,6 @@ interface ReportApiResponse {
   rewards?: { amount: number }[];
   submittedAt?: string;
   resolvedAt?: string;
-}
-
-// Real shape of GET /api/v1/programs/{id} — only the fields used to enrich
-// a hacktivity entry with a display name.
-interface ProgramApiResponse {
-  id: string;
-  name: string;
 }
 
 // Real shape of GET /api/v1/problems/mine content items. There's no distinct
@@ -607,9 +599,7 @@ export const profileApi = baseApi.injectEndpoints({
               votes: scoreOf(solutionVotes[index]) || solution.voteScore || 0,
               status: solution.isAccepted
                 ? { label: "Accepted", tone: "positive" }
-                : solution.moderation?.status === "PENDING"
-                  ? { label: "Pending review", tone: "pending" }
-                  : undefined,
+                : undefined,
               date: solution.createdAt || new Date().toISOString(),
               /* Solutions are read on the problem they answer. */
               href: solution.problemId

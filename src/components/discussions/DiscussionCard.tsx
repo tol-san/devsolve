@@ -8,7 +8,6 @@ import {
   Bookmark,
   CheckCircle2,
   CircleDot,
-  Clock,
   Eye,
   MessageSquare,
   XCircle,
@@ -207,28 +206,17 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
             )}
 
             {/* The reader's own answer, held for review or turned away. It is
-                a real link over the card's own overlay, so it opts back into
-                pointer events and sits above it. */}
-            {myAnswer && (
+            {/* The reader's own answer, if turned away and needing revision. */}
+            {myAnswer && myAnswer.review === "REJECTED" && (
               <Link
                 href={MY_COMMUNITY_HREF}
                 className={cn(
                   "pointer-events-auto relative z-10 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-bold transition-colors",
-                  myAnswer.review === "REJECTED"
-                    ? "bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25"
-                    : "bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:hover:bg-amber-500/25",
+                  "bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25",
                 )}
               >
-                {myAnswer.review === "REJECTED" ? (
-                  <XCircle aria-hidden="true" className="size-3.5" />
-                ) : (
-                  <Clock aria-hidden="true" className="size-3.5" />
-                )}
-                {t(
-                  myAnswer.review === "REJECTED"
-                    ? "community.card.answerRejected"
-                    : "community.card.answerInReview",
-                )}
+                <XCircle aria-hidden="true" className="size-3.5" />
+                {t("community.card.answerRejected")}
               </Link>
             )}
           </div>

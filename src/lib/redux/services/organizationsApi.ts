@@ -26,6 +26,8 @@ export type Organization = {
   domain?: string;
   websiteUrl?: string;
   logoUrl?: string;
+  coverUrl?: string;
+  coverImageUrl?: string;
   description?: string;
   industry?: OrganizationIndustry;
   companySize?: string;
@@ -56,6 +58,7 @@ export type OrganizationVerification = {
 export type RegisterOrganizationRequest = {
   fullName: string;
   jobTitle: string;
+  phone: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -72,6 +75,8 @@ export type UpdateOrganizationRequest = {
   domain?: string;
   websiteUrl?: string;
   logoUrl?: string;
+  coverUrl?: string;
+  coverImageUrl?: string;
   description?: string;
   industry?: OrganizationIndustry;
   companySize?: string;
@@ -502,12 +507,22 @@ export const organizationsApi = proxyApi.injectEndpoints({
       }),
       invalidatesTags: ["OrganizationMembers"],
     }),
-    uploadOrganizationCover: builder.mutation<Organization, FormData>({
-      query: (body) => ({
-        url: "/organizations/me/cover",
-        method: "PUT",
-        body,
-      }),
+    uploadOrganizationCover: builder.mutation<Organization, File | FormData>({
+      query: (fileOrForm) => {
+        let body: FormData;
+        if (fileOrForm instanceof FormData) {
+          body = fileOrForm;
+        } else {
+          body = new FormData();
+          body.append("file", fileOrForm);
+        }
+
+        return {
+          url: "/organizations/me/cover",
+          method: "PUT",
+          body,
+        };
+      },
       invalidatesTags: ["Organization"],
     }),
     removeOrganizationCover: builder.mutation<Organization, void>({
@@ -518,7 +533,7 @@ export const organizationsApi = proxyApi.injectEndpoints({
       invalidatesTags: ["Organization"],
     }),
     getOrganizationHacktivity: builder.query<
-      any,
+      unknown,
       { id: string; page?: number; size?: number; sort?: string }
     >({
       query: ({ id, page = 0, size = 20, sort }) => ({
@@ -528,7 +543,7 @@ export const organizationsApi = proxyApi.injectEndpoints({
       providesTags: ["Organization"],
     }),
     getMyOrganizationHacktivity: builder.query<
-      any,
+      unknown,
       { organizationId?: string; page?: number; size?: number; sort?: string } | void
     >({
       query: (params) => ({

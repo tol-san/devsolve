@@ -274,6 +274,19 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
                   </span>
                 </p>
 
+                <p className="flex justify-between gap-3 text-sm">
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Reviewer
+                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {submission.reviewedBy
+                      ? submission.reviewedBy
+                      : submission.reviewStatus === "APPROVED"
+                      ? "Auto-approved"
+                      : "—"}
+                  </span>
+                </p>
+
                 {submission.rejectionReason && (
                   <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 dark:border-rose-500/25 dark:bg-rose-500/10">
                     <p className="text-xs font-bold text-rose-800 dark:text-rose-200">

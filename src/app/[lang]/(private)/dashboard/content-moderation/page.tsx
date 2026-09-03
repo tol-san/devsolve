@@ -18,6 +18,7 @@ import {
   Lightbulb,
   MessageSquareWarning,
   ShieldAlert,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -54,6 +55,7 @@ import { ModerationHistoryTable } from "@/components/admin/ModerationHistoryTabl
 import { ShowcaseReviewQueue } from "@/components/admin/showcases/ShowcaseReviewQueue";
 import { ProblemReviewQueue } from "@/components/admin/problems/ProblemReviewQueue";
 import { SolutionReviewQueue } from "@/components/admin/solutions/SolutionReviewQueue";
+import { AutoApprovalSettings } from "@/components/admin/auto-approval/AutoApprovalSettings";
 import { useGetShowcaseReviewQueueQuery } from "@/lib/redux/services/admin/showcaseReviewApi";
 import { useGetProblemReviewQueueQuery } from "@/lib/redux/services/admin/problemReviewApi";
 import { useGetAdminSolutionsQuery } from "@/lib/redux/services/admin/solutionAdminApi";
@@ -73,7 +75,7 @@ import { cn } from "@/lib/utils";
  * a page nothing linked to.
  */
 
-type TabId = "queue" | "showcases" | "problems" | "solutions" | "security" | "history";
+type TabId = "queue" | "showcases" | "problems" | "solutions" | "security" | "auto-approval" | "history";
 
 const TABS: {
   value: TabId;
@@ -115,6 +117,13 @@ const TABS: {
     icon: Lightbulb,
     blurb:
       "Answers waiting on a decision. Approving one publishes it on the problem it answers, where the asker can accept it.",
+  },
+  {
+    value: "auto-approval",
+    label: "AI Auto-Approval",
+    icon: Sparkles,
+    blurb:
+      "Configure automated quality and safety checks to instantly publish verified community submissions.",
   },
   {
     value: "history",
@@ -188,6 +197,7 @@ function ContentManagement() {
     problems: problemQueue?.totalElements ?? 0,
     solutions: solutionQueue?.totalElements ?? 0,
     security: securityQueue?.totalElements ?? 0,
+    "auto-approval": undefined,
     history: undefined,
   };
 
@@ -620,6 +630,8 @@ function ContentManagement() {
         <SolutionReviewQueue />
       ) : activeTab === "security" ? (
         <SecurityIncidentsTable scope="admin" />
+      ) : activeTab === "auto-approval" ? (
+        <AutoApprovalSettings />
       ) : (
         <ModerationHistoryTable />
       )}

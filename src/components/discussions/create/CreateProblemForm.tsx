@@ -12,17 +12,14 @@ import {
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  AlertCircle,
   Check,
   CheckCircle2,
   Circle,
-  Clock,
   FileText,
   LoaderCircle,
   Plus,
   Save,
   Send,
-  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -391,7 +388,10 @@ export function CreateProblemForm({
     if (draftId) {
       const match = myProblemsData.content.find((p) => p.id === draftId);
       if (match) {
-        loadDraftIntoForm(match);
+        const timer = setTimeout(() => {
+          loadDraftIntoForm(match);
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
   }, [preparedDraft, myProblemsData]);
@@ -618,7 +618,7 @@ export function CreateProblemForm({
         setPreparedDraft(null);
         toast.success(
           submitted.status === "PENDING_APPROVAL"
-            ? "Problem submitted for review."
+            ? "Problem submitted. Screening content…"
             : "Problem submitted successfully.",
         );
         router.push(successHref);
@@ -629,7 +629,7 @@ export function CreateProblemForm({
 
       toast.success(
         created.status === "PENDING_APPROVAL"
-          ? "Problem submitted for review."
+          ? "Problem submitted. Screening content…"
           : "Problem submitted successfully.",
       );
       router.push(successHref);

@@ -59,6 +59,7 @@ export default function CompanyRegisterPage() {
     defaultValues: {
       fullName: "",
       jobTitle: "",
+      phone: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -78,6 +79,7 @@ export default function CompanyRegisterPage() {
     const isValidStep1 = await form.trigger([
       "fullName",
       "jobTitle",
+      "phone",
       "email",
       "password",
       "confirmPassword",
@@ -113,6 +115,7 @@ export default function CompanyRegisterPage() {
       const res = await registerCompany({
         fullName: data.fullName,
         jobTitle: data.jobTitle,
+        phone: data.phone,
         email: data.email,
         password: data.password,
         confirmPassword: data.confirmPassword,
@@ -129,9 +132,60 @@ export default function CompanyRegisterPage() {
       }
     } catch (error: unknown) {
       console.error("Failed to submit company registration:", error);
-      const err = error as { data?: { message?: string }; status?: number };
+      interface ApiErrorData {
+        message?: string;
+        violations?: Array<{ propertyPath?: string; message?: string }>;
+        fieldErrors?: Record<string, string[]>;
+        details?: {
+          message?: string;
+          violations?: Array<{ propertyPath?: string; message?: string }>;
+        };
+      }
+      const err = error as { data?: ApiErrorData; status?: number };
+      const errData = err?.data;
+
+      let phoneErrorMsg: string | null = null;
+
+      // 1. Bean-validation failure: violations[] with propertyPath === "phone"
+      const violations = errData?.violations ?? errData?.details?.violations;
+      if (Array.isArray(violations)) {
+        const phoneViolation = violations.find(
+          (v) =>
+            v.propertyPath === "phone" ||
+            v.propertyPath?.toLowerCase().includes("phone"),
+        );
+        if (phoneViolation?.message) {
+          phoneErrorMsg = phoneViolation.message;
+        }
+      }
+
+      // 2. Digit-count failure: 400 with message only, no violations
+      // "Phone number must contain between 8 and 15 digits"
+      const serverMsg = errData?.message ?? errData?.details?.message;
+      if (!phoneErrorMsg && serverMsg) {
+        if (
+          serverMsg.includes("8 and 15 digits") ||
+          serverMsg.toLowerCase().includes("phone")
+        ) {
+          phoneErrorMsg = serverMsg;
+        }
+      }
+
+      // 3. Fallback to fieldErrors if from proxy validation
+      if (!phoneErrorMsg && errData?.fieldErrors?.phone?.[0]) {
+        phoneErrorMsg = errData.fieldErrors.phone[0];
+      }
+
+      if (phoneErrorMsg) {
+        form.setError("phone", {
+          type: "server",
+          message: phoneErrorMsg,
+        });
+        setCurrentStep(1);
+      }
+
       const message =
-        err?.data?.message ??
+        serverMsg ??
         "Registration failed. Please check your details and try again.";
       setApiError(message);
     }

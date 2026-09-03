@@ -25,6 +25,7 @@ import {
   UsersRound,
   ShieldQuestion,
   UserRoundCheck,
+  Sparkles,
   LucideIcon,
 } from "lucide-react";
 
@@ -105,6 +106,7 @@ export const NAV_ITEMS: NavItem[] = [
   { name: "Program Review", href: "/dashboard/program-management?scope=admin", icon: Building2, roles: ["ADMIN"], category: "Administration" },
   { name: "Users", href: "/dashboard/users", icon: UserCheck, roles: ["ADMIN"], category: "Administration" },
   { name: "Content Management", href: "/dashboard/content-moderation", icon: PanelsTopLeft, roles: ["ADMIN"], category: "Administration" },
+  { name: "AI Auto-Approval", href: "/dashboard/auto-approval", icon: Sparkles, roles: ["ADMIN"], category: "Administration" },
   { name: "Security Incidents", href: "/dashboard/security-incidents", icon: ShieldAlert, roles: ["ADMIN"], category: "Administration" },
   { name: "Categories", href: "/dashboard/categories", icon: Tags, roles: ["ADMIN"], category: "Administration" },
   { name: "Tags", href: "/dashboard/tags", icon: Tag, roles: ["ADMIN"], category: "Administration" },

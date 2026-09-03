@@ -24,14 +24,20 @@ import {
   type Organization,
   type OrganizationIndustry,
   type UpdateOrganizationRequest,
+  useRemoveOrganizationCoverMutation,
   useRemoveOrganizationLogoMutation,
   useUpdateMyOrganizationMutation,
+  useUploadOrganizationCoverMutation,
   useUploadOrganizationLogoMutation,
 } from "@/lib/redux/services/organizationsApi";
 import {
   ORGANIZATION_LOGO_ACCEPT_ATTR,
   validateOrganizationLogoFile,
 } from "@/lib/validations/organization-logo";
+import {
+  COVER_IMAGE_ACCEPT_ATTR,
+  validateCoverImageFile,
+} from "@/lib/validations/cover-image";
 import { parseApiError, type ParsedApiError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 
@@ -74,14 +80,15 @@ const selectTriggerClass =
 type FormState = Required<
   Pick<
     UpdateOrganizationRequest,
-    |"name"
-    |"domain"
-    |"websiteUrl"
-    |"logoUrl"
-    |"description"
-    |"industry"
-    |"companySize"
-    |"country"
+    | "name"
+    | "domain"
+    | "websiteUrl"
+    | "logoUrl"
+    | "coverUrl"
+    | "description"
+    | "industry"
+    | "companySize"
+    | "country"
   >
 >;
 
@@ -91,6 +98,7 @@ function formStateFrom(organization: Organization): FormState {
     domain: organization.domain || "",
     websiteUrl: organization.websiteUrl || "",
     logoUrl: organization.logoUrl || "",
+    coverUrl: (organization.coverUrl || organization.coverImageUrl || "") as string,
     description: organization.description || "",
     industry: (organization.industry || "TECHNOLOGY") as OrganizationIndustry,
     companySize: organization.companySize || "11-50",
@@ -146,12 +154,18 @@ export default function OrgEditPanel({
     useUploadOrganizationLogoMutation();
   const [removeLogo, { isLoading: isRemovingLogo }] =
     useRemoveOrganizationLogoMutation();
+  const [uploadCover, { isLoading: isUploadingCover }] =
+    useUploadOrganizationCoverMutation();
+  const [removeCover, { isLoading: isRemovingCover }] =
+    useRemoveOrganizationCoverMutation();
   const isLogoBusy = isUploadingLogo || isRemovingLogo;
+  const isCoverBusy = isUploadingCover || isRemovingCover;
 
   const initial = useMemo(() => formStateFrom(organization), [organization]);
   const [form, setForm] = useState<FormState>(initial);
   const [saveError, setSaveError] = useState<ParsedApiError | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [coverError, setCoverError] = useState<string | null>(null);
 
   /* The same list the register form shows. It resolves to `[]` rather than an
      error when the CDN is unreachable, so the bundled shortlist stands in. */
@@ -229,6 +243,43 @@ export default function OrgEditPanel({
     }
   };
 
+  const handleCoverPick = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const reason = validateCoverImageFile(file);
+    if (reason) {
+      setCoverError(reason);
+      return;
+    }
+
+    setCoverError(null);
+    try {
+      const updated = await uploadCover(file).unwrap();
+      const newCover = updated.coverUrl || (updated as { coverImageUrl?: string }).coverImageUrl || "";
+      setForm((prev) => ({ ...prev, coverUrl: newCover }));
+      toast.success("Cover image updated.");
+    } catch (error) {
+      setCoverError(
+        parseApiError(error, "The cover image could not be uploaded.").message,
+      );
+    }
+  };
+
+  const handleCoverRemove = async () => {
+    setCoverError(null);
+    try {
+      await removeCover().unwrap();
+      setForm((prev) => ({ ...prev, coverUrl: "" }));
+      toast.success("Cover image removed.");
+    } catch (error) {
+      setCoverError(
+        parseApiError(error, "The cover image could not be removed.").message,
+      );
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaveError(null);
@@ -280,6 +331,86 @@ export default function OrgEditPanel({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Visual Canvas: Cover Banner & Actions */}
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
+        <div className="relative h-44 sm:h-60 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
+          {form.coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={form.coverUrl}
+              alt={`${form.name || "Organization"} cover banner`}
+              className="size-full object-cover"
+            />
+          ) : (
+            <div className="flex size-full flex-col items-center justify-center p-4 text-center">
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-2">
+                <ImageUp className="size-5" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">
+                Upload organization cover banner
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Recommended 1200×400px · PNG, JPG or WebP up to 5 MB
+              </p>
+            </div>
+          )}
+
+          {/* Floating Actions on Cover */}
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            <label
+              htmlFor="organization-cover-upload"
+              className={cn(
+                "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-border/80 bg-background/90 px-3.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur-md transition hover:bg-background",
+                isCoverBusy && "pointer-events-none opacity-60",
+              )}
+            >
+              {isUploadingCover ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <ImageUp className="size-3.5" />
+              )}
+              <span>{form.coverUrl ? "Change banner" : "Upload banner"}</span>
+              <input
+                id="organization-cover-upload"
+                type="file"
+                accept={COVER_IMAGE_ACCEPT_ATTR}
+                disabled={isCoverBusy}
+                className="sr-only"
+                onChange={handleCoverPick}
+              />
+            </label>
+
+            {form.coverUrl && (
+              <button
+                type="button"
+                onClick={() => void handleCoverRemove()}
+                disabled={isCoverBusy}
+                className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border border-rose-200/80 bg-background/90 px-3 text-xs font-semibold text-rose-600 shadow-sm backdrop-blur-md transition hover:bg-rose-50 disabled:opacity-50 dark:border-rose-900/60 dark:text-rose-400 dark:hover:bg-rose-950/40"
+              >
+                <Trash2 className="size-3.5" />
+                <span className="hidden sm:inline">
+                  {isRemovingCover ? "Removing…" : "Remove"}
+                </span>
+              </button>
+            )}
+          </div>
+
+          {isCoverBusy && (
+            <div className="absolute inset-0 flex items-center justify-center bg-foreground/30 backdrop-blur-xs">
+              <Loader2 className="size-8 animate-spin text-white" />
+            </div>
+          )}
+        </div>
+
+        {coverError && (
+          <div className="border-t border-rose-200 bg-rose-50 p-3 dark:border-rose-900/60 dark:bg-rose-950/40">
+            <p className="text-center text-xs sm:text-sm font-medium text-rose-600 dark:text-rose-400">
+              {coverError}
+            </p>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_300px] md:items-start lg:grid-cols-[1fr_340px]">
         <div className="space-y-6 rounded-2xl border border-border bg-card p-5 shadow-xs sm:p-6">
@@ -504,6 +635,26 @@ export default function OrgEditPanel({
                     inputClass,
                     "text-sm",
                     fieldError("logoUrl") && errorInputClass,
+                  )}
+                />
+              </Field>
+
+              <Field
+                label="Cover banner URL"
+                htmlFor="org-cover-url"
+                hint="Direct link to banner image."
+                error={fieldError("coverUrl")}
+              >
+                <Input
+                  id="org-cover-url"
+                  type="url"
+                  value={form.coverUrl}
+                  onChange={(e) => patch({ coverUrl: e.target.value })}
+                  placeholder="https://acme.com/cover.jpg"
+                  className={cn(
+                    inputClass,
+                    "text-sm",
+                    fieldError("coverUrl") && errorInputClass,
                   )}
                 />
               </Field>

@@ -176,7 +176,11 @@ export function ShowcaseReviewModal({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full mt-2">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as "detail" | "history")}
+          className="w-full mt-2"
+        >
           <TabsList className="grid w-full grid-cols-2 bg-slate-100 dark:bg-slate-800/80 rounded-xl p-1">
             <TabsTrigger value="detail" className="text-xs font-bold rounded-lg cursor-pointer flex items-center gap-2">
               <Layers className="size-3.5" />
@@ -347,11 +351,18 @@ export function ShowcaseReviewModal({
                           : new Date(entry.submittedAt).toLocaleString()}
                       </span>
                     </div>
-                    {entry.reviewedBy && (
+                    {entry.reviewStatus === "APPROVED" && !entry.reviewedBy ? (
+                      <p className="text-xs text-slate-500 flex items-center gap-1">
+                        <span>Reviewed by:</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                          Auto-approved
+                        </span>
+                      </p>
+                    ) : entry.reviewedBy ? (
                       <p className="text-xs text-slate-500">
                         Reviewed by: <span className="font-semibold">{entry.reviewedBy}</span>
                       </p>
-                    )}
+                    ) : null}
                     {entry.rejectionReason && (
                       <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">
                         Reason: {entry.rejectionReason}

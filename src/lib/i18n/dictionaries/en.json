@@ -815,6 +815,8 @@
       "fullNamePlaceholder": "John Doe",
       "jobTitle": "Job Title",
       "jobTitlePlaceholder": "Select your job title",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+855 12 345 678",
       "workEmail": "Work Email",
       "workEmailPlaceholder": "john@company.com",
       "companyName": "Company Name",

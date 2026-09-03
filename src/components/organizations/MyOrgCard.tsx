@@ -19,24 +19,46 @@ interface MyOrgCardProps {
 }
 
 export function MyOrgCard({ organization }: MyOrgCardProps) {
+  const coverUrl =
+    organization.coverUrl ||
+    (organization as { coverImageUrl?: string })?.coverImageUrl;
+
   return (
     <Card className="border-border bg-card shadow-sm overflow-hidden">
+      {/* Cover Banner */}
+      <div className="relative h-28 sm:h-36 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
+        {coverUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coverUrl}
+            alt=""
+            className="size-full object-cover"
+          />
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.2),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
+          </>
+        )}
+      </div>
+
       <CardHeader className="border-b border-border bg-muted/40 pb-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-10 sm:-mt-12 relative z-10">
+          <div className="flex items-end gap-4">
             {organization.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={organization.logoUrl}
                 alt={organization.name}
-                className="w-14 h-14 rounded-xl object-cover border border-border bg-white"
+                className="w-16 h-16 rounded-xl object-cover border-2 border-card bg-card shadow-md"
               />
             ) : (
-              <div className="w-14 h-14 rounded-xl border border-blue-500/25 bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xl">
+              <div className="w-16 h-16 rounded-xl border-2 border-card bg-card shadow-md flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xl ring-1 ring-blue-500/20">
                 {organization.name.substring(0, 2).toUpperCase()}
               </div>
             )}
-            <div>
+            <div className="mb-0.5">
               <div className="flex items-center gap-3 flex-wrap">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-foreground">
                   {organization.name}
@@ -51,7 +73,7 @@ export function MyOrgCard({ organization }: MyOrgCardProps) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 mb-0.5">
             {/* Its own page rather than a dialog — the form is nine fields
                 deep, and a modal loses everything typed into it to a stray
                 click outside. */}

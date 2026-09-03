@@ -56,7 +56,7 @@ export function useMySolutionStatus(options?: { skip?: boolean }) {
         solutionId: solution.id,
         problemId: solution.problemId,
         summary: solution.summary,
-        review: solution.moderation?.status ?? "PENDING",
+        review: solution.moderation?.status ?? "APPROVED",
         rejectionReason: solution.moderation?.rejectionReason,
         isAccepted: Boolean(solution.isAccepted),
         createdAt: solution.createdAt,
@@ -82,13 +82,10 @@ export function useMySolutionStatus(options?: { skip?: boolean }) {
     /** Every answer the reader has posted on one problem, newest first. */
     forProblem: (problemId?: string) =>
       problemId ? (byProblem.get(problemId) ?? []) : [],
-    /** The one worth announcing on a card: still waiting, or turned away. */
+    /** The one worth announcing on a card: turned away and needs author revision. */
     unresolvedFor: (problemId?: string) => {
       const list = problemId ? (byProblem.get(problemId) ?? []) : [];
-      return (
-        list.find((entry) => entry.review === "PENDING") ??
-        list.find((entry) => entry.review === "REJECTED")
-      );
+      return list.find((entry) => entry.review === "REJECTED");
     },
   };
 }

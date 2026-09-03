@@ -73,7 +73,7 @@ export interface RegisterUserResponse {
 // Real response shape of POST /api/v1/auth/register (per the live OpenAPI spec).
 // Note: `country` isn't accepted by this endpoint — the backend's RegisterRequest
 // has no such field, so it's dropped here (settable later via profile edit).
-interface RegisterApiResponse {
+export interface RegisterApiResponse {
   userId: string;
   username: string;
   email: string;
@@ -103,6 +103,7 @@ export type CompanySizeEnum =
 export interface RegisterCompanyRequest {
   fullName: string;
   jobTitle: string;
+  phone: string;
   email: string;
   password: string;
   confirmPassword: string;

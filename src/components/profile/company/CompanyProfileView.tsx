@@ -247,11 +247,33 @@ export default function CompanyProfileView() {
 
       {/* Hero: identity, then the numbers that describe it, then what you can
           do about them — one card instead of three stacked bands. */}
-      <Card>
+      <Card className="overflow-hidden">
+        {/* Cover Banner */}
+        <div className="relative h-36 sm:h-52 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
+          {(organization.coverUrl ||
+            (organization as { coverImageUrl?: string })?.coverImageUrl) ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={
+                organization.coverUrl ||
+                (organization as { coverImageUrl?: string })?.coverImageUrl
+              }
+              alt=""
+              className="size-full object-cover"
+            />
+          ) : (
+            <>
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.2),transparent_50%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:24px_24px] opacity-40 dark:opacity-20" />
+            </>
+          )}
+        </div>
+
         <CardHeader className="border-b">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end -mt-12 sm:-mt-16 relative z-10">
             <Avatar
-              className="size-24 rounded-2xl"
+              className="size-24 sm:size-28 rounded-2xl ring-4 ring-card shadow-lg bg-card"
               aria-label={organization.name}
             >
               {organization.logoUrl && (

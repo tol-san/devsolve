@@ -14,15 +14,12 @@ import {
   Bookmark,
   CheckCircle2,
   CircleDot,
-  Clock,
   Download,
   Eye,
-  FileImage,
   FileText,
   Flag,
   FolderGit2,
   ListOrdered,
-  Paperclip,
   Pencil,
   Plus,
   RotateCcw,
@@ -31,7 +28,6 @@ import {
   TerminalSquare,
   Wrench,
   XCircle,
-  ZoomIn,
 } from "lucide-react";
 
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
@@ -153,6 +149,7 @@ export default function ProblemDetailPage() {
       problem={problem}
       sortOrder={sortOrder}
       onSortChange={setSortOrder}
+      refetchProblem={refetch}
     />
   );
 }
@@ -163,11 +160,13 @@ function Loaded({
   problem,
   sortOrder,
   onSortChange,
+  refetchProblem,
 }: {
   id: string;
   problem: ProblemResponse;
   sortOrder: "votes" | "newest";
   onSortChange: (order: "votes" | "newest") => void;
+  refetchProblem: () => void;
 }) {
   const [incrementViews] = useIncrementProblemViewsMutation();
   const countedProblemId = useRef<string | null>(null);
@@ -241,13 +240,28 @@ function Loaded({
   const isAcceptedSolution = (solutionId: string, flag?: boolean) =>
     acceptedIds.size > 0 ? acceptedIds.has(solutionId) : Boolean(flag);
 
+  /* Polling for AI auto-approval: a problem can go PENDING -> PUBLISHED
+     within seconds without waiting for a moderator. */
+  useEffect(() => {
+    if (!problem || problem.status !== "PENDING_APPROVAL") return;
+    const t1 = setTimeout(() => {
+      void refetchProblem();
+    }, 5000);
+    const t2 = setTimeout(() => {
+      void refetchProblem();
+    }, 15000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [problem, refetchProblem]);
+
   /* What the reader has already posted here. Only worth asking once they are
      signed in — a visitor has nothing of their own to be told about. */
   const { forProblem } = useMySolutionStatus({ skip: !isSignedIn });
   const myAnswers = forProblem(id);
-  /* An approved answer is already in the list below under its own card, so
-     repeating it here would say the same thing twice. */
-  const unpublished = myAnswers.filter((mine) => mine.review !== "APPROVED");
+  /* Solutions publish immediately now; only rejected answers needing revision are shown here. */
+  const unpublished = myAnswers.filter((mine) => mine.review === "REJECTED");
 
   const solutions = useMemo(() => {
     const list = [...(solutionPage?.content ?? [])];
@@ -987,79 +1001,38 @@ function MyAnswerNotice({
   answer: MySolutionStatus;
   problemId: string;
 }) {
-  const isRejected = answer.review === "REJECTED";
+  if (answer.review !== "REJECTED") return null;
 
   return (
-    <div
-      className={`flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
-        isRejected
-          ? "border-rose-200 bg-rose-50 dark:border-rose-500/30 dark:bg-rose-500/10"
-          : "border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10"
-      }`}
-    >
+    <div className="flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between border-rose-200 bg-rose-50 dark:border-rose-500/30 dark:bg-rose-500/10">
       <div className="flex min-w-0 items-start gap-3">
-        {isRejected ? (
-          <XCircle
-            aria-hidden="true"
-            className="mt-0.5 size-5 shrink-0 text-rose-600 dark:text-rose-400"
-          />
-        ) : (
-          <Clock
-            aria-hidden="true"
-            className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400"
-          />
-        )}
+        <XCircle
+          aria-hidden="true"
+          className="mt-0.5 size-5 shrink-0 text-rose-600 dark:text-rose-400"
+        />
 
         <div className="min-w-0 space-y-1">
-          <p
-            className={`text-sm font-bold ${
-              isRejected
-                ? "text-rose-800 dark:text-rose-200"
-                : "text-amber-800 dark:text-amber-200"
-            }`}
-          >
-            {isRejected
-              ? "Your solution was not approved"
-              : "Your solution is waiting for review"}
+          <p className="text-sm font-bold text-rose-800 dark:text-rose-200">
+            Your solution was not approved
           </p>
 
           {answer.summary && (
-            <p
-              className={`truncate text-sm font-medium ${
-                isRejected
-                  ? "text-rose-700 dark:text-rose-300"
-                  : "text-amber-700 dark:text-amber-300"
-              }`}
-            >
+            <p className="truncate text-sm font-medium text-rose-700 dark:text-rose-300">
               “{answer.summary}”
             </p>
           )}
 
-          <p
-            className={`text-sm ${
-              isRejected
-                ? "text-rose-700 dark:text-rose-300"
-                : "text-amber-700 dark:text-amber-300"
-            }`}
-          >
-            {isRejected
-              ? (answer.rejectionReason ??
-                "No reason was given. You can edit it and post again.")
-              : `Posted ${formatDate(answer.createdAt, "recently")}. Nobody else can see it until a moderator approves it.`}
+          <p className="text-sm text-rose-700 dark:text-rose-300">
+            {answer.rejectionReason ??
+              "No reason was given. You can edit it and post again."}
           </p>
         </div>
       </div>
 
       <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
-        {/* Editing is the next step after a rejection, so it leads. A pending
-            answer can be edited too, which resets its place in the queue. */}
         <Link
           href={`/community/${problemId}/solutions/${answer.solutionId}/edit`}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-sm font-bold text-white transition ${
-            isRejected
-              ? "bg-rose-600 hover:bg-rose-700"
-              : "bg-amber-600 hover:bg-amber-700"
-          }`}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl px-3.5 text-sm font-bold text-white transition bg-rose-600 hover:bg-rose-700"
         >
           <Pencil aria-hidden="true" className="size-4" />
           Edit answer
@@ -1067,11 +1040,7 @@ function MyAnswerNotice({
 
         <Link
           href={MY_COMMUNITY_HREF}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-xl border px-3.5 text-sm font-bold transition ${
-            isRejected
-              ? "border-rose-300 text-rose-700 hover:bg-rose-100 dark:border-rose-500/40 dark:text-rose-300 dark:hover:bg-rose-500/20"
-              : "border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-500/40 dark:text-amber-300 dark:hover:bg-amber-500/20"
-          }`}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border px-3.5 text-sm font-bold transition border-rose-300 text-rose-700 hover:bg-rose-100 dark:border-rose-500/40 dark:text-rose-300 dark:hover:bg-rose-500/20"
         >
           My Community
           <ArrowRight aria-hidden="true" className="size-4" />

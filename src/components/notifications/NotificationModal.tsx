@@ -4,21 +4,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  AlertTriangle,
-  Bell,
   BellOff,
   CheckCheck,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  Gift,
   Maximize2,
-  MessageSquare,
   Minimize2,
   RefreshCw,
-  ShieldAlert,
-  Sparkles,
-  Users,
   X,
 } from "lucide-react";
 
@@ -28,7 +21,6 @@ import {
   useMarkAsReadMutation,
 } from "@/lib/redux/services/notificationsApi";
 import { NotificationItemCard } from "./NotificationItemCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import { useT } from "@/lib/i18n/I18nProvider";
@@ -165,29 +157,29 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       )}
     >
       {/* Minimalist Header Bar */}
-      <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-border bg-card/95 backdrop-blur-md shrink-0">
+      <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-border bg-card/95 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
-          <h2 className="text-base font-semibold text-foreground tracking-tight">
+          <h2 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
             {t("notifications.title") || "Notifications"}
           </h2>
           {unreadCount > 0 && (
-            <span className="rounded-full bg-primary/10 text-primary border border-primary/20 text-[11px] font-semibold px-2 py-0.5 tabular-nums">
+            <span className="rounded-full bg-primary/10 text-primary border border-primary/20 text-xs font-semibold px-2.5 py-0.5 tabular-nums">
               {unreadCount} unread
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+        <div className="flex items-center gap-1.5 text-muted-foreground shrink-0">
           {/* Mark All Read */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handleMarkAllRead}
             disabled={isMarkingAll || allNotifications.length === 0}
-            className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground font-medium rounded-lg gap-1.5 cursor-pointer"
+            className="h-8.5 px-3 text-xs sm:text-sm text-muted-foreground hover:text-foreground font-medium rounded-lg gap-1.5 cursor-pointer"
             title="Mark all as read"
           >
-            <CheckCheck className="size-3.5" />
+            <CheckCheck className="size-4" />
             <span className="hidden sm:inline">Mark all read</span>
           </Button>
 
@@ -197,10 +189,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             variant="ghost"
             onClick={() => refetch()}
             disabled={isFetching}
-            className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
+            className="size-8.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
             title="Refresh"
           >
-            <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
+            <RefreshCw className={cn("size-4", isFetching && "animate-spin")} />
           </Button>
 
           {!isEmbedded && (
@@ -208,13 +200,13 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               size="icon"
               variant="ghost"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
+              className="size-8.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
               title={isExpanded ? "Collapse" : "Expand"}
             >
               {isExpanded ? (
-                <Minimize2 className="size-3.5" />
+                <Minimize2 className="size-4" />
               ) : (
-                <Maximize2 className="size-3.5" />
+                <Maximize2 className="size-4" />
               )}
             </Button>
           )}
@@ -224,19 +216,19 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               size="icon"
               variant="ghost"
               onClick={onClose}
-              className="size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
+              className="size-8.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
               title="Close"
             >
-              <X className="size-4" />
+              <X className="size-4.5" />
             </Button>
           )}
         </div>
       </div>
 
       {/* Streamlined Filter Bar */}
-      <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-2 border-b border-border/70 bg-muted/20 shrink-0 overflow-x-auto scrollbar-none text-xs">
+      <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-2.5 border-b border-border/70 bg-muted/20 shrink-0 overflow-x-auto scrollbar-none text-xs sm:text-sm">
         {/* All vs Unread toggle */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -244,10 +236,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               setPageNumber(0);
             }}
             className={cn(
-              "px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
+              "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer",
               !unreadOnly
-                ? "bg-foreground text-background font-semibold"
-                : "text-muted-foreground hover:text-foreground",
+                ? "bg-foreground text-background font-semibold shadow-2xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
             )}
           >
             All
@@ -264,10 +256,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               setPageNumber(0);
             }}
             className={cn(
-              "px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
+              "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer",
               unreadOnly
-                ? "bg-foreground text-background font-semibold"
-                : "text-muted-foreground hover:text-foreground",
+                ? "bg-foreground text-background font-semibold shadow-2xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
             )}
           >
             Unread
@@ -296,10 +288,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                 type="button"
                 onClick={() => setActiveCategory(cat.id as FilterCategory)}
                 className={cn(
-                  "px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer",
+                  "px-2.5 py-1 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer",
                   isActive
                     ? "text-foreground font-semibold bg-muted"
-                    : "text-muted-foreground hover:text-foreground",
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
                 )}
               >
                 {cat.label}
@@ -315,8 +307,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           // Minimal Skeleton Loading State
           <div className="divide-y divide-border/50 animate-pulse">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-start gap-3 px-5 py-3.5">
-                <div className="size-7 rounded-lg bg-muted shrink-0 mt-0.5" />
+              <div key={i} className="flex items-start gap-3.5 px-5 sm:px-6 py-4">
+                <div className="size-8 sm:size-9 rounded-xl bg-muted shrink-0 mt-0.5" />
                 <div className="flex-1 space-y-2">
                   <div className="h-3.5 bg-muted rounded w-2/5" />
                   <div className="h-4 bg-muted rounded w-4/5" />
@@ -332,18 +324,18 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              className="rounded-lg cursor-pointer"
+              className="rounded-lg cursor-pointer text-sm"
             >
               {t("notifications.retry") || "Retry"}
             </Button>
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 sm:p-12 text-center text-muted-foreground font-medium text-sm space-y-2 min-h-[260px]">
-            <BellOff className="size-6 text-muted-foreground/60 mb-1" />
-            <p className="text-foreground font-semibold text-sm">
+            <BellOff className="size-7 text-muted-foreground/60 mb-1" />
+            <p className="text-foreground font-semibold text-base">
               {t("notifications.emptyTitle") || "No notifications"}
             </p>
-            <p className="text-xs text-muted-foreground max-w-xs">
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-xs">
               {unreadOnly
                 ? t("notifications.emptyUnread") || "You have read all your notifications."
                 : activeCategory !== "all"
@@ -365,19 +357,19 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
       </div>
 
       {/* Footer Bar */}
-      <div className="flex items-center justify-between px-5 sm:px-6 py-2.5 border-t border-border bg-card text-xs text-muted-foreground shrink-0">
+      <div className="flex items-center justify-between px-5 sm:px-6 py-3 border-t border-border bg-card text-xs sm:text-sm text-muted-foreground shrink-0">
         <Link
           href="/dashboard/notifications"
           onClick={() => onClose?.()}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           <span>Open notification center</span>
-          <ExternalLink className="size-3" />
+          <ExternalLink className="size-3.5" />
         </Link>
 
         {totalPages > 1 && (
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground mr-1 tabular-nums">
+            <span className="text-xs sm:text-sm text-muted-foreground mr-1 tabular-nums">
               {pageNumber + 1} / {totalPages}
             </span>
             <Button
@@ -385,18 +377,18 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
               size="icon"
               onClick={() => setPageNumber((prev) => Math.max(prev - 1, 0))}
               disabled={isFirstPage}
-              className="size-7 rounded-md cursor-pointer hover:bg-muted"
+              className="size-8 rounded-md cursor-pointer hover:bg-muted"
             >
-              <ChevronLeft className="size-3.5" />
+              <ChevronLeft className="size-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setPageNumber((prev) => prev + 1)}
               disabled={isLastPage}
-              className="size-7 rounded-md cursor-pointer hover:bg-muted"
+              className="size-8 rounded-md cursor-pointer hover:bg-muted"
             >
-              <ChevronRight className="size-3.5" />
+              <ChevronRight className="size-4" />
             </Button>
           </div>
         )}

@@ -191,11 +191,9 @@ export const myCommunityApi = baseApi.injectEndpoints({
               createdAt: solution.createdAt || new Date().toISOString(),
               state: solution.isAccepted
                 ? { label: "Accepted", tone: "live" }
-                : review === "APPROVED"
-                  ? { label: "Published", tone: "live" }
-                  : review === "REJECTED"
-                    ? { label: "Rejected", tone: "blocked" }
-                    : { label: "Awaiting review", tone: "pending" },
+                : review === "REJECTED"
+                  ? { label: "Rejected", tone: "blocked" }
+                  : { label: "Published", tone: "live" },
               note: solution.moderation?.rejectionReason,
             };
           },
