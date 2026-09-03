@@ -326,7 +326,7 @@ export function CompanyDashboardView() {
         </div>
       </header>
 
-      {/* 1. Header controls: Time range, program selector, Export CSV button */}
+      {/* 1. Header controls: Time range & program selector */}
       <DashboardAnalyticsControls
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}

@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Download, RefreshCw, Calendar, Building2, Clock, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import React from "react";
+import { RefreshCw, Calendar, Building2, Clock } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,7 +17,6 @@ import {
 import { useGetMyCompanyProgramsQuery } from "@/lib/redux/services/program/programsApi";
 import { useRelativeTime } from "@/lib/i18n/relative-time";
 import { useLocale } from "@/lib/i18n/I18nProvider";
-import { getAccessToken } from "@/lib/auth/access-token";
 
 interface DashboardAnalyticsControlsProps {
   timeRange: TimeRangeOption;
@@ -39,7 +37,6 @@ export function DashboardAnalyticsControls({
   onRefresh,
   isRefreshing = false,
 }: DashboardAnalyticsControlsProps) {
-  const [isExporting, setIsExporting] = useState(false);
   const relativeTime = useRelativeTime();
   const locale = useLocale();
   const isKm = locale === "km";
@@ -49,67 +46,11 @@ export function DashboardAnalyticsControls({
 
   const programs = programsData?.content ?? [];
 
-  const handleExportCsv = async () => {
-    setIsExporting(true);
-    try {
-      const token = await getAccessToken();
-      const params = new URLSearchParams();
-      params.set("format", "csv");
-      params.set("timeRange", timeRange);
-      if (programId) params.set("programId", programId);
-
-      const response = await fetch(
-        `/api/organizations/me/analytics/export?${params.toString()}`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Export failed with status ${response.status}`);
-      }
-
-      const blob = await response.blob();
-      const disposition = response.headers.get("Content-Disposition");
-      let filename = `organization-analytics-${timeRange}.csv`;
-      if (disposition && disposition.includes("filename=")) {
-        const match = disposition.match(/filename="?([^";]+)"?/);
-        if (match?.[1]) filename = match[1];
-      }
-
-      const objectUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = objectUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(objectUrl);
-
-      toast.success(
-        isKm
-          ? "បានទាញយកទិន្នន័យ CSV ដោយជោគជ័យ"
-          : "Analytics CSV exported successfully",
-      );
-    } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : isKm
-            ? "ការនាំចេញទិន្នន័យបានបរាជ័យ"
-            : "Failed to export analytics CSV. Please try again.",
-      );
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   const updatedPrefix = isKm ? "បានធ្វើបច្ចុប្បន្នភាព" : "Updated";
   const cachedLabel = isKm ? "ឃ្លាំងសម្ងាត់ ~៦០វិនាទី" : "Cached ~60s";
   const refreshLabel = isKm ? "ផ្ទុកឡើងវិញ" : "Refresh";
   const allProgramsLabel = isKm ? "កម្មវិធីទាំងអស់" : "All programs";
   const timeWindowPlaceholder = isKm ? "ចន្លោះពេល" : "Time window";
-  const exportLabel = isKm ? "នាំចេញ CSV" : "Export CSV";
 
   return (
     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 rounded-2xl border border-border/80 bg-card/80 p-4 sm:p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10">
@@ -146,7 +87,7 @@ export function DashboardAnalyticsControls({
         )}
       </div>
 
-      {/* Right side: Time range, program selector, Export button */}
+      {/* Right side: Time range & program selector */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Time range picker */}
         <div className="w-full sm:w-52">
@@ -206,24 +147,8 @@ export function DashboardAnalyticsControls({
             </SelectContent>
           </Select>
         </div>
-
-        {/* Export CSV button */}
-        <Button
-          type="button"
-          variant="outline"
-          size="default"
-          onClick={() => void handleExportCsv()}
-          disabled={isExporting}
-          className="h-11 px-5 rounded-xl border-border/80 bg-card text-sm font-semibold shadow-2xs hover:bg-muted cursor-pointer transition-colors"
-        >
-          {isExporting ? (
-            <Loader2 className="size-4 mr-2 animate-spin text-primary" />
-          ) : (
-            <Download className="size-4 mr-2 text-primary" />
-          )}
-          <span>{exportLabel}</span>
-        </Button>
       </div>
     </div>
   );
 }
+
