@@ -244,7 +244,7 @@ export function SavedDraftPage() {
       .forEach((problem) => {
         const title = problem.title?.trim() || "Untitled problem draft";
         items.push({
-          id: problem.id,
+          id: problem.id ?? "",
           title,
           description: describe(
             problem.description,

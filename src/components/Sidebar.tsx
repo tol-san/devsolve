@@ -29,6 +29,7 @@ import { useGetBookmarksQuery } from "@/lib/redux/services/bookmarksApi";
 import { cn } from "@/lib/utils";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { NavbarSearch } from "@/components/search/NavbarSearch";
 
 function getInitials(text: string): string {
   return text
@@ -484,12 +485,13 @@ const Sidebar = () => {
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <NavbarSearch variant="icon" />
           <LanguageSwitcher />
           <NotificationTrigger />
           <ThemeToggle
             variant="rectangle"
             start="bottom-up"
-            className="size-9 sm:size-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-700 shadow-2xs transition-colors hover:bg-slate-100 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 cursor-pointer"
+            className="size-9 sm:size-10 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-colors hover:bg-muted cursor-pointer"
             iconClassName="size-4.5 sm:size-5"
           />
           <Button
@@ -498,7 +500,7 @@ const Sidebar = () => {
             onClick={() => setIsOpen(true)}
             aria-label="Open menu"
             aria-expanded={isOpen}
-            className="size-9 sm:size-10 cursor-pointer rounded-xl text-slate-700 hover:bg-slate-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+            className="size-9 sm:size-10 cursor-pointer rounded-xl text-foreground hover:bg-muted"
           >
             <Menu className="size-5 sm:size-6" />
           </Button>

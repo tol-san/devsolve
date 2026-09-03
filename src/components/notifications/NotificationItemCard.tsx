@@ -350,16 +350,16 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
           handleCardClick(e as unknown as React.MouseEvent<HTMLDivElement>);
         }
       }}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
       className={cn(
-        "group relative flex items-start gap-3.5 sm:gap-4 rounded-2xl border p-4 sm:p-5 transition-all min-w-0 shadow-xs cursor-pointer select-none",
+        "group relative flex items-start gap-3 px-5 py-3 transition-colors cursor-pointer select-none",
         isUnread
-          ? "border-primary/30 bg-primary/5 hover:bg-primary/8 dark:bg-primary/10 dark:hover:bg-primary/15 ring-1 ring-primary/20"
-          : "border-border bg-card text-card-foreground hover:bg-muted/40 hover:border-border/90 hover:shadow-xs",
-        isSelected && "ring-2 ring-primary border-primary bg-primary/10",
+          ? "bg-primary/[0.025] hover:bg-muted/50 dark:bg-primary/[0.04]"
+          : "bg-transparent hover:bg-muted/30",
+        isSelected && "bg-muted",
       )}
     >
       {/* Optional Selection Checkbox */}
@@ -373,15 +373,22 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
             checked={isSelected}
             onChange={() => onToggleSelect?.(item.id!)}
             aria-label="Select notification"
-            className="size-4 rounded-md border-border text-primary focus:ring-primary/40 cursor-pointer accent-primary"
+            className="size-3.5 rounded border-border text-primary focus:ring-primary/40 cursor-pointer accent-primary"
           />
         </div>
       )}
 
-      {/* Avatar or Themed Category Icon */}
-      <div className="shrink-0 relative mt-0.5">
+      {/* Subtle unread dot */}
+      <div className="shrink-0 pt-2 w-1.5 flex items-center justify-center">
+        {isUnread && (
+          <span className="size-1.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0" />
+        )}
+      </div>
+
+      {/* Compact Understated Icon */}
+      <div className="shrink-0 mt-0.5">
         {hasCommentAuthor ? (
-          <Avatar className="size-10 sm:size-11 ring-2 ring-border shadow-xs">
+          <Avatar className="size-7 sm:size-8 rounded-full border border-border">
             {item.authorAvatarUrl && (
               <AvatarImage
                 src={item.authorAvatarUrl}
@@ -389,115 +396,100 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
                 className="object-cover"
               />
             )}
-            <AvatarFallback className="font-bold text-xs bg-primary/10 text-primary">
+            <AvatarFallback className="font-bold text-[10px] bg-muted text-muted-foreground">
               {getInitials(item.authorName)}
             </AvatarFallback>
           </Avatar>
         ) : (
-          <div
-            className={cn(
-              "flex size-10 sm:size-11 items-center justify-center rounded-2xl ring-1 shadow-2xs transition-transform group-hover:scale-105",
-              config.iconContainerClass,
-            )}
-          >
-            <IconComponent className="size-5" />
+          <div className="flex size-7 sm:size-8 items-center justify-center rounded-lg bg-muted/70 text-muted-foreground group-hover:text-foreground transition-colors">
+            <IconComponent className="size-3.5 sm:size-4" />
           </div>
-        )}
-
-        {/* Pulsing unread status dot */}
-        {isUnread && (
-          <span className="absolute -top-0.5 -right-0.5 flex size-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-            <span className="relative inline-flex rounded-full size-2.5 bg-primary" />
-          </span>
         )}
       </div>
 
-      {/* Main Notification Content */}
-      <div className="flex-1 min-w-0 space-y-1.5">
-        {/* Top Badges & Meta Row */}
-        <div className="flex items-center justify-between gap-2 min-w-0 flex-wrap">
-          <div className="flex items-center gap-2 min-w-0">
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-[10px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider truncate",
-                config.badgeClass,
-              )}
-            >
+      {/* Main Content */}
+      <div className="flex-1 min-w-0 space-y-0.5">
+        {/* Top Meta: Type & Time */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground min-w-0">
+            <span className="font-medium text-foreground/80 truncate">
               {config.label}
-            </Badge>
-
+            </span>
             {hasCommentAuthor && item.authorName && (
-              <span className="text-xs font-medium text-muted-foreground truncate">
-                by <strong className="text-foreground font-semibold">{item.authorName}</strong>
-              </span>
+              <>
+                <span>•</span>
+                <span className="truncate">{item.authorName}</span>
+              </>
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 text-[11px] text-muted-foreground tabular-nums">
             {isResolvingComment ? (
-              <Loader2 className="size-3.5 animate-spin text-primary" />
+              <Loader2 className="size-3 animate-spin" />
             ) : (
-              <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-muted-foreground tabular-nums">
-                <Clock className="size-3 text-muted-foreground/70 shrink-0" />
-                <span>{formatNotificationTime(item.createdAt)}</span>
-              </span>
+              <span>{formatNotificationTime(item.createdAt)}</span>
             )}
 
-            {/* Quick Mark as Read Action Button */}
+            {/* Quick Mark Read on Hover */}
             {isUnread && item.id && onMarkRead && (
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="icon"
                 onClick={(e) => {
                   e.stopPropagation();
                   onMarkRead(item.id!);
                 }}
-                className="size-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer transition-colors"
+                className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
                 title="Mark as read"
               >
-                <Check className="size-3.5" />
-              </Button>
+                <Check className="size-3" />
+              </button>
             )}
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="text-sm sm:text-base font-bold leading-snug text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-words">
+        <h3
+          className={cn(
+            "text-sm leading-snug break-words transition-colors",
+            isUnread
+              ? "font-semibold text-foreground"
+              : "font-medium text-foreground/90",
+          )}
+        >
           {item.title}
         </h3>
 
-        {/* Formatted Content Body */}
-        <div className="space-y-1">
-          <p
-            className={cn(
-              "text-xs sm:text-sm font-normal leading-relaxed text-muted-foreground break-words",
-              !isExpanded && isLongContent && "line-clamp-2",
-            )}
-          >
-            {item.content}
-          </p>
-
-          {isLongContent && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsExpanded((prev) => !prev);
-              }}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline cursor-pointer pt-0.5"
-            >
-              <span>{isExpanded ? "Show less" : "Read more"}</span>
-              {isExpanded ? (
-                <ChevronUp className="size-3" />
-              ) : (
-                <ChevronDown className="size-3" />
+        {/* Formatted Body */}
+        {item.content && (
+          <div className="space-y-1">
+            <p
+              className={cn(
+                "text-xs leading-relaxed text-muted-foreground break-words",
+                !isExpanded && isLongContent && "line-clamp-2",
               )}
-            </button>
-          )}
-        </div>
+            >
+              {item.content}
+            </p>
+
+            {isLongContent && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded((prev) => !prev);
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground cursor-pointer pt-0.5"
+              >
+                <span>{isExpanded ? "Show less" : "Read more"}</span>
+                {isExpanded ? (
+                  <ChevronUp className="size-3" />
+                ) : (
+                  <ChevronDown className="size-3" />
+                )}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </motion.div>
   );

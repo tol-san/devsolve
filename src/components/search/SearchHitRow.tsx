@@ -19,6 +19,7 @@ import {
   hrefForHit,
 } from "@/lib/search/presentation";
 import { SearchSnippet } from "@/components/search/SearchSnippet";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 /** A stand-in when a hit has no image, which is common on problems. */
@@ -96,13 +97,14 @@ type SearchHitRowProps = {
  * missing subtitle simply closes the gap.
  */
 export function SearchHitRow({ hit, compact, onNavigate }: SearchHitRowProps) {
+  const lp = useLocalePath();
   const Icon = FALLBACK_ICON[hit.type];
   const facts = compact ? [] : factsFor(hit);
   const isPerson = hit.type === "users";
 
   return (
     <Link
-      href={hrefForHit(hit)}
+      href={lp(hrefForHit(hit))}
       onClick={onNavigate}
       className={cn(
         "flex items-start gap-3 rounded-xl transition-colors hover:bg-muted",

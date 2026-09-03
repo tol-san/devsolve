@@ -12,6 +12,7 @@ import { DashboardActionQueue } from "@/components/dashboard/DashboardActionQueu
 import { DashboardMyPrograms } from "@/components/dashboard/DashboardMyPrograms";
 import { DashboardReportStatus } from "@/components/dashboard/DashboardReportStatus";
 import { DashboardReportSeverity } from "@/components/dashboard/DashboardReportSeverity";
+import { DashboardSecurityFeed } from "@/components/dashboard/DashboardSecurityFeed";
 import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
@@ -24,7 +25,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { useT } from "@/lib/i18n/I18nProvider";
 
 function DashboardSkeleton() {
@@ -35,24 +35,48 @@ function DashboardSkeleton() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12 animate-pulse"
     >
-      <div className="h-20 rounded-2xl bg-slate-200/60 dark:bg-neutral-800" />
+      {/* Header skeleton */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4 pb-4 border-b border-border/60">
+        <div className="space-y-2">
+          <div className="h-8 w-64 rounded-xl bg-muted/70" />
+          <div className="h-4 w-96 rounded-lg bg-muted/50" />
+        </div>
+        <div className="flex gap-2">
+          <div className="h-10 w-24 rounded-xl bg-muted/60" />
+          <div className="h-10 w-36 rounded-xl bg-muted/60" />
+          <div className="h-10 w-36 rounded-xl bg-muted/70" />
+        </div>
+      </div>
+
+      {/* 4 Stat Cards skeleton */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((item) => (
           <div
             key={item}
-            className="h-28 rounded-2xl bg-slate-200/60 dark:bg-neutral-800"
-          />
+            className="h-32 rounded-2xl border border-border/60 bg-card/60 p-5 space-y-3"
+          >
+            <div className="flex justify-between">
+              <div className="h-4 w-24 rounded bg-muted/60" />
+              <div className="size-9 rounded-xl bg-muted/60" />
+            </div>
+            <div className="h-7 w-20 rounded-lg bg-muted/70" />
+            <div className="h-3 w-32 rounded bg-muted/50" />
+          </div>
         ))}
       </div>
+
+      {/* Middle row skeleton */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="h-80 rounded-2xl bg-slate-200/60 lg:col-span-5 dark:bg-neutral-800" />
-        <div className="h-80 rounded-2xl bg-slate-200/60 lg:col-span-7 dark:bg-neutral-800" />
+        <div className="h-84 rounded-2xl border border-border/60 bg-card/60 p-5 lg:col-span-5" />
+        <div className="h-84 rounded-2xl border border-border/60 bg-card/60 p-5 lg:col-span-7" />
       </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {[1, 2].map((item) => (
+
+      {/* Bottom row skeleton */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((item) => (
           <div
             key={item}
-            className="h-72 rounded-2xl bg-slate-200/60 dark:bg-neutral-800"
+            className="h-80 rounded-2xl border border-border/60 bg-card/60 p-5"
           />
         ))}
       </div>
@@ -62,7 +86,7 @@ function DashboardSkeleton() {
 
 export default function DashboardPage() {
   const t = useT();
-  const { user, areRolesResolved } = useSidebarAuth();
+  const { user, areRolesResolved, displayName } = useSidebarAuth();
   const isAdminUser =
     user?.roles?.includes("ADMIN") || user?.role?.includes("ADMIN");
   /* A membership, not a realm role: an invited member works in the company
@@ -106,7 +130,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.3, ease: "easeOut" }}
         className="space-y-6 w-full pb-12"
       >
-        <Card className="mx-auto max-w-xl rounded-2xl text-center">
+        <Card className="mx-auto max-w-xl rounded-2xl text-center border-border bg-card">
           <CardHeader className="justify-items-center">
             <span className="flex size-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
               <AlertTriangle className="size-7" aria-hidden="true" />
@@ -138,12 +162,13 @@ export default function DashboardPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Page Header with option to switch back to Admin Platform View */}
+      {/* Page Header with personalized greeting & primary actions */}
       <DashboardHeader
         onRefresh={refetch}
         isRefreshing={isFetching}
         audience={dashboardData.audience}
         organizationName={dashboardData.organization?.name}
+        userName={displayName}
       />
 
       {/* Top 4 Stat Metric Cards */}
@@ -165,10 +190,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Bottom Section: Status Breakdown + Severity Breakdown */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Bottom Section: Status Breakdown + Severity Breakdown + Security Feed */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <DashboardReportStatus distribution={dashboardData.reportStatus} />
         <DashboardReportSeverity distribution={dashboardData.reportSeverity} />
+        <DashboardSecurityFeed feed={dashboardData.securityFeed ?? []} />
       </div>
     </motion.div>
   );
