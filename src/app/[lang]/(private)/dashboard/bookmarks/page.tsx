@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BookmarkCategory } from "@/lib/types/bookmarks/types";
+import { BookmarkCategory, BookmarkItem } from "@/lib/types/bookmarks/types";
 import { useGetBookmarksQuery, useRemoveBookmarkMutation } from "@/lib/redux/services/bookmarksApi";
 import { BookmarkHeader } from "@/components/bookmarks/BookmarkHeader";
 import { BookmarkCard } from "@/components/bookmarks/BookmarkCard";
@@ -62,6 +62,23 @@ export default function BookmarksPage() {
     setSelectedCategory("all");
     setSortBy("newest");
   };
+
+  const groupedBookmarks = useMemo(() => {
+    const categoryOrder: { category: BookmarkItem["category"]; title: string }[] = [
+      { category: "Program", title: "Programs" },
+      { category: "Problems", title: "Problems" },
+      { category: "Solutions", title: "Solutions" },
+      { category: "Showcases", title: "Showcases" },
+    ];
+
+    return categoryOrder
+      .map(({ category, title }) => ({
+        category,
+        title,
+        items: bookmarks.filter((item) => item.category === category),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [bookmarks]);
 
   return (
     <motion.div
@@ -140,8 +157,44 @@ export default function BookmarksPage() {
               </Button>
             )}
           </motion.div>
+        ) : selectedCategory === "all" ? (
+          /* ALL CATEGORIES (GROUPED BY CATEGORY) */
+          <div className="space-y-10">
+            {groupedBookmarks.map((group) => (
+              <section key={group.category} className="space-y-4">
+                <div className="flex items-center gap-2.5 border-b border-border/60 pb-3">
+                  <h2 className="text-lg font-bold text-foreground">
+                    {group.title}
+                  </h2>
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950/60 px-2 text-xs font-bold text-blue-600 dark:text-blue-400">
+                    {group.items.length}
+                  </span>
+                </div>
+
+                <motion.div
+                  layout
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                  <AnimatePresence mode="popLayout">
+                    {group.items.map((item) => (
+                      <BookmarkCard
+                        key={item.id}
+                        item={item}
+                        onRemove={async (bookmark) => {
+                          await removeBookmark({
+                            type: bookmark.bookmarkableType,
+                            targetId: bookmark.bookmarkableId,
+                          }).unwrap();
+                        }}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              </section>
+            ))}
+          </div>
         ) : (
-          /* BOOKMARK CARDS GRID */
+          /* SPECIFIC CATEGORY GRID */
           <motion.div
             layout
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"

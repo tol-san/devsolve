@@ -64,8 +64,10 @@ export function ProgramCard({ program }: ProgramCardProps) {
     try {
       if (isBookmarked) {
         await removeBookmark({ type: "PROGRAM", targetId: program.id }).unwrap();
+        toast.success(`"${program.name}" removed from saved bookmarks.`);
       } else {
         await addBookmark({ type: "PROGRAM", targetId: program.id }).unwrap();
+        toast.success(`"${program.name}" saved to bookmarks.`);
       }
     } catch {
       toast.error(t("programs.card.bookmarkError"));
@@ -112,11 +114,11 @@ export function ProgramCard({ program }: ProgramCardProps) {
      the locale comes off before the segment is matched. */
   const pathname = usePathname();
   const { rest } = splitLocale(pathname);
-  const isDashboard = rest.startsWith("/dashboard/programs");
+  const isDashboard = rest.startsWith("/dashboard");
   const basePath = lp(isDashboard ? "/dashboard/programs" : "/programs");
 
   return (
-    <div className="group relative bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1.5 hover:ring-blue-500/40 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/40">
+    <div className="group relative bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1.5 hover:ring-blue-500/40 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/40 h-full">
 
       {/* BOOKMARK BUTTON (Top Right) */}
       <button
@@ -133,7 +135,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
       >
         <Bookmark
           className={`w-5 h-5 transition-colors ${
-            isBookmarked
+            (isBookmarked ?? isDashboard)
               ? "fill-blue-500 stroke-none"
               : ""
           }`}

@@ -8,13 +8,120 @@ import { Button } from "@/components/ui/button";
 import { Bookmark, Clock, ShieldAlert, Award, ThumbsUp, Layers, CheckCircle2 } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
+import { ProgramCard } from "@/components/programs/ProgramCard";
+import { DiscussionCard } from "@/components/discussions/DiscussionCard";
+import { useGetProgramByIdQuery } from "@/lib/redux/services/program/programsApi";
+import { useGetDiscussionByIdQuery } from "@/lib/redux/services/discussionsApi";
+import type { Program, ProgramState, SubmissionState, ProgramVisibility } from "@/lib/types/programs/types";
+import type { DiscussionPost } from "@/lib/types/dicussion/types";
 
 interface BookmarkCardProps {
   item: BookmarkItem;
   onRemove: (item: BookmarkItem) => Promise<void>;
 }
 
+const ProgramBookmarkCard: React.FC<{ item: BookmarkItem }> = ({ item }) => {
+  const { data: programData } = useGetProgramByIdQuery(item.bookmarkableId, {
+    skip: !item.bookmarkableId,
+  });
+
+  const program: Program = React.useMemo(() => {
+    if (programData) {
+      return {
+        ...programData,
+        inScopeAssets: programData.inScopeAssets ?? programData.assets ?? [],
+      };
+    }
+
+    return {
+      id: item.bookmarkableId,
+      organizationId: "",
+      handle: "",
+      name: item.title,
+      description: item.description,
+      organizationName: item.companyName || item.title,
+      logoUrl: item.logoUrl,
+      engagementType: item.programType === "Response" ? "RESPONSE" : "BOUNTY",
+      state: "ACTIVE" as ProgramState,
+      submissionState: "APPROVED" as SubmissionState,
+      visibility: "PUBLIC" as ProgramVisibility,
+      offersBounties: item.programType !== "Response",
+      minimumBounty: 0,
+      maximumBounty: item.bountyMax
+        ? parseInt(item.bountyMax.replace(/[^0-9]/g, ""), 10) || 0
+        : 0,
+      inScopeAssets: [],
+      rewards: [],
+      createdAt: "",
+      updatedAt: "",
+    };
+  }, [programData, item]);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="h-full"
+    >
+      <ProgramCard program={program} />
+    </motion.div>
+  );
+};
+
+const DiscussionBookmarkCard: React.FC<{ item: BookmarkItem }> = ({ item }) => {
+  const { data: discussionPost } = useGetDiscussionByIdQuery(
+    item.bookmarkableId,
+    { skip: !item.bookmarkableId },
+  );
+
+  const post: DiscussionPost = React.useMemo(() => {
+    if (discussionPost) return discussionPost;
+
+    const isShowcase =
+      item.category === "Showcases" || item.bookmarkableType === "SHOWCASE";
+    return {
+      id: item.bookmarkableId,
+      title: item.title,
+      category: isShowcase ? "Showcase" : "Problems",
+      topic: "General",
+      description: item.description,
+      tags: item.tags || [],
+      votes: item.points ?? 0,
+      answersCount: item.submissionsCount ?? 0,
+      viewsCount: 0,
+      thumbnailUrl: item.logoUrl,
+      author: {
+        id: undefined,
+        name: item.authorName || "Community Member",
+        avatarUrl: item.authorAvatar || "",
+      },
+      createdAt: item.savedAt,
+      sortTimestamp: "",
+      isBookmarked: true,
+      isUpvoted: false,
+    };
+  }, [discussionPost, item]);
+
+  return <DiscussionCard post={post} />;
+};
+
 export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) => {
+  if (item.category === "Program" || item.bookmarkableType === "PROGRAM") {
+    return <ProgramBookmarkCard item={item} />;
+  }
+
+  if (
+    item.category === "Showcases" ||
+    item.category === "Problems" ||
+    item.bookmarkableType === "SHOWCASE" ||
+    item.bookmarkableType === "PROBLEM"
+  ) {
+    return <DiscussionBookmarkCard item={item} />;
+  }
+
   const handleRemove = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
