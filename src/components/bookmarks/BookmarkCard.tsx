@@ -5,7 +5,7 @@ import Link from "next/link";
 import { BookmarkItem } from "@/lib/types/bookmarks/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bookmark, Clock, ShieldAlert, Award, ThumbsUp, Layers, CheckCircle2 } from "lucide-react";
+import { Bookmark, Clock, ShieldAlert, ThumbsUp } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { ProgramCard } from "@/components/programs/ProgramCard";
@@ -136,34 +136,11 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
   };
 
   const getCategoryBadge = () => {
-    switch (item.category) {
-      case "Program":
-        return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 border-blue-200/80 dark:border-blue-500/20 text-xs font-medium rounded-lg px-2.5 py-0.5">
-            Program
-          </Badge>
-        );
-      case "Problems":
-        return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300 border-amber-200/80 dark:border-amber-500/20 text-xs font-medium rounded-lg px-2.5 py-0.5">
-            Problem
-          </Badge>
-        );
-      case "Solutions":
-        return (
-          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/20 text-xs font-medium rounded-lg px-2.5 py-0.5">
-            Solution
-          </Badge>
-        );
-      case "Showcases":
-        return (
-          <Badge variant="outline" className="rounded-lg border-violet-200/80 bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-300">
-            Showcase
-          </Badge>
-        );
-      default:
-        return null;
-    }
+    return (
+      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/20 text-xs font-medium rounded-lg px-2.5 py-0.5">
+        Solution
+      </Badge>
+    );
   };
 
   const getSeverityColor = (sev?: string) => {
@@ -238,60 +215,20 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
 
       {/* CATEGORY SPECIFIC METADATA */}
       <div className="relative z-10 pt-1 pointer-events-none">
-        {item.category === "Program" &&
-          (item.companyName || item.bountyMax || item.inScopeCount !== undefined) && (
-            <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2.5 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10">
-              <span className="font-semibold text-foreground">
-                {item.companyName || "Organization"}
+        {(item.authorName || item.readTime || item.likesCount !== undefined) && (
+          <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2.5 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10">
+            <span className="font-medium text-foreground">
+              By {item.authorName || "Community Member"}
+            </span>
+            {item.readTime && <span>{item.readTime}</span>}
+            {item.likesCount !== undefined && (
+              <span className="flex items-center gap-1 text-foreground">
+                <ThumbsUp className="w-3.5 h-3.5 text-blue-500" />
+                {item.likesCount}
               </span>
-              {item.bountyMax && (
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                  Max {item.bountyMax}
-                </span>
-              )}
-              {item.inScopeCount !== undefined && (
-                <span className="flex items-center gap-1">
-                  <Layers className="w-3.5 h-3.5" />
-                  {item.inScopeCount} assets
-                </span>
-              )}
-            </div>
-          )}
-
-        {item.category === "Problems" &&
-          (item.points !== undefined || item.submissionsCount !== undefined || item.status) && (
-            <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2.5 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10">
-              {item.points !== undefined && (
-                <span className="flex items-center gap-1 font-semibold text-amber-600 dark:text-amber-400">
-                  <Award className="w-3.5 h-3.5" />
-                  {item.points} Points
-                </span>
-              )}
-              {item.submissionsCount !== undefined && <span>{item.submissionsCount} submissions</span>}
-              {item.status && (
-                <span className="flex items-center gap-1 text-foreground">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" />
-                  {item.status}
-                </span>
-              )}
-            </div>
-          )}
-
-        {item.category === "Solutions" &&
-          (item.authorName || item.readTime || item.likesCount !== undefined) && (
-            <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2.5 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10">
-              <span className="font-medium text-foreground">
-                By {item.authorName || "Community Member"}
-              </span>
-              {item.readTime && <span>{item.readTime}</span>}
-              {item.likesCount !== undefined && (
-                <span className="flex items-center gap-1 text-foreground">
-                  <ThumbsUp className="w-3.5 h-3.5 text-blue-500" />
-                  {item.likesCount}
-                </span>
-              )}
-            </div>
-          )}
+            )}
+          </div>
+        )}
       </div>
 
       {/* TAGS CHIPS */}

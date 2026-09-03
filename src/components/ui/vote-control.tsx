@@ -16,6 +16,7 @@ interface VoteControlProps {
   upvoteLabel?: string;
   downvoteLabel?: string;
   orientation?: "horizontal" | "vertical";
+  variant?: "pill" | "button";
 }
 
 export function VoteControl({
@@ -26,10 +27,53 @@ export function VoteControl({
   className,
   upvoteLabel = "Upvote",
   downvoteLabel = "Downvote",
-  orientation = "vertical",
+  orientation,
+  variant = "button",
 }: VoteControlProps) {
   const isUpvoted = currentVote === 1;
   const isDownvoted = currentVote === -1;
+
+  if (variant === "button" && !orientation) {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={() => void onVote(1)}
+        disabled={isLoading}
+        aria-pressed={isUpvoted}
+        aria-label={
+          isUpvoted ? `Remove ${upvoteLabel.toLowerCase()}` : upvoteLabel
+        }
+        className={cn(
+          "inline-flex items-center justify-between gap-2.5 h-8.5 px-3 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer border select-none",
+          isUpvoted
+            ? "bg-blue-600 hover:bg-blue-700 text-white border-blue-600 shadow-xs dark:bg-blue-600 dark:hover:bg-blue-500 dark:border-blue-500"
+            : "bg-muted/40 hover:bg-muted/80 text-foreground border-border/70 dark:bg-muted/30 dark:border-border/40 hover:border-border",
+          className,
+        )}
+      >
+        <span className="inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px] sm:text-xs">
+          <ChevronUp
+            className={cn(
+              "size-4 transition-transform duration-200",
+              isUpvoted && "scale-110 stroke-[2.5]"
+            )}
+          />
+          <span>VOTE</span>
+        </span>
+        <span
+          className={cn(
+            "font-extrabold tabular-nums text-xs px-1.5 py-0.5 rounded-md transition-colors ml-1",
+            isUpvoted
+              ? "bg-white/20 text-white"
+              : "bg-muted/80 text-foreground"
+          )}
+        >
+          {voteCount}
+        </span>
+      </Button>
+    );
+  }
 
   if (orientation === "horizontal") {
     return (
