@@ -306,6 +306,7 @@ export interface ContentReportItem {
   reportCount: number;
   reason: "Spam" | "Harmful" | "Offensive" | "Off-topic";
   author: string;
+  authorId?: string;
   pastViolationsCount?: number;
   status: "PENDING" | "DISMISSED" | "WARNED" | "REMOVED";
   snippet?: string;
