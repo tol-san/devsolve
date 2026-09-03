@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Flag, AlertTriangle, User, ShieldX, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -67,9 +68,20 @@ export function ContentReportCard({ report, onAction, onViewDetail }: ContentRep
           <div className="flex items-center gap-1 font-medium text-muted-foreground">
             <User className="size-3.5 text-muted-foreground" />
             <span>Author:</span>
-            <strong className="text-foreground font-semibold">
-              @{report.author}
-            </strong>
+            {report.authorId ? (
+              <Link
+                href={`/profile/${report.authorId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-foreground hover:text-primary transition-colors"
+              >
+                @{report.author}
+              </Link>
+            ) : (
+              <strong className="text-foreground font-semibold">
+                @{report.author}
+              </strong>
+            )}
           </div>
 
           {report.pastViolationsCount && report.pastViolationsCount > 0 ? (

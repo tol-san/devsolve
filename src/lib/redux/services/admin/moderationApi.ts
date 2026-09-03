@@ -132,6 +132,7 @@ export const moderationApi = baseApi.injectEndpoints({
           reportCount: 1,
           reason: (flag.reason && reasonMap[flag.reason]) || "Spam",
           author: flag.reporterName || "Community User",
+          authorId: flag.reporterId || undefined,
           status: (flag.status && statusMap[flag.status]) || "PENDING",
           snippet: flag.description || undefined,
         }));
