@@ -19,7 +19,7 @@ export const NotificationTrigger: React.FC<{ className?: string }> = ({ classNam
       aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ""}`}
       title={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
       className={cn(
-        "group relative inline-flex size-9 sm:size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-2xs transition-all active:scale-95 hover:bg-muted hover:border-border/80 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring",
+        "group relative inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-all active:scale-95 hover:bg-muted hover:border-primary/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
         className,
       )}
     >
@@ -27,7 +27,7 @@ export const NotificationTrigger: React.FC<{ className?: string }> = ({ classNam
         whileHover={{ rotate: [0, -10, 10, -10, 0] }}
         transition={{ duration: 0.4 }}
       >
-        <Bell className="size-4.5 sm:size-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+        <Bell className="size-4.5 text-muted-foreground group-hover:text-foreground transition-colors" />
       </motion.div>
 
       {unreadCount > 0 && (

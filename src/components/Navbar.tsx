@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { NavbarSearch } from "@/components/search/NavbarSearch";
-
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  AlertCircle,
   ArrowRight,
+  Building2,
+  CheckCircle2,
   ChevronDown,
+  Clock,
   Flame,
   Globe,
   Home,
@@ -27,9 +29,11 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
-import { ThemeToggle, useThemeToggle } from "@/components/motion/theme-toggle";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
+import { useRouter } from "next/navigation";
+import { useThemeToggle } from "@/components/motion/theme-toggle";
+import { FLAGS, rememberLocale } from "@/components/LanguageSwitcher";
+import { useLocale, useLocalePath, useT } from "@/lib/i18n/I18nProvider";
+import { LOCALE_SHORT, localise, type Locale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/button";
 import {
   NavbarUserMenu,
@@ -37,6 +41,7 @@ import {
 } from "@/components/navbar/NavbarUserMenu";
 import { NotificationProvider } from "@/components/notifications/NotificationContext";
 import { NotificationTrigger } from "@/components/notifications/NotificationTrigger";
+import { NavbarSearch } from "@/components/search/NavbarSearch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import { authClient } from "@/lib/auth/auth-client";
@@ -133,7 +138,7 @@ function organizationStatusLabel(status?: string): string {
 
 function isHrefActive(pathname: string, href: string) {
   if (href === "/") {
-    return pathname === "/";
+    return pathname === "/" || pathname === "/en" || pathname === "/km";
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -158,7 +163,64 @@ function CommunityMenuIcon({ icon }: { icon?: NavItem["icon"] }) {
   return <Lightbulb className="size-4.5" />;
 }
 
-const Navbar = () => {
+function StatusBadge({ status }: { status?: string }) {
+  if (!status) return null;
+
+  const isVerified =
+    status === "Verified company" ||
+    status === "ACTIVE" ||
+    status.toLowerCase().includes("verified") ||
+    status.toLowerCase().includes("active");
+
+  const isPending =
+    status === "Under review" ||
+    status === "PENDING" ||
+    status.toLowerCase().includes("review") ||
+    status.toLowerCase().includes("pending");
+
+  const isSuspended =
+    status === "Suspended" ||
+    status === "Company suspended" ||
+    status === "SUSPENDED" ||
+    status.toLowerCase().includes("suspend") ||
+    status.toLowerCase().includes("reject");
+
+  if (isVerified) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400">
+        <CheckCircle2 className="size-3 shrink-0 text-emerald-600 dark:text-emerald-400" />
+        <span>{status === "ACTIVE" ? "Verified" : status}</span>
+      </span>
+    );
+  }
+
+  if (isPending) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400">
+        <Clock className="size-3 shrink-0 text-amber-600 dark:text-amber-400" />
+        <span>{status === "PENDING" ? "Under review" : status}</span>
+      </span>
+    );
+  }
+
+  if (isSuspended) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/25 bg-rose-500/10 px-2 py-0.5 text-[11px] font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-400">
+        <AlertCircle className="size-3 shrink-0 text-rose-600 dark:text-rose-400" />
+        <span>{status}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-blue-500/25 bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/15 dark:text-blue-400">
+      <Building2 className="size-3 shrink-0 text-blue-600 dark:text-blue-400" />
+      <span>{status}</span>
+    </span>
+  );
+}
+
+export const Navbar = () => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -166,8 +228,7 @@ const Navbar = () => {
   const [mobileCommunityOpen, setMobileCommunityOpen] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const reduce = useReducedMotion();
-  // Read here as well as in the menu so the mobile panel's footer can swap
-  // between account actions and the signed-out calls to action.
+
   const {
     user: sessionUser,
     isPending: isSessionPending,
@@ -175,17 +236,12 @@ const Navbar = () => {
     displayName,
     handleSignOut,
   } = useSidebarAuth();
-  /* The session resolves on the client, so the guest-only links render on the
-     first pass and drop out once a session is known — the same beat on which
-     the sign-in buttons become the account menu. */
+
   const visibleNavLinks = useMemo(
     () => navLinks.filter((link) => !(link.guestOnly && sessionUser)),
     [sessionUser],
   );
-  /* Company access is a membership, not the `COMPANY` realm role — that role
-     is granted for registering a company, so an invited member never carries
-     it. The membership also carries the identity shown here; `/organizations/me`
-     is owner-only and answers 404 for a member. */
+
   const {
     isOwner,
     membership,
@@ -195,37 +251,37 @@ const Navbar = () => {
   const organizationStatus = isOwner
     ? organizationStatusLabel(membership?.organizationStatus)
     : undefined;
-  /* Only an owner's account is the organization. A member signs in as
-     themselves and belongs to one, so the menu shows them. */
+
   const navbarIdentity: NavbarIdentity = isOwner
     ? {
-      isCompany: true,
-      name: membership?.organizationName || "Company workspace",
-      detail: membership?.organizationSlug
-        ? `@${membership.organizationSlug}`
-        : organizationStatus,
-      status: organizationStatus,
-      image: membership?.organizationLogoUrl ?? undefined,
-      profileHref: "/dashboard/profile",
-      profileLabel: "Organization profile",
-      settingsHref: "/dashboard/organizations",
-      settingsLabel: "Organization settings",
-    }
+        isCompany: true,
+        name: membership?.organizationName || "Company workspace",
+        detail: membership?.organizationSlug
+          ? `@${membership.organizationSlug}`
+          : organizationStatus,
+        status: organizationStatus,
+        image: membership?.organizationLogoUrl ?? undefined,
+        profileHref: "/dashboard/profile",
+        profileLabel: "Organization profile",
+        settingsHref: "/dashboard/organizations",
+        settingsLabel: "Organization settings",
+      }
     : {
-      isCompany: false,
-      name: displayName,
-      detail: sessionUser?.email || undefined,
-      image: sessionUser?.image,
-      profileHref: "/dashboard/profile",
-      profileLabel: "My profile",
-      settingsHref: "/dashboard/profile/settings",
-      settingsLabel: "Settings",
-    };
+        isCompany: false,
+        name: displayName,
+        detail: sessionUser?.email || undefined,
+        image: sessionUser?.image,
+        profileHref: "/dashboard/profile",
+        profileLabel: "My profile",
+        settingsHref: "/dashboard/profile/settings",
+        settingsLabel: "Settings",
+      };
+
   const isNavbarIdentityPending =
     isSessionPending ||
     (Boolean(sessionUser) && !areRolesResolved) ||
     isMembershipLoading;
-  // Anything inside this is "the menu"; a press anywhere else dismisses it.
+
   const headerRef = useRef<HTMLElement>(null);
 
   const closeAllMenus = () => {
@@ -233,23 +289,20 @@ const Navbar = () => {
     setMobileMenuOpen(false);
     setMobileCommunityOpen(false);
   };
+
   const t = useT();
-  /* Every internal href goes through this: a bare path would still work, but
-     only by bouncing through the proxy redirect, which costs a round trip and
-     drops client-side navigation. */
   const lp = useLocalePath();
+  const locale = useLocale();
+  const router = useRouter();
+  const CurrentFlag = FLAGS[locale];
   const { isDark, mounted, toggle } = useThemeToggle({
     variant: "rectangle",
     start: "bottom-up",
   });
-  /* One artwork in both themes — see `BrandLogo` for why, and for the
-     contrast trade it accepts. */
-  const logoSrc = "/devsolve-logo.png";
 
-  // Track scroll for styling elevation / backdrop intensity
+  // Track scroll for elevation styling
   useEffect(() => {
     let frame = 0;
-
     const update = () => {
       frame = 0;
       setScrolled(window.scrollY > 4);
@@ -266,22 +319,29 @@ const Navbar = () => {
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-
       if (frame) {
         window.cancelAnimationFrame(frame);
       }
     };
   }, [pathname]);
 
-  // Prevent background scrolling when mobile menu is open
+  // Lock body scroll when mobile drawer is open
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+    if (!mobileMenuOpen) return;
+
+    const { body, documentElement } = document;
+    const previousOverflow = body.style.overflow;
+    const previousPaddingRight = body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
+
+    body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${scrollbarWidth}px`;
     }
+
     return () => {
-      document.body.style.overflow = "";
+      body.style.overflow = previousOverflow;
+      body.style.paddingRight = previousPaddingRight;
     };
   }, [mobileMenuOpen]);
 
@@ -299,18 +359,14 @@ const Navbar = () => {
     };
   }, []);
 
-  // Hover intent: the panel hangs a few pixels below the trigger, so an
-  // instant close would drop the menu while the pointer crosses the gap.
-  const communityCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  // Hover intent for community dropdown
+  const communityCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const openCommunityMenu = () => {
     if (communityCloseTimer.current) {
       clearTimeout(communityCloseTimer.current);
       communityCloseTimer.current = null;
     }
-
     setCommunityMenuOpen(true);
   };
 
@@ -318,7 +374,6 @@ const Navbar = () => {
     if (communityCloseTimer.current) {
       clearTimeout(communityCloseTimer.current);
     }
-
     communityCloseTimer.current = setTimeout(
       () => setCommunityMenuOpen(false),
       delay,
@@ -334,13 +389,8 @@ const Navbar = () => {
     [],
   );
 
-  // Navigating away should never leave a menu hanging over the new page.
-  // Adjusted during render against the previous path rather than in an effect:
-  // React re-runs this pass before committing, so the new page never paints
-  // with the old menu open. Covers back/forward too, which the links' own
-  // onClick handlers cannot.
+  // Auto-close on route change
   const [renderedPath, setRenderedPath] = useState(pathname);
-
   if (renderedPath !== pathname) {
     setRenderedPath(pathname);
     setCommunityMenuOpen(false);
@@ -348,38 +398,9 @@ const Navbar = () => {
     setMobileCommunityOpen(false);
   }
 
-  // An open panel covers the page, so the page must not scroll underneath it —
-  // otherwise the reader drags the content they were about to navigate to out
-  // from behind the menu. Padding replaces the scrollbar's width so locking
-  // does not shift the layout sideways.
-  useEffect(() => {
-    if (!mobileMenuOpen) {
-      return;
-    }
-
-    const { body, documentElement } = document;
-    const previousOverflow = body.style.overflow;
-    const previousPaddingRight = body.style.paddingRight;
-    const scrollbarWidth = window.innerWidth - documentElement.clientWidth;
-
-    body.style.overflow = "hidden";
-
-    if (scrollbarWidth > 0) {
-      body.style.paddingRight = `${scrollbarWidth}px`;
-    }
-
-    return () => {
-      body.style.overflow = previousOverflow;
-      body.style.paddingRight = previousPaddingRight;
-    };
-  }, [mobileMenuOpen]);
-
-  // Crossing into the desktop layout hides the panel via `lg:hidden` but leaves
-  // it open in state, so narrowing again would flash it back. Closing on the
-  // breakpoint change keeps the two in step.
+  // Close mobile menu when expanding to desktop
   useEffect(() => {
     const query = window.matchMedia("(min-width: 1024px)");
-
     const handleChange = (event: MediaQueryListEvent) => {
       if (event.matches) {
         setMobileMenuOpen(false);
@@ -391,17 +412,9 @@ const Navbar = () => {
     return () => query.removeEventListener("change", handleChange);
   }, []);
 
-  /**
-   * Dismissal, for whichever menu is open. Previously only the desktop flyout
-   * answered Escape, and nothing answered a press outside — so on a phone the
-   * panel could only be closed by finding the hamburger again, and on a touch
-   * screen the flyout had no way out at all (there is no `mouseleave` to
-   * close it).
-   */
+  // Keyboard Escape & click outside dismissal
   useEffect(() => {
-    if (!mobileMenuOpen && !communityMenuOpen) {
-      return;
-    }
+    if (!mobileMenuOpen && !communityMenuOpen) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -410,7 +423,6 @@ const Navbar = () => {
     };
 
     const handlePointerDown = (event: PointerEvent) => {
-      // A press on the island itself is the trigger doing its own job.
       if (headerRef.current?.contains(event.target as Node)) {
         return;
       }
@@ -427,10 +439,7 @@ const Navbar = () => {
   }, [mobileMenuOpen, communityMenuOpen]);
 
   const handleLogin = async () => {
-    if (isLoggingIn) {
-      return;
-    }
-
+    if (isLoggingIn) return;
     setIsLoggingIn(true);
 
     try {
@@ -461,8 +470,6 @@ const Navbar = () => {
 
   return (
     <NotificationProvider enableStream={Boolean(sessionUser)}>
-      {/* Fixed and out of flow: no full-width band, just the island floating
-          over the page. `--navbar-height` reserves room for it in the layout. */}
       <motion.header
         initial={reduce ? false : { y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -474,332 +481,301 @@ const Navbar = () => {
         ref={headerRef}
         className="fixed inset-x-0 top-0 z-[100] w-full"
       >
-      {/* `isolate` keeps the z-indexes below scoped to the header. */}
-      <div className="pointer-events-none isolate">
-        {/* Scrim under the open mobile panel. It makes "tap anywhere to close"
-            visible rather than something you have to guess at, and it stops
-            taps landing on the page behind.
-
-            Being first in the tree is not enough to put it underneath: it is
-            positioned, so it paints in the positioned pass, above any static
-            sibling no matter what the tree order is. The island escaped that
-            only by accident — `backdrop-blur-xl` makes it a stacking context,
-            which promotes it into the same pass — while the panel, which has
-            neither, was left painting below the scrim and swallowing every
-            tap. The layering is spelled out with z-index instead. */}
-        <AnimatePresence>
-          {mobileMenuOpen ? (
-            <motion.button
-              type="button"
-              aria-label="Close navigation menu"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduce ? 0 : 0.2 }}
-              onClick={closeAllMenus}
-              /* Sized from the top-left of the header rather than with
-                 `inset-0`: the header carries a transform while it animates,
-                 which makes it the containing block for `fixed` children, and
-                 `inset-0` would then shrink the scrim to the header's own box
-                 instead of the viewport. The header already sits at the top
-                 edge and spans the full width, so this covers the screen
-                 whether or not that transform is present. */
-              className="pointer-events-auto fixed left-0 top-0 z-0 h-dvh w-full cursor-default bg-slate-950/25 backdrop-blur-[2px] lg:hidden"
-            />
-          ) : null}
-        </AnimatePresence>
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-3 sm:px-6">
-          {/* Translucent + blurred floating capsule */}
-          <div
-            className={cn(
-              "pointer-events-auto flex min-h-16 items-center rounded-2xl border px-3 sm:px-5 backdrop-blur-xl transition-shadow duration-300",
-              "border-border/80 bg-card/85 dark:bg-card/90",
-              scrolled
-                ? "shadow-[0_0_0_1px_rgba(30,41,59,0.05),0_14px_34px_-12px_rgba(15,23,42,0.45)] dark:shadow-[0_16px_38px_rgba(0,0,0,0.5)]"
-                : "shadow-[0_0_0_1px_rgba(30,41,59,0.04),0_8px_24px_-14px_rgba(15,23,42,0.35)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.28)]",
+        <div className="pointer-events-none isolate">
+          {/* Mobile Backdrop Scrim */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.button
+                type="button"
+                aria-label="Close navigation menu"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0 : 0.2 }}
+                onClick={closeAllMenus}
+                className="pointer-events-auto fixed inset-0 z-0 h-dvh w-full cursor-default bg-slate-950/30 backdrop-blur-xs lg:hidden"
+              />
             )}
-          >
-            <div className="flex w-full items-center justify-between gap-2 lg:gap-3 xl:gap-6">
-              {/* Brand Logo */}
-              <Link
-                href={lp("/")}
-                aria-label="Go to DevSolve homepage"
-                className="group flex shrink-0 items-center"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.025 }}
-                  whileTap={{ scale: 0.97 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 360,
-                    damping: 24,
-                  }}
-                  className="flex items-center"
+          </AnimatePresence>
+
+          <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-3 sm:px-6">
+            {/* Desktop & Mobile Top Capsule */}
+            <div
+              className={cn(
+                "pointer-events-auto flex min-h-16 items-center rounded-2xl border px-3.5 sm:px-5 backdrop-blur-xl transition-all duration-300",
+                "border-border/80 bg-card/90 dark:bg-card/95",
+                scrolled
+                  ? "shadow-[0_10px_25px_-5px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.03)] dark:shadow-[0_16px_38px_rgba(0,0,0,0.5)]"
+                  : "shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
+              )}
+            >
+              <div className="flex w-full items-center justify-between gap-3 lg:gap-4 xl:gap-6">
+                {/* 1. Brand Logo (Clickable, Compact) */}
+                <Link
+                  href={lp("/")}
+                  aria-label="Go to DevSolve homepage"
+                  className="group flex shrink-0 items-center"
+                  onClick={() => setMobileMenuOpen(false)}
                 >
-                  <span className="relative block h-10 w-36 sm:h-11 sm:w-40 xl:h-12 xl:w-44">
-                    {/* Light Mode Logo */}
-                    <Image
-                      src="/devsolve-logo.png"
-                      alt="DevSolve"
-                      fill
-                      priority
-                      sizes="(min-width: 1280px) 176px, 152px"
-                      className="origin-left object-contain object-left transition-transform scale-[1.15] dark:hidden"
-                    />
-                    {/* Dark Mode Logo */}
-                    <Image
-                      src="/devsolve-fulltext-logo-darkmode.png"
-                      alt="DevSolve"
-                      fill
-                      priority
-                      sizes="(min-width: 1280px) 176px, 152px"
-                      className="hidden origin-left object-contain object-left transition-transform scale-[1.15] dark:block"
-                    />
-                  </span>
-                </motion.div>
-              </Link>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 360,
+                      damping: 24,
+                    }}
+                    className="flex items-center"
+                  >
+                    <span className="relative block h-9 w-32 sm:h-10 sm:w-36 xl:h-11 xl:w-40">
+                      {/* Light Mode Logo */}
+                      <Image
+                        src="/devsolve-logo.png"
+                        alt="DevSolve"
+                        fill
+                        priority
+                        sizes="(min-width: 1280px) 160px, 144px"
+                        className="origin-left object-contain object-left scale-[1.12] dark:hidden"
+                      />
+                      {/* Dark Mode Logo */}
+                      <Image
+                        src="/devsolve-fulltext-logo-darkmode.png"
+                        alt="DevSolve"
+                        fill
+                        priority
+                        sizes="(min-width: 1280px) 160px, 144px"
+                        className="hidden origin-left object-contain object-left scale-[1.12] dark:block"
+                      />
+                    </span>
+                  </motion.div>
+                </Link>
 
-              {/* Desktop Nav Links */}
-              <nav
-                aria-label="Main navigation"
-                className="hidden items-center justify-center lg:flex"
-              >
-                <div className="flex items-center gap-0.5 xl:gap-1.5">
-                  {visibleNavLinks.map((link) => {
-                    const isActive = isNavLinkActive(pathname, link);
+                {/* 2. Desktop Navigation Links (Center: Home, Programs, Community, Leaderboard) */}
+                <nav
+                  aria-label="Main navigation"
+                  className="hidden items-center justify-center lg:flex flex-1"
+                >
+                  <div className="flex items-center gap-1 xl:gap-1.5">
+                    {visibleNavLinks.map((link) => {
+                      const isActive = isNavLinkActive(pathname, link);
 
-                    if (link.items?.length) {
-                      return (
-                        <div
-                          key={t(link.tKey ?? "") || link.name}
-                          className="relative"
-                          onMouseEnter={openCommunityMenu}
-                          onMouseLeave={() => closeCommunityMenu(140)}
-                        >
+                      if (link.items?.length) {
+                        return (
                           <div
-                            className={cn(
-                              "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg text-xs xl:text-sm font-semibold transition-all duration-200",
-                              isActive
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                            )}
+                            key={t(link.tKey ?? "") || link.name}
+                            className="relative"
+                            onMouseEnter={openCommunityMenu}
+                            onMouseLeave={() => closeCommunityMenu(140)}
                           >
-                            {/* The label navigates straight to /discussions;
-                                the chevron is the only thing that toggles
-                                the flyout, so a click never fights a nav. */}
-                            <Link
-                              href={lp(link.href ?? "/discussions")}
-                              aria-current={isActive ? "page" : undefined}
-                              onClick={() => {
-                                setCommunityMenuOpen(false);
-                                setMobileMenuOpen(false);
-                              }}
-                              className="inline-flex h-9 items-center rounded-l-lg pl-2.5 pr-0.5 xl:pl-3.5 xl:pr-1.5"
+                            <div
+                              className={cn(
+                                "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-[10px] text-sm font-medium transition-colors duration-150",
+                                isActive
+                                  ? "bg-primary/10 text-primary font-semibold"
+                                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                              )}
                             >
-                              {t(link.tKey ?? "") || link.name}
-                            </Link>
-                            <button
-                              type="button"
-                              aria-expanded={communityMenuOpen}
-                              aria-haspopup="menu"
-                              aria-label={`${communityMenuOpen ? "Close" : "Open"} ${link.name} menu`}
-                              onClick={() => {
-                                if (communityMenuOpen) {
-                                  closeCommunityMenu();
-                                } else {
-                                  openCommunityMenu();
-                                }
-                              }}
-                              className="inline-flex h-9 items-center rounded-r-lg pl-0.5 pr-2 xl:pl-1.5 xl:pr-3 cursor-pointer"
-                            >
-                              <ChevronDown
-                                className={cn(
-                                  "size-3.5 xl:size-4 transition-transform duration-200",
-                                  communityMenuOpen && "rotate-180",
-                                )}
-                              />
-                            </button>
-
-                            {isActive ? (
-                              <motion.span
-                                layoutId="navbar-active-indicator"
-                                className="absolute -bottom-[8px] left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-primary"
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 380,
-                                  damping: 30,
+                              <Link
+                                href={lp(link.href ?? "/discussions")}
+                                aria-current={isActive ? "page" : undefined}
+                                onClick={() => {
+                                  setCommunityMenuOpen(false);
+                                  setMobileMenuOpen(false);
                                 }}
-                              />
-                            ) : null}
-                          </div>
-
-                          <AnimatePresence>
-                            {communityMenuOpen ? (
-                              <motion.div
-                                role="menu"
-                                aria-label={t(link.tKey ?? "") || link.name}
-                                initial={{ opacity: 0, y: -6, scale: 0.94 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{
-                                  opacity: 0,
-                                  y: -4,
-                                  scale: 0.96,
-                                  transition: { duration: 0.12 },
-                                }}
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 460,
-                                  damping: 32,
-                                  mass: 0.7,
-                                }}
-                                style={{ transformOrigin: "top center" }}
-                                className="absolute left-1/2 top-full z-20 w-84 -translate-x-1/2 pt-2.5"
+                                className="inline-flex h-9 items-center rounded-l-[10px] pl-3.5 pr-1"
                               >
-                                {/* Notch, tying the island back to its trigger */}
-                                <span
-                                  aria-hidden="true"
-                                  className="absolute left-1/2 top-1.75 size-3 -translate-x-1/2 rotate-45 rounded-[3px] border-l border-t border-border bg-card"
+                                {t(link.tKey ?? "") || link.name}
+                              </Link>
+                              <button
+                                type="button"
+                                aria-expanded={communityMenuOpen}
+                                aria-haspopup="menu"
+                                aria-label={`${communityMenuOpen ? "Close" : "Open"} ${link.name} menu`}
+                                onClick={() => {
+                                  if (communityMenuOpen) {
+                                    closeCommunityMenu();
+                                  } else {
+                                    openCommunityMenu();
+                                  }
+                                }}
+                                className="inline-flex h-9 items-center rounded-r-[10px] pl-1 pr-2.5 cursor-pointer"
+                              >
+                                <ChevronDown
+                                  className={cn(
+                                    "size-3.5 transition-transform duration-200",
+                                    communityMenuOpen && "rotate-180",
+                                  )}
                                 />
+                              </button>
+                            </div>
 
-                                <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10">
-                                  <div
-                                    aria-hidden="true"
-                                    className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-b from-primary/10 to-transparent"
-                                  />
+                            <AnimatePresence>
+                              {communityMenuOpen && (
+                                <motion.div
+                                  role="menu"
+                                  aria-label={t(link.tKey ?? "") || link.name}
+                                  initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{
+                                    opacity: 0,
+                                    y: -4,
+                                    scale: 0.98,
+                                    transition: { duration: 0.12 },
+                                  }}
+                                  transition={{
+                                    type: "spring",
+                                    stiffness: 460,
+                                    damping: 32,
+                                    mass: 0.7,
+                                  }}
+                                  style={{ transformOrigin: "top center" }}
+                                  className="absolute left-1/2 top-full z-20 w-72 -translate-x-1/2 pt-2"
+                                >
+                                  <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card/95 p-1.5 shadow-xl ring-1 ring-foreground/5 dark:ring-foreground/10 backdrop-blur-xl">
+                                    <p className="px-2.5 pb-1 pt-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                                      {t("nav.startDiscussion") || "Start a discussion"}
+                                    </p>
 
-                                  <p className="relative z-10 px-3 pb-1 pt-1.5 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                                    {t("nav.startDiscussion") || "Start a discussion"}
-                                  </p>
+                                    <div className="flex flex-col gap-0.5">
+                                      {link.items.map((item) => {
+                                        const isItemActive = isHrefActive(
+                                          pathname,
+                                          item.href,
+                                        );
 
-                                  <div className="relative z-10 flex flex-col gap-0.5">
-                                    {link.items.map((item) => {
-                                      const isItemActive = isHrefActive(
-                                        pathname,
-                                        item.href,
-                                      );
-
-                                      return (
-                                        <Link
-                                          key={item.href}
-                                          href={lp(item.href)}
-                                          role="menuitem"
-                                          aria-current={
-                                            isItemActive ? "page" : undefined
-                                          }
-                                          onClick={() => {
-                                            setCommunityMenuOpen(false);
-                                            setMobileMenuOpen(false);
-                                          }}
-                                          className={cn(
-                                            "group/item flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-                                            isItemActive
-                                              ? "bg-primary/10"
-                                              : "hover:bg-muted",
-                                          )}
-                                        >
-                                          <span
+                                        return (
+                                          <Link
+                                            key={item.href}
+                                            href={lp(item.href)}
+                                            role="menuitem"
+                                            aria-current={
+                                              isItemActive ? "page" : undefined
+                                            }
+                                            onClick={() => {
+                                              setCommunityMenuOpen(false);
+                                              setMobileMenuOpen(false);
+                                            }}
                                             className={cn(
-                                              "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-colors duration-200",
+                                              "group/item flex items-start gap-2.5 rounded-xl px-2.5 py-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
                                               isItemActive
-                                                ? "bg-primary text-primary-foreground ring-primary"
-                                                : "bg-primary/10 text-primary ring-primary/20 group-hover/item:bg-primary group-hover/item:text-primary-foreground group-hover/item:ring-primary",
+                                                ? "bg-primary/10"
+                                                : "hover:bg-muted",
                                             )}
                                           >
-                                            <CommunityMenuIcon
-                                              icon={item.icon}
-                                            />
-                                          </span>
-
-                                          <span className="min-w-0 flex-1">
                                             <span
                                               className={cn(
-                                                "flex items-center gap-1.5 text-sm font-semibold",
+                                                "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset transition-colors duration-150",
                                                 isItemActive
-                                                  ? "text-primary"
-                                                  : "text-foreground",
+                                                  ? "bg-primary text-primary-foreground ring-primary"
+                                                  : "bg-primary/10 text-primary ring-primary/20 group-hover/item:bg-primary group-hover/item:text-primary-foreground group-hover/item:ring-primary",
                                               )}
                                             >
-                                              {t(item.tKey ?? "") || item.name}
-                                              <ArrowRight className="size-3.5 -translate-x-1 opacity-0 transition-all duration-200 group-hover/item:translate-x-0 group-hover/item:opacity-100" />
+                                              <CommunityMenuIcon
+                                                icon={item.icon}
+                                              />
                                             </span>
-                                            <span className="mt-0.5 block text-sm leading-5 text-muted-foreground">
-                                              {(item.descTKey && t(item.descTKey)) || item.description}
+
+                                            <span className="min-w-0 flex-1">
+                                              <span
+                                                className={cn(
+                                                  "flex items-center gap-1.5 text-xs font-semibold",
+                                                  isItemActive
+                                                    ? "text-primary"
+                                                    : "text-foreground",
+                                                )}
+                                              >
+                                                {t(item.tKey ?? "") || item.name}
+                                                <ArrowRight className="size-3 -translate-x-1 opacity-0 transition-all duration-150 group-hover/item:translate-x-0 group-hover/item:opacity-100" />
+                                              </span>
+                                              <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground line-clamp-1">
+                                                {(item.descTKey && t(item.descTKey)) || item.description}
+                                              </span>
                                             </span>
-                                          </span>
-                                        </Link>
-                                      );
-                                    })}
+                                          </Link>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
-                                </div>
-                              </motion.div>
-                            ) : null}
-                          </AnimatePresence>
-                        </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      }
+
+                      if (!link.href) return null;
+
+                      return (
+                        <Link
+                          key={link.href}
+                          href={lp(link.href)}
+                          aria-current={isActive ? "page" : undefined}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={cn(
+                            "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-[10px] px-3.5 text-sm font-medium transition-colors duration-150",
+                            link.guestOnly && "hidden xl:inline-flex",
+                            isActive
+                              ? "bg-primary/10 text-primary font-semibold"
+                              : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                          )}
+                        >
+                          <span>{t(link.tKey ?? "") || link.name}</span>
+                        </Link>
                       );
-                    }
+                    })}
+                  </div>
+                </nav>
 
-                    // Plain link
-                    if (!link.href) {
-                      return null;
-                    }
+                {/* 3. Clean Desktop Utilities (Logged In: Notification + Search + Profile. Logged Out: Search + Theme + Language + Login/Get Started) */}
+                <div className="hidden lg:flex shrink-0 items-center justify-end gap-2">
+                  {sessionUser && <NotificationTrigger />}
 
-                    return (
-                      <Link
-                        key={link.href}
-                        href={lp(link.href)}
-                        aria-current={isActive ? "page" : undefined}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={cn(
-                          "group relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-lg px-2.5 xl:px-3.5 text-xs xl:text-sm font-semibold transition-all duration-200",
-                          link.guestOnly && "hidden xl:inline-flex",
-                          isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                        )}
+                  <NavbarSearch variant="icon" />
+
+                  {/* When logged out: Provide direct Dark Mode and Language toggles */}
+                  {!sessionUser && (
+                    <>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={toggle}
+                        aria-label={
+                          mounted && isDark
+                            ? "Switch to light mode"
+                            : "Switch to dark mode"
+                        }
+                        title={
+                          mounted && isDark
+                            ? "Switch to light mode"
+                            : "Switch to dark mode"
+                        }
+                        className="size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-all hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
-                        <span>{t(link.tKey ?? "") || link.name}</span>
+                        {mounted && isDark ? (
+                          <Sun className="size-4.5 text-amber-500" />
+                        ) : (
+                          <Moon className="size-4.5 text-muted-foreground hover:text-foreground" />
+                        )}
+                      </Button>
 
-                        {isActive ? (
-                          <motion.span
-                            layoutId="navbar-active-indicator"
-                            className="absolute -bottom-2 left-1/2 h-0.75 w-6 -translate-x-1/2 rounded-full bg-primary"
-                            transition={{
-                              type: "spring",
-                              stiffness: 380,
-                              damping: 30,
-                            }}
-                          />
-                        ) : null}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </nav>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          const nextLocale: Locale = locale === "en" ? "km" : "en";
+                          rememberLocale(nextLocale);
+                          router.push(localise(pathname ?? "/", nextLocale));
+                          router.refresh();
+                        }}
+                        aria-label={`Switch language (current: ${LOCALE_SHORT[locale]})`}
+                        title={`Switch language (current: ${LOCALE_SHORT[locale]})`}
+                        className="size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-all hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <CurrentFlag className="h-3.5 w-5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+                      </Button>
+                    </>
+                  )}
 
-              {/* Header actions */}
-              <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
-                <LanguageSwitcher className="hidden lg:inline-flex" />
-
-                {sessionUser && <NotificationTrigger />}
-
-                <ThemeToggle
-                  variant="rectangle"
-                  start="bottom-up"
-                  aria-label={
-                    mounted && isDark
-                      ? "Switch to light mode"
-                      : "Switch to dark mode"
-                  }
-                  className="size-9 sm:size-10 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-colors hover:bg-muted cursor-pointer inline-flex"
-                  iconClassName="size-4.5 sm:size-5"
-                />
-
-                {/* Search tool with global Cmd+K / Ctrl+K and modal dialog */}
-                <NavbarSearch />
-
-                {/* Signed out: Log in + Get Started. Signed in: account menu (Desktop only) */}
-                <div className="hidden lg:flex items-center gap-2">
                   <NavbarUserMenu
                     onLogin={handleLogin}
                     isLoggingIn={isLoggingIn}
@@ -810,163 +786,141 @@ const Navbar = () => {
                   />
                 </div>
 
-                {/* Mobile hamburger menu toggle */}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => setMobileMenuOpen((current) => !current)}
-                  aria-expanded={mobileMenuOpen}
-                  aria-controls="mobile-navigation"
-                  aria-label={
-                    mobileMenuOpen
-                      ? "Close navigation menu"
-                      : "Open navigation menu"
-                  }
-                  className="size-9 sm:size-10 cursor-pointer rounded-xl text-foreground hover:bg-muted lg:hidden inline-flex items-center justify-center"
-                >
-                  <AnimatePresence mode="wait" initial={false}>
-                    <motion.span
-                      key={mobileMenuOpen ? "close" : "menu"}
-                      initial={{ opacity: 0, rotate: -45, scale: 0.8 }}
-                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                      exit={{ opacity: 0, rotate: 45, scale: 0.8 }}
-                      transition={{ duration: 0.15 }}
-                      className="inline-flex items-center justify-center"
-                    >
-                      {mobileMenuOpen ? (
-                        <X className="size-5 sm:size-6" />
-                      ) : (
-                        <Menu className="size-5 sm:size-6" />
-                      )}
-                    </motion.span>
-                  </AnimatePresence>
-                </Button>
+                {/* 4. Clean Mobile Top Bar Utilities (<1024px: Notification, Search & Menu of equal size) */}
+                <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
+                  {sessionUser && <NotificationTrigger className="size-9" />}
+
+                  <NavbarSearch variant="icon" className="size-9" />
+
+                  {/* Hamburger ↔ X Menu Button (Equal 36px x 36px circular button with 18px icon) */}
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setMobileMenuOpen((current) => !current)}
+                    aria-expanded={mobileMenuOpen}
+                    aria-controls="mobile-navigation-drawer"
+                    aria-label={
+                      mobileMenuOpen
+                        ? "Close navigation menu"
+                        : "Open navigation menu"
+                    }
+                    className="size-9 cursor-pointer rounded-full text-foreground hover:bg-muted hover:border-primary/40 inline-flex items-center justify-center border-0 shadow-none transition-all"
+                  >
+                    {mobileMenuOpen ? (
+                      <X className="size-4.5 text-foreground" />
+                    ) : (
+                      <Menu className="size-4.5 text-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Mobile navigation */}
-        <AnimatePresence>
-          {mobileMenuOpen ? (
-            <motion.div
-              id="mobile-navigation"
-              initial={{ opacity: 0, height: 0, y: -10, scale: 0.98 }}
-              animate={{ opacity: 1, height: "auto", y: 0, scale: 1 }}
-              exit={{
-                opacity: 0,
-                height: 0,
-                y: -8,
-                scale: 0.98,
-                transition: { duration: 0.2, ease: "easeInOut" },
-              }}
-              transition={
-                reduce
-                  ? { duration: 0 }
-                  : {
-                    type: "spring",
-                    stiffness: 350,
-                    damping: 28,
-                    mass: 0.8,
-                  }
-              }
-              style={{ transformOrigin: "top center" }}
-              className="pointer-events-auto relative z-10 overflow-hidden px-4 pb-4 sm:px-6 lg:hidden"
-            >
-              <div className="mx-auto max-h-[calc(100dvh-var(--navbar-height)-1rem)] w-full max-w-7xl overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-3 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10">
-                <nav
-                  aria-label="Mobile navigation"
-                  className="flex flex-col gap-1"
-                >
-                  {visibleNavLinks.map((link) => {
-                    const isActive = isNavLinkActive(pathname, link);
-                    const Icon = link.icon;
+          {/* 5. Refined Mobile Navigation Drawer Card */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                id="mobile-navigation-drawer"
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{
+                  opacity: 0,
+                  y: -6,
+                  scale: 0.98,
+                  transition: { duration: 0.16, ease: "easeInOut" },
+                }}
+                transition={
+                  reduce
+                    ? { duration: 0 }
+                    : {
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
+                        mass: 0.8,
+                      }
+                }
+                style={{ transformOrigin: "top center" }}
+                className="pointer-events-auto relative z-10 px-4 pb-5 sm:px-6 lg:hidden"
+              >
+                <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-card/98 p-3.5 sm:p-4 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 backdrop-blur-2xl">
+                  {/* Navigation Links */}
+                  <nav
+                    aria-label="Mobile navigation"
+                    className="flex flex-col gap-1 pb-2.5"
+                  >
+                    {visibleNavLinks.map((link) => {
+                      const isActive = isNavLinkActive(pathname, link);
+                      const Icon = link.icon;
 
-                    if (link.items?.length) {
-                      return (
-                        <div key={`${link.name}-mobile`} className="space-y-1">
-                          <div
-                            className={cn(
-                              "flex min-h-10 w-full items-center justify-between rounded-xl text-sm font-semibold transition-colors",
-                              isActive
-                                ? "bg-primary/10 text-primary ring-1 ring-primary/20"
-                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                            )}
-                          >
-                            <Link
-                              href={lp(link.href ?? "/discussions")}
-                              onClick={() => setMobileMenuOpen(false)}
-                              aria-current={isActive ? "page" : undefined}
-                              className="flex min-h-10 flex-1 items-center gap-3 pl-3"
-                            >
-                              {Icon && <Icon className="size-4.5 shrink-0 text-muted-foreground" />}
-                              <span>{t(link.tKey ?? "") || link.name}</span>
-                            </Link>
+                      if (link.items?.length) {
+                        return (
+                          <div key={`${link.name}-mobile`} className="space-y-1">
                             <button
                               type="button"
-                              aria-expanded={mobileCommunityOpen}
-                              aria-label={`${mobileCommunityOpen ? "Close" : "Open"} ${link.name} menu`}
                               onClick={() =>
                                 setMobileCommunityOpen((current) => !current)
                               }
-                              className="flex min-h-10 items-center pl-3 pr-3 cursor-pointer"
+                              aria-expanded={mobileCommunityOpen}
+                              aria-label={`${mobileCommunityOpen ? "Close" : "Open"} ${link.name} menu`}
+                              className={cn(
+                                "flex min-h-10 w-full cursor-pointer items-center justify-between rounded-xl px-3.5 text-sm font-semibold transition-all duration-150 active:scale-[0.99]",
+                                isActive
+                                  ? "bg-primary/10 text-primary"
+                                  : "text-foreground hover:bg-muted/70",
+                              )}
                             >
+                              <div className="flex items-center gap-3 min-w-0">
+                                {Icon && (
+                                  <Icon
+                                    className={cn(
+                                      "size-4.5 shrink-0 transition-colors",
+                                      isActive ? "text-primary" : "text-muted-foreground",
+                                    )}
+                                  />
+                                )}
+                                <span>{t(link.tKey ?? "") || link.name}</span>
+                              </div>
                               <motion.span
                                 animate={{ rotate: mobileCommunityOpen ? 180 : 0 }}
                                 transition={{
                                   type: "spring",
-                                  stiffness: 320,
+                                  stiffness: 340,
                                   damping: 24,
                                 }}
-                                className="inline-flex items-center justify-center"
+                                className="inline-flex items-center justify-center text-muted-foreground"
                               >
                                 <ChevronDown className="size-4" />
                               </motion.span>
                             </button>
-                          </div>
 
-                          <AnimatePresence initial={false}>
-                            {mobileCommunityOpen ? (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0, y: -6 }}
-                                animate={{ opacity: 1, height: "auto", y: 0 }}
-                                exit={{
-                                  opacity: 0,
-                                  height: 0,
-                                  y: -6,
-                                  transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] },
-                                }}
-                                transition={{
-                                  duration: reduce ? 0 : 0.32,
-                                  ease: [0.16, 1, 0.3, 1],
-                                }}
-                                className="overflow-hidden"
-                              >
-                                <div className="flex flex-col gap-1 pl-3 pt-1 pb-1">
-                                  {link.items.map((item, idx) => {
-                                    const isItemActive = isHrefActive(
-                                      pathname,
-                                      item.href,
-                                    );
+                            <AnimatePresence initial={false}>
+                              {mobileCommunityOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0, y: -4 }}
+                                  animate={{ opacity: 1, height: "auto", y: 0 }}
+                                  exit={{
+                                    opacity: 0,
+                                    height: 0,
+                                    y: -4,
+                                    transition: { duration: 0.16, ease: "easeInOut" },
+                                  }}
+                                  transition={{
+                                    duration: reduce ? 0 : 0.22,
+                                    ease: [0.16, 1, 0.3, 1],
+                                  }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="flex flex-col gap-1 pl-4 pt-1 pb-1">
+                                    {link.items.map((item) => {
+                                      const isItemActive = isHrefActive(
+                                        pathname,
+                                        item.href,
+                                      );
 
-                                    return (
-                                      <motion.div
-                                        key={`${item.href}-mobile`}
-                                        initial={{ opacity: 0, y: -4 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -4 }}
-                                        transition={
-                                          reduce
-                                            ? { duration: 0 }
-                                            : {
-                                              type: "spring",
-                                              stiffness: 420,
-                                              damping: 28,
-                                              delay: idx * 0.03,
-                                            }
-                                        }
-                                      >
+                                      return (
                                         <Link
+                                          key={`${item.href}-mobile`}
                                           href={lp(item.href)}
                                           onClick={() => {
                                             setMobileCommunityOpen(false);
@@ -976,16 +930,16 @@ const Navbar = () => {
                                             isItemActive ? "page" : undefined
                                           }
                                           className={cn(
-                                            "group flex items-center justify-between rounded-2xl px-3.5 py-2.5 transition-all duration-200",
+                                            "group flex min-h-[38px] items-center justify-between rounded-xl px-3 py-1.5 transition-all duration-150 active:scale-[0.99]",
                                             isItemActive
-                                              ? "bg-muted text-primary"
-                                              : "text-foreground hover:bg-muted",
+                                              ? "bg-primary/10 text-primary font-semibold"
+                                              : "text-foreground hover:bg-muted/70",
                                           )}
                                         >
-                                          <div className="flex min-w-0 items-center gap-3">
+                                          <div className="flex min-w-0 items-center gap-2.5">
                                             <span
                                               className={cn(
-                                                "flex size-10 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
+                                                "flex size-6.5 shrink-0 items-center justify-center rounded-lg transition-colors",
                                                 isItemActive
                                                   ? "bg-primary text-primary-foreground"
                                                   : "bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground",
@@ -995,90 +949,74 @@ const Navbar = () => {
                                                 icon={item.icon}
                                               />
                                             </span>
-                                            <span className="truncate text-sm font-bold text-foreground">
+                                            <span className="truncate text-xs font-medium">
                                               {t(item.tKey ?? "") || item.name}
                                             </span>
                                           </div>
-                                          <ArrowRight
-                                            className={cn(
-                                              "size-4 transition-all duration-200",
-                                              isItemActive
-                                                ? "text-muted-foreground opacity-100 translate-x-0"
-                                                : "text-muted-foreground opacity-0 -translate-x-1 group-hover:translate-x-0 group-hover:opacity-100",
-                                            )}
-                                          />
+                                          <ArrowRight className="size-3.5 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5" />
                                         </Link>
-                                      </motion.div>
-                                    );
-                                  })}
-                                </div>
-                              </motion.div>
-                            ) : null}
-                          </AnimatePresence>
-                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      }
+
+                      if (!link.href) return null;
+
+                      return (
+                        <Link
+                          key={`${link.href}-mobile`}
+                          href={lp(link.href)}
+                          onClick={() => setMobileMenuOpen(false)}
+                          aria-current={isActive ? "page" : undefined}
+                          className={cn(
+                            "group flex min-h-10 items-center gap-3 rounded-xl px-3.5 text-sm font-semibold transition-all duration-150 active:scale-[0.99]",
+                            isActive
+                              ? "bg-primary/10 text-primary"
+                              : "text-foreground hover:bg-muted/70",
+                          )}
+                        >
+                          {Icon && (
+                            <Icon
+                              className={cn(
+                                "size-4.5 shrink-0 transition-colors",
+                                isActive ? "text-primary" : "text-muted-foreground",
+                              )}
+                            />
+                          )}
+                          <span>{t(link.tKey ?? "") || link.name}</span>
+                        </Link>
                       );
-                    }
+                    })}
+                  </nav>
 
-                    if (!link.href) {
-                      return null;
-                    }
-
-                    return (
-                      <Link
-                        key={`${link.href}-mobile`}
-                        href={lp(link.href)}
-                        onClick={() => setMobileMenuOpen(false)}
-                        aria-current={isActive ? "page" : undefined}
-                        className={cn(
-                          "relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
-                          isActive
-                            ? "bg-primary/10 text-primary ring-1 ring-primary/20"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                        )}
-                      >
-                        {isActive && (
-                          <motion.span
-                            layoutId="mobile-navbar-active-rail"
-                            className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary"
-                            transition={{
-                              type: "spring",
-                              stiffness: 400,
-                              damping: 35,
-                            }}
-                          />
-                        )}
-                        {Icon && <Icon className="size-4.5 shrink-0 text-muted-foreground" />}
-                        <span>{t(link.tKey ?? "") || link.name}</span>
-                      </Link>
-                    );
-                  })}
-
-                  <div className="mt-3 grid gap-2 border-t border-border pt-4">
+                  {/* Mobile User Card & Actions */}
+                  <div className="space-y-2.5 border-t border-border/70 pt-2.5">
                     {sessionUser ? (
                       <>
                         {isNavbarIdentityPending ? (
                           <div
                             aria-hidden="true"
-                            className="flex animate-pulse items-center gap-3 rounded-xl border border-border bg-card p-3"
+                            className="flex animate-pulse items-center gap-3 rounded-2xl border border-border/80 bg-muted/30 p-3"
                           >
-                            <div className="size-9 shrink-0 rounded-lg bg-muted" />
+                            <div className="size-10 shrink-0 rounded-full bg-muted" />
                             <div className="flex min-w-0 flex-1 flex-col gap-2">
-                              <div className="h-3.5 w-28 rounded bg-muted" />
-                              <div className="h-3 w-20 rounded bg-muted" />
+                              <div className="h-4 w-28 rounded bg-muted" />
+                              <div className="h-3 w-36 rounded bg-muted" />
                             </div>
                           </div>
                         ) : (
                           <Link
                             href={navbarIdentity.profileHref}
                             onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                            className="group flex items-center gap-3 rounded-2xl border border-border/70 bg-muted/30 p-3 transition-all duration-200 hover:bg-muted/60 active:scale-[0.99]"
                           >
                             <Avatar
-                              className={cn(
-                                "size-9 shrink-0",
-                                navbarIdentity.isCompany &&
-                                "rounded-lg after:rounded-lg",
-                              )}
+                              className="size-10 shrink-0 rounded-full shadow-2xs"
                             >
                               {navbarIdentity.image && (
                                 <AvatarImage
@@ -1088,65 +1026,64 @@ const Navbar = () => {
                                       ? `${navbarIdentity.name} logo`
                                       : ""
                                   }
-                                  className={cn(
-                                    navbarIdentity.isCompany && "rounded-lg",
-                                  )}
+                                  className="rounded-full object-cover"
                                 />
                               )}
                               <AvatarFallback
-                                className={cn(
-                                  "bg-primary text-xs font-bold text-primary-foreground",
-                                  navbarIdentity.isCompany && "rounded-lg",
-                                )}
+                                className="bg-primary text-xs font-bold text-primary-foreground rounded-full"
                               >
                                 {getInitials(navbarIdentity.name)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm font-bold text-foreground">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-bold text-foreground">
                                 {navbarIdentity.name}
-                              </span>
-                              <span className="block truncate text-sm text-muted-foreground">
-                                {navbarIdentity.detail ||
-                                  navbarIdentity.profileLabel}
-                              </span>
-                              {navbarIdentity.status &&
-                                navbarIdentity.status !==
-                                navbarIdentity.detail && (
-                                  <span className="mt-0.5 block truncate text-sm font-medium text-muted-foreground">
-                                    {navbarIdentity.status}
-                                  </span>
-                                )}
-                            </span>
+                              </p>
+                              {navbarIdentity.detail && (
+                                <p className="truncate text-xs font-medium text-muted-foreground mt-0.5">
+                                  {navbarIdentity.detail}
+                                </p>
+                              )}
+                              {navbarIdentity.status && (
+                                <div className="mt-1">
+                                  <StatusBadge status={navbarIdentity.status} />
+                                </div>
+                              )}
+                            </div>
                           </Link>
                         )}
 
-                        <Button
-                          nativeButton={false}
-                          render={
-                            <Link
-                              href={lp("/dashboard")}
-                              onClick={() => setMobileMenuOpen(false)}
-                            />
-                          }
-                          className="h-10 rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                        >
-                          <LayoutDashboard className="size-4" />
-                          Dashboard
-                        </Button>
+                        <div className="flex flex-col gap-2 pt-0.5">
+                          <Button
+                            nativeButton={false}
+                            render={
+                              <Link
+                                href={lp("/dashboard")}
+                                onClick={() => setMobileMenuOpen(false)}
+                              />
+                            }
+                            className="h-10 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-2xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] transition-all"
+                          >
+                            <LayoutDashboard className="size-4" />
+                            <span>Dashboard</span>
+                          </Button>
 
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleSignOut}
-                          className="h-10 rounded-lg border-border bg-card text-sm font-semibold text-rose-600 hover:bg-rose-500/10 dark:text-rose-400"
-                        >
-                          <LogOut className="size-4" />
-                          Log out
-                        </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setMobileMenuOpen(false);
+                              handleSignOut();
+                            }}
+                            className="h-10 w-full rounded-xl border border-rose-500/25 bg-rose-500/5 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/15 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] transition-all"
+                          >
+                            <LogOut className="size-4 text-rose-500 dark:text-rose-400" />
+                            <span>Log out</span>
+                          </Button>
+                        </div>
                       </>
                     ) : (
-                      <>
+                      <div className="flex flex-col gap-2 pt-0.5">
                         <Button
                           nativeButton={false}
                           render={
@@ -1155,9 +1092,9 @@ const Navbar = () => {
                               onClick={() => setMobileMenuOpen(false)}
                             />
                           }
-                          className="h-10 rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                          className="h-10 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90 shadow-2xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] transition-all"
                         >
-                          {t("nav.getStarted")}
+                          <span>{t("nav.getStarted")}</span>
                           <ArrowRight className="size-4" />
                         </Button>
 
@@ -1166,49 +1103,66 @@ const Navbar = () => {
                           variant="outline"
                           onClick={handleLogin}
                           disabled={isLoggingIn}
-                          className="h-10 rounded-lg border-border bg-card text-sm font-semibold text-foreground hover:bg-muted"
+                          className="h-10 w-full rounded-xl border-border bg-card text-sm font-semibold text-foreground hover:bg-muted flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] transition-all"
                         >
                           {isLoggingIn ? (
                             <>
                               <Loader2 className="size-4 animate-spin" />
-                              Connecting...
+                              <span>Connecting...</span>
                             </>
                           ) : (
-                            t("nav.login")
+                            <span>{t("nav.login")}</span>
                           )}
                         </Button>
-                      </>
+                      </div>
                     )}
 
-                    <div className="flex items-center gap-2">
-                      <Button
+                    {/* Bottom Utility Controls (Two-Column Pill Layout) */}
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/70">
+                      <button
                         type="button"
-                        variant="outline"
                         onClick={toggle}
-                        className="h-10 flex-1 rounded-lg border-border bg-card text-sm font-semibold text-foreground hover:bg-muted cursor-pointer"
+                        aria-label={
+                          mounted && isDark
+                            ? "Switch to light mode"
+                            : "Switch to dark mode"
+                        }
+                        className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/80 bg-card px-3 text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-muted active:scale-[0.99]"
                       >
                         {mounted && isDark ? (
                           <>
-                            <Sun className="size-4" />
-                            {t("nav.lightMode")}
+                            <Sun className="size-4 text-amber-500" />
+                            <span>{t("nav.lightMode") || "Light mode"}</span>
                           </>
                         ) : (
                           <>
-                            <Moon className="size-4" />
-                            {t("nav.darkMode")}
+                            <Moon className="size-4 text-slate-600 dark:text-slate-400" />
+                            <span>{t("nav.darkMode") || "Dark mode"}</span>
                           </>
                         )}
-                      </Button>
+                      </button>
 
-                      <LanguageSwitcher className="h-10 shrink-0 rounded-lg" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextLocale: Locale = locale === "en" ? "km" : "en";
+                          rememberLocale(nextLocale);
+                          router.push(localise(pathname ?? "/", nextLocale));
+                          router.refresh();
+                        }}
+                        aria-label={`Switch language (current: ${LOCALE_SHORT[locale]})`}
+                        className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/80 bg-card px-3 text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-muted active:scale-[0.99]"
+                      >
+                        <CurrentFlag className="h-3.5 w-5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+                        <span>{LOCALE_SHORT[locale]}</span>
+                      </button>
                     </div>
                   </div>
-                </nav>
-              </div>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.header>
     </NotificationProvider>
   );

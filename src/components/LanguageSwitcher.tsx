@@ -4,6 +4,13 @@ import React from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import cambodiaFlag from "../../public/cambodia.gif";
+import { Check, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import {
   LOCALES,
@@ -17,39 +24,22 @@ import { useLocale } from "@/lib/i18n/I18nProvider";
 /** Mirrors the cookie the proxy reads, so a choice survives a bare-URL visit. */
 const LOCALE_COOKIE = "devsolve.locale";
 
-/* Kept outside the component: the React Compiler lint treats a write to
-   `document` inside one as mutating external state, and the write genuinely
-   is a side effect on the document rather than component state. */
 function rememberLocale(next: Locale) {
   document.cookie = `${LOCALE_COOKIE}=${next};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
 }
 
-/* ─── Flags ───────────────────────────────────────────────────────────
-   Not emoji: Windows ships no glyphs for regional indicator pairs, so 🇰🇭
-   renders there as the bare letters "KH" — the one platform this project is
-   developed on would be the only one that never sees a flag.
-
-   Cambodia is the supplied artwork; the UK is drawn, since its geometry is
-   exact at any size and it costs no request.
-   ──────────────────────────────────────────────────────────────────── */
-
-/** Cambodia, from `public/cambodia.gif`. Imported rather than referenced by
- *  URL so the intrinsic size travels with it and the build can fingerprint it. */
-function FlagKH({ className }: { className?: string }) {
+export function FlagKH({ className }: { className?: string }) {
   return (
     <Image
       src={cambodiaFlag}
       alt=""
       aria-hidden
-      /* The source is 1000×640 (1.5625) against a 3:2 box, so a hair is
-         cropped rather than the flag being stretched off-proportion. */
       className={cn("object-cover", className)}
     />
   );
 }
 
-/** United Kingdom, for English. */
-function FlagEN({ className }: { className?: string }) {
+export function FlagEN({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 16" className={className} aria-hidden focusable="false">
       <rect width="24" height="16" fill="#012169" />
@@ -61,53 +51,84 @@ function FlagEN({ className }: { className?: string }) {
   );
 }
 
-const FLAGS: Record<Locale, (p: { className?: string }) => React.ReactElement> = {
+export const FLAGS: Record<Locale, (p: { className?: string }) => React.ReactElement> = {
   en: FlagEN,
   km: FlagKH,
 };
 
+export { rememberLocale, LOCALE_COOKIE };
+
+
 /**
- * Switches between the site's two languages.
+ * Switches between the site's available languages.
  *
- * A single toggle rather than a menu: with exactly two locales a dropdown adds
- * a click and a decision to a choice that has only one possible outcome. The
- * button shows the language you are reading now and swaps on press.
- *
- * Switching rewrites the current path rather than sending the visitor home, so
- * someone reading a programme in English lands on the same programme in Khmer.
- * The cookie is written too, so the next bare URL they hit — a shared link, a
- * bookmark, the bare domain — resolves to the language they picked.
+ * Rendered as a compact pill with a dropdown menu displaying language options.
  */
 export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
 
-  const next = LOCALES.find((code) => code !== locale) ?? locale;
-  const Flag = FLAGS[locale];
-
-  const toggle = () => {
-    if (next === locale) return;
-    rememberLocale(next);
-    router.push(localise(pathname ?? "/", next));
+  const handleSelect = (code: Locale) => {
+    if (code === locale) return;
+    rememberLocale(code);
+    router.push(localise(pathname ?? "/", code));
     router.refresh();
   };
 
+  const CurrentFlag = FLAGS[locale];
+
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      /* Accessible name begins with the visible label text to satisfy WCAG 2.5.3 (Label in Name) */
-      aria-label={`${LOCALE_SHORT[locale]} - Switch to ${LOCALE_NAMES[next]}`}
-      title={LOCALE_NAMES[next]}
-      className={cn(
-        "inline-flex h-9 sm:h-10 cursor-pointer items-center gap-1.5 sm:gap-2 rounded-full border border-border/80 bg-card px-2.5 sm:px-3 text-xs sm:text-sm font-semibold text-foreground shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-muted hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-        className,
-      )}
-    >
-      <Flag className="h-3.5 w-5 sm:h-4 sm:w-6 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
-      <span className="tabular-nums">{LOCALE_SHORT[locale]}</span>
-    </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            aria-label={`Language selector (current: ${LOCALE_NAMES[locale]})`}
+            className={cn(
+              "group inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border/80 bg-card px-2.5 text-xs font-semibold text-foreground shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              className,
+            )}
+          />
+        }
+      >
+        <CurrentFlag className="h-3.5 w-5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+        <span className="font-semibold tracking-wide tabular-nums text-foreground">
+          {LOCALE_SHORT[locale]}
+        </span>
+        <ChevronDown className="size-3 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        align="end"
+        sideOffset={6}
+        className="w-36 rounded-xl border border-border/80 bg-card/95 p-1 shadow-lg ring-1 ring-foreground/5 dark:ring-foreground/10 backdrop-blur-xl"
+      >
+        {LOCALES.map((code) => {
+          const Flag = FLAGS[code];
+          const isSelected = code === locale;
+
+          return (
+            <DropdownMenuItem
+              key={code}
+              onClick={() => handleSelect(code)}
+              className={cn(
+                "flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors",
+                isSelected
+                  ? "bg-primary/10 text-primary font-semibold"
+                  : "text-foreground hover:bg-muted",
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Flag className="h-3.5 w-5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+                <span>{LOCALE_NAMES[code]}</span>
+              </div>
+              {isSelected && <Check className="size-3.5 text-primary" />}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

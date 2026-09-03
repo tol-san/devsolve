@@ -78,12 +78,12 @@ export function NavbarSearch({
       aria-label="Search (Ctrl+K)"
       title="Search (Ctrl+K)"
       className={cn(
-        "size-9 sm:size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-colors hover:bg-muted",
+        "size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         className,
       )}
     >
       <Search
-        className={cn("size-4.5 sm:size-5 text-muted-foreground", iconClassName)}
+        className={cn("size-4.5 text-muted-foreground group-hover:text-foreground", iconClassName)}
       />
     </Button>
   );
