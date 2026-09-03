@@ -15,6 +15,7 @@ interface VoteControlProps {
   className?: string;
   upvoteLabel?: string;
   downvoteLabel?: string;
+  orientation?: "horizontal" | "vertical";
 }
 
 export function VoteControl({
@@ -25,50 +26,129 @@ export function VoteControl({
   className,
   upvoteLabel = "Upvote",
   downvoteLabel = "Downvote",
+  orientation = "vertical",
 }: VoteControlProps) {
+  const isUpvoted = currentVote === 1;
+  const isDownvoted = currentVote === -1;
+
+  if (orientation === "horizontal") {
+    return (
+      <div
+        className={cn(
+          "inline-flex items-center rounded-xl border border-border/80 bg-card p-0.5 shadow-2xs",
+          className,
+        )}
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => void onVote(1)}
+          disabled={isLoading}
+          aria-pressed={isUpvoted}
+          aria-label={
+            isUpvoted ? `Remove ${upvoteLabel.toLowerCase()}` : upvoteLabel
+          }
+          className={cn(
+            "size-7.5 rounded-lg transition-colors cursor-pointer",
+            isUpvoted
+              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          )}
+        >
+          <ChevronUp className="size-4" />
+        </Button>
+
+        <span
+          className={cn(
+            "min-w-7 px-1.5 text-center text-sm font-bold tabular-nums",
+            isUpvoted && "text-emerald-600 dark:text-emerald-400",
+            isDownvoted && "text-rose-600 dark:text-rose-400",
+            !isUpvoted && !isDownvoted && "text-foreground"
+          )}
+        >
+          {voteCount}
+        </span>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => void onVote(-1)}
+          disabled={isLoading}
+          aria-pressed={isDownvoted}
+          aria-label={
+            isDownvoted ? `Remove ${downvoteLabel.toLowerCase()}` : downvoteLabel
+          }
+          className={cn(
+            "size-7.5 rounded-lg transition-colors cursor-pointer",
+            isDownvoted
+              ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          )}
+        >
+          <ChevronDown className="size-4" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "inline-flex items-stretch rounded-lg shadow-sm shadow-black/5",
+        "inline-flex flex-col items-center justify-center rounded-xl border border-border/80 bg-card p-1 shadow-2xs",
         className,
       )}
     >
       <Button
         type="button"
-        variant={currentVote === 1 ? "default" : "outline"}
+        variant="ghost"
         size="icon"
         onClick={() => void onVote(1)}
         disabled={isLoading}
-        aria-pressed={currentVote === 1}
+        aria-pressed={isUpvoted}
         aria-label={
-          currentVote === 1
-            ? `Remove ${upvoteLabel.toLowerCase()}`
-            : upvoteLabel
+          isUpvoted ? `Remove ${upvoteLabel.toLowerCase()}` : upvoteLabel
         }
-        className="rounded-e-none shadow-none focus-visible:z-10"
+        className={cn(
+          "size-8 rounded-lg transition-colors cursor-pointer",
+          isUpvoted
+            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+        )}
       >
-        <ChevronUp data-icon aria-hidden="true" />
+        <ChevronUp className="size-4.5" />
       </Button>
 
-      <span className="-mx-px flex min-w-12 items-center justify-center border border-input bg-background px-3 text-sm font-medium tabular-nums text-foreground">
+      <span
+        className={cn(
+          "flex min-w-8 items-center justify-center py-0.5 text-sm font-bold tabular-nums",
+          isUpvoted && "text-emerald-600 dark:text-emerald-400",
+          isDownvoted && "text-rose-600 dark:text-rose-400",
+          !isUpvoted && !isDownvoted && "text-foreground"
+        )}
+      >
         {voteCount}
       </span>
 
       <Button
         type="button"
-        variant={currentVote === -1 ? "destructive" : "outline"}
+        variant="ghost"
         size="icon"
         onClick={() => void onVote(-1)}
         disabled={isLoading}
-        aria-pressed={currentVote === -1}
+        aria-pressed={isDownvoted}
         aria-label={
-          currentVote === -1
-            ? `Remove ${downvoteLabel.toLowerCase()}`
-            : downvoteLabel
+          isDownvoted ? `Remove ${downvoteLabel.toLowerCase()}` : downvoteLabel
         }
-        className="rounded-s-none shadow-none focus-visible:z-10"
+        className={cn(
+          "size-8 rounded-lg transition-colors cursor-pointer",
+          isDownvoted
+            ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+        )}
       >
-        <ChevronDown data-icon aria-hidden="true" />
+        <ChevronDown className="size-4.5" />
       </Button>
     </div>
   );

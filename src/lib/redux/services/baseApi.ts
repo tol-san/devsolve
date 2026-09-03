@@ -53,6 +53,8 @@ const ORGANIZATION_SCOPED = [
   "/organizations/me/programs",
   "/organizations/me/programs/deleted",
   "/organizations/me/hacktivity",
+  "/organizations/me/analytics",
+  "/organizations/me/analytics/export",
 ];
 
 /** `/organizations/me/members/{userId}` and its role/permissions children. */

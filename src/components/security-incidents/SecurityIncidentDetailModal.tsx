@@ -117,11 +117,11 @@ export function SecurityIncidentDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-2xl border-border bg-card shadow-2xl">
+      <DialogContent className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-2xl border-border bg-card shadow-2xl">
         {/* Header with Danger/Warning Banner */}
         <div
           className={cn(
-            "p-6 border-b flex items-start gap-4",
+            "p-6 sm:p-7 border-b flex items-start gap-4 sm:gap-5",
             isMalicious
               ? "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-300"
               : "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-300"
@@ -129,25 +129,25 @@ export function SecurityIncidentDetailModal({
         >
           <div
             className={cn(
-              "flex size-12 shrink-0 items-center justify-center rounded-2xl border shadow-sm",
+              "flex size-14 shrink-0 items-center justify-center rounded-2xl border shadow-sm",
               isMalicious
                 ? "bg-red-500/20 border-red-500/30 text-red-600 dark:text-red-400"
                 : "bg-amber-500/20 border-amber-500/30 text-amber-600 dark:text-amber-400"
             )}
           >
             {isMalicious ? (
-              <ShieldAlert className="size-6" />
+              <ShieldAlert className="size-7" />
             ) : (
-              <AlertTriangle className="size-6" />
+              <AlertTriangle className="size-7" />
             )}
           </div>
 
-          <div className="space-y-1 min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="space-y-1.5 min-w-0 flex-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <Badge
                 variant="outline"
                 className={cn(
-                  "font-bold uppercase tracking-wider text-xs px-2.5 py-0.5",
+                  "font-bold uppercase tracking-wider text-xs sm:text-sm px-3 py-0.5",
                   isMalicious
                     ? "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/30"
                     : "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30"
@@ -155,35 +155,35 @@ export function SecurityIncidentDetailModal({
               >
                 {incident.verdict}
               </Badge>
-              <span className="text-xs text-muted-foreground font-medium">
+              <span className="text-xs sm:text-sm text-muted-foreground font-mono">
                 Incident ID: {incident.id.slice(0, 8)}...
               </span>
             </div>
-            <DialogTitle className="text-xl font-bold tracking-tight text-foreground truncate mt-1">
+            <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground truncate mt-1">
               {incident.filename}
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
+            <DialogDescription className="text-sm sm:text-base text-muted-foreground">
               Blocked on {formatDate(incident.blockedAt)} • Discarded before storage
             </DialogDescription>
           </div>
         </div>
 
         {/* Content Body */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 sm:p-7 space-y-6 sm:space-y-7">
           {/* Security Summary Alert */}
-          <div className="p-4 rounded-xl border border-border/80 bg-muted/40 text-sm space-y-2">
-            <div className="flex items-center gap-2 font-semibold text-foreground">
-              <Shield className="size-4 text-primary" />
+          <div className="p-5 sm:p-6 rounded-2xl border border-border/80 bg-muted/30 text-sm space-y-3">
+            <div className="flex items-center gap-2.5 font-bold text-base sm:text-lg text-foreground">
+              <Shield className="size-5 text-primary" />
               <span>VirusTotal Engine Verdict Breakdown</span>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
               The fail-closed security guard refused this upload because security scanning detected threats.
               The file was blocked and rolling back the transaction ensured no malicious bytes were retained.
             </p>
 
             {/* Detections Ratio Bar */}
-            <div className="space-y-1.5 pt-2">
-              <div className="flex items-center justify-between text-xs font-semibold">
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between text-sm font-bold flex-wrap gap-2">
                 <span className="text-red-600 dark:text-red-400">
                   {incident.stats.malicious} Malicious Engines
                 </span>
@@ -192,11 +192,11 @@ export function SecurityIncidentDetailModal({
                     {incident.stats.suspicious} Suspicious
                   </span>
                 )}
-                <span className="text-muted-foreground">
+                <span className="text-muted-foreground font-semibold">
                   {incident.stats.total} Total Engines Queried
                 </span>
               </div>
-              <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
+              <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden flex">
                 <div
                   style={{ width: `${maliciousRatio}%` }}
                   className="bg-red-500 h-full"
@@ -214,64 +214,64 @@ export function SecurityIncidentDetailModal({
           </div>
 
           {/* Hash & External Lookup Card */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="space-y-2.5">
+            <label className="text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
               SHA-256 Cryptographic Hash
             </label>
-            <div className="flex items-center gap-2 p-3 rounded-xl border border-border bg-muted/30 font-mono text-xs text-foreground break-all select-all">
+            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-xl border border-border bg-muted/30 font-mono text-xs sm:text-sm text-foreground break-all select-all">
               <span className="flex-1 min-w-0">{incident.sha256Hash}</span>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={handleCopyHash}
-                className="h-8 px-2.5 shrink-0 text-xs gap-1.5 cursor-pointer hover:bg-muted"
+                className="h-9 px-3 shrink-0 text-sm gap-1.5 cursor-pointer hover:bg-muted"
                 title="Copy SHA-256"
               >
                 {copiedHash ? (
                   <>
-                    <Check className="size-3.5 text-emerald-500" />
+                    <Check className="size-4 text-emerald-500" />
                     <span className="text-emerald-600 font-semibold">Copied</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="size-3.5" />
+                    <Copy className="size-4" />
                     <span>Copy</span>
                   </>
                 )}
               </Button>
             </div>
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-end pt-0.5">
               <a
                 href={vtLookupUrl}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
               >
                 <span>Look up hash on VirusTotal</span>
-                <ExternalLink className="size-3" />
+                <ExternalLink className="size-3.5" />
               </a>
             </div>
           </div>
 
-          {/* Metadata Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Metadata Grid (Spacious 2-column layout) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             {/* File Info */}
-            <div className="p-4 rounded-xl border border-border bg-card space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <FileWarning className="size-3.5 text-primary" />
+            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-xs space-y-3.5">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                <FileWarning className="size-4 text-primary" />
                 <span>File Details</span>
               </div>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground text-xs">Size:</span>
-                  <span className="font-semibold text-foreground text-xs">
+              <div className="space-y-2 text-sm sm:text-base">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-sm font-medium">Size:</span>
+                  <span className="font-semibold text-foreground text-sm sm:text-base">
                     {formatBytes(incident.fileSizeBytes)} ({incident.fileSizeBytes.toLocaleString()} bytes)
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground text-xs">Filename:</span>
-                  <span className="font-mono text-foreground text-xs truncate max-w-[180px]">
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-muted-foreground text-sm font-medium shrink-0">Filename:</span>
+                  <span className="font-mono text-foreground text-sm sm:text-base font-medium truncate max-w-[220px] sm:max-w-none" title={incident.filename}>
                     {incident.filename}
                   </span>
                 </div>
@@ -282,99 +282,41 @@ export function SecurityIncidentDetailModal({
             {(() => {
               const resolvedStatus =
                 uploaderStatus || incident.uploader.status || "ACTIVE";
-              const isSuspended = resolvedStatus.toUpperCase() === "SUSPENDED";
 
               return (
-                <div className="p-4 rounded-xl border border-border bg-card space-y-2.5">
-                  <div className="flex items-center justify-between flex-wrap gap-1">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      <User className="size-3.5 text-primary" />
-                      <span>Uploader / Researcher</span>
-                    </div>
-                    {scope === "admin" && incident.uploader.id && onModerateUser && (
-                      <div className="flex items-center gap-1">
-                        {isSuspended ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              onModerateUser(
-                                { ...incident.uploader, status: resolvedStatus },
-                                "REINSTATE"
-                              )
-                            }
-                            className="h-6 px-2 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded-lg cursor-pointer"
-                            title="Reinstate uploader account"
-                          >
-                            <RotateCcw className="size-3 mr-1" />
-                            <span>Reinstate</span>
-                          </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              onModerateUser(
-                                { ...incident.uploader, status: resolvedStatus },
-                                "SUSPEND"
-                              )
-                            }
-                            className="h-6 px-2 text-[11px] font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-500/10 rounded-lg cursor-pointer"
-                            title="Suspend uploader account"
-                          >
-                            <UserX className="size-3 mr-1" />
-                            <span>Suspend</span>
-                          </Button>
-                        )}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            onModerateUser(
-                              { ...incident.uploader, status: resolvedStatus },
-                              "BAN"
-                            )
-                          }
-                          className="h-6 px-2 text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 rounded-lg cursor-pointer"
-                          title="Ban uploader account"
-                        >
-                          <Ban className="size-3 mr-1" />
-                          <span>Ban</span>
-                        </Button>
-                      </div>
-                    )}
+                <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-xs space-y-3.5">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                    <User className="size-4 text-primary" />
+                    <span>Uploader / Researcher</span>
                   </div>
-                  <div className="space-y-1.5 text-sm">
+                  <div className="space-y-2 text-sm sm:text-base">
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground text-xs">Handle:</span>
+                      <span className="text-muted-foreground text-sm font-medium">Handle:</span>
                       {incident.uploader.username ? (
                         <Link
                           href={`/profile/${incident.uploader.username}`}
                           target="_blank"
-                          className="font-semibold text-primary hover:underline text-xs inline-flex items-center gap-1"
+                          className="font-semibold text-primary hover:underline text-sm sm:text-base inline-flex items-center gap-1"
                         >
                           <span>@{incident.uploader.username}</span>
-                          <ArrowUpRight className="size-3" />
+                          <ArrowUpRight className="size-3.5" />
                         </Link>
                       ) : (
-                        <span className="font-mono text-xs text-muted-foreground">
+                        <span className="font-mono text-sm text-muted-foreground">
                           {incident.uploader.id.slice(0, 8)}... (Deleted)
                         </span>
                       )}
                     </div>
                     {incident.uploader.email && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground text-xs">Email:</span>
-                        <span className="font-mono text-foreground text-xs truncate max-w-[180px]">
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-muted-foreground text-sm font-medium shrink-0">Email:</span>
+                        <span className="font-mono text-foreground text-sm sm:text-base truncate max-w-[220px] sm:max-w-none" title={incident.uploader.email}>
                           {incident.uploader.email}
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between items-center pt-1 border-t border-border/50">
-                      <span className="text-muted-foreground text-xs font-medium">
+                    <div className="flex justify-between items-center pt-1.5 border-t border-border/60">
+                      <span className="text-muted-foreground text-sm font-medium">
                         Account Status:
                       </span>
                       <UserStatusBadge status={resolvedStatus} size="sm" />
@@ -385,20 +327,20 @@ export function SecurityIncidentDetailModal({
             })()}
 
             {/* Target Scope */}
-            <div className="p-4 rounded-xl border border-border bg-card space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <Building className="size-3.5 text-primary" />
+            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-xs space-y-3.5">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                <Building className="size-4 text-primary" />
                 <span>Target Organization</span>
               </div>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-xs">Target:</span>
+              <div className="space-y-2 text-sm sm:text-base">
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-muted-foreground text-sm font-medium shrink-0">Target:</span>
                   {incident.organization ? (
-                    <span className="font-semibold text-foreground text-xs">
+                    <span className="font-semibold text-foreground text-sm sm:text-base">
                       {incident.organization.name || incident.organization.id.slice(0, 8)}
                     </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground italic">
+                    <span className="text-sm text-muted-foreground italic">
                       Platform Scope (Standalone/Community)
                     </span>
                   )}
@@ -407,24 +349,24 @@ export function SecurityIncidentDetailModal({
             </div>
 
             {/* Related Report */}
-            <div className="p-4 rounded-xl border border-border bg-card space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <FileText className="size-3.5 text-primary" />
+            <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-xs space-y-3.5">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                <FileText className="size-4 text-primary" />
                 <span>Associated Report</span>
               </div>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-xs">Report ID:</span>
+              <div className="space-y-2 text-sm sm:text-base">
+                <div className="flex justify-between items-center gap-2">
+                  <span className="text-muted-foreground text-sm font-medium shrink-0">Report ID:</span>
                   {incident.reportId ? (
                     <Link
                       href={`/dashboard/report-management/${incident.reportId}`}
-                      className="font-semibold text-primary hover:underline text-xs inline-flex items-center gap-1"
+                      className="font-semibold text-primary hover:underline text-sm sm:text-base inline-flex items-center gap-1"
                     >
                       <span>#{incident.reportId.slice(0, 8)}</span>
-                      <ArrowUpRight className="size-3" />
+                      <ArrowUpRight className="size-3.5" />
                     </Link>
                   ) : (
-                    <span className="text-xs text-muted-foreground italic">
+                    <span className="text-sm text-muted-foreground italic">
                       None (Direct attachment)
                     </span>
                   )}
@@ -435,18 +377,18 @@ export function SecurityIncidentDetailModal({
         </div>
 
         {/* Footer Actions */}
-        <DialogFooter className="p-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
+        <DialogFooter className="p-5 sm:p-6 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
           <a
             href={vtLookupUrl}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
           >
-            <ExternalLink className="size-3.5" />
+            <ExternalLink className="size-4" />
             <span>Open in VirusTotal GUI</span>
           </a>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
             {scope === "admin" && incident.uploader.id && onModerateUser && (() => {
               const resolvedStatus =
                 uploaderStatus || incident.uploader.status || "ACTIVE";
@@ -455,21 +397,21 @@ export function SecurityIncidentDetailModal({
               return (
                 <DropdownMenu>
                   <DropdownMenuTrigger
-                    className="inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-xl border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground cursor-pointer shadow-2xs transition-colors"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl border border-border bg-background hover:bg-muted text-sm font-semibold text-foreground cursor-pointer shadow-xs transition-colors"
                   >
-                    <ShieldAlert className="size-3.5 text-primary" />
+                    <ShieldAlert className="size-4 text-primary" />
                     <span>Moderate User</span>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-xl border border-border bg-popover text-popover-foreground">
-                    <div className="px-3 py-2 space-y-1">
+                  <DropdownMenuContent align="end" className="w-60 rounded-2xl shadow-xl border border-border bg-popover text-popover-foreground">
+                    <div className="px-3.5 py-2.5 space-y-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-foreground truncate">
+                        <span className="text-sm font-bold text-foreground truncate">
                           {incident.uploader.username ? `@${incident.uploader.username}` : incident.uploader.id.slice(0, 8)}
                         </span>
-                        <UserStatusBadge status={resolvedStatus} size="xs" />
+                        <UserStatusBadge status={resolvedStatus} size="sm" />
                       </div>
                       {incident.uploader.email && (
-                        <p className="text-[11px] text-muted-foreground truncate">
+                        <p className="text-xs text-muted-foreground truncate">
                           {incident.uploader.email}
                         </p>
                       )}
@@ -483,7 +425,7 @@ export function SecurityIncidentDetailModal({
                             "REINSTATE"
                           )
                         }
-                        className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 cursor-pointer"
+                        className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 cursor-pointer"
                       >
                         <RotateCcw className="size-4 mr-2" />
                         Reinstate Account
@@ -496,7 +438,7 @@ export function SecurityIncidentDetailModal({
                             "SUSPEND"
                           )
                         }
-                        className="text-xs font-semibold text-orange-600 dark:text-orange-400 cursor-pointer"
+                        className="text-sm font-semibold text-orange-600 dark:text-orange-400 cursor-pointer"
                       >
                         <UserX className="size-4 mr-2" />
                         Suspend Account
@@ -509,7 +451,7 @@ export function SecurityIncidentDetailModal({
                           "BAN"
                         )
                       }
-                      className="text-xs font-semibold text-purple-600 dark:text-purple-400 cursor-pointer"
+                      className="text-sm font-semibold text-purple-600 dark:text-purple-400 cursor-pointer"
                     >
                       <Ban className="size-4 mr-2" />
                       Permanently Ban Account
@@ -521,7 +463,7 @@ export function SecurityIncidentDetailModal({
                           "WARN"
                         )
                       }
-                      className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer"
+                      className="text-sm font-semibold text-amber-600 dark:text-amber-400 cursor-pointer"
                     >
                       <ShieldAlert className="size-4 mr-2" />
                       Issue Security Warning
@@ -536,7 +478,7 @@ export function SecurityIncidentDetailModal({
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="rounded-xl px-5 text-xs font-semibold cursor-pointer h-9"
+              className="rounded-xl px-5 text-sm font-semibold cursor-pointer h-10"
             >
               Close
             </Button>

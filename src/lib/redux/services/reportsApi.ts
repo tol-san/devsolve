@@ -1275,6 +1275,35 @@ export const reportsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["Report"],
     }),
+
+    getCompanyReportsQueue: builder.query<
+      {
+        content: ReportApiResponse[];
+        totalElements: number;
+        totalPages: number;
+        size: number;
+        number: number;
+      },
+      {
+        programId?: string;
+        state?: string;
+        page?: number;
+        size?: number;
+        sort?: string;
+      } | void
+    >({
+      query: (params) => {
+        const queryParams = new URLSearchParams();
+        if (params?.page !== undefined) queryParams.set("page", params.page.toString());
+        if (params?.size !== undefined) queryParams.set("size", params.size.toString());
+        if (params?.sort) queryParams.set("sort", params.sort);
+        if (params?.programId) queryParams.set("programId", params.programId);
+        if (params?.state) queryParams.set("state", params.state);
+        const qs = queryParams.toString();
+        return qs ? `/reports?${qs}` : "/reports";
+      },
+      providesTags: ["Report"],
+    }),
   }),
 });
 
@@ -1282,6 +1311,7 @@ export const {
   useGetManagedReportsQuery,
   useGetReportsQuery,
   useGetReportByIdQuery,
+  useGetCompanyReportsQueueQuery,
   useAddReportCommentMutation,
   useSubmitReportMutation,
   useUploadReportAttachmentMutation,
