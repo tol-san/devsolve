@@ -240,7 +240,7 @@ export function SavedDraftPage() {
 
     /* One card per saved problem draft. */
     (myProblemsData?.content ?? [])
-      .filter((p) => p.status === "DRAFT")
+      .filter((p): p is typeof p & { id: string } => p.status === "DRAFT" && Boolean(p.id))
       .forEach((problem) => {
         const title = problem.title?.trim() || "Untitled problem draft";
         items.push({
@@ -261,7 +261,7 @@ export function SavedDraftPage() {
             : "Recently",
           updatedAtIso: problem.updatedAt,
           tags: [
-            problem.categoryName,
+            problem.category?.name,
             problem.problemType,
             ...(problem.tags ?? []).map((t) => t.name).filter(Boolean),
           ].filter((tag): tag is string => Boolean(tag)),
