@@ -200,7 +200,6 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
                       {step.codeSnippet && (
                         <ShowcaseCodeBlock
                           code={step.codeSnippet}
-                          title={step.title}
                         />
                       )}
 

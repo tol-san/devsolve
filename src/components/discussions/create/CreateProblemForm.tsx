@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Controller,
@@ -20,6 +20,7 @@ import {
   FileText,
   LoaderCircle,
   Plus,
+  Save,
   Send,
   Sparkles,
   Trash2,
@@ -60,6 +61,7 @@ import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import { parseApiError } from "@/lib/api/errors";
 import { ProblemDuplicatePanel } from "@/components/discussions/create/ProblemDuplicatePanel";
 import { useGetActiveCategoriesQuery } from "@/lib/redux/services/categoriesApi";
+import { authClient } from "@/lib/auth/auth-client";
 import {
   useCreateProblemDraftMutation,
   useCreateProblemMutation,
@@ -67,6 +69,7 @@ import {
   useUploadProblemAttachmentMutation,
   useDeleteProblemAttachmentMutation,
   useUpdateProblemMutation,
+  useGetMyProblemsQuery,
   type ProblemResponse,
 } from "@/lib/redux/services/problemsApi";
 import {
@@ -211,11 +214,27 @@ export function CreateProblemForm({
       });
     }
   };
+  const { data: session } = authClient.useSession();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [tagDraft, setTagDraft] = useState("");
   const [tagDraftError, setTagDraftError] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [preparedDraft, setPreparedDraft] = useState<ProblemResponse | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [dismissedDraftBanner, setDismissedDraftBanner] = useState(false);
+
+  // Fetch caller's problems (including drafts) when creating a problem
+  const { data: myProblemsData } = useGetMyProblemsQuery(
+    { size: 30 },
+    { skip: isEdit || !session?.user },
+  );
+
+  const existingDrafts = useMemo(() => {
+    return (myProblemsData?.content ?? []).filter((p) => p.status === "DRAFT");
+  }, [myProblemsData]);
+
+  // The latest draft available to resume
+  const latestDraft = existingDrafts[0] ?? null;
 
   const {
     data: categories = [],
@@ -231,7 +250,7 @@ export function CreateProblemForm({
   const [submitProblem, { isLoading: submittingDraft }] =
     useSubmitProblemMutation();
   const mutationLoading =
-    creating || creatingDraft || saving || uploading || submittingDraft;
+    creating || creatingDraft || saving || uploading || submittingDraft || isSavingDraft;
 
   const categoryItems = useMemo(
     () =>
@@ -263,6 +282,8 @@ export function CreateProblemForm({
     register,
     setError,
     setValue,
+    getValues,
+    reset,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<ProblemFormInput, unknown, ProblemFormValues>({
@@ -335,6 +356,46 @@ export function CreateProblemForm({
       shouldValidate: true,
     });
 
+  const loadDraftIntoForm = (draft: ProblemResponse) => {
+    setPreparedDraft(draft);
+    reset({
+      title: draft.title ?? "",
+      description: draft.description ?? "",
+      categoryId: draft.category?.id,
+      problemType: draft.problemType,
+      severity: draft.severity,
+      sdlcPhase: draft.sdlcPhase,
+      expectedBehavior: draft.expectedBehavior ?? "",
+      actualBehavior: draft.actualBehavior ?? "",
+      attemptsTried: draft.attemptsTried ?? "",
+      errorMessage: draft.errorMessage ?? "",
+      repositoryUrl: draft.repositoryUrl ?? "",
+      technologies: (draft.technologies ?? []).map((tech) => ({
+        name: tech.name ?? "",
+        version: tech.version ?? "",
+      })),
+      environment: (draft.environment ?? []).map((entry) => ({
+        technology: entry.technology ?? "",
+        version: entry.version ?? "",
+      })),
+      reproductionSteps: [...(draft.reproductionSteps ?? [])],
+      newTagNames: (draft.tags ?? []).map((t) => t.name ?? "").filter(Boolean),
+    });
+    toast.success("Draft loaded into editor.");
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined" || preparedDraft || !myProblemsData?.content) return;
+    const params = new URLSearchParams(window.location.search);
+    const draftId = params.get("draftId");
+    if (draftId) {
+      const match = myProblemsData.content.find((p) => p.id === draftId);
+      if (match) {
+        loadDraftIntoForm(match);
+      }
+    }
+  }, [preparedDraft, myProblemsData]);
+
   const handleInsertTemplate = (template: "expected" | "steps" | "logs") => {
     let snippet = "";
     if (template === "expected") {
@@ -375,15 +436,22 @@ export function CreateProblemForm({
     !tagDraftError &&
     pendingTagLength <= 50 &&
     tags.length + (pendingTagAddsNewValue ? 1 : 0) <= MAX_TAGS;
-  /* The backend requires a category and a type as well as a title and a body,
-     so "ready" means all four rather than the two it used to check. */
+  const isBug = problemType === "BUG";
+  const bugRequirementsMet =
+    !isBug ||
+    (Boolean(expectedBehavior.trim()) &&
+      Boolean(actualBehavior.trim()) &&
+      reproductionSteps.some((step) => step.trim()));
+  /* The backend requires a category and a type as well as a title and a body.
+     BUG problems also require expectedBehavior, actualBehavior, and at least one reproduction step. */
   const formReady =
     titleReady &&
     descriptionReady &&
     Boolean(categoryId) &&
     Boolean(problemType) &&
     technologiesReady &&
-    tagsReady;
+    tagsReady &&
+    bugRequirementsMet;
 
   const addTag = () => {
     const tag = tagDraft.trim().replace(/^#+/, "");
@@ -596,8 +664,181 @@ export function CreateProblemForm({
         });
       }
 
+      if (parsed.message.includes("BUG problems require")) {
+        setError("expectedBehavior", {
+          type: "server",
+          message: "Expected behaviour is required for bug reports",
+        });
+        setError("actualBehavior", {
+          type: "server",
+          message: "Actual behaviour is required for bug reports",
+        });
+        setError("reproductionSteps", {
+          type: "server",
+          message: "At least one reproduction step is required for bug reports",
+        });
+      }
+
       setSubmitError(parsed.message);
       toast.error(parsed.message);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setSubmitError(null);
+
+    const values = getValues();
+    const draftTitle = values.title?.trim();
+
+    if (!draftTitle || draftTitle.length < 10) {
+      toast.error("Please provide a title of at least 10 characters to save a draft.");
+      setError("title", {
+        type: "manual",
+        message: "Title must be at least 10 characters to save a draft",
+      });
+      return;
+    }
+
+    if (!values.categoryId) {
+      toast.error("Please select a category to save a draft.");
+      setError("categoryId", {
+        type: "manual",
+        message: "Please select a category",
+      });
+      return;
+    }
+
+    if (!values.problemType) {
+      toast.error("Please select a problem type to save a draft.");
+      setError("problemType", {
+        type: "manual",
+        message: "Please select a problem type",
+      });
+      return;
+    }
+
+    const draftDesc = values.description?.trim();
+    if (!draftDesc || draftDesc.length < 30) {
+      toast.error("Please provide a description of at least 30 characters to save a draft.");
+      setError("description", {
+        type: "manual",
+        message: "Description must be at least 30 characters",
+      });
+      return;
+    }
+
+    if (values.problemType === "BUG") {
+      const hasExpected = Boolean(values.expectedBehavior?.trim());
+      const hasActual = Boolean(values.actualBehavior?.trim());
+      const hasSteps = (values.reproductionSteps ?? []).some((s) => s.trim());
+      if (!hasExpected) {
+        setError("expectedBehavior", {
+          type: "manual",
+          message: "Expected behaviour is required for bug reports",
+        });
+      }
+      if (!hasActual) {
+        setError("actualBehavior", {
+          type: "manual",
+          message: "Actual behaviour is required for bug reports",
+        });
+      }
+      if (!hasSteps) {
+        setError("reproductionSteps", {
+          type: "manual",
+          message: "At least one reproduction step is required for bug reports",
+        });
+      }
+      if (!hasExpected || !hasActual || !hasSteps) {
+        toast.error(
+          "BUG problems require expected behaviour, actual behaviour, and at least one reproduction step.",
+        );
+        return;
+      }
+    }
+
+    const pendingTag = tagDraft.trim().replace(/^#+/, "");
+    let submittedTags = values.newTagNames ?? [];
+    if (pendingTag && !submittedTags.includes(pendingTag)) {
+      submittedTags = [...submittedTags, pendingTag];
+    }
+
+    const trimmedOrUndefined = (val?: string) => val?.trim() || undefined;
+    const environment = (values.environment ?? [])
+      .filter((entry) => entry.technology.trim())
+      .map((entry) => ({
+        technology: entry.technology.trim(),
+        version: entry.version?.trim() || undefined,
+      }));
+    const steps = (values.reproductionSteps ?? [])
+      .map((step) => step.trim())
+      .filter(Boolean);
+
+    const workingProblem = preparedDraft ?? problem;
+    const updatingExisting = Boolean(workingProblem?.id);
+    const listOrUndefined = <T,>(list: T[]) =>
+      updatingExisting ? list : list.length ? list : undefined;
+
+    const body = {
+      ...values,
+      title: draftTitle,
+      description: draftDesc,
+      categoryId: values.categoryId,
+      problemType: values.problemType,
+      technologies: listOrUndefined(
+        (values.technologies ?? []).map((technology) => ({
+          name: technology.name.trim(),
+          version: technology.version?.trim() || undefined,
+        })),
+      ),
+      environment: listOrUndefined(environment),
+      reproductionSteps: listOrUndefined(steps),
+      expectedBehavior: trimmedOrUndefined(values.expectedBehavior),
+      actualBehavior: trimmedOrUndefined(values.actualBehavior),
+      attemptsTried: trimmedOrUndefined(values.attemptsTried),
+      errorMessage: trimmedOrUndefined(values.errorMessage),
+      repositoryUrl: trimmedOrUndefined(values.repositoryUrl),
+      newTagNames: listOrUndefined(submittedTags.map((tag) => tag.trim())),
+    };
+
+    setIsSavingDraft(true);
+    try {
+      let saved: ProblemResponse;
+      if (workingProblem?.id) {
+        saved = await updateProblem({
+          id: workingProblem.id,
+          version: workingProblem.version ?? 0,
+          body,
+        }).unwrap();
+      } else {
+        saved = await createProblemDraft(body).unwrap();
+      }
+
+      setPreparedDraft(saved);
+
+      for (const attached of attachedFiles) {
+        try {
+          saved = await uploadProblemAttachment({
+            problemId: saved.id!,
+            file: attached.file,
+          }).unwrap();
+          setPreparedDraft(saved);
+          setAttachedFiles((current) =>
+            current.filter((file) => file.id !== attached.id),
+          );
+        } catch (uploadError) {
+          const message = contentScanErrorMessage(uploadError, attached.name);
+          toast.error("Attachment failed", { description: message });
+        }
+      }
+
+      toast.success("Draft saved successfully.");
+    } catch (error) {
+      const parsed = parseApiError(error, "The draft could not be saved.");
+      setSubmitError(parsed.message);
+      toast.error(parsed.message);
+    } finally {
+      setIsSavingDraft(false);
     }
   };
 
@@ -609,6 +850,61 @@ export function CreateProblemForm({
     >
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="flex flex-col gap-6 lg:col-span-2">
+          {/* ── Unfinished Draft Found Alert Banner ── */}
+          {!isEdit && !preparedDraft && latestDraft && !dismissedDraftBanner && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 sm:px-4 text-xs sm:text-sm"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                  <FileText className="size-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-foreground truncate">
+                    Unpublished draft found: &ldquo;{latestDraft.title}&rdquo;
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Would you like to resume where you left off?
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  onClick={() => loadDraftIntoForm(latestDraft)}
+                  className="h-8 text-xs font-medium px-3 cursor-pointer"
+                >
+                  Resume draft
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setDismissedDraftBanner(true)}
+                  className="h-8 text-xs text-muted-foreground hover:text-foreground px-2.5 cursor-pointer"
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Active Draft Indicator Banner ── */}
+          {preparedDraft && !isEdit && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-xs text-emerald-800 dark:text-emerald-300">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                <span>
+                  Editing saved draft: <strong>{preparedDraft.title || "Untitled draft"}</strong>. Changes will update this draft.
+                </span>
+              </div>
+            </div>
+          )}
+
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -619,28 +915,20 @@ export function CreateProblemForm({
               aria-labelledby="problem-details-heading"
             >
               <CardHeader className="border-b border-border/70 pb-4">
-                <div className="flex items-start gap-3.5">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-linear-to-br from-primary/15 to-primary/5 text-primary border border-primary/20 shadow-2xs shrink-0">
-                    <FileText className="size-5" />
-                  </div>
+                <div className="flex items-start gap-3">
+                  <Badge variant="outline" className="mt-0.5 font-mono text-xs">
+                    01
+                  </Badge>
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="font-mono text-[10px] uppercase tracking-wider py-0 px-1.5 text-primary border-primary/30 bg-primary/5 font-semibold"
+                    <CardTitle>
+                      <h2
+                        id="problem-details-heading"
+                        className="text-lg font-bold tracking-tight text-foreground"
                       >
-                        Step 01
-                      </Badge>
-                      <CardTitle>
-                        <h2
-                          id="problem-details-heading"
-                          className="text-xl font-bold tracking-tight text-foreground"
-                        >
-                          Problem details
-                        </h2>
-                      </CardTitle>
-                    </div>
-                    <CardDescription className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                        Problem details
+                      </h2>
+                    </CardTitle>
+                    <CardDescription className="text-xs sm:text-sm text-muted-foreground">
                       Give the community enough context to understand, diagnose, and reproduce what is going wrong.
                     </CardDescription>
                   </div>
@@ -663,22 +951,9 @@ export function CreateProblemForm({
                         <span className="sr-only"> (required)</span>
                       </FieldLabel>
 
-                      {/* Dynamic Title Length Badge */}
-                      {titleLength === 0 ? (
-                        <Badge variant="outline" className="text-[11px] text-muted-foreground font-mono bg-muted/30 border-border/60">
-                          0/180 (min 10)
-                        </Badge>
-                      ) : titleLength < 10 ? (
-                        <Badge variant="outline" className="text-[11px] text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10 font-mono font-medium flex items-center gap-1">
-                          <Clock className="size-3" />
-                          <span>{10 - titleLength} more chars needed</span>
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[11px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 font-mono font-medium flex items-center gap-1">
-                          <CheckCircle2 className="size-3" />
-                          <span>{titleLength}/180</span>
-                        </Badge>
-                      )}
+                      <span className="text-xs text-muted-foreground font-mono tabular-nums">
+                        {title.length} / 180
+                      </span>
                     </div>
 
                     <Input
@@ -698,20 +973,20 @@ export function CreateProblemForm({
                     />
 
                     <FieldDescription id="problem-title-help">
-                      Be specific: name the behavior, conditions, and component rather than only the symptom.
+                      Use 10–180 characters. Name the specific behavior and conditions rather than only the symptom.
                     </FieldDescription>
 
                     {errors.title?.message && (
-                      <div id="problem-title-error" className="flex items-center gap-1.5 text-xs font-medium text-destructive mt-1.5">
-                        <AlertCircle className="size-3.5 shrink-0" />
-                        <span>{errors.title.message}</span>
-                      </div>
+                      <FieldError id="problem-title-error">
+                        {errors.title.message}
+                      </FieldError>
                     )}
 
                     {/* "Has someone already asked this?" Live & AI Duplicate Panel */}
                     <ProblemDuplicatePanel
                       title={title}
                       description={description}
+                      errorMessage={errorMessage}
                       excludeId={problem?.id}
                     />
                   </Field>
@@ -731,53 +1006,39 @@ export function CreateProblemForm({
                         <span className="sr-only"> (required)</span>
                       </FieldLabel>
 
-                      {/* Dynamic Description Length Badge */}
-                      {descriptionLength === 0 ? (
-                        <Badge variant="outline" className="text-[11px] text-muted-foreground font-mono bg-muted/30 border-border/60">
-                          0/20,000 (min 30)
-                        </Badge>
-                      ) : descriptionLength < 30 ? (
-                        <Badge variant="outline" className="text-[11px] text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10 font-mono font-medium flex items-center gap-1">
-                          <Clock className="size-3" />
-                          <span>{30 - descriptionLength} more chars needed</span>
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[11px] text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 font-mono font-medium flex items-center gap-1">
-                          <CheckCircle2 className="size-3" />
-                          <span>{descriptionLength.toLocaleString()}/20,000</span>
-                        </Badge>
-                      )}
+                      <span className="text-xs text-muted-foreground font-mono tabular-nums">
+                        {description.length.toLocaleString()} / 20,000
+                      </span>
                     </div>
 
-                    {/* Quick Template Helper Chips */}
-                    <div className="flex flex-wrap items-center gap-1.5 py-1">
-                      <span className="text-[11px] text-muted-foreground font-medium mr-1 flex items-center gap-1">
-                        <Sparkles className="size-3 text-primary" />
-                        Quick templates:
-                      </span>
+                    {/* Quick Template Helper Actions */}
+                    <div className="flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground/80">Insert template:</span>
                       <button
                         type="button"
                         onClick={() => handleInsertTemplate("expected")}
                         disabled={submitting}
-                        className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted hover:border-primary/40 transition-colors cursor-pointer disabled:opacity-50"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer hover:underline underline-offset-2"
                       >
-                        + Expected vs Actual
+                        Expected vs Actual
                       </button>
+                      <span aria-hidden="true" className="opacity-40">·</span>
                       <button
                         type="button"
                         onClick={() => handleInsertTemplate("steps")}
                         disabled={submitting}
-                        className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted hover:border-primary/40 transition-colors cursor-pointer disabled:opacity-50"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer hover:underline underline-offset-2"
                       >
-                        + Steps to Reproduce
+                        Steps to Reproduce
                       </button>
+                      <span aria-hidden="true" className="opacity-40">·</span>
                       <button
                         type="button"
                         onClick={() => handleInsertTemplate("logs")}
                         disabled={submitting}
-                        className="inline-flex items-center gap-1 rounded-lg border border-border/70 bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted hover:border-primary/40 transition-colors cursor-pointer disabled:opacity-50"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer hover:underline underline-offset-2"
                       >
-                        + Error / Log Snippet
+                        Error / Stack Trace
                       </button>
                     </div>
 
@@ -808,14 +1069,13 @@ export function CreateProblemForm({
                     />
 
                     <FieldDescription id="problem-description-help">
-                      Markdown and syntax highlighting are supported. Include error output, environment details, and reproduction steps when relevant.
+                      Markdown and syntax highlighting are supported (minimum 30 characters). Include error output, environment details, and reproduction steps.
                     </FieldDescription>
 
                     {errors.description?.message && (
-                      <div id="problem-description-error" className="flex items-center gap-1.5 text-xs font-medium text-destructive mt-1.5">
-                        <AlertCircle className="size-3.5 shrink-0" />
-                        <span>{errors.description.message}</span>
-                      </div>
+                      <FieldError id="problem-description-error">
+                        {errors.description.message}
+                      </FieldError>
                     )}
                   </Field>
                 </FieldGroup>
@@ -1024,8 +1284,9 @@ export function CreateProblemForm({
                       </h2>
                     </CardTitle>
                     <CardDescription>
-                      Optional, and worth the minutes: a problem with steps and
-                      error output gets answered far sooner.
+                      {isBug
+                        ? "Required for Bug reports: expected behaviour, actual behaviour, and at least one reproduction step are mandatory."
+                        : "Optional for general questions, but recommended: problems with clear steps and context get answered far sooner."}
                     </CardDescription>
                   </div>
                 </div>
@@ -1042,6 +1303,11 @@ export function CreateProblemForm({
                       <div className="flex items-center justify-between gap-3">
                         <FieldLabel htmlFor="problem-expected">
                           Expected behaviour
+                          {isBug && (
+                            <span aria-hidden="true" className="text-destructive font-bold ml-0.5">
+                              *
+                            </span>
+                          )}
                         </FieldLabel>
                         <Badge variant="secondary" className="tabular-nums">
                           {expectedBehavior.length}/5,000
@@ -1067,6 +1333,11 @@ export function CreateProblemForm({
                       <div className="flex items-center justify-between gap-3">
                         <FieldLabel htmlFor="problem-actual">
                           Actual behaviour
+                          {isBug && (
+                            <span aria-hidden="true" className="text-destructive font-bold ml-0.5">
+                              *
+                            </span>
+                          )}
                         </FieldLabel>
                         <Badge variant="secondary" className="tabular-nums">
                           {actualBehavior.length}/5,000
@@ -1091,6 +1362,11 @@ export function CreateProblemForm({
                     <div className="flex items-center justify-between gap-3">
                       <FieldLegend className="text-base">
                         Steps to reproduce
+                        {isBug && (
+                          <span aria-hidden="true" className="text-destructive font-bold ml-0.5">
+                            *
+                          </span>
+                        )}
                       </FieldLegend>
                       <Badge variant="secondary" className="tabular-nums">
                         {reproductionSteps.length}/{MAX_REPRODUCTION_STEPS}
@@ -1916,12 +2192,12 @@ export function CreateProblemForm({
                   met={Boolean(
                     expectedBehavior.trim() && actualBehavior.trim(),
                   )}
-                  optional
+                  optional={!isBug}
                 />
                 <RequirementRow
                   label="Steps to reproduce"
                   met={reproductionSteps.some((step) => step.trim())}
-                  optional
+                  optional={!isBug}
                 />
                 <RequirementRow
                   label="Error output"
@@ -1944,7 +2220,7 @@ export function CreateProblemForm({
                 )}
               </CardContent>
 
-              <CardFooter className="flex-col gap-2 border-t border-slate-100 dark:border-neutral-800">
+              <CardFooter className="flex-col gap-2 border-t border-border/70 pt-4">
                 <motion.div
                   className="w-full"
                   whileHover={submitting ? undefined : { y: -2 }}
@@ -1974,13 +2250,40 @@ export function CreateProblemForm({
                   </Button>
                 </motion.div>
 
+                {!isEdit && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    disabled={submitting || isSavingDraft}
+                    onClick={handleSaveDraft}
+                    className="h-11 w-full rounded-xl font-medium border-border/80 hover:bg-muted"
+                  >
+                    {isSavingDraft ? (
+                      <>
+                        <LoaderCircle
+                          data-icon="inline-start"
+                          aria-hidden="true"
+                          className="animate-spin motion-reduce:animate-none"
+                        />
+                        <span>Saving draft…</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save data-icon="inline-start" aria-hidden="true" />
+                        <span>Save as draft</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="lg"
-                  disabled={submitting}
+                  disabled={submitting || isSavingDraft}
                   onClick={() => router.push(cancelHref)}
-                  className="h-11 w-full rounded-xl"
+                  className="h-10 w-full rounded-xl text-muted-foreground hover:text-foreground"
                 >
                   Cancel
                 </Button>

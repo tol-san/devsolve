@@ -145,7 +145,7 @@ const uniqueStrings = (values: string[]) =>
  * `description`, `problemType` and `title` are the four the backend requires;
  * the rest of the detail fields are optional and left to the writer.
  */
-export const problemCreateSchema = z.object({
+export const problemCreateObjectSchema = z.object({
   categoryId: z.uuid("Category id must be a UUID"),
   title: z
     .string()
@@ -219,6 +219,35 @@ export const problemCreateSchema = z.object({
     .optional(),
 });
 
+export const problemCreateSchema = problemCreateObjectSchema.superRefine(
+  (data, ctx) => {
+    if (data.problemType === "BUG") {
+      if (!data.expectedBehavior?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Expected behaviour is required for bug reports",
+          path: ["expectedBehavior"],
+        });
+      }
+      if (!data.actualBehavior?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Actual behaviour is required for bug reports",
+          path: ["actualBehavior"],
+        });
+      }
+      const validSteps = (data.reproductionSteps ?? []).filter((s) => s.trim());
+      if (validSteps.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "At least one reproduction step is required for bug reports",
+          path: ["reproductionSteps"],
+        });
+      }
+    }
+  },
+);
+
 /** Raw values accepted by the wire schema. */
 export type CreateProblemInput = z.input<typeof problemCreateSchema>;
 
@@ -229,7 +258,7 @@ export type CreateProblemInput = z.input<typeof problemCreateSchema>;
  * below ten characters; what changes is that omitting a field is allowed and
  * means "leave it alone".
  */
-export const problemUpdateSchema = problemCreateSchema.partial();
+export const problemUpdateSchema = problemCreateObjectSchema.partial();
 
 /** Validated body sent to `PATCH /api/v1/problems/{id}`. */
 export type ProblemUpdateRequest = z.output<typeof problemUpdateSchema>;
@@ -255,54 +284,81 @@ const problemTechnologyFormSchema = z.object({
  * form has to be looser: a repeatable field is empty for as long as it takes
  * to fill in, so blank rows pass here and the submit handler drops them.
  */
-export const createProblemFormSchema = problemCreateSchema.extend({
-  title: z
-    .string()
-    .trim()
-    .min(10, "Title must be at least 10 characters")
-    .max(180, "Title must not exceed 180 characters")
-    .refine(isCleanText, profanityMessage("Title"))
-    .refine(isReadableText, readabilityMessage("Title")),
-  categoryId: z.uuid("Choose a category"),
-  description: z
-    .string()
-    .trim()
-    .min(30, "Description must be at least 30 characters")
-    .max(20_000, "Description must not exceed 20000 characters")
-    .refine(isCleanText, profanityMessage("Description"))
-    .refine(isReadableText, readabilityMessage("Description")),
-  technologies: z
-    .array(problemTechnologyFormSchema)
-    .max(20, "Up to 20 technologies are allowed")
-    .optional(),
-  reproductionSteps: z
-    .array(z.string().max(1000, "A step must not exceed 1000 characters"))
-    .max(20, "Up to 20 reproduction steps are allowed")
-    .optional(),
-  environment: z
-    .array(
-      z.object({
-        technology: z
+export const createProblemFormSchema = problemCreateObjectSchema
+  .extend({
+    title: z
+      .string()
+      .trim()
+      .min(10, "Title must be at least 10 characters")
+      .max(180, "Title must not exceed 180 characters")
+      .refine(isCleanText, profanityMessage("Title"))
+      .refine(isReadableText, readabilityMessage("Title")),
+    categoryId: z.uuid("Choose a category"),
+    description: z
+      .string()
+      .trim()
+      .min(30, "Description must be at least 30 characters")
+      .max(20_000, "Description must not exceed 20000 characters")
+      .refine(isCleanText, profanityMessage("Description"))
+      .refine(isReadableText, readabilityMessage("Description")),
+    technologies: z
+      .array(problemTechnologyFormSchema)
+      .max(20, "Up to 20 technologies are allowed")
+      .optional(),
+    reproductionSteps: z
+      .array(z.string().max(1000, "A step must not exceed 1000 characters"))
+      .max(20, "Up to 20 reproduction steps are allowed")
+      .optional(),
+    environment: z
+      .array(
+        z.object({
+          technology: z
+            .string()
+            .max(100, "An environment name must not exceed 100 characters"),
+          version: z
+            .string()
+            .max(50, "An environment version must not exceed 50 characters")
+            .optional(),
+        }),
+      )
+      .max(20, "Up to 20 environment entries are allowed")
+      .optional(),
+    repositoryUrl: z
+      .union([
+        z.literal(""),
+        z
           .string()
-          .max(100, "An environment name must not exceed 100 characters"),
-        version: z
-          .string()
-          .max(50, "An environment version must not exceed 50 characters")
-          .optional(),
-      }),
-    )
-    .max(20, "Up to 20 environment entries are allowed")
-    .optional(),
-  repositoryUrl: z
-    .union([
-      z.literal(""),
-      z
-        .string()
-        .max(1000, "Repository URL must not exceed 1000 characters")
-        .regex(/^https:\/\/\S+$/i, "Repository URL must start with https://"),
-    ])
-    .optional(),
-});
+          .max(1000, "Repository URL must not exceed 1000 characters")
+          .regex(/^https:\/\/\S+$/i, "Repository URL must start with https://"),
+      ])
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.problemType === "BUG") {
+      if (!data.expectedBehavior?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Expected behaviour is required for bug reports",
+          path: ["expectedBehavior"],
+        });
+      }
+      if (!data.actualBehavior?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Actual behaviour is required for bug reports",
+          path: ["actualBehavior"],
+        });
+      }
+      const validSteps = (data.reproductionSteps ?? []).filter((s) => s.trim());
+      if (validSteps.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "At least one reproduction step is required for bug reports",
+          path: ["reproductionSteps"],
+        });
+      }
+    }
+  });
 
 export type CreateProblemFormInput = z.input<
   typeof createProblemFormSchema

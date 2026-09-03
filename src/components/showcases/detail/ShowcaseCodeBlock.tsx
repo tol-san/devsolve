@@ -18,8 +18,6 @@ import { cn } from "@/lib/utils";
 interface ShowcaseCodeBlockProps {
   /** Raw code snippet string from the showcase step */
   code: string;
-  /** Optional title or filename for the code frame header */
-  title?: string;
   /** Optional explicit language override */
   language?: string;
   /** Optional custom container class name */
@@ -101,7 +99,6 @@ function formatLanguageName(lang: string): string {
  */
 export function ShowcaseCodeBlock({
   code,
-  title,
   language: explicitLanguage,
   className,
 }: ShowcaseCodeBlockProps) {
@@ -233,17 +230,6 @@ export function ShowcaseCodeBlock({
                 <Terminal className="size-3 text-primary" />
                 {formatLanguageName(language)}
               </span>
-
-              {title && (
-                <span
-                  className={cn(
-                    "hidden sm:inline-block text-xs font-medium truncate max-w-[240px] md:max-w-[320px]",
-                    isDark ? "text-slate-400" : "text-slate-600",
-                  )}
-                >
-                  {title}
-                </span>
-              )}
 
               <span
                 className={cn(

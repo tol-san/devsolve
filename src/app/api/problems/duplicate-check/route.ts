@@ -20,6 +20,7 @@ import {
 const duplicateCheckSchema = z.object({
   title: z.string().min(1).max(180),
   description: z.string().max(20000).optional(),
+  errorMessage: z.string().max(10000).optional(),
   excludeId: z.string().uuid().optional(),
 });
 

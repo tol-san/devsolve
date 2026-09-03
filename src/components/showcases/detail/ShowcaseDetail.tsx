@@ -313,7 +313,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
                         {step.codeSnippet && (
                           <ShowcaseCodeBlock
                             code={step.codeSnippet}
-                            title={step.title}
                           />
                         )}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useT } from "@/lib/i18n/I18nProvider";
 import { motion } from "motion/react";
@@ -75,7 +76,13 @@ export function NavbarUserMenu({
   onSignOut,
 }: NavbarUserMenuProps) {
   const t = useT();
-  if (isIdentityPending) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted || isIdentityPending) {
     return (
       <div
         aria-hidden

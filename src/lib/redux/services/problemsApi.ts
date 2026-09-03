@@ -133,15 +133,18 @@ export interface RelatedProblem {
 export interface DuplicateCheckRequest {
   title: string;
   description?: string;
+  errorMessage?: string;
   excludeId?: string;
 }
 
 export interface DuplicateSuggestion {
   id: string;
   title: string;
+  excerpt: string | null;
   status: "PUBLISHED" | "RESOLVED" | "CLOSED";
   solved: boolean;
   solutionCount: number;
+  acceptedSolutionCount: number;
   viewCount: number;
   verdict: "DUPLICATE" | "NEAR_DUPLICATE" | "RELATED" | null;
   confidence: number | null;
@@ -371,6 +374,23 @@ export const problemsApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+
+    /**
+     * GET /api/problems/mine — caller's own problems, including drafts and pending approval.
+     */
+    getMyProblems: builder.query<
+      { content?: ProblemResponse[]; totalElements?: number },
+      { page?: number; size?: number } | void
+    >({
+      query: (params) => {
+        const search = new URLSearchParams();
+        if (params?.page !== undefined) search.set("page", String(params.page));
+        if (params?.size !== undefined) search.set("size", String(params.size));
+        const qs = search.toString();
+        return `/problems/mine${qs ? `?${qs}` : ""}`;
+      },
+      providesTags: [{ type: "Problem", id: "MINE" }],
+    }),
   }),
   overrideExisting: true,
 });
@@ -391,5 +411,7 @@ export const {
   useGetRelatedProblemsQuery,
   useLazyGetRelatedProblemsQuery,
   useCheckDuplicateProblemsMutation,
+  useGetMyProblemsQuery,
+  useLazyGetMyProblemsQuery,
 } = problemsApi;
 
