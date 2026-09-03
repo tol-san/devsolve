@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  ArrowUpRight,
   Building2,
   FileQuestion,
   LayoutPanelTop,
@@ -33,11 +34,6 @@ const FALLBACK_ICON: Record<SearchType, typeof User> = {
 
 /**
  * The one or two facts worth showing beside a hit, chosen per index.
- *
- * `document` holds the whole indexed record and its fields differ by type, so
- * this picks rather than prints: enum-ish values arrive as `UPPER_SNAKE` and
- * are mapped to labels, and anything absent is simply left out instead of
- * rendering an empty chip.
  */
 function factsFor(hit: SearchHit): string[] {
   const doc = hit.document;
@@ -76,7 +72,7 @@ function factsFor(hit: SearchHit): string[] {
       const reputation = docNumber(doc, "reputation");
       return [
         docString(doc, "country"),
-        reputation ? `${reputation.toLocaleString()} reputation` : null,
+        reputation ? `${reputation.toLocaleString()} rep` : null,
       ].filter((fact): fact is string => Boolean(fact));
     }
   }
@@ -84,22 +80,24 @@ function factsFor(hit: SearchHit): string[] {
 
 type SearchHitRowProps = {
   hit: SearchHit;
-  /** Compact drops the snippet and facts — the dropdown has no room. */
   compact?: boolean;
+  isSelected?: boolean;
   onNavigate?: () => void;
 };
 
 /**
  * One search result, in the dropdown or on the results page.
- *
- * `imageUrl` and `subtitle` are frequently null on every index, so both have a
- * fallback rather than a hole: an avatar becomes the type's own icon, and a
- * missing subtitle simply closes the gap.
  */
-export function SearchHitRow({ hit, compact, onNavigate }: SearchHitRowProps) {
+export function SearchHitRow({
+  hit,
+  compact,
+  isSelected,
+  onNavigate,
+}: SearchHitRowProps) {
   const lp = useLocalePath();
   const Icon = FALLBACK_ICON[hit.type];
-  const facts = compact ? [] : factsFor(hit);
+  const allFacts = factsFor(hit);
+  const facts = compact ? allFacts.slice(0, 2) : allFacts;
   const isPerson = hit.type === "users";
 
   return (
@@ -107,38 +105,44 @@ export function SearchHitRow({ hit, compact, onNavigate }: SearchHitRowProps) {
       href={lp(hrefForHit(hit))}
       onClick={onNavigate}
       className={cn(
-        "flex items-start gap-3 rounded-xl transition-colors hover:bg-muted",
-        compact ? "p-2" : "border border-border bg-card p-3.5 sm:p-4",
+        "group flex items-center gap-3 rounded-xl transition-all duration-150 cursor-pointer",
+        compact
+          ? "px-3 py-2.5 hover:bg-muted/60"
+          : "border border-border bg-card p-3.5 sm:p-4 hover:border-border/80 hover:bg-muted/30 hover:shadow-xs",
+        isSelected &&
+          (compact
+            ? "bg-muted text-foreground ring-1 ring-border shadow-2xs"
+            : "ring-1 ring-border bg-muted/50"),
       )}
     >
       <span
         className={cn(
-          "flex shrink-0 items-center justify-center overflow-hidden border border-border bg-muted",
-          isPerson ? "rounded-full" : "rounded-lg",
-          compact ? "size-9" : "size-12",
+          "flex shrink-0 items-center justify-center overflow-hidden border border-border/70 bg-muted/60 text-muted-foreground transition-colors duration-150 group-hover:bg-muted group-hover:text-foreground",
+          isPerson ? "rounded-full" : "rounded-xl",
+          compact ? "size-10" : "size-12",
         )}
       >
         {hit.imageUrl ? (
           <Image
             src={hit.imageUrl}
             alt=""
-            width={compact ? 36 : 48}
-            height={compact ? 36 : 48}
+            width={compact ? 40 : 48}
+            height={compact ? 40 : 48}
             unoptimized
             className="size-full object-cover"
           />
         ) : (
           <Icon
-            className={cn("text-muted-foreground", compact ? "size-4" : "size-5")}
+            className={cn("shrink-0", compact ? "size-4.5" : "size-5")}
           />
         )}
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="flex items-baseline gap-2">
+        <span className="flex items-center gap-2">
           <span
             className={cn(
-              "truncate font-semibold text-foreground",
+              "truncate font-semibold text-foreground group-hover:text-foreground transition-colors",
               compact ? "text-sm" : "text-base",
             )}
           >
@@ -146,27 +150,56 @@ export function SearchHitRow({ hit, compact, onNavigate }: SearchHitRowProps) {
           </span>
         </span>
 
-        {hit.subtitle && (
-          <span className="mt-0.5 block truncate text-sm text-muted-foreground">
-            {hit.subtitle}
-          </span>
-        )}
+        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+          {hit.subtitle && (
+            <span className="truncate text-xs text-muted-foreground">
+              {hit.subtitle}
+            </span>
+          )}
+
+          {compact && facts.length > 0 && (
+            <>
+              {hit.subtitle && <span className="text-muted-foreground/40 text-xs">·</span>}
+              <div className="flex flex-wrap items-center gap-1">
+                {facts.map((fact) => (
+                  <span
+                    key={fact}
+                    className="inline-flex items-center rounded-md border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground"
+                  >
+                    {fact}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
         {!compact && (
           <SearchSnippet snippet={hit.snippet} className="mt-1.5 line-clamp-2" />
         )}
 
-        {facts.length > 0 && (
+        {!compact && facts.length > 0 && (
           <span className="mt-2 flex flex-wrap gap-1.5">
             {facts.map((fact) => (
               <span
                 key={fact}
-                className="rounded-md border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground"
+                className="rounded-md border border-border/60 bg-muted/40 px-2 py-0.5 text-xs font-medium text-muted-foreground"
               >
                 {fact}
               </span>
             ))}
           </span>
+        )}
+      </span>
+
+      {/* Right side indicator */}
+      <span className="flex items-center shrink-0">
+        {isSelected ? (
+          <kbd className="hidden sm:inline-flex items-center rounded border border-border/80 bg-background px-1.5 py-0.5 font-mono text-[10px] font-semibold text-foreground shadow-2xs">
+            ↵
+          </kbd>
+        ) : (
+          <ArrowUpRight className="size-4 text-muted-foreground/40 opacity-0 group-hover:opacity-100 group-hover:text-foreground transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
         )}
       </span>
     </Link>
