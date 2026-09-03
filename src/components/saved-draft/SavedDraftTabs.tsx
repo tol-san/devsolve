@@ -3,6 +3,7 @@
 import {
   FileText,
   FolderKanban,
+  HelpCircle,
   LayoutGrid,
   Shield,
   type LucideIcon,
@@ -28,6 +29,7 @@ type DraftTabConfig = {
 
 const TAB_CONFIG: DraftTabConfig[] = [
   { key: "all", label: "All", icon: LayoutGrid },
+  { key: "problem", label: "Problems", icon: HelpCircle },
   { key: "program", label: "Program", icon: FolderKanban },
   { key: "response", label: "Response", icon: Shield },
   { key: "report", label: "Report", icon: FileText },

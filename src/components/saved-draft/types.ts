@@ -1,4 +1,4 @@
-export type DraftCategory = "all" | "program" | "response" | "report";
+export type DraftCategory = "all" | "problem" | "program" | "response" | "report";
 
 export type ProgramDraftKind = "bounty" | "response";
 

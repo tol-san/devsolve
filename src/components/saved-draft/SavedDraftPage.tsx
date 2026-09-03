@@ -27,6 +27,10 @@ import {
   useDeleteReportDraftMutation,
   useGetReportDraftsQuery,
 } from "@/lib/redux/services/reportDraftsApi";
+import {
+  useDeleteProblemMutation,
+  useGetMyProblemsQuery,
+} from "@/lib/redux/services/problemsApi";
 import { toDate } from "@/lib/format/datetime";
 import { describe } from "@/lib/seo/text";
 import { isEditableDraft, isUnderReview } from "@/lib/programs/draft-status";
@@ -36,6 +40,7 @@ const ITEMS_PER_PAGE = 6;
 
 const SEARCH_PLACEHOLDERS: Record<DraftCategory, string> = {
   all: "Search all saved drafts...",
+  problem: "Search problem drafts...",
   program: "Search program drafts...",
   response: "Search response drafts...",
   report: "Search report drafts...",
@@ -79,8 +84,9 @@ export function SavedDraftPage() {
   const { hasCompanyAccess: isCompany, can, membership } = useCompanyAccess();
   const isUser = userRoles.includes("USER");
 
-  const ALL_TABS: DraftCategory[] = ["all", "program", "response", "report"];
+  const ALL_TABS: DraftCategory[] = ["all", "problem", "program", "response", "report"];
   const visibleTabs: DraftCategory[] = ALL_TABS.filter((tab) => {
+    if (tab === "problem" && !isUser) return false;
     if ((tab === "program" || tab === "response") && isUser && !isCompany) return false;
     if (tab === "report" && isCompany && !isUser) return false;
     return true;
@@ -105,6 +111,10 @@ export function SavedDraftPage() {
   const { data: companyProgramsData, isLoading: isCompanyProgramsLoading } =
     useGetMyCompanyProgramsQuery({ size: 100 }, { skip: !isCompany });
 
+  // Fetch caller's problem drafts
+  const { data: myProblemsData, isLoading: isProblemsLoading } =
+    useGetMyProblemsQuery({ size: 100 }, { skip: !isUser });
+
   /* The reporter side of the same screen. Report drafts are saved by the
      submit form as it is typed into, and this is the only place they can be
      found again from outside that form. */
@@ -127,10 +137,12 @@ export function SavedDraftPage() {
     { skip: !isUser },
   );
 
-  const isLoading = isCompanyProgramsLoading || isReportDraftsLoading;
+  const isLoading =
+    isCompanyProgramsLoading || isReportDraftsLoading || isProblemsLoading;
 
   const [deleteProgram] = useDeleteProgramMutation();
   const [deleteReportDraft] = useDeleteReportDraftMutation();
+  const [deleteProblem] = useDeleteProblemMutation();
 
   const programsById = useMemo(() => {
     const byId = new Map<string, { name: string; logoUrl: string }>();
@@ -226,8 +238,41 @@ export function SavedDraftPage() {
       });
     });
 
+    /* One card per saved problem draft. */
+    (myProblemsData?.content ?? [])
+      .filter((p) => p.status === "DRAFT")
+      .forEach((problem) => {
+        const title = problem.title?.trim() || "Untitled problem draft";
+        items.push({
+          id: problem.id,
+          title,
+          description: describe(
+            problem.description,
+            "No description yet. Pick this up where you left off.",
+            160,
+          ),
+          category: "problem",
+          updatedAt: problem.updatedAt
+            ? new Date(problem.updatedAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "Recently",
+          updatedAtIso: problem.updatedAt,
+          tags: [
+            problem.categoryName,
+            problem.problemType,
+            ...(problem.tags ?? []).map((t) => t.name).filter(Boolean),
+          ].filter((tag): tag is string => Boolean(tag)),
+          initials: title.slice(0, 2).toUpperCase(),
+          logoSrc: "",
+          logoAlt: title,
+        });
+      });
+
     return items;
-  }, [companyProgramsData, companyOrg, reportDrafts, programsById]);
+  }, [companyProgramsData, companyOrg, reportDrafts, programsById, myProblemsData]);
 
   /**
    * Programs the reviewers are holding.
@@ -254,6 +299,7 @@ export function SavedDraftPage() {
   const counts = useMemo(() => {
     return {
       all: draftItems.length,
+      problem: draftItems.filter((item) => item.category === "problem").length,
       program: draftItems.filter(
         (item) => item.category === "program" || item.programDraftKind === "bounty"
       ).length,
@@ -270,6 +316,7 @@ export function SavedDraftPage() {
     return draftItems
       .filter((item) => {
         if (activeTab === "all") return true;
+        if (activeTab === "problem") return item.category === "problem";
         if (activeTab === "program")
           return item.category === "program" || item.programDraftKind === "bounty";
         if (activeTab === "response")
@@ -306,22 +353,21 @@ export function SavedDraftPage() {
   );
 
   const handleDeleteItem = async (itemId: string) => {
-    /* Two kinds of draft share this list and they live at different
-       endpoints — deleting a report draft through the program endpoint would
-       404 and leave the card in place. */
+    /* Three kinds of draft share this list and they live at different
+       endpoints — deleting through the wrong endpoint would 404. */
     const item = draftItems.find((draft) => draft.id === itemId);
 
-    /* A report draft is the reporter's own and always theirs to discard. A
-       program draft belongs to the organization, so it takes DELETE_PROGRAM —
-       without it the upstream answers 403 and the card stays put either way,
-       so the refusal is stated instead. */
-    if (item?.category !== "report" && !can("DELETE_PROGRAM")) {
+    /* A problem or report draft is the user's own and always theirs to discard.
+       A program draft belongs to the organization, so it takes DELETE_PROGRAM. */
+    if (item?.category === "program" && !can("DELETE_PROGRAM")) {
       toast.error("Deleting a program needs the delete permission");
       return;
     }
 
     try {
-      if (item?.category === "report") {
+      if (item?.category === "problem") {
+        await deleteProblem(itemId).unwrap();
+      } else if (item?.category === "report") {
         await deleteReportDraft(itemId).unwrap();
       } else {
         await deleteProgram(itemId).unwrap();

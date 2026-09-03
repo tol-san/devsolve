@@ -33,6 +33,9 @@ interface SavedDraftCardProps {
 
 
 function getDraftMeta(item: SavedDraftItem) {
+  if (item.category === "problem") {
+    return { label: "Problem draft" };
+  }
   if (item.category === "report") {
     return { label: "Report draft" };
   }
@@ -43,6 +46,9 @@ function getDraftMeta(item: SavedDraftItem) {
 }
 
 function getDraftHref(item: SavedDraftItem) {
+  if (item.category === "problem") {
+    return `/community/create/problem?draftId=${encodeURIComponent(item.id)}`;
+  }
   if (item.category === "report") {
     return `/dashboard/submit-report?id=${encodeURIComponent(item.id)}`;
   }
@@ -50,11 +56,14 @@ function getDraftHref(item: SavedDraftItem) {
 }
 
 export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
-  /* A report draft is the reporter's own and always theirs to discard. A
+  /* A problem or report draft is the user's own and always theirs to discard. A
      program draft belongs to the organization and takes DELETE_PROGRAM, so
      without it there is nothing here to press. */
   const { can } = useCompanyAccess();
-  const canDelete = item.category === "report" || can("DELETE_PROGRAM");
+  const canDelete =
+    item.category === "problem" ||
+    item.category === "report" ||
+    can("DELETE_PROGRAM");
   const [imageError, setImageError] = useState(false);
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
