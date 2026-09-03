@@ -273,36 +273,36 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
           </div>
         </CardContent>
 
-        <CardFooter className="pointer-events-none relative flex flex-col items-stretch gap-3 px-5 pt-0 pb-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-6">
-          <div className="flex min-w-0 items-center gap-2.5">
+        <CardFooter className="pointer-events-none relative flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5 px-5 pt-0 pb-5 sm:px-6 sm:pb-6">
+          <div className="flex min-w-0 items-center gap-2">
             <CardAuthorAvatar author={post.author} />
-            <div className="flex min-w-0 items-baseline gap-2">
-              <span className="truncate text-sm font-semibold text-foreground">
+            <div className="flex min-w-0 items-baseline gap-1.5 text-sm overflow-hidden">
+              <span className="truncate font-semibold text-foreground">
                 {post.author.name}
               </span>
-              <span className="shrink-0 text-sm text-muted-foreground">
+              <span className="shrink-0 text-xs text-muted-foreground">
                 {relativeTime(post.sortTimestamp)}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 sm:justify-end">
-            <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
               <span
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-1"
                 aria-label={`${post.answersCount} ${answerNoun}`}
               >
-                <MessageSquare aria-hidden="true" className="size-4" />
+                <MessageSquare aria-hidden="true" className="size-3.5 shrink-0" />
                 <span>{post.answersCount}</span>
-                <span className="hidden md:inline">{answerNoun}</span>
+                <span className="hidden min-[1400px]:inline">{answerNoun}</span>
               </span>
               <span
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-1"
                 aria-label={`${post.viewsCount.toLocaleString()} ${t("community.card.views")}`}
               >
-                <Eye aria-hidden="true" className="size-4" />
+                <Eye aria-hidden="true" className="size-3.5 shrink-0" />
                 <span>{post.viewsCount.toLocaleString()}</span>
-                <span className="hidden md:inline">
+                <span className="hidden min-[1400px]:inline">
                   {t("community.card.views")}
                 </span>
               </span>

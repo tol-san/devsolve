@@ -654,6 +654,7 @@ export const discussionsApi = baseApi.injectEndpoints({
 
 export const {
   useGetDiscussionsQuery,
+  useGetDiscussionByIdQuery,
   useGetDiscussionTopicsQuery,
   useGetTrendingTagsQuery,
   useGetDiscussionStatsQuery,
