@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
+import { enrichReportsWithWeakness } from "@/lib/server/db";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const PROVIDER_ID = "keycloak";
@@ -48,13 +49,6 @@ export async function GET(request: NextRequest) {
       cache: "no-store",
     });
 
-    if (upstream.status === 403 || upstream.status === 404) {
-      return NextResponse.json(
-        { content: [], totalElements: 0, totalPages: 0, pageNumber: 0, pageSize: 10 },
-        { status: 200 }
-      );
-    }
-
     const raw = await upstream.text();
     let body: unknown = null;
     if (raw) {
@@ -67,16 +61,28 @@ export async function GET(request: NextRequest) {
 
     if (!upstream.ok) {
       return NextResponse.json(
-        { content: [], totalElements: 0, totalPages: 0, pageNumber: 0, pageSize: 10 },
-        { status: 200 }
+        typeof body === "object" && body !== null
+          ? body
+          : { message: "Failed to fetch researcher reports" },
+        { status: upstream.status }
       );
+    }
+
+    const envelope = (typeof body === "object" && body !== null ? body : {}) as Record<string, any>;
+    const items = Array.isArray(envelope.content)
+      ? envelope.content
+      : Array.isArray(envelope.items)
+      ? envelope.items
+      : Array.isArray(body)
+      ? (body as any[])
+      : [];
+
+    if (items.length > 0) {
+      await enrichReportsWithWeakness(items);
     }
 
     return NextResponse.json(body, { status: upstream.status });
   } catch {
-    return NextResponse.json(
-      { content: [], totalElements: 0, totalPages: 0, pageNumber: 0, pageSize: 10 },
-      { status: 200 }
-    );
+    return unreachable();
   }
 }

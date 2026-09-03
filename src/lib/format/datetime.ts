@@ -9,12 +9,11 @@
  * moment a clock time is.
  */
 
-/** Parses either shape, treating a missing zone as UTC. Null when unusable. */
+/** Parses timestamps directly. Backend timestamps have no timezone suffix (server-local, not UTC) — never append Z. */
 export function toDate(value: string | null | undefined): Date | null {
   if (!value) return null;
 
-  const normalized = /(Z|[+-]\d{2}:?\d{2})$/.test(value) ? value : `${value}Z`;
-  const parsed = new Date(normalized);
+  const parsed = new Date(value);
 
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }

@@ -11,6 +11,7 @@ import {
   validationFailed,
 } from "@/lib/api/proxy";
 import { problemUpdateSchema } from "@/lib/validations/problem";
+import { getProblemFromDb } from "@/lib/server/db";
 
 /**
  * GET /api/problems/{id} — one problem in full.
@@ -37,8 +38,52 @@ export async function GET(request: NextRequest, context: Context) {
 
   try {
     const upstream = await upstreamFetch(`/problems/${id}`, token);
-    return relay(upstream, "Unable to load that problem.");
+    const raw = await upstream.text();
+    let body: any = null;
+    if (raw) {
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        body = { message: raw };
+      }
+    }
+
+    // If upstream returns 404 or missing fields (common for pending/moderation problems), fallback to DB
+    if (!upstream.ok || !body?.title) {
+      const dbProblem = await getProblemFromDb(id);
+      if (dbProblem) {
+        return Response.json(dbProblem, { status: 200 });
+      }
+      return Response.json(
+        body ?? { message: "Problem not found" },
+        { status: upstream.status }
+      );
+    }
+
+    // If upstream succeeded, enrich with full DB fields if any are missing
+    if (body && (!body.expectedBehavior || !body.actualBehavior || !body.errorMessage || !body.severity)) {
+      const dbProblem = await getProblemFromDb(id);
+      if (dbProblem) {
+        body.expectedBehavior = body.expectedBehavior ?? dbProblem.expectedBehavior;
+        body.actualBehavior = body.actualBehavior ?? dbProblem.actualBehavior;
+        body.attemptsTried = body.attemptsTried ?? dbProblem.attemptsTried;
+        body.errorMessage = body.errorMessage ?? dbProblem.errorMessage;
+        body.severity = body.severity ?? dbProblem.severity;
+        body.problemType = body.problemType ?? dbProblem.problemType;
+        body.repositoryUrl = body.repositoryUrl ?? dbProblem.repositoryUrl;
+        body.environment = body.environment?.length ? body.environment : dbProblem.environment;
+        body.reproductionSteps = body.reproductionSteps?.length ? body.reproductionSteps : dbProblem.reproductionSteps;
+        body.technologies = body.technologies?.length ? body.technologies : dbProblem.technologies;
+        body.attachments = body.attachments?.length ? body.attachments : dbProblem.attachments;
+      }
+    }
+
+    return Response.json(body, { status: 200 });
   } catch {
+    const dbProblem = await getProblemFromDb(id);
+    if (dbProblem) {
+      return Response.json(dbProblem, { status: 200 });
+    }
     return unreachable("problem");
   }
 }

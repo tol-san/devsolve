@@ -35,8 +35,9 @@ export const saveReportDraftSchema = z.object({
   cvssVector: z.string().max(255).optional(),
   /** A number upstream, unlike the form's text input. */
   cvssScore: z.number().min(0).max(10).optional(),
-  weaknessId: z.string().uuid().optional(),
-  assetId: z.string().uuid().optional(),
+  weaknessId: z.string().uuid().nullish(),
+  suggestedWeakness: z.string().max(255).nullish(),
+  assetId: z.string().uuid().nullish(),
 });
 
 export type SaveReportDraftValues = z.output<typeof saveReportDraftSchema>;

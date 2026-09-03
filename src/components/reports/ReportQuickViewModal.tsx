@@ -38,6 +38,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import StatusBadge from "@/components/reports/StatusBadge";
 import SeverityBadge from "@/components/reports/SeverityBadge";
 import { MarkdownView } from "@/components/ui/markdown-view";
+import { WeaknessDisplay } from "@/components/reports/WeaknessDisplay";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -199,8 +200,31 @@ export function ReportQuickViewModal({
                   )}
                 </button>
 
-                <SeverityBadge severity={report.severity} />
+                <SeverityBadge
+                  severity={
+                    (reportDetail?.settledSeverity ||
+                      report.settledSeverity ||
+                      reportDetail?.agreedSeverity ||
+                      reportDetail?.triageSeverity ||
+                      reportDetail?.reportedSeverity ||
+                      report.severity) as any
+                  }
+                />
                 <StatusBadge status={report.status} />
+
+                {(reportDetail?.dispute || report.dispute) && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[10px] font-bold uppercase px-2 py-0.5 rounded-md",
+                      (reportDetail?.dispute?.status || report.dispute?.status) === "OPEN"
+                        ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+                        : "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300"
+                    )}
+                  >
+                    Dispute: {reportDetail?.dispute?.status || report.dispute?.status}
+                  </Badge>
+                )}
 
                 {reportDetail?.cvssScore && (
                   <Badge
@@ -497,16 +521,22 @@ export function ReportQuickViewModal({
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <FileText className="size-3.5 text-muted-foreground" />
-                    Vulnerability Summary
+                    Vulnerability Classification
                   </span>
-                  {reportDetail?.weakness && (
-                    <Badge
-                      variant="secondary"
-                      className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-muted text-foreground border border-border/60"
-                    >
-                      {reportDetail.weakness}
-                    </Badge>
-                  )}
+                  <div className="max-w-[70%]">
+                    <WeaknessDisplay
+                      weakness={
+                        reportDetail?.weaknessObj ||
+                        report.weaknessObj ||
+                        reportDetail?.weakness ||
+                        null
+                      }
+                      suggestedWeakness={
+                        reportDetail?.suggestedWeakness ||
+                        report.suggestedWeakness
+                      }
+                    />
+                  </div>
                 </div>
                 {reportDetail?.description && (
                   <div className="max-h-56 overflow-y-auto pr-1 text-xs leading-relaxed text-foreground/90">

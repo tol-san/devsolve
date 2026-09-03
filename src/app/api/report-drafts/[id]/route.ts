@@ -7,6 +7,10 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 import { saveReportDraftSchema } from "@/lib/validations/report-draft";
+import {
+  enrichDraftsWithWeakness,
+  saveDraftSuggestedWeakness,
+} from "@/lib/server/db";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -32,7 +36,22 @@ export async function GET(
 
   try {
     const upstream = await upstreamFetch(`/report-drafts/${id}`, token);
-    return relay(upstream, "Unable to load that draft.");
+    const raw = await upstream.text();
+    let body: any = null;
+    if (raw) {
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        body = { message: raw };
+      }
+    }
+    if (!upstream.ok) {
+      return NextResponse.json(body, { status: upstream.status });
+    }
+    if (body && typeof body === "object") {
+      await enrichDraftsWithWeakness([body]);
+    }
+    return NextResponse.json(body, { status: 200 });
   } catch {
     return unreachable();
   }
@@ -82,6 +101,13 @@ export async function PUT(
       method: "PUT",
       body: JSON.stringify(parsed.data),
     });
+
+    if (upstream.ok) {
+      const customWeakness = parsed.data.suggestedWeakness ?? null;
+      const weaknessId = parsed.data.weaknessId ?? null;
+      await saveDraftSuggestedWeakness(id, customWeakness, weaknessId);
+    }
+
     return relay(upstream, "The draft could not be saved.");
   } catch {
     return unreachable();

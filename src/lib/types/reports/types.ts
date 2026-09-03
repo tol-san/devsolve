@@ -1,10 +1,25 @@
+export interface DisputeDetail {
+  id?: string;
+  status: "OPEN" | "RESOLVED" | "DISMISSED";
+  reason?: string;
+  resolvedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
+  createdAt?: string;
+  resolvedAt?: string;
+}
+
+export interface WeaknessSummary {
+  id?: string;
+  cweId?: string;
+  name?: string;
+}
+
 export interface ReportItem {
   id: string;
   reportId: string;
   title: string;
   program: string;
   /** The program filed against, and the company behind it.
-
+ 
       Carried so a report can be grouped by who received it — the display name
       alone cannot do that, since two companies may run programs by the same
       name. Both are absent on a record that never came from the API, and
@@ -17,7 +32,24 @@ export interface ReportItem {
   organizationWebsiteUrl?: string;
   avatarLetter: string;
   type: "Bounty" | "Response";
+  /** The settled severity: `severity ?? triageSeverity ?? reportedSeverity`. */
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  /** What the reporter claimed. Always set on report. */
+  reportedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE";
+  /** What the organization assessed. Null until triaged. */
+  triageSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
+  /** The agreed severity. Null while the two disagree, and null on untriaged reports. */
+  agreedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
+  /** Settled severity shorthand. */
+  settledSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  /** True when severity is null and triageSeverity is set (disagreement surfaced). */
+  hasSeverityDisagreement?: boolean;
+  /** When non-null, severity is contested under dispute. */
+  dispute?: DisputeDetail | null;
+  /** Catalogue weakness or null. */
+  weaknessObj?: WeaknessSummary | null;
+  /** Custom reporter-suggested weakness or null. */
+  suggestedWeakness?: string | null;
   status: "TRIAGING" | "RESOLVED" | "ACCEPTED" | "SUBMITTED" | "REJECTED" | "RETESTING";
   rawStatus?: string;
   retestHistory?: RetestSummary[];
@@ -100,6 +132,8 @@ export interface ReportDetail extends ReportItem {
   discoveredAt: string | null;
   referenceLinks: string[];
   weakness: string | null;
+  weaknessObj?: WeaknessSummary | null;
+  suggestedWeakness?: string | null;
   reporterId?: string;
   reporterName?: string;
   reporterEmail?: string;
@@ -130,7 +164,10 @@ export interface ReportDetail extends ReportItem {
 
 export interface SubmitReportPayload {
   /** Catalogue id for `category`. Both are absent on an unclassified report. */
-  weaknessId?: string;
+  weaknessId?: string | null;
+  /** Reporter suggested weakness name (exclusive with weaknessId). */
+  suggestedWeakness?: string | null;
+  weaknessMode?: "catalog" | "unsure" | "custom";
   programId: string;
   programName: string;
   assetId?: string;

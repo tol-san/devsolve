@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import { WeaknessDisplay } from "@/components/reports/WeaknessDisplay";
+
 type ReportDetailClassificationProps = {
   detail: ReportManagementDetail;
 };
@@ -43,7 +45,7 @@ export function ReportDetailClassification({
       ? "border-amber-200 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
       : "border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
 
-  const cweNumber = detail.cweIdentifier.replace(/[^0-9]/g, "");
+  const cweNumber = (detail.weaknessObj?.cweId || detail.cweIdentifier || "").replace(/[^0-9]/g, "");
   const cweUrl = cweNumber
     ? `https://cwe.mitre.org/data/definitions/${cweNumber}.html`
     : "#";
@@ -55,10 +57,13 @@ export function ReportDetailClassification({
       contentClassName="space-y-5"
     >
       <div className="grid gap-4 sm:grid-cols-3">
-        <InfoBlock label="Vulnerability Type">
-          <p className="text-sm sm:text-base font-bold tracking-tight text-foreground">
-            {detail.vulnerabilityType}
-          </p>
+        <InfoBlock label="Vulnerability Classification">
+          <div className="text-sm sm:text-base font-bold tracking-tight text-foreground">
+            <WeaknessDisplay
+              weakness={detail.weaknessObj || (detail.suggestedWeakness ? null : detail.vulnerabilityType)}
+              suggestedWeakness={detail.suggestedWeakness}
+            />
+          </div>
         </InfoBlock>
 
         <InfoBlock label="CWE Identifier">

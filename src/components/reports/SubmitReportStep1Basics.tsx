@@ -8,7 +8,7 @@ import {
   SubmitReportFormValues,
   ENVIRONMENTS,
 } from "@/lib/validations/report";
-import { VulnerabilityCategoryCombobox } from "@/components/reports/VulnerabilityCategoryCombobox";
+import { WeaknessPicker, type WeaknessMode } from "@/components/reports/WeaknessPicker";
 import {
   SeverityCvssField,
   type Severity,
@@ -239,43 +239,32 @@ export function SubmitReportStep1Basics({
         )}
       </div>
 
-      {/* Category Dropdown */}
+      {/* 3-Option Vulnerability Weakness Classification */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-foreground">
-          Vulnerability Category / Weakness{" "}
-          <span className="font-normal text-muted-foreground">optional</span>
+        <label className="text-sm font-semibold text-foreground flex items-center justify-between">
+          <span>
+            Vulnerability Classification / Weakness{" "}
+            <span className="font-normal text-muted-foreground">optional</span>
+          </span>
         </label>
-        {/* Searchable rather than a closed list, and free entry when nothing
-            fits. Nothing downstream validates this against the catalogue, so a
-            fixed list only ever filed the unusual findings — the ones worth
-            reading — under "Other Security Issue". */}
-        <VulnerabilityCategoryCombobox
-          id="category"
-          value={watch("category") || ""}
-          weaknessId={watch("weaknessId") || ""}
-          onChange={({ category, weaknessId, cweId }) => {
-            setValue("category", category, {
-              shouldValidate: true,
-              shouldDirty: true,
-            });
-            /* Cleared together. "I'm not sure" must not leave the previous
-               pick's id behind and file the report under the wrong CWE. */
-            setValue("weaknessId", weaknessId ?? "", { shouldDirty: true });
-            setValue("cweIdentifier", cweId ?? "", { shouldDirty: true });
+        <WeaknessPicker
+          mode={watch("weaknessMode") as WeaknessMode | undefined}
+          onModeChange={(mode) => {
+            setValue("weaknessMode", mode, { shouldDirty: true });
           }}
-          invalid={Boolean(errors.category)}
-          aria-describedby={errors.category ? "category-error" : "category-hint"}
+          weaknessId={watch("weaknessId") || null}
+          category={watch("category") || ""}
+          cweIdentifier={watch("cweIdentifier") || ""}
+          suggestedWeakness={watch("suggestedWeakness") || ""}
+          onWeaknessChange={({ weaknessId, category, cweIdentifier, suggestedWeakness, mode }) => {
+            setValue("weaknessMode", mode, { shouldDirty: true });
+            setValue("weaknessId", weaknessId ?? "", { shouldDirty: true });
+            setValue("category", category, { shouldDirty: true, shouldValidate: true });
+            setValue("cweIdentifier", cweIdentifier ?? "", { shouldDirty: true });
+            setValue("suggestedWeakness", suggestedWeakness ?? "", { shouldDirty: true, shouldValidate: true });
+          }}
+          error={errors.suggestedWeakness?.message || errors.category?.message}
         />
-        {errors.category ? (
-          <p id="category-error" className="text-xs text-red-500 font-medium">
-            {errors.category.message}
-          </p>
-        ) : (
-          <p id="category-hint" className="text-xs text-muted-foreground">
-            Search the CWE catalogue by name or CWE id. Not sure? Leave it —
-            triage will classify it.
-          </p>
-        )}
       </div>
 
       {/* Severity — asked once.

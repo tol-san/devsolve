@@ -36,6 +36,9 @@ function SubmitReportContent() {
     isProgramsLoading,
     isSubmitting,
     attachedFiles,
+    externalLinks,
+    linkErrors,
+    referenceLinksError,
     submitError,
     reportingAccess,
     isAccessLoading,
@@ -50,6 +53,9 @@ function SubmitReportContent() {
     goToStep,
     handleAddFiles,
     handleRemoveFile,
+    handleAddExternalLink,
+    handleRemoveExternalLink,
+    handleUpdateExternalLink,
     handleInsertTemplate,
     handleSaveDraft,
     handleResetForm,
@@ -154,6 +160,9 @@ function SubmitReportContent() {
                     control={control}
                     errors={errors}
                     attachedFiles={attachedFiles}
+                    externalLinks={externalLinks}
+                    linkErrors={linkErrors}
+                    referenceLinksError={referenceLinksError}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
                     isDraftSaved={isDraftSaved}
@@ -167,6 +176,9 @@ function SubmitReportContent() {
                     }
                     onAddFiles={handleAddFiles}
                     onRemoveFile={handleRemoveFile}
+                    onAddExternalLink={handleAddExternalLink}
+                    onRemoveExternalLink={handleRemoveExternalLink}
+                    onUpdateExternalLink={handleUpdateExternalLink}
                     onInsertTemplate={handleInsertTemplate}
                     onPrevStep={prevStep}
                     onSaveDraft={handleSaveDraft}

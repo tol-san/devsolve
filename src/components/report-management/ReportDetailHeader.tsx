@@ -473,6 +473,31 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
 
               {getStatusBadge(detail)}
 
+              {detail.dispute && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs",
+                    detail.dispute.status === "OPEN"
+                      ? "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30"
+                      : "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30"
+                  )}
+                >
+                  <ShieldAlert className="size-3.5" />
+                  <span>DISPUTE: {detail.dispute.status}</span>
+                </Badge>
+              )}
+
+              {detail.hasSeverityDisagreement && !detail.dispute && (
+                <Badge
+                  variant="outline"
+                  className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs"
+                >
+                  <CircleAlert className="size-3.5 text-amber-500" />
+                  <span>SEVERITY CONTESTED</span>
+                </Badge>
+              )}
+
               <Badge
                 variant="outline"
                 className="bg-muted/70 text-foreground border-border font-semibold text-xs px-2.5 py-0.5 rounded-full"
@@ -492,6 +517,34 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground leading-snug break-words">
               {detail.title}
             </h1>
+
+            {/* Dispute / Severity Disagreement Alert Banner */}
+            {detail.dispute && detail.dispute.status === "OPEN" ? (
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2.5">
+                <ShieldAlert className="size-4 text-rose-500 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-bold text-sm">Severity Disputed &mdash; Action Locked</p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    The severity of this report has been contested (Status: OPEN). An administrative dispute review is currently active. The organization cannot resolve this report until the dispute is settled.
+                    {detail.reportedSeverity && detail.triageSeverity && (
+                      <span className="block mt-1 font-semibold text-foreground">
+                        Reported: {detail.reportedSeverity} &bull; Triaged: {detail.triageSeverity}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            ) : detail.hasSeverityDisagreement ? (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5">
+                <CircleAlert className="size-4 text-amber-500 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-bold text-sm">Severity Disagreement</p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Reporter claimed <strong>{detail.reportedSeverity}</strong>, but triage assessed as <strong>{detail.triageSeverity}</strong>. The final severity remains unsettled.
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {/* Key Facts Summary Strip */}

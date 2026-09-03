@@ -360,7 +360,19 @@ export function buildReportManagementDetailFromApiReport(
     MEDIUM: "Medium",
     LOW: "Low",
   };
-  const severity = sevMap[report.severity] || "Medium";
+  const rawSettled =
+    report.agreedSeverity ??
+    report.triageSeverity ??
+    report.reportedSeverity ??
+    report.severity;
+  const severity = (rawSettled ? sevMap[rawSettled] : undefined) || "Medium";
+  const hasSeverityDisagreement =
+    report.hasSeverityDisagreement ??
+    (report.agreedSeverity === null &&
+      report.triageSeverity != null &&
+      report.reportedSeverity != null &&
+      report.triageSeverity !== report.reportedSeverity);
+
   const rawStatus = (report.status || "") as string;
   const isReviewed =
     rawStatus === "ACCEPTED" ||
@@ -428,6 +440,14 @@ export function buildReportManagementDetailFromApiReport(
        several states into one label. */
     rawStatus: report.rawStatus || report.status,
     severity,
+    reportedSeverity: report.reportedSeverity,
+    triageSeverity: report.triageSeverity,
+    agreedSeverity: report.agreedSeverity,
+    settledSeverity: severity,
+    hasSeverityDisagreement,
+    dispute: report.dispute ?? null,
+    weaknessObj: report.weaknessObj ?? null,
+    suggestedWeakness: report.suggestedWeakness ?? null,
     cvssScore: report.cvssScore || "N/A",
     submittedDate,
     bountyRange: report.bountyOrRep || "$500 - $2,500",
@@ -441,8 +461,8 @@ export function buildReportManagementDetailFromApiReport(
       report.environment === "PRODUCTION"
         ? "Live production environment"
         : "Staging / QA environment",
-    vulnerabilityType: report.weakness || "Vulnerability Finding",
-    cweIdentifier: report.weakness || "CWE-Unclassified",
+    vulnerabilityType: report.weakness || (report.suggestedWeakness ? "" : "Vulnerability Finding"),
+    cweIdentifier: report.weakness || (report.suggestedWeakness ? "" : "CWE-Unclassified"),
     vectorString: report.cvssVector || "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
     assessmentSummary: report.description || "No assessment summary.",
     reproductionSteps:

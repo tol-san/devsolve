@@ -50,6 +50,14 @@ export type ReportManagementDetail = {
     | string;
   retestHistory?: import("@/lib/redux/services/reportsApi").RetestSummary[];
   severity: ReportSeverity;
+  reportedSeverity?: string;
+  triageSeverity?: string | null;
+  agreedSeverity?: string | null;
+  settledSeverity?: string;
+  hasSeverityDisagreement?: boolean;
+  dispute?: import("@/lib/types/reports/types").DisputeDetail | null;
+  weaknessObj?: import("@/lib/types/reports/types").WeaknessSummary | null;
+  suggestedWeakness?: string | null;
   cvssScore: string;
   submittedDate: string;
   bountyRange: string;

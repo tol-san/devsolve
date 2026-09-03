@@ -1,12 +1,12 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 import {
   bearerTokenFor,
   forwardQuery,
-  relay,
   unauthorized,
   upstreamFetch,
 } from "@/lib/api/proxy";
+import { enrichDraftsWithWeakness } from "@/lib/server/db";
 
 /**
  * `GET /api/report-drafts` — the caller's saved report drafts.
@@ -27,9 +27,32 @@ export async function GET(request: NextRequest) {
 
   try {
     const upstream = await upstreamFetch(`/report-drafts${query}`, token);
-    return relay(upstream, "Unable to load your drafts.");
+    const raw = await upstream.text();
+    let body: any = null;
+    if (raw) {
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        body = { message: raw };
+      }
+    }
+    if (!upstream.ok) {
+      return NextResponse.json(body, { status: upstream.status });
+    }
+    const items = Array.isArray(body?.content)
+      ? body.content
+      : Array.isArray(body?.items)
+      ? body.items
+      : Array.isArray(body)
+      ? body
+      : [];
+
+    if (items.length > 0) {
+      await enrichDraftsWithWeakness(items);
+    }
+    return NextResponse.json(body, { status: 200 });
   } catch {
-    return Response.json(
+    return NextResponse.json(
       { message: "Unable to reach the report service. Please try again." },
       { status: 502 },
     );

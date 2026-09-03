@@ -1,11 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { Building2, ExternalLink, Globe, ShieldCheck } from "lucide-react";
+import { AlertCircle, Building2, CircleAlert, ExternalLink, Globe, ShieldAlert, ShieldCheck } from "lucide-react";
 import SeverityBadge from "@/components/reports/SeverityBadge";
 import { Badge } from "@/components/ui/badge";
 import type { ReportDetail } from "@/lib/types/reports/types";
 import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
 import { formatDateTime } from "@/lib/format/datetime";
+import { WeaknessDisplay } from "@/components/reports/WeaknessDisplay";
+import { cn } from "@/lib/utils";
 
 interface ReportSidebarPanelsProps {
   report: ReportDetail;
@@ -64,15 +66,81 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
     <aside className="space-y-6">
       {/* Severity Panel */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
-        <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-          Severity
-        </h4>
-        <div>
-          <SeverityBadge severity={report.severity} />
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+            Severity
+          </h4>
+          {report.dispute && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[10px] font-bold uppercase px-2 py-0.5 rounded-md",
+                report.dispute.status === "OPEN"
+                  ? "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30"
+                  : "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30"
+              )}
+            >
+              Dispute {report.dispute.status}
+            </Badge>
+          )}
         </div>
+
+        <div>
+          <SeverityBadge
+            severity={
+              (report.settledSeverity ||
+                report.agreedSeverity ||
+                report.triageSeverity ||
+                report.reportedSeverity ||
+                report.severity) as any
+            }
+          />
+        </div>
+
+        {/* Severity Disagreement Alert */}
+        {(report.hasSeverityDisagreement ||
+          (report.agreedSeverity === null &&
+            report.triageSeverity != null &&
+            report.reportedSeverity != null &&
+            report.triageSeverity !== report.reportedSeverity)) && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200 space-y-1">
+            <div className="flex items-center gap-1.5 font-bold">
+              <CircleAlert className="size-3.5 text-amber-500 shrink-0" />
+              <span>Severity Disagreement</span>
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              Reported as <strong>{report.reportedSeverity || report.claimedSeverity}</strong>, but triage assessed as <strong>{report.triageSeverity || report.confirmedSeverity}</strong>.
+            </p>
+          </div>
+        )}
+
+        {report.dispute && report.dispute.status === "OPEN" && (
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-800 dark:text-rose-200 space-y-1">
+            <div className="flex items-center gap-1.5 font-bold">
+              <ShieldAlert className="size-3.5 text-rose-500 shrink-0" />
+              <span>Under Dispute Review</span>
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              The assigned severity is contested. An admin review is in progress.
+            </p>
+          </div>
+        )}
+
         <div className="space-y-2.5 pt-2 border-t border-border text-sm">
-          <Fact label="Claimed" value={`${report.claimedSeverity}${scoreSuffix}`} />
-          <Fact label="Confirmed by triage" value={report.confirmedSeverity} />
+          <Fact
+            label="Claimed"
+            value={`${report.reportedSeverity || report.claimedSeverity}${scoreSuffix}`}
+          />
+          <Fact
+            label="Confirmed by triage"
+            value={report.triageSeverity || report.confirmedSeverity || "Pending triage"}
+          />
+          {report.agreedSeverity && (
+            <Fact label="Agreed severity" value={report.agreedSeverity} />
+          )}
+          {report.dispute?.resolvedSeverity && (
+            <Fact label="Admin ruling" value={report.dispute.resolvedSeverity} />
+          )}
           {report.cvssVector && (
             <div className="space-y-1 pt-1">
               <span className="text-muted-foreground">CVSS vector</span>
@@ -106,7 +174,15 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
         <div className="space-y-2.5 text-sm">
           <Fact label="Asset" value={report.assetType} />
           <Fact label="Environment" value={report.environment} />
-          <Fact label="Weakness" value={report.weakness} />
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-muted-foreground shrink-0">Weakness</span>
+            <div className="text-right min-w-0 max-w-[65%]">
+              <WeaknessDisplay
+                weakness={report.weaknessObj || report.weakness}
+                suggestedWeakness={report.suggestedWeakness}
+              />
+            </div>
+          </div>
           <Fact label="Discovered" value={report.discoveredAt} />
           {report.targetEndpoint && (
             <div className="space-y-1 pt-1">

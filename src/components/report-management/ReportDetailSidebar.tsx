@@ -44,6 +44,7 @@ import {
   retestDeadline,
 } from "@/lib/reports/retest";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
+import { WeaknessDisplay } from "@/components/reports/WeaknessDisplay";
 
 type ReportDetailSidebarProps = {
   detail: ReportManagementDetail;
@@ -117,6 +118,8 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
     !isResolved &&
     !isRejected &&
     !isReopenedFromFailedRetest;
+
+  const hasOpenDispute = detail.dispute?.status === "OPEN";
 
   const handleCopyVector = async () => {
     try {
@@ -296,12 +299,18 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
 
                   <Button
                     type="button"
+                    disabled={hasOpenDispute}
                     onClick={() => setShowResolveDialog(true)}
-                    className="w-full h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs gap-2 cursor-pointer shadow-xs"
+                    className="w-full h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ShieldCheck className="size-4" />
-                    <span>Force Mark as Resolved</span>
+                    <span>{hasOpenDispute ? "Resolution Locked (Dispute Open)" : "Force Mark as Resolved"}</span>
                   </Button>
+                  {hasOpenDispute && (
+                    <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium leading-tight">
+                      A report with an open dispute cannot be resolved by the organization.
+                    </p>
+                  )}
 
                   <Link
                     href={`/dashboard/report-management/${detail.id}/severity-review`}
@@ -336,12 +345,18 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                 <div className="space-y-2 pt-1">
                   <Button
                     type="button"
+                    disabled={hasOpenDispute}
                     onClick={() => setShowResolveDialog(true)}
-                    className="w-full h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs gap-2 cursor-pointer shadow-xs"
+                    className="w-full h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ShieldCheck className="size-4" />
-                    <span>Mark as Resolved (Fix Deployed)</span>
+                    <span>{hasOpenDispute ? "Resolution Locked (Dispute Open)" : "Mark as Resolved (Fix Deployed)"}</span>
                   </Button>
+                  {hasOpenDispute && (
+                    <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium leading-tight">
+                      A report with an open dispute cannot be resolved by the organization.
+                    </p>
+                  )}
 
                   <Link
                     href={`/dashboard/report-management/${detail.id}/severity-review`}
@@ -376,12 +391,18 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                 <div className="space-y-2 pt-1">
                   <Button
                     type="button"
+                    disabled={hasOpenDispute}
                     onClick={() => setShowResolveDialog(true)}
-                    className="w-full h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs gap-2 cursor-pointer shadow-xs"
+                    className="w-full h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ShieldCheck className="size-4" />
-                    <span>Mark as Resolved</span>
+                    <span>{hasOpenDispute ? "Resolution Locked (Dispute Open)" : "Mark as Resolved"}</span>
                   </Button>
+                  {hasOpenDispute && (
+                    <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium leading-tight">
+                      A report with an open dispute cannot be resolved by the organization.
+                    </p>
+                  )}
 
                   <Link
                     href={`/dashboard/report-management/${detail.id}/severity-review`}
@@ -459,23 +480,13 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
 
         <CardContent className="p-4 sm:p-5 space-y-3.5 text-sm min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <span className="text-xs text-muted-foreground font-medium">Type</span>
-            <span className="text-right text-xs font-bold text-foreground">
-              {detail.vulnerabilityType}
-            </span>
-          </div>
-
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-xs text-muted-foreground font-medium">CWE ID</span>
-            <a
-              href={cweUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              <span>{detail.cweIdentifier}</span>
-              <ExternalLink className="size-3" />
-            </a>
+            <span className="text-xs text-muted-foreground font-medium">Weakness</span>
+            <div className="text-right text-xs font-bold text-foreground max-w-[65%]">
+              <WeaknessDisplay
+                weakness={detail.weaknessObj || (detail.suggestedWeakness ? null : detail.vulnerabilityType)}
+                suggestedWeakness={detail.suggestedWeakness}
+              />
+            </div>
           </div>
 
           <div className="flex items-start justify-between gap-2">

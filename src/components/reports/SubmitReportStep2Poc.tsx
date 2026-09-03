@@ -2,18 +2,23 @@
 
 import React from "react";
 import { UseFormRegister, FieldErrors, Control, Controller } from "react-hook-form";
-import { FileText, ArrowLeft, Send, Loader2, Bookmark } from "lucide-react";
+import { FileText, ArrowLeft, Send, Loader2, Bookmark, Link2, Plus, X } from "lucide-react";
 import { SubmitReportFormValues } from "@/lib/validations/report";
 import { PocTemplateToolbar } from "@/components/reports/PocTemplateToolbar";
 import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import { FileUploadDropzone, AttachedFile } from "@/components/reports/FileUploadDropzone";
 import { ContentScanStatus } from "@/components/security/ContentScanStatus";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface SubmitReportStep2PocProps {
   register: UseFormRegister<SubmitReportFormValues>;
   control: Control<SubmitReportFormValues>;
   errors: FieldErrors<SubmitReportFormValues>;
   attachedFiles: AttachedFile[];
+  externalLinks?: string[];
+  linkErrors?: Record<number, string>;
+  referenceLinksError?: string | null;
   isSubmitting: boolean;
   submitError: string | null;
   isDraftSaved: boolean;
@@ -27,6 +32,9 @@ interface SubmitReportStep2PocProps {
   draftStatus?: React.ReactNode;
   onAddFiles: (files: AttachedFile[]) => void;
   onRemoveFile: (fileId: string) => void;
+  onAddExternalLink?: () => void;
+  onRemoveExternalLink?: (index: number) => void;
+  onUpdateExternalLink?: (index: number, val: string) => void;
   onInsertTemplate: (template: string) => void;
   onPrevStep: () => void;
   onSaveDraft: () => void;
@@ -38,6 +46,9 @@ export function SubmitReportStep2Poc({
   control,
   errors,
   attachedFiles,
+  externalLinks = [""],
+  linkErrors = {},
+  referenceLinksError,
   isSubmitting,
   submitError,
   isDraftSaved,
@@ -45,6 +56,9 @@ export function SubmitReportStep2Poc({
   draftStatus,
   onAddFiles,
   onRemoveFile,
+  onAddExternalLink,
+  onRemoveExternalLink,
+  onUpdateExternalLink,
   onInsertTemplate,
   onPrevStep,
   onSaveDraft,
@@ -110,6 +124,73 @@ export function SubmitReportStep2Poc({
           onRemoveFile={onRemoveFile}
           disabled={isSubmitting}
         />
+      </div>
+
+      {/* Reference Links & PoC Media */}
+      <div className="space-y-3 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Link2 className="size-4 text-muted-foreground" />
+            <span>Reference Links & Video PoCs</span>
+          </label>
+          <span className="text-xs text-muted-foreground">
+            Loom, YouTube, CVE articles, or advisories (up to 10)
+          </span>
+        </div>
+
+        {referenceLinksError && (
+          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs sm:text-sm font-medium text-red-600 dark:text-red-400">
+            {referenceLinksError}
+          </div>
+        )}
+
+        <div className="space-y-2.5">
+          {externalLinks.map((link, idx) => (
+            <div key={idx} className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Input
+                  type="url"
+                  value={link}
+                  onChange={(e) => onUpdateExternalLink?.(idx, e.target.value)}
+                  placeholder="https://example.com/advisory or Loom demo URL"
+                  className={cn(
+                    "bg-card text-foreground h-11 text-sm border-border flex-1 font-mono",
+                    linkErrors?.[idx] && "border-red-500 ring-1 ring-red-500/40"
+                  )}
+                  disabled={isSubmitting}
+                />
+                {(externalLinks.length > 1 || link.trim().length > 0) && (
+                  <button
+                    type="button"
+                    onClick={() => onRemoveExternalLink?.(idx)}
+                    disabled={isSubmitting}
+                    className="size-10 rounded-xl text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-muted/50 flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+                    aria-label={`Remove reference link ${idx + 1}`}
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
+              {linkErrors?.[idx] && (
+                <p className="text-xs text-red-600 dark:text-red-400 font-medium pl-1">
+                  {linkErrors[idx]}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {externalLinks.length < 10 && (
+          <button
+            type="button"
+            onClick={onAddExternalLink}
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary hover:underline cursor-pointer pt-1"
+          >
+            <Plus className="size-4" />
+            <span>Add another reference link</span>
+          </button>
+        )}
       </div>
 
       <ContentScanStatus

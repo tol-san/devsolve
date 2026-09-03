@@ -13,6 +13,7 @@ import {
   apiErrorMessage,
   apiErrorStatus,
   contentScanErrorMessage,
+  extractScanErrorDetails,
 } from "@/lib/api/error-message";
 import {
   submitReportSchema,
@@ -59,6 +60,8 @@ export function useSubmitReportForm() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [externalLinks, setExternalLinks] = useState<string[]>([""]);
+  const [linkErrors, setLinkErrors] = useState<Record<number, string>>({});
+  const [referenceLinksError, setReferenceLinksError] = useState<string | null>(null);
   /* One empty row to write in. These used to be four sentences describing an
      invented IDOR against an invoice endpoint, which submitted as the
      reporter's own reproduction steps whenever they were not cleared out by
@@ -118,6 +121,9 @@ export function useSubmitReportForm() {
       discoveredAt: "",
       title: "",
       category: "",
+      weaknessId: "",
+      suggestedWeakness: "",
+      weaknessMode: "unsure",
       severity: "MEDIUM",
       cweIdentifier: "",
       cvssScore: "",
@@ -173,7 +179,14 @@ export function useSubmitReportForm() {
         watched.severity === "INFO" ? "NONE" : watched.severity || undefined,
       cvssVector: watched.cvssVector || undefined,
       cvssScore: Number.isFinite(score) && watched.cvssScore ? score : undefined,
-      weaknessId: isUuid(watched.weaknessId) ? watched.weaknessId : undefined,
+      weaknessId:
+        watched.weaknessMode === "catalog" && isUuid(watched.weaknessId)
+          ? watched.weaknessId
+          : null,
+      suggestedWeakness:
+        watched.weaknessMode === "custom" && watched.suggestedWeakness && watched.suggestedWeakness.trim()
+          ? watched.suggestedWeakness.trim().slice(0, 255)
+          : null,
       /* `assetId` is absent until the form asks which in-scope asset was
          targeted. Submit currently derives it from the program's first
          asset, which is not something worth persisting into a draft. */
@@ -210,7 +223,21 @@ export function useSubmitReportForm() {
     }
     setValue("cvssVector", stored.cvssVector ?? "");
     setValue("cvssScore", stored.cvssScore != null ? String(stored.cvssScore) : "");
-    setValue("weaknessId", stored.weaknessId ?? "");
+
+    // Restore weakness mode & values
+    if (stored.weaknessId) {
+      setValue("weaknessMode", "catalog");
+      setValue("weaknessId", stored.weaknessId);
+      setValue("suggestedWeakness", "");
+    } else if (stored.suggestedWeakness) {
+      setValue("weaknessMode", "custom");
+      setValue("weaknessId", "");
+      setValue("suggestedWeakness", stored.suggestedWeakness);
+    } else {
+      setValue("weaknessMode", "unsure");
+      setValue("weaknessId", "");
+      setValue("suggestedWeakness", "");
+    }
 
     setReproduceStepsList(
       stored.stepsToReproduce ? stored.stepsToReproduce.split("\n") : [""],
@@ -347,6 +374,11 @@ export function useSubmitReportForm() {
 
   const handleRemoveExternalLink = (index: number) => {
     setExternalLinks((prev) => prev.filter((_, i) => i !== index));
+    setLinkErrors((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   };
 
   const handleUpdateExternalLink = (index: number, val: string) => {
@@ -355,6 +387,14 @@ export function useSubmitReportForm() {
       updated[index] = val;
       return updated;
     });
+    if (linkErrors[index]) {
+      setLinkErrors((prev) => {
+        const next = { ...prev };
+        delete next[index];
+        return next;
+      });
+    }
+    setReferenceLinksError(null);
   };
 
   // Steps to Reproduce Dynamic List
@@ -446,6 +486,15 @@ export function useSubmitReportForm() {
         environment: values.environment,
         discoveredAt: values.discoveredAt,
         category: values.category,
+        weaknessId:
+          values.weaknessMode === "catalog" && isUuid(values.weaknessId)
+            ? values.weaknessId
+            : null,
+        suggestedWeakness:
+          values.weaknessMode === "custom" && values.suggestedWeakness && values.suggestedWeakness.trim()
+            ? values.suggestedWeakness.trim().slice(0, 255)
+            : null,
+        weaknessMode: values.weaknessMode,
         severity: values.severity,
         cweIdentifier: values.cweIdentifier,
         cvssScore: values.cvssScore,
@@ -494,12 +543,10 @@ export function useSubmitReportForm() {
     } catch (err: unknown) {
       console.error("Failed to submit report:", err);
 
-      /* 403 is the company refusing the reporter, not the report. Its message
-         names the company and says how to get cleared, so it is shown exactly
-         as written and routed to the access notice — which is the thing that
-         carries the button to act on it. Nothing in the form is at fault, so
-         no field error is raised. */
-      if (apiErrorStatus(err) === 403) {
+      const status = apiErrorStatus(err);
+
+      /* 403 is the company refusing the reporter, not the report. */
+      if (status === 403) {
         setAccessRefusal({
           programId: values.programId,
           status: accessStatus,
@@ -508,6 +555,128 @@ export function useSubmitReportForm() {
             "This organization has not approved you to report to its programs yet.",
           ),
         });
+        return;
+      }
+
+      /* 400: Weakness mutual exclusivity error: "Choose a weakness from the catalog or name your own, not both" */
+      if (status === 400) {
+        const msg = apiErrorMessage(err, "");
+        if (
+          msg.toLowerCase().includes("choose a weakness") ||
+          msg.toLowerCase().includes("not both") ||
+          msg.toLowerCase().includes("catalog")
+        ) {
+          form.setError("suggestedWeakness", {
+            type: "manual",
+            message: msg || "Choose a weakness from the catalog or name your own, not both.",
+          });
+          form.setError("category", {
+            type: "manual",
+            message: msg || "Choose a weakness from the catalog or name your own, not both.",
+          });
+          setCurrentStep(1);
+          return;
+        }
+      }
+
+      /* 422: VirusTotal URL scanning refusal */
+      if (status === 422) {
+        const scanDetails = extractScanErrorDetails(err);
+        const errData = (err as any)?.data;
+        const rawDetails = errData?.errorDetails ?? errData?.details;
+        const errMessage = apiErrorMessage(err, "");
+
+        const rejectedUrl =
+          typeof rawDetails?.url === "string"
+            ? rawDetails.url
+            : typeof rawDetails?.targetUrl === "string"
+            ? rawDetails.targetUrl
+            : typeof rawDetails?.link === "string"
+            ? rawDetails.link
+            : null;
+
+        const maliciousCount =
+          scanDetails?.malicious ??
+          (typeof rawDetails?.stats?.malicious === "number" ? rawDetails.stats.malicious : undefined);
+        const verdict = scanDetails?.verdict ?? rawDetails?.verdict ?? "MALICIOUS";
+        const countText =
+          maliciousCount !== undefined
+            ? ` (${maliciousCount} malicious detection${maliciousCount === 1 ? "" : "s"})`
+            : "";
+        const scanReason = `VirusTotal flagged this URL as ${verdict}${countText}.`;
+
+        let handled = false;
+
+        // 1. Check if targetAsset matches
+        if (
+          rejectedUrl &&
+          values.targetAsset &&
+          values.targetAsset.trim().toLowerCase() === rejectedUrl.trim().toLowerCase()
+        ) {
+          form.setError("targetAsset", {
+            type: "manual",
+            message: `Target endpoint was rejected by security scanning: ${scanReason}`,
+          });
+          setCurrentStep(1);
+          handled = true;
+        } else if (
+          !rejectedUrl &&
+          values.targetAsset &&
+          errMessage.toLowerCase().includes(values.targetAsset.toLowerCase())
+        ) {
+          form.setError("targetAsset", {
+            type: "manual",
+            message: `Target endpoint was rejected by security scanning: ${scanReason}`,
+          });
+          setCurrentStep(1);
+          handled = true;
+        }
+
+        // 2. Check if any external reference links match
+        const matchingLinkIdx = externalLinks.findIndex(
+          (l) => rejectedUrl && l.trim().toLowerCase() === rejectedUrl.trim().toLowerCase()
+        );
+
+        if (matchingLinkIdx !== -1) {
+          setLinkErrors((prev) => ({
+            ...prev,
+            [matchingLinkIdx]: `Security scanning rejected this link: ${scanReason}`,
+          }));
+          handled = true;
+        } else if (
+          !rejectedUrl &&
+          externalLinks.some((l) => l.trim() && errMessage.includes(l.trim()))
+        ) {
+          const idx = externalLinks.findIndex((l) => l.trim() && errMessage.includes(l.trim()));
+          if (idx !== -1) {
+            setLinkErrors((prev) => ({
+              ...prev,
+              [idx]: `Security scanning rejected this link: ${scanReason}`,
+            }));
+            handled = true;
+          }
+        }
+
+        if (!handled) {
+          // If the backend didn't specify which link, surface on reference links & target endpoint
+          if (externalLinks.some((l) => l.trim().length > 0)) {
+            setReferenceLinksError(
+              `VirusTotal rejected a submitted URL: ${scanReason} Please verify your reference links and target asset.`
+            );
+          }
+          if (values.targetAsset) {
+            form.setError("targetAsset", {
+              type: "manual",
+              message: `VirusTotal rejected a submitted URL: ${scanReason} Check this target endpoint.`,
+            });
+          }
+          setSubmitError(
+            contentScanErrorMessage(
+              err,
+              "A submitted link (target endpoint or reference link)",
+            ),
+          );
+        }
         return;
       }
 
@@ -532,6 +701,8 @@ export function useSubmitReportForm() {
     isSubmitting,
     attachedFiles,
     externalLinks,
+    linkErrors,
+    referenceLinksError,
     reproduceStepsList,
     submitError,
     reportingAccess,

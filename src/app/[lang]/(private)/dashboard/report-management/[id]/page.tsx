@@ -7,6 +7,10 @@ import { motion } from "motion/react";
 import { useParams } from "next/navigation";
 
 
+import Link from "next/link";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
 import { ReportDetailAssessment } from "@/components/report-management/ReportDetailAssessment";
 import { ReportDetailClassification } from "@/components/report-management/ReportDetailClassification";
 import { ReportDetailHeader } from "@/components/report-management/ReportDetailHeader";
@@ -15,16 +19,8 @@ import { ReportDetailReferences } from "@/components/report-management/ReportDet
 import { ReportDetailSidebar } from "@/components/report-management/ReportDetailSidebar";
 import { ReportDetailTargetScope } from "@/components/report-management/ReportDetailTargetScope";
 import { RetestHistoryTimeline } from "@/components/report-management/RetestHistoryTimeline";
-import {
-  buildReportDetailFromManagedReport,
-  buildReportManagementDetailFromApiReport,
-  findManagedReportByRouteId,
-  getReportDetailById,
-} from "@/components/report-management/mock-data";
-import {
-  useGetManagedReportsQuery,
-  useGetReportByIdQuery,
-} from "@/lib/redux/services/reportsApi";
+import { buildReportManagementDetailFromApiReport } from "@/components/report-management/mock-data";
+import { useGetReportByIdQuery } from "@/lib/redux/services/reportsApi";
 
 export default function ReportManagementDetailPage() {
   const params = useParams();
@@ -36,32 +32,26 @@ export default function ReportManagementDetailPage() {
       : "";
 
 
-  const { data: apiReport, isLoading: isReportLoading, refetch: refetchReport } = useGetReportByIdQuery(
-    reportId,
-    { skip: !reportId }
-  );
-  const { data: managedReports = [], isLoading: isListLoading, refetch: refetchList } =
-    useGetManagedReportsQuery();
+  const {
+    data: apiReport,
+    isLoading: isReportLoading,
+    isError,
+    error,
+    refetch: refetchReport,
+  } = useGetReportByIdQuery(reportId, { skip: !reportId });
 
   const handleRefresh = React.useCallback(() => {
     void refetchReport();
-    void refetchList();
-  }, [refetchReport, refetchList]);
+  }, [refetchReport]);
 
   const detail = React.useMemo(() => {
     if (apiReport) {
       return buildReportManagementDetailFromApiReport(apiReport);
     }
-    const liveReport = findManagedReportByRouteId(managedReports, reportId);
-    if (liveReport) {
-      return buildReportDetailFromManagedReport(liveReport);
-    }
-    return getReportDetailById(reportId);
-  }, [apiReport, managedReports, reportId]);
+    return null;
+  }, [apiReport]);
 
-  const isLoading = (isReportLoading || isListLoading) && !detail;
-
-  if (isLoading) {
+  if (isReportLoading || (!detail && !isError)) {
     return (
       <div className="space-y-6 w-full pb-12 animate-pulse">
         {/* Skeleton Header */}
@@ -81,6 +71,37 @@ export default function ReportManagementDetailPage() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (isError || !detail) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="mx-auto flex max-w-xl flex-col items-center rounded-2xl bg-card p-8 sm:p-12 text-center border border-border"
+      >
+        <div className="size-14 rounded-2xl bg-muted/60 flex items-center justify-center text-muted-foreground mb-4">
+          <AlertCircle className="size-7 text-amber-500" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground">Report Not Found</h2>
+        <p className="text-sm text-muted-foreground mt-2 mb-6">
+          The requested report could not be found or you do not have permission to view it.
+        </p>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => refetchReport()}
+            variant="outline"
+            className="rounded-xl"
+          >
+            Retry
+          </Button>
+          <Link href="/dashboard/report-management">
+            <Button className="rounded-xl">Back to Queue</Button>
+          </Link>
+        </div>
+      </motion.div>
     );
   }
 

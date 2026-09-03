@@ -7,6 +7,7 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 import { saveReportDraftSchema } from "@/lib/validations/report-draft";
+import { saveDraftSuggestedWeakness } from "@/lib/server/db";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -55,6 +56,19 @@ export async function POST(
       method: "POST",
       body: JSON.stringify(parsed.data),
     });
+
+    if (upstream.ok) {
+      try {
+        const raw = await upstream.clone().text();
+        const data = raw ? JSON.parse(raw) : null;
+        if (data?.id) {
+          const customWeakness = parsed.data.suggestedWeakness ?? null;
+          const weaknessId = parsed.data.weaknessId ?? null;
+          await saveDraftSuggestedWeakness(data.id, customWeakness, weaknessId);
+        }
+      } catch {}
+    }
+
     return relay(upstream, "The draft could not be created.");
   } catch {
     return NextResponse.json(

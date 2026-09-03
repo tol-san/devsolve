@@ -172,6 +172,13 @@ interface ReportApiResponse {
   cvssScore?: number;
   cvssVector?: string;
   weakness?: { id?: string; cweId?: string; name?: string };
+  suggestedWeakness?: string | null;
+  dispute?: {
+    id?: string;
+    status: "OPEN" | "RESOLVED" | "DISMISSED";
+    reason?: string;
+    resolvedSeverity?: ApiSeverity | null;
+  } | null;
   asset?: { id?: string; assetType?: string; identifier?: string };
   disclosureStatus?: string;
 }
@@ -415,9 +422,21 @@ function toReportItem(
     avatarLetter: programName.slice(0, 1).toUpperCase(),
     type: "Bounty",
     severity: toSeverity(report),
+    reportedSeverity: report.reportedSeverity,
+    triageSeverity: report.triageSeverity,
+    agreedSeverity: report.severity ?? null,
+    settledSeverity: toSeverity(report),
+    hasSeverityDisagreement:
+      report.severity === null &&
+      report.triageSeverity != null &&
+      report.reportedSeverity != null &&
+      report.triageSeverity !== report.reportedSeverity,
+    dispute: report.dispute ?? null,
+    weaknessObj: report.weakness ?? null,
+    suggestedWeakness: report.suggestedWeakness ?? (report as any).suggested_weakness ?? null,
     status,
     rawStatus: report.state,
-    retestHistory: report.retestHistory,
+    retestHistory: Array.isArray(report.retestHistory) ? report.retestHistory : [],
     /* Passed through untouched. Never recomputed from `severity`: a severity
        corrected after resolution does not change what was already paid. */
     reputationPoints: report.reputationPoints ?? null,
@@ -546,8 +565,11 @@ function toReportDetail(
     remediation: report.remediationRecommendation || null,
     targetEndpoint: report.targetEndpoint || null,
     discoveredAt: report.discoveredAt ? formatDate(report.discoveredAt) : null,
-    referenceLinks: report.referenceLinks ?? [],
+    referenceLinks: Array.isArray(report.referenceLinks) ? report.referenceLinks : [],
     weakness: weakness || null,
+    weaknessObj: report.weakness ?? null,
+    suggestedWeakness: report.suggestedWeakness ?? (report as any).suggested_weakness ?? null,
+    dispute: report.dispute ?? null,
     reporterId: report.reporterId || report.reporter?.id,
     reporterName:
       report.reporter?.name ||
@@ -566,10 +588,10 @@ function toReportDetail(
        used to render a "DevSolve Triage Bot" notice that no one had written. */
     comments: [],
     updates,
-    retestHistory: report.retestHistory || [],
+    retestHistory: Array.isArray(report.retestHistory) ? report.retestHistory : [],
     /* The organization's half of what a resolution pays, itemised. The
        reputation half is on `item` and is never added to these. */
-    rewards: (report.rewards ?? [])
+    rewards: (Array.isArray(report.rewards) ? report.rewards : [])
       .filter((reward) => typeof reward.amount === "number")
       .map((reward) => ({
         amount: reward.amount as number,
@@ -824,7 +846,7 @@ export const reportsApi = baseApi.injectEndpoints({
 
     submitReport: builder.mutation<SubmitReportResponse, SubmitReportPayload>({
       async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
-        const isUuid = (str?: string) =>
+        const isUuid = (str?: string | null): str is string =>
           typeof str === "string" &&
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
@@ -867,11 +889,31 @@ export const reportsApi = baseApi.injectEndpoints({
               : undefined,
             cvssScore: scoreAgreesWithSeverity ? parsedScore ?? undefined : undefined,
             assetId: isUuid(payload.assetId) ? payload.assetId : undefined,
-            /* Present only when the reporter picked a catalogue entry. A
-               free-text category has no id, and anything else here would be
-               rejected as a bad foreign key. The category is still written
-               into the write-up either way — that is what a triager reads. */
-            weaknessId: isUuid(payload.weaknessId) ? payload.weaknessId : undefined,
+            /* Mutually exclusive: sending both is a 400. Choose catalog weakness or name your own, not both. */
+            weaknessId:
+              payload.weaknessMode === "catalog" && isUuid(payload.weaknessId)
+                ? payload.weaknessId
+                : payload.weaknessMode === "custom" || payload.weaknessMode === "unsure"
+                ? null
+                : isUuid(payload.weaknessId) && (!payload.suggestedWeakness || !payload.suggestedWeakness.trim())
+                ? payload.weaknessId
+                : null,
+            suggestedWeakness:
+              payload.weaknessMode === "custom" && payload.suggestedWeakness && payload.suggestedWeakness.trim()
+                ? payload.suggestedWeakness.trim().slice(0, 255)
+                : payload.weaknessMode === "catalog" || payload.weaknessMode === "unsure"
+                ? null
+                : payload.suggestedWeakness && payload.suggestedWeakness.trim() && !isUuid(payload.weaknessId)
+                ? payload.suggestedWeakness.trim().slice(0, 255)
+                : null,
+            suggested_weakness:
+              payload.weaknessMode === "custom" && payload.suggestedWeakness && payload.suggestedWeakness.trim()
+                ? payload.suggestedWeakness.trim().slice(0, 255)
+                : payload.weaknessMode === "catalog" || payload.weaknessMode === "unsure"
+                ? null
+                : payload.suggestedWeakness && payload.suggestedWeakness.trim() && !isUuid(payload.weaknessId)
+                ? payload.suggestedWeakness.trim().slice(0, 255)
+                : null,
           },
         });
         if (result.error) return { error: result.error };
@@ -1304,6 +1346,34 @@ export const reportsApi = baseApi.injectEndpoints({
       },
       providesTags: ["Report"],
     }),
+
+    getProgramReports: builder.query<
+      {
+        content: ReportApiResponse[];
+        totalElements: number;
+        totalPages: number;
+        size: number;
+        number: number;
+      },
+      {
+        programId: string;
+        page?: number;
+        size?: number;
+        sort?: string;
+        state?: string;
+      }
+    >({
+      query: ({ programId, page = 0, size = 20, sort = "submittedAt,desc", state }) => {
+        const queryParams = new URLSearchParams({
+          page: page.toString(),
+          size: size.toString(),
+          sort,
+        });
+        if (state) queryParams.set("state", state);
+        return `/programs/${programId}/reports?${queryParams.toString()}`;
+      },
+      providesTags: ["Report"],
+    }),
   }),
 });
 
@@ -1312,6 +1382,7 @@ export const {
   useGetReportsQuery,
   useGetReportByIdQuery,
   useGetCompanyReportsQueueQuery,
+  useGetProgramReportsQuery,
   useAddReportCommentMutation,
   useSubmitReportMutation,
   useUploadReportAttachmentMutation,

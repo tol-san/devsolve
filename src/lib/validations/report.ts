@@ -250,6 +250,13 @@ export const submitReportSchema = z.object({
   category: z.string().optional(),
   /** The catalogue id behind `category`. Both are unset together. */
   weaknessId: z.string().optional(),
+  /** Reporter-named weakness if catalog does not cover it (exclusive with weaknessId). */
+  suggestedWeakness: z
+    .string()
+    .max(255, "Suggested weakness cannot exceed 255 characters.")
+    .optional(),
+  /** UI mode selection for weakness picker: catalog, unsure, or custom. */
+  weaknessMode: z.enum(["catalog", "unsure", "custom"]).optional(),
   severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]),
   cweIdentifier: z.string().optional(),
   /* Text rather than a number because the input is free-form; the range is the
@@ -301,6 +308,19 @@ export const submitReportSchema = z.object({
      in normal use — but a value restored from a draft, or a score edited after
      the severity was chosen, must not reach the API as a 400. */
   .superRefine((values, ctx) => {
+    // Enforce mutual exclusivity of weaknessId and suggestedWeakness
+    if (
+      values.weaknessId &&
+      values.suggestedWeakness &&
+      values.suggestedWeakness.trim().length > 0
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["suggestedWeakness"],
+        message: "Choose a weakness from the catalog or name your own, not both",
+      });
+    }
+
     const score = parseCvssScore(values.cvssScore);
     if (score === null) return;
 
