@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 
 import { SearchDropdown } from "@/components/search/SearchDropdown";
 import { useSearchModal } from "@/components/search/useSearchModal";
+
+const emptySubscribe = () => () => {};
 
 /**
  * Global Search Dialog Modal.
@@ -18,11 +20,11 @@ import { useSearchModal } from "@/components/search/useSearchModal";
  */
 export function SearchModal() {
   const { isOpen, close, toggle } = useSearchModal();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 
   /* Global keyboard shortcut (Cmd+K / Ctrl+K) and Escape key listener */
   useEffect(() => {
@@ -71,36 +73,9 @@ export function SearchModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -8 }}
             transition={{ type: "spring", stiffness: 420, damping: 32 }}
-            className="relative z-10 w-full max-w-2xl rounded-2xl border border-border bg-card p-3 shadow-2xl ring-1 ring-foreground/10"
+            className="relative z-10 w-full max-w-2xl rounded-2xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-2xl ring-1 ring-foreground/10 overflow-hidden flex flex-col p-0"
           >
             <SearchDropdown autoFocus onDone={close} />
-
-            {/* Keyboard hints footer */}
-            <div className="mt-2.5 flex items-center justify-between px-2 pt-2 border-t border-border/50 text-xs text-muted-foreground select-none">
-              <div className="flex items-center gap-2">
-                <span>
-                  Navigate{" "}
-                  <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-                    ↑
-                  </kbd>{" "}
-                  <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-                    ↓
-                  </kbd>
-                </span>
-                <span>
-                  Select{" "}
-                  <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-                    ↵
-                  </kbd>
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span>Close</span>
-                <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-                  ESC
-                </kbd>
-              </div>
-            </div>
           </motion.div>
         </div>
       )}

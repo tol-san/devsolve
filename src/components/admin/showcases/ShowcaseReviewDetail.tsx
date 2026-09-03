@@ -27,6 +27,7 @@ import {
 } from "@/components/admin/showcases/ShowcaseSubmissionBadges";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { ShowcaseCodeBlock } from "@/components/showcases/detail/ShowcaseCodeBlock";
+import { ShowcaseDiagramViewer } from "@/components/showcases/diagram/ShowcaseDiagramViewer";
 import { useGetShowcaseReviewDetailQuery } from "@/lib/redux/services/admin/showcaseReviewApi";
 
 /**
@@ -203,14 +204,22 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
                         />
                       )}
 
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        {step.imageUrl && (
-                          <StepImage url={step.imageUrl} caption="Screenshot" />
-                        )}
-                        {step.diagramUrl && (
-                          <StepImage url={step.diagramUrl} caption="Diagram" />
-                        )}
-                      </div>
+                      {step.imageUrl && (
+                        <StepImage url={step.imageUrl} caption="Screenshot" />
+                      )}
+
+                      {step.diagramUrl && (
+                        <div className="space-y-1.5 pt-1">
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            Diagram
+                          </p>
+                          <ShowcaseDiagramViewer
+                            diagramUrl={step.diagramUrl}
+                            title={`${step.title} diagram`}
+                            stepId={step.id}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

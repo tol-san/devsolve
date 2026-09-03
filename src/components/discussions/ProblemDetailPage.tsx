@@ -99,7 +99,7 @@ import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
  */
 
 const CARD =
-  "rounded-2xl border border-slate-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs";
+  "rounded-2xl border border-border bg-card shadow-xs";
 
 const SOLUTION_PAGE_SIZE = 50;
 
@@ -227,6 +227,7 @@ function Loaded({
     src: string;
     alt?: string;
     title?: string;
+    mimeType?: string;
   } | null>(null);
 
   /* The problem owns the list of accepted answers, so it is the authority when
@@ -423,6 +424,7 @@ function Loaded({
                   isLoading={isVoting}
                   upvoteLabel="Upvote this problem"
                   downvoteLabel="Downvote this problem"
+                  orientation="horizontal"
                   className="shrink-0"
                 />
               </div>
@@ -564,10 +566,10 @@ function Loaded({
                         /\.(png|jpe?g|webp|gif|svg)$/i.test(
                           file.originalFileName || file.downloadUrl || "",
                         );
-                      /* `downloadUrl` arrives relative (`/api/v1/…`), so it
-                         used to win this `||` and resolve against our own
-                         origin — the constructed path below was never
-                         reached. It is mapped onto the same proxy route now. */
+                      const isPdf =
+                        file.mimeType === "application/pdf" ||
+                        /\.pdf$/i.test(file.originalFileName || file.downloadUrl || "");
+
                       const fileUrl =
                         attachmentUrl(file.downloadUrl) ||
                         (file.id && id
@@ -577,12 +579,13 @@ function Loaded({
                       return (
                         <div
                           key={file.id ?? `${file.originalFileName}-${i}`}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-3.5 dark:border-neutral-800 dark:bg-neutral-800/80 transition-all hover:border-slate-300 dark:hover:border-neutral-700"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3.5 transition-all hover:border-border/80 shadow-2xs"
                         >
                           <div className="flex items-center gap-3.5 min-w-0 flex-1">
                             {/* Visual Thumbnail or File Icon */}
-                            {isImg && fileUrl ? (
-                              <div
+                            {fileUrl ? (
+                              <button
+                                type="button"
                                 onClick={() =>
                                   setPreviewImage({
                                     src: fileUrl,
@@ -590,33 +593,40 @@ function Loaded({
                                     title:
                                       file.originalFileName ??
                                       "Attachment Preview",
+                                    mimeType: file.mimeType,
                                   })
                                 }
-                                className="relative size-14 shrink-0 rounded-xl overflow-hidden border border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 cursor-pointer group/thumb hover:ring-2 hover:ring-blue-500/50 transition-all flex items-center justify-center shadow-2xs"
-                                title="Click to enlarge preview"
+                                className="relative size-14 shrink-0 rounded-xl overflow-hidden border border-border bg-muted/40 cursor-pointer group/thumb hover:ring-2 hover:ring-primary/50 transition-all flex items-center justify-center shadow-2xs"
+                                title="Click to preview attachment"
                               >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={fileUrl}
-                                  alt={file.originalFileName ?? "Attachment"}
-                                  className="size-full object-cover transition-transform group-hover/thumb:scale-105"
-                                  loading="lazy"
-                                />
+                                {isImg ? (
+                                  /* eslint-disable-next-line @next/next/no-img-element */
+                                  <img
+                                    src={fileUrl}
+                                    alt={file.originalFileName ?? "Attachment"}
+                                    className="size-full object-cover transition-transform group-hover/thumb:scale-105"
+                                    loading="lazy"
+                                  />
+                                ) : isPdf ? (
+                                  <FileText className="size-6 text-rose-500" />
+                                ) : (
+                                  <FileText className="size-6 text-primary" />
+                                )}
                                 <div className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/25 flex items-center justify-center transition-colors">
-                                  <ZoomIn className="size-4 text-white opacity-0 group-hover/thumb:opacity-100 transition-opacity drop-shadow-md" />
+                                  <Eye className="size-4 text-white opacity-0 group-hover/thumb:opacity-100 transition-opacity drop-shadow-md" />
                                 </div>
-                              </div>
+                              </button>
                             ) : (
-                              <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400 shadow-2xs">
-                                <FileText className="size-6 text-blue-500" />
+                              <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-foreground shadow-2xs">
+                                <FileText className="size-6 text-muted-foreground" />
                               </div>
                             )}
 
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">
+                              <p className="truncate text-sm font-bold text-foreground">
                                 {file.originalFileName ?? "Unnamed file"}
                               </p>
-                              <p className="text-xs text-slate-500 dark:text-neutral-400 flex items-center gap-1.5 mt-0.5">
+                              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
                                 <span className="font-mono">{file.mimeType || (isImg ? "image" : "file")}</span>
                                 {file.sizeBytes ? (
                                   <>
@@ -630,39 +640,39 @@ function Loaded({
 
                           {fileUrl && (
                             <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                              {isImg && (
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    setPreviewImage({
-                                      src: fileUrl,
-                                      alt: file.originalFileName ?? "Attachment",
-                                      title:
-                                        file.originalFileName ??
-                                        "Attachment Preview",
-                                    })
-                                  }
-                                  className="h-8 rounded-xl border-slate-200 bg-white text-slate-800 hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 font-semibold text-xs gap-1.5 px-3 cursor-pointer shadow-2xs"
-                                >
-                                  <ZoomIn
-                                    aria-hidden="true"
-                                    className="size-3.5 text-blue-600 dark:text-blue-400"
-                                  />
-                                  <span>Preview</span>
-                                </Button>
-                              )}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setPreviewImage({
+                                    src: fileUrl,
+                                    alt: file.originalFileName ?? "Attachment",
+                                    title:
+                                      file.originalFileName ??
+                                      "Attachment Preview",
+                                    mimeType: file.mimeType,
+                                  })
+                                }
+                                className="h-8 rounded-xl border-border bg-background text-foreground hover:bg-muted font-semibold text-xs gap-1.5 px-3 cursor-pointer shadow-2xs"
+                              >
+                                <Eye
+                                  aria-hidden="true"
+                                  className="size-3.5 text-primary"
+                                />
+                                <span>Preview</span>
+                              </Button>
+
                               <a
                                 href={fileUrl}
                                 target="_blank"
                                 rel="noreferrer noopener"
                                 download={file.originalFileName ?? "attachment"}
-                                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 transition hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 shadow-2xs"
+                                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground transition hover:bg-muted shadow-2xs"
                               >
                                 <Download
                                   aria-hidden="true"
-                                  className="size-3.5 text-slate-500"
+                                  className="size-3.5 text-muted-foreground"
                                 />
                                 <span>Download</span>
                               </a>
@@ -742,25 +752,25 @@ function Loaded({
             </section>
 
             {/* ── Answers ── */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-base font-bold text-slate-800 dark:text-neutral-100">
+                <h2 className="text-lg font-bold tracking-tight text-foreground">
                   {answerCount} {answerCount === 1 ? "Solution" : "Solutions"}
                 </h2>
-                <div className="flex items-center rounded-lg bg-slate-200/60 p-0.5 text-xs font-bold dark:bg-neutral-800">
+                <div className="inline-flex items-center rounded-xl bg-muted/60 border border-border p-1 text-xs font-semibold">
                   {(["votes", "newest"] as const).map((order) => (
                     <button
                       key={order}
                       type="button"
                       onClick={() => onSortChange(order)}
                       aria-pressed={sortOrder === order}
-                      className={`cursor-pointer rounded-md px-3 py-1 transition-colors ${
+                      className={`cursor-pointer rounded-lg px-3 py-1 transition-all ${
                         sortOrder === order
-                          ? "bg-white text-slate-900 shadow-xs dark:bg-neutral-900 dark:text-neutral-100"
-                          : "text-slate-500 dark:text-neutral-400"
+                          ? "bg-background text-foreground shadow-xs font-bold"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      {order === "votes" ? "top" : "newest"}
+                      {order === "votes" ? "Top" : "Newest"}
                     </button>
                   ))}
                 </div>
@@ -769,10 +779,10 @@ function Loaded({
               {canAnswer ? (
                 <Link
                   href={`/community/${id}/solutions/create`}
-                  className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-emerald-700"
+                  className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-primary px-4.5 text-sm font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90"
                 >
                   <Plus aria-hidden="true" className="size-4" />
-                  {myAnswers.length > 0 ? "Post another" : "Post your solution"}
+                  {myAnswers.length > 0 ? "Post another solution" : "Post your solution"}
                 </Link>
               ) : !isSignedIn ? (
                 <Button
@@ -784,7 +794,7 @@ function Loaded({
                         : `/problems/${id}`,
                     )
                   }
-                  className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-emerald-700 cursor-pointer"
+                  className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-primary px-4.5 text-sm font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 cursor-pointer"
                 >
                   <Plus aria-hidden="true" className="size-4" />
                   Post your solution
@@ -954,6 +964,7 @@ function Loaded({
         src={previewImage?.src ?? null}
         alt={previewImage?.alt ?? "Attachment"}
         title={previewImage?.title}
+        mimeType={previewImage?.mimeType}
         isOpen={previewImage !== null}
         onClose={() => setPreviewImage(null)}
       />
@@ -1155,11 +1166,11 @@ function Stat({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl bg-slate-50 px-2 py-3 dark:bg-neutral-800/60">
-      <p className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-neutral-100">
+    <div className="rounded-xl bg-muted/35 border border-border/60 px-2 py-3 text-center">
+      <p className="text-xl font-bold tabular-nums text-foreground">
         {value}
       </p>
-      <p className="flex items-center justify-center gap-1 text-xs font-semibold text-slate-500 dark:text-neutral-400">
+      <p className="flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground mt-0.5">
         {icon}
         {label}
       </p>
@@ -1169,11 +1180,11 @@ function Stat({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="shrink-0 text-xs text-slate-500 dark:text-neutral-400">
+    <div className="flex items-center justify-between gap-3 text-sm">
+      <span className="shrink-0 text-xs font-medium text-muted-foreground">
         {label}
       </span>
-      <span className="truncate text-sm font-semibold text-slate-800 dark:text-neutral-200">
+      <span className="truncate font-semibold text-foreground">
         {value}
       </span>
     </div>

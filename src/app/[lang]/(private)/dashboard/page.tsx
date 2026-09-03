@@ -13,6 +13,7 @@ import { DashboardMyPrograms } from "@/components/dashboard/DashboardMyPrograms"
 import { DashboardReportStatus } from "@/components/dashboard/DashboardReportStatus";
 import { DashboardReportSeverity } from "@/components/dashboard/DashboardReportSeverity";
 import { DashboardSecurityFeed } from "@/components/dashboard/DashboardSecurityFeed";
+import { CompanyDashboardView } from "@/components/dashboard/analytics/CompanyDashboardView";
 import { AdminDashboardOverview } from "@/components/admin/AdminDashboardOverview";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
@@ -89,10 +90,7 @@ export default function DashboardPage() {
   const { user, areRolesResolved, displayName } = useSidebarAuth();
   const isAdminUser =
     user?.roles?.includes("ADMIN") || user?.role?.includes("ADMIN");
-  /* A membership, not a realm role: an invited member works in the company
-     workspace while holding an ordinary researcher account. */
   const { hasCompanyAccess } = useCompanyAccess();
-  const dashboardView = hasCompanyAccess ? "company" : "user";
 
   const {
     data: dashboardData,
@@ -102,8 +100,8 @@ export default function DashboardPage() {
     error,
     refetch,
   } = useGetDashboardOverviewQuery(
-    { view: dashboardView },
-    { skip: !areRolesResolved || Boolean(isAdminUser) },
+    { view: "user" },
+    { skip: !areRolesResolved || Boolean(isAdminUser) || Boolean(hasCompanyAccess) },
   );
 
   if (!areRolesResolved) {
@@ -112,6 +110,19 @@ export default function DashboardPage() {
 
   if (isAdminUser) {
     return <AdminDashboardOverview />;
+  }
+
+  if (hasCompanyAccess) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="space-y-6 w-full pb-12"
+      >
+        <CompanyDashboardView />
+      </motion.div>
+    );
   }
 
   if (isLoading) {

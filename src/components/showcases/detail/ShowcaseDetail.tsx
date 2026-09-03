@@ -23,6 +23,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { ShowcaseCodeBlock } from "@/components/showcases/detail/ShowcaseCodeBlock";
+import { ShowcaseDiagramViewer } from "@/components/showcases/diagram/ShowcaseDiagramViewer";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { Button } from "@/components/ui/button";
 import { VoteControl } from "@/components/ui/vote-control";
@@ -337,16 +338,11 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
                               <Network aria-hidden="true" className="size-3.5" />
                               Diagram
                             </figcaption>
-                            {/* Taller than a screenshot: a diagram is the thing
-                                being read, and its labels have to stay legible. */}
-                            <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3 dark:border-blue-500/20 dark:bg-blue-500/5">
-                              <ShowcaseImage
-                                url={step.diagramUrl}
-                                alt={`${step.title} diagram`}
-                                heightClassName="h-64 sm:h-80"
-                                framed={false}
-                              />
-                            </div>
+                            <ShowcaseDiagramViewer
+                              diagramUrl={step.diagramUrl}
+                              title={`${step.title} diagram`}
+                              stepId={step.id}
+                            />
                           </figure>
                         )}
                       </div>

@@ -14,6 +14,7 @@ import {
   ExternalLink,
   RotateCcw,
   Shield,
+  ShieldCheck,
   FileWarning,
   Building,
   User,
@@ -253,7 +254,7 @@ export function SecurityIncidentsTable({
         {/* Verdict Tabs & Actions */}
         <div className="flex items-center gap-2.5 flex-wrap">
           {/* Verdict Filter Pill Selector */}
-          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-muted/60 border border-border text-xs">
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-muted/60 border border-border text-sm">
             <button
               type="button"
               onClick={() => {
@@ -261,7 +262,7 @@ export function SecurityIncidentsTable({
                 setCurrentPage(0);
               }}
               className={cn(
-                "px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer",
+                "px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer text-sm",
                 verdictFilter === "ALL"
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -276,13 +277,13 @@ export function SecurityIncidentsTable({
                 setCurrentPage(0);
               }}
               className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer",
+                "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer text-sm",
                 verdictFilter === "MALICIOUS"
                   ? "bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/20 shadow-xs"
                   : "text-muted-foreground hover:text-red-500"
               )}
             >
-              <ShieldAlert className="size-3.5 text-red-500" />
+              <ShieldAlert className="size-4 text-red-500" />
               <span>Malicious</span>
             </button>
             <button
@@ -292,13 +293,13 @@ export function SecurityIncidentsTable({
                 setCurrentPage(0);
               }}
               className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer",
+                "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer text-sm",
                 verdictFilter === "SUSPICIOUS"
                   ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-xs"
                   : "text-muted-foreground hover:text-amber-500"
               )}
             >
-              <AlertTriangle className="size-3.5 text-amber-500" />
+              <AlertTriangle className="size-4 text-amber-500" />
               <span>Suspicious</span>
             </button>
           </div>
@@ -311,7 +312,7 @@ export function SecurityIncidentsTable({
               setCurrentPage(0);
             }}
           >
-            <SelectTrigger className="h-9 w-[110px] rounded-xl text-xs bg-background">
+            <SelectTrigger className="h-10 w-[120px] rounded-xl text-sm font-medium bg-background">
               <SelectValue placeholder="20 / page" />
             </SelectTrigger>
             <SelectContent>
@@ -329,10 +330,10 @@ export function SecurityIncidentsTable({
             size="sm"
             onClick={() => void refetch()}
             disabled={isFetching}
-            className="h-9 rounded-xl px-3 cursor-pointer"
+            className="h-10 rounded-xl px-3.5 cursor-pointer"
             title="Refresh incidents"
           >
-            <RotateCcw className={cn("size-3.5", isFetching && "animate-spin")} />
+            <RotateCcw className={cn("size-4", isFetching && "animate-spin")} />
           </Button>
         </div>
       </div>
@@ -356,10 +357,10 @@ export function SecurityIncidentsTable({
       {!isForbidden && (
         <div className="rounded-2xl border border-border bg-card ring-1 ring-foreground/5 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+            <table className="w-full text-left text-sm sm:text-base border-collapse">
               <thead>
-                <tr className="border-b border-border bg-muted/40 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  <th className="py-3.5 px-4 font-semibold">
+                <tr className="border-b border-border bg-muted/40 text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="py-3.5 px-4 sm:px-5 font-semibold">
                     <button
                       type="button"
                       onClick={() => handleSort("verdict")}
@@ -378,7 +379,7 @@ export function SecurityIncidentsTable({
                     </button>
                   </th>
 
-                  <th className="py-3.5 px-4 font-semibold">
+                  <th className="py-3.5 px-4 sm:px-5 font-semibold">
                     <button
                       type="button"
                       onClick={() => handleSort("filename")}
@@ -397,17 +398,17 @@ export function SecurityIncidentsTable({
                     </button>
                   </th>
 
-                  <th className="py-3.5 px-4 font-semibold">VirusTotal Engines</th>
+                  <th className="py-3.5 px-4 sm:px-5 font-semibold">VT Detections</th>
 
-                  <th className="py-3.5 px-4 font-semibold">Uploader / Researcher</th>
+                  <th className="py-3.5 px-4 sm:px-5 font-semibold">Researcher</th>
 
                   {scope === "admin" && (
-                    <th className="py-3.5 px-4 font-semibold">Target Company</th>
+                    <th className="py-3.5 px-4 sm:px-5 font-semibold">Target Scope</th>
                   )}
 
-                  <th className="py-3.5 px-4 font-semibold">Report</th>
+                  <th className="py-3.5 px-4 sm:px-5 font-semibold">Report</th>
 
-                  <th className="py-3.5 px-4 font-semibold">
+                  <th className="py-3.5 px-4 sm:px-5 font-semibold">
                     <button
                       type="button"
                       onClick={() => handleSort("blockedAt")}
@@ -426,7 +427,7 @@ export function SecurityIncidentsTable({
                     </button>
                   </th>
 
-                  <th className="py-3.5 px-4 text-right font-semibold">Action</th>
+                  <th className="py-3.5 px-4 sm:px-5 text-right font-semibold">Actions</th>
                 </tr>
               </thead>
 
@@ -435,32 +436,37 @@ export function SecurityIncidentsTable({
                 {isLoading &&
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="animate-pulse">
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 sm:px-5">
                         <div className="h-6 w-24 rounded-lg bg-muted" />
                       </td>
-                      <td className="py-4 px-4 space-y-1.5">
-                        <div className="h-4 w-36 rounded bg-muted" />
-                        <div className="h-3 w-28 rounded bg-muted/60" />
+                      <td className="py-4 px-4 sm:px-5">
+                        <div className="space-y-2">
+                          <div className="h-4 w-40 rounded bg-muted" />
+                          <div className="h-3 w-56 rounded bg-muted/60" />
+                        </div>
                       </td>
-                      <td className="py-4 px-4">
-                        <div className="h-4 w-24 rounded bg-muted" />
+                      <td className="py-4 px-4 sm:px-5">
+                        <div className="h-5 w-20 rounded bg-muted" />
                       </td>
-                      <td className="py-4 px-4">
-                        <div className="h-4 w-28 rounded bg-muted" />
+                      <td className="py-4 px-4 sm:px-5">
+                        <div className="space-y-1.5">
+                          <div className="h-4 w-28 rounded bg-muted" />
+                          <div className="h-3 w-36 rounded bg-muted/60" />
+                        </div>
                       </td>
                       {scope === "admin" && (
-                        <td className="py-4 px-4">
-                          <div className="h-4 w-24 rounded bg-muted" />
+                        <td className="py-4 px-4 sm:px-5">
+                          <div className="h-4 w-28 rounded bg-muted" />
                         </td>
                       )}
-                      <td className="py-4 px-4">
-                        <div className="h-4 w-16 rounded bg-muted" />
+                      <td className="py-4 px-4 sm:px-5">
+                        <div className="h-4 w-20 rounded bg-muted" />
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 sm:px-5">
                         <div className="h-4 w-28 rounded bg-muted" />
                       </td>
-                      <td className="py-4 px-4 text-right">
-                        <div className="h-8 w-20 rounded-xl bg-muted ml-auto" />
+                      <td className="py-4 px-4 sm:px-5 text-right">
+                        <div className="h-8 w-16 ml-auto rounded-lg bg-muted" />
                       </td>
                     </tr>
                   ))}
@@ -470,30 +476,23 @@ export function SecurityIncidentsTable({
                   <tr>
                     <td
                       colSpan={scope === "admin" ? 8 : 7}
-                      className="py-12 px-4 text-center space-y-3"
+                      className="py-16 text-center text-muted-foreground"
                     >
-                      <div className="flex size-12 mx-auto items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                        <Shield className="size-6" />
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <div className="flex size-14 items-center justify-center rounded-2xl bg-muted/50 border border-border">
+                          <ShieldCheck className="size-7 text-muted-foreground" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-base font-bold text-foreground">
+                            No security incidents found
+                          </p>
+                          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                            {searchInput || verdictFilter !== "ALL"
+                              ? "Try adjusting your search terms or filters to locate specific blocked uploads."
+                              : "The fail-closed security gateway has not detected any malware uploads matching your criteria."}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-base font-semibold text-foreground">
-                        No security incidents recorded
-                      </p>
-                      <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                        {debouncedSearch || verdictFilter !== "ALL"
-                          ? "No incidents matched your current search and verdict filters."
-                          : "No uploads have been refused by the VirusTotal security guard."}
-                      </p>
-                      {(debouncedSearch || verdictFilter !== "ALL") && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleResetFilters}
-                          className="rounded-xl text-xs font-semibold mt-2 cursor-pointer"
-                        >
-                          Clear Filters
-                        </Button>
-                      )}
                     </td>
                   </tr>
                 )}
@@ -505,6 +504,12 @@ export function SecurityIncidentsTable({
                     const truncatedHash = `${item.sha256Hash.slice(0, 12)}...`;
                     const isCopied = copiedHashId === item.id;
                     const vtLookupUrl = `https://www.virustotal.com/gui/file/${item.sha256Hash}`;
+                    const maliciousRatio = item.stats.total > 0
+                      ? (item.stats.malicious / item.stats.total) * 100
+                      : 0;
+                    const suspiciousRatio = item.stats.total > 0
+                      ? (item.stats.suspicious / item.stats.total) * 100
+                      : 0;
 
                     return (
                       <tr
@@ -513,38 +518,38 @@ export function SecurityIncidentsTable({
                         className="group hover:bg-muted/40 transition-colors cursor-pointer"
                       >
                         {/* Verdict Badge */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <Badge
-                            variant="outline"
+                        <td className="py-4 px-4 sm:px-5 whitespace-nowrap">
+                          <span
                             className={cn(
-                              "font-bold uppercase tracking-wider text-[11px] px-2.5 py-0.5 inline-flex items-center gap-1",
+                              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider font-mono border shadow-2xs",
                               isMalicious
-                                ? "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30"
-                                : "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                                ? "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/25"
+                                : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25"
                             )}
                           >
-                            {isMalicious ? (
-                              <ShieldAlert className="size-3 text-red-500" />
-                            ) : (
-                              <AlertTriangle className="size-3 text-amber-500" />
-                            )}
+                            <span
+                              className={cn(
+                                "size-1.5 rounded-full shrink-0 animate-pulse",
+                                isMalicious ? "bg-red-500" : "bg-amber-500"
+                              )}
+                            />
                             <span>{item.verdict}</span>
-                          </Badge>
+                          </span>
                         </td>
 
                         {/* File Name, Size & Hash */}
-                        <td className="py-3.5 px-4 min-w-[200px]">
+                        <td className="py-4 px-4 sm:px-5 min-w-[220px]">
                           <div className="space-y-1">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2">
                               <FileWarning
                                 className={cn(
                                   "size-4 shrink-0",
                                   isMalicious
-                                    ? "text-red-500"
-                                    : "text-amber-500"
+                                    ? "text-red-500/90"
+                                    : "text-amber-500/90"
                                 )}
                               />
-                              <span className="font-semibold text-foreground text-sm truncate max-w-[220px]">
+                              <span className="font-semibold text-foreground text-sm sm:text-base truncate max-w-[240px]">
                                 {item.filename}
                               </span>
                               <span className="text-xs text-muted-foreground font-normal shrink-0">
@@ -554,7 +559,8 @@ export function SecurityIncidentsTable({
 
                             {/* Truncated SHA-256 & Copy */}
                             <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-                              <span>SHA-256: {truncatedHash}</span>
+                              <span className="text-muted-foreground/70">SHA-256:</span>
+                              <span className="text-foreground/80">{truncatedHash}</span>
                               <button
                                 type="button"
                                 onClick={(e) => handleCopyHash(e, item.sha256Hash, item.id)}
@@ -573,7 +579,7 @@ export function SecurityIncidentsTable({
                                 rel="noopener noreferrer nofollow"
                                 onClick={(e) => e.stopPropagation()}
                                 title="Look up on VirusTotal"
-                                className="p-1 rounded hover:bg-muted text-primary hover:text-primary/80 cursor-pointer transition-colors"
+                                className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary cursor-pointer transition-colors"
                               >
                                 <ExternalLink className="size-3" />
                               </a>
@@ -581,31 +587,38 @@ export function SecurityIncidentsTable({
                           </div>
                         </td>
 
-                        {/* Engines Count */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                        {/* VT Detections */}
+                        <td className="py-4 px-4 sm:px-5 whitespace-nowrap">
+                          <div className="space-y-1.5">
+                            <div className="flex items-baseline gap-1.5 text-sm sm:text-base">
                               <span
-                                className={
+                                className={cn(
+                                  "font-bold tabular-nums",
                                   isMalicious
                                     ? "text-red-600 dark:text-red-400"
                                     : "text-amber-600 dark:text-amber-400"
-                                }
+                                )}
                               >
                                 {item.stats.malicious + item.stats.suspicious}
                               </span>
-                              <span className="text-muted-foreground font-normal">
+                              <span className="text-muted-foreground font-medium text-xs sm:text-sm">
                                 / {item.stats.total} engines
                               </span>
                             </div>
-                            <div className="text-[11px] text-muted-foreground">
-                              {item.stats.malicious} malicious
-                              {item.stats.suspicious > 0 && `, ${item.stats.suspicious} susp`}
+                            <div className="w-24 h-1.5 rounded-full bg-muted overflow-hidden flex">
+                              <div
+                                style={{ width: `${maliciousRatio}%` }}
+                                className="bg-red-500 h-full"
+                              />
+                              <div
+                                style={{ width: `${suspiciousRatio}%` }}
+                                className="bg-amber-500 h-full"
+                              />
                             </div>
                           </div>
                         </td>
 
-                        {/* Uploader / Researcher */}
+                        {/* Researcher */}
                         {(() => {
                           const uploaderStatus =
                             item.uploader.status ||
@@ -617,24 +630,23 @@ export function SecurityIncidentsTable({
                               ? userStatusMap.get(item.uploader.username.toLowerCase())
                               : undefined) ||
                             "ACTIVE";
-                          const isSuspended = uploaderStatus.toUpperCase() === "SUSPENDED";
 
                           return (
-                            <td className="py-3.5 px-4 min-w-[180px]">
-                              <div className="space-y-1 text-xs">
-                                <div className="flex items-center gap-1.5 flex-wrap">
+                            <td className="py-4 px-4 sm:px-5 min-w-[200px]">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   {item.uploader.username ? (
                                     <Link
                                       href={`/profile/${item.uploader.username}`}
                                       onClick={(e) => e.stopPropagation()}
                                       target="_blank"
-                                      className="font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                                      className="font-semibold text-primary hover:underline inline-flex items-center gap-1 text-sm sm:text-base"
                                     >
                                       <span>@{item.uploader.username}</span>
-                                      <ArrowUpRight className="size-3" />
+                                      <ArrowUpRight className="size-3.5" />
                                     </Link>
                                   ) : (
-                                    <span className="font-mono text-muted-foreground">
+                                    <span className="font-mono text-muted-foreground text-sm">
                                       {item.uploader.id.slice(0, 8)}... (Deleted)
                                     </span>
                                   )}
@@ -643,35 +655,9 @@ export function SecurityIncidentsTable({
                                   {item.uploader.id && (
                                     <UserStatusBadge status={uploaderStatus} size="xs" />
                                   )}
-
-                                  {scope === "admin" && item.uploader.id && (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setModerateTarget({
-                                          user: { ...item.uploader, status: uploaderStatus },
-                                          filename: item.filename,
-                                          actionType: isSuspended ? "REINSTATE" : "SUSPEND",
-                                        });
-                                      }}
-                                      title={
-                                        isSuspended
-                                          ? "Reinstate user account"
-                                          : "Suspend user account"
-                                      }
-                                      className="opacity-70 hover:opacity-100 transition-opacity p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
-                                    >
-                                      {isSuspended ? (
-                                        <RotateCcw className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                                      ) : (
-                                        <UserX className="size-3.5 text-orange-600 dark:text-orange-400" />
-                                      )}
-                                    </button>
-                                  )}
                                 </div>
                                 {item.uploader.email && (
-                                  <p className="text-muted-foreground truncate max-w-[170px]">
+                                  <p className="text-muted-foreground text-xs font-mono truncate max-w-[220px]">
                                     {item.uploader.email}
                                   </p>
                                 )}
@@ -680,44 +666,44 @@ export function SecurityIncidentsTable({
                           );
                         })()}
 
-                        {/* Target Organization (Admin only) */}
+                        {/* Target Scope (Admin only) */}
                         {scope === "admin" && (
-                          <td className="py-3.5 px-4 whitespace-nowrap">
+                          <td className="py-4 px-4 sm:px-5 whitespace-nowrap">
                             {item.organization ? (
-                              <span className="font-medium text-foreground text-xs">
+                              <span className="font-medium text-foreground text-sm sm:text-base">
                                 {item.organization.name || item.organization.id.slice(0, 8)}
                               </span>
                             ) : (
-                              <span className="text-xs text-muted-foreground italic">
-                                Platform
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-muted-foreground">
+                                Platform Scope
                               </span>
                             )}
                           </td>
                         )}
 
                         {/* Associated Report */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
+                        <td className="py-4 px-4 sm:px-5 whitespace-nowrap">
                           {item.reportId ? (
                             <Link
                               href={`/dashboard/report-management/${item.reportId}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="font-semibold text-primary hover:underline text-xs inline-flex items-center gap-1"
+                              className="font-mono font-semibold text-primary hover:underline text-xs sm:text-sm inline-flex items-center gap-1"
                             >
                               <span>#{item.reportId.slice(0, 8)}</span>
-                              <ArrowUpRight className="size-3" />
+                              <ArrowUpRight className="size-3.5" />
                             </Link>
                           ) : (
-                            <span className="text-muted-foreground text-xs">—</span>
+                            <span className="text-muted-foreground text-sm">—</span>
                           )}
                         </td>
 
                         {/* Blocked Date */}
-                        <td className="py-3.5 px-4 whitespace-nowrap text-xs text-muted-foreground">
+                        <td className="py-4 px-4 sm:px-5 whitespace-nowrap text-sm text-muted-foreground tabular-nums">
                           {formatDate(item.blockedAt)}
                         </td>
 
                         {/* Action */}
-                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <td className="py-4 px-4 sm:px-5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <Button
                               type="button"
@@ -727,7 +713,7 @@ export function SecurityIncidentsTable({
                                 e.stopPropagation();
                                 setSelectedIncident(item);
                               }}
-                              className="h-8 px-2.5 rounded-xl text-xs font-semibold gap-1 text-primary hover:text-primary hover:bg-primary/10 cursor-pointer"
+                              className="h-8.5 px-3 rounded-lg text-xs font-semibold gap-1.5 text-foreground hover:text-primary hover:bg-muted cursor-pointer border border-transparent hover:border-border transition-colors"
                               title="Inspect Incident Details"
                             >
                               <Eye className="size-3.5" />
@@ -751,7 +737,7 @@ export function SecurityIncidentsTable({
                                 <DropdownMenu>
                                   <DropdownMenuTrigger
                                     onClick={(e) => e.stopPropagation()}
-                                    className="inline-flex items-center justify-center size-8 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs transition-colors"
+                                    className="inline-flex items-center justify-center size-8.5 rounded-lg border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs transition-colors"
                                     title="Moderate User"
                                   >
                                     <MoreVertical className="size-4" />
@@ -759,9 +745,9 @@ export function SecurityIncidentsTable({
                                   <DropdownMenuContent
                                     align="end"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="w-56 rounded-2xl shadow-xl border border-border bg-popover text-popover-foreground"
+                                    className="w-56 rounded-xl shadow-xl border border-border bg-popover text-popover-foreground p-1"
                                   >
-                                    <div className="px-3 py-2 space-y-1">
+                                    <div className="px-3 py-2 space-y-0.5 border-b border-border/60 mb-1">
                                       <div className="flex items-center justify-between gap-2">
                                         <span className="text-xs font-bold text-foreground truncate">
                                           {item.uploader.username ? `@${item.uploader.username}` : item.uploader.id.slice(0, 8)}
@@ -769,12 +755,11 @@ export function SecurityIncidentsTable({
                                         <UserStatusBadge status={uploaderStatus} size="xs" />
                                       </div>
                                       {item.uploader.email && (
-                                        <p className="text-[11px] text-muted-foreground truncate">
+                                        <p className="text-[11px] font-mono text-muted-foreground truncate">
                                           {item.uploader.email}
                                         </p>
                                       )}
                                     </div>
-                                    <DropdownMenuSeparator />
                                     {isSuspended ? (
                                       <DropdownMenuItem
                                         onClick={(e) => {
@@ -785,9 +770,9 @@ export function SecurityIncidentsTable({
                                             actionType: "REINSTATE",
                                           });
                                         }}
-                                        className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 cursor-pointer"
+                                        className="text-xs font-medium text-emerald-600 dark:text-emerald-400 cursor-pointer rounded-lg"
                                       >
-                                        <RotateCcw className="size-4 mr-2" />
+                                        <RotateCcw className="size-3.5 mr-2" />
                                         Reinstate Account
                                       </DropdownMenuItem>
                                     ) : (
@@ -800,9 +785,9 @@ export function SecurityIncidentsTable({
                                             actionType: "SUSPEND",
                                           });
                                         }}
-                                        className="text-xs font-semibold text-orange-600 dark:text-orange-400 cursor-pointer"
+                                        className="text-xs font-medium text-foreground hover:bg-muted cursor-pointer rounded-lg"
                                       >
-                                        <UserX className="size-4 mr-2" />
+                                        <UserX className="size-3.5 mr-2 text-muted-foreground" />
                                         Suspend User
                                       </DropdownMenuItem>
                                     )}
@@ -812,13 +797,13 @@ export function SecurityIncidentsTable({
                                         setModerateTarget({
                                           user: { ...item.uploader, status: uploaderStatus },
                                           filename: item.filename,
-                                          actionType: "BAN",
+                                          actionType: "WARN",
                                         });
                                       }}
-                                      className="text-xs font-semibold text-purple-600 dark:text-purple-400 cursor-pointer"
+                                      className="text-xs font-medium text-foreground hover:bg-muted cursor-pointer rounded-lg"
                                     >
-                                      <Ban className="size-4 mr-2" />
-                                      Permanently Ban User
+                                      <ShieldAlert className="size-3.5 mr-2 text-muted-foreground" />
+                                      Issue Warning
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       onClick={(e) => {
@@ -826,25 +811,25 @@ export function SecurityIncidentsTable({
                                         setModerateTarget({
                                           user: { ...item.uploader, status: uploaderStatus },
                                           filename: item.filename,
-                                          actionType: "WARN",
+                                          actionType: "BAN",
                                         });
                                       }}
-                                      className="text-xs font-semibold text-amber-600 dark:text-amber-400 cursor-pointer"
+                                      className="text-xs font-medium text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer rounded-lg"
                                     >
-                                      <ShieldAlert className="size-4 mr-2" />
-                                      Issue Security Warning
+                                      <Ban className="size-3.5 mr-2" />
+                                      Permanently Ban
                                     </DropdownMenuItem>
                                     {item.uploader.username && (
                                       <>
-                                        <DropdownMenuSeparator />
+                                        <DropdownMenuSeparator className="my-1" />
                                         <DropdownMenuItem
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             window.open(`/profile/${item.uploader.username}`, "_blank");
                                           }}
-                                          className="text-xs font-medium text-foreground cursor-pointer"
+                                          className="text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
                                         >
-                                          <User className="size-4 mr-2 text-muted-foreground" />
+                                          <User className="size-3.5 mr-2 text-muted-foreground" />
                                           View Profile
                                         </DropdownMenuItem>
                                       </>

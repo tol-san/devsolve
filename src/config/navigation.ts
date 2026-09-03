@@ -8,7 +8,6 @@ import {
   MessageSquare,
   Globe,
   Bookmark,
-  BarChart3,
   PlusCircle,
   ClipboardList,
   Users,
@@ -38,25 +37,22 @@ export interface NavItem {
   category?: "Overview" | "Researcher" | "Organization" | "Administration";
   /**
    * Organization permissions that decide this entry. Holding any one is
-   * enough.
+   * enough — they are an OR.
    *
-   * This is how every company screen is gated now. `COMPANY` was never the
-   * right test: the realm role is granted for *registering* a company, so an
-   * invited member — who may hold all ten permissions — never has it. Owners
-   * come back from the memberships endpoint with the full set, so they keep
-   * everything they had.
+   * An entry with both `roles` and `permissions` requires the user to hold
+   * the role AND at least one permission.
    */
   permissions?: OrganizationInvitationPermission[];
   /**
-   * Owner-exclusive. The endpoints behind these screens (`/organizations/me`,
-   * `/me/members`, `/me/verification`, `/me/logo`, `/me/resubmit`) answer 404
-   * for a member, so offering them would be offering a dead end.
+   * Screen reserved for the account that owns the organization.
+   *
+   * Upstream returns 403 to any other role regardless of permissions granted,
+   * so rendering the link for a manager is only an invitation to an error.
    */
   ownerOnly?: boolean;
   /**
-   * For accounts that joined a company rather than registering one — the
-   * member's own view of the workspace, which would only duplicate the owner's
-   * screens for an owner.
+   * Shown only to an account that belongs to at least one organization, in
+   * whatever role. Unrelated to `roles` — a researcher can be on a team.
    */
   memberOnly?: boolean;
 }
@@ -93,7 +89,6 @@ export const NAV_ITEMS: NavItem[] = [
 
   // Company workspace — earned by organization permissions, not by role, so an
   // invited member reaches exactly the screens they were granted.
-  { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3, category: "Organization", permissions: ["VIEW_PROGRAMS"] },
   { name: "Program Management", href: "/dashboard/program-management", icon: Building2, category: "Organization", permissions: ["VIEW_PROGRAMS"] },
   { name: "Create Program", href: "/dashboard/create-program", icon: PlusCircle, category: "Organization", permissions: ["CREATE_PROGRAM"] },
   { name: "Saved Drafts", href: "/dashboard/saved-draft", icon: FilePen, category: "Organization", permissions: ["VIEW_PROGRAMS"] },

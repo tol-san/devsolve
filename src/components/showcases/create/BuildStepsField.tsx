@@ -389,6 +389,16 @@ export function BuildStepsField() {
             ? stepDiagrams[fields[diagramModalStepIndex].key]?.edges ?? []
             : []
         }
+        initialDiagramUrl={
+          diagramModalStepIndex !== null
+            ? steps[diagramModalStepIndex]?.diagramUrl
+            : undefined
+        }
+        initialFile={
+          diagramModalStepIndex !== null
+            ? (steps[diagramModalStepIndex]?.diagramFile as File | undefined)
+            : undefined
+        }
         onSaveDiagram={(file, previewUrl, nodes, edges) => {
           if (diagramModalStepIndex !== null) {
             const currentKey = fields[diagramModalStepIndex]?.key;
