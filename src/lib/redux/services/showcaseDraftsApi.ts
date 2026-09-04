@@ -59,6 +59,36 @@ export const showcaseDraftsApi = proxyApi.injectEndpoints({
       },
     }),
 
+    uploadShowcaseDraftCoverImage: builder.mutation<
+      ShowcaseDraftResponse,
+      { id: string; file: File }
+    >({
+      query: ({ id, file }) => {
+        const body = new FormData();
+        body.append("file", file, file.name);
+        return {
+          url: `/showcase-drafts/${id}/cover-image`,
+          method: "PUT",
+          body,
+        };
+      },
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        await cacheWhatWasStored(dispatch, queryFulfilled);
+      },
+      invalidatesTags: ["ShowcaseDraft"],
+    }),
+
+    removeShowcaseDraftCoverImage: builder.mutation<ShowcaseDraftResponse, string>({
+      query: (id) => ({
+        url: `/showcase-drafts/${id}/cover-image`,
+        method: "DELETE",
+      }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        await cacheWhatWasStored(dispatch, queryFulfilled);
+      },
+      invalidatesTags: ["ShowcaseDraft"],
+    }),
+
     deleteShowcaseDraft: builder.mutation<void, string>({
       query: (id) => ({ url: `/showcase-drafts/${id}`, method: "DELETE" }),
       invalidatesTags: ["ShowcaseDraft"],
@@ -92,6 +122,8 @@ export const {
   useGetShowcaseDraftQuery,
   useCreateShowcaseDraftMutation,
   useUpdateShowcaseDraftMutation,
+  useUploadShowcaseDraftCoverImageMutation,
+  useRemoveShowcaseDraftCoverImageMutation,
   useDeleteShowcaseDraftMutation,
   useSubmitShowcaseDraftMutation,
 } = showcaseDraftsApi;

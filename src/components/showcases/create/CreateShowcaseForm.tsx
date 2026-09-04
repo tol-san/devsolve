@@ -44,6 +44,11 @@ import {
   type CreateShowcaseSubmitValues,
 } from "@/lib/validations/showcase";
 import { useServerShowcaseDraft } from "@/components/showcases/hooks/useServerShowcaseDraft";
+import {
+  useGetShowcaseDraftQuery,
+  useUploadShowcaseDraftCoverImageMutation,
+  useRemoveShowcaseDraftCoverImageMutation,
+} from "@/lib/redux/services/showcaseDraftsApi";
 import type { SaveShowcaseDraftValues } from "@/lib/validations/showcase-draft";
 import { cn } from "@/lib/utils";
 
@@ -267,6 +272,8 @@ export function CreateShowcaseForm({
   const [updateStep] = useUpdateShowcaseStepMutation();
   const [deleteStep] = useDeleteShowcaseStepMutation();
   const [uploadCover] = useUploadShowcaseCoverMutation();
+  const [uploadDraftCover] = useUploadShowcaseDraftCoverImageMutation();
+  const [removeDraftCover] = useRemoveShowcaseDraftCoverImageMutation();
   const [uploadStepImage] = useUploadShowcaseStepImageMutation();
   const [uploadStepDiagram] = useUploadShowcaseStepDiagramMutation();
 
@@ -396,6 +403,7 @@ export function CreateShowcaseForm({
     discard: discardDraft,
     saveNow: saveDraftNow,
     clear: clearDraft,
+    draftId: currentDraftId,
   } = useServerShowcaseDraft({
     values: draftValues,
     enabled: !isEdit,
@@ -403,27 +411,28 @@ export function CreateShowcaseForm({
     resumeId,
   });
 
-  const resumedFromUrl = useRef(false);
+  const { data: serverDraft } = useGetShowcaseDraftQuery(resumeId ?? "", {
+    skip: !resumeId || isEdit,
+  });
+
+  const restoredDraftId = useRef<string | null>(null);
   useEffect(() => {
-    if (!resumeId || resumedFromUrl.current || isEdit) return;
-    resumedFromUrl.current = true;
-    const draft = takeDraft();
-    if (draft) {
-      reset({
-        title: draft.title ?? "",
-        overview: draft.overview ?? "",
-        categoryId: draft.categoryId ?? "",
-        coverImageUrl: draft.coverImageUrl ?? "",
-        liveUrl: draft.liveUrl ?? "",
-        repoUrl: draft.repoUrl ?? "",
-        videoUrl: draft.videoUrl ?? "",
-        techStack: draft.tags ?? [],
-        resourceLinks: [],
-        steps: [createEmptyStep()],
-      });
-      toast.success("Draft restored from link");
-    }
-  }, [resumeId, isEdit, takeDraft, reset]);
+    if (!serverDraft || restoredDraftId.current === serverDraft.id || isEdit) return;
+    restoredDraftId.current = serverDraft.id;
+    reset({
+      title: serverDraft.title ?? "",
+      overview: serverDraft.overview ?? "",
+      categoryId: serverDraft.categoryId ?? "",
+      coverImageUrl: serverDraft.coverImageUrl ?? "",
+      liveUrl: serverDraft.liveUrl ?? "",
+      repoUrl: serverDraft.repoUrl ?? "",
+      videoUrl: serverDraft.videoUrl ?? "",
+      techStack: serverDraft.tags ?? [],
+      resourceLinks: [],
+      steps: [createEmptyStep()],
+    });
+    toast.success("Draft restored from link");
+  }, [serverDraft, isEdit, reset]);
 
   /* A step only counts once it carries both of the fields the schema demands
      — a titled step with an empty body would fail validation at submit.
@@ -1039,6 +1048,29 @@ export function CreateShowcaseForm({
                     onClick={async () => {
                       const ok = await saveDraftNow();
                       if (ok) {
+                        const targetId = resumeId || currentDraftId;
+                        if (targetId) {
+                          if (coverImageFile) {
+                            try {
+                              const res = await uploadDraftCover({
+                                id: targetId,
+                                file: coverImageFile,
+                              }).unwrap();
+                              if (res.coverImageUrl) {
+                                setValue("coverImageUrl", res.coverImageUrl);
+                                setValue("coverImageFile", undefined);
+                              }
+                            } catch (err) {
+                              console.error("Cover image draft upload error", err);
+                            }
+                          } else if (!coverImageUrl && serverDraft?.coverImageUrl) {
+                            try {
+                              await removeDraftCover(targetId).unwrap();
+                            } catch (err) {
+                              console.error("Cover image draft removal error", err);
+                            }
+                          }
+                        }
                         toast.success("Draft saved successfully.");
                         router.push("/dashboard/saved-draft");
                       } else {

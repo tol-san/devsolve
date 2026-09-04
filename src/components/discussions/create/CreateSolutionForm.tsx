@@ -64,6 +64,7 @@ import {
   type SolutionFormValues,
 } from "@/lib/validations/solution";
 import { useServerSolutionDraft } from "@/components/discussions/hooks/useServerSolutionDraft";
+import { useGetSolutionDraftQuery } from "@/lib/redux/services/solutionDraftsApi";
 import type {
   SaveSolutionDraftValues,
   SolutionDraftResponse,
@@ -288,16 +289,17 @@ export function CreateSolutionForm({
     });
   };
 
-  const resumedFromUrl = useRef(false);
+  const { data: serverDraft } = useGetSolutionDraftQuery(resumeId ?? "", {
+    skip: !resumeId || isEdit,
+  });
+
+  const restoredDraftId = useRef<string | null>(null);
   useEffect(() => {
-    if (!resumeId || resumedFromUrl.current || isEdit) return;
-    resumedFromUrl.current = true;
-    const draft = takeDraft();
-    if (draft) {
-      applyDraftToForm(draft);
-      toast.success("Draft restored from link");
-    }
-  }, [resumeId, isEdit, takeDraft]);
+    if (!serverDraft || restoredDraftId.current === serverDraft.id || isEdit) return;
+    restoredDraftId.current = serverDraft.id;
+    applyDraftToForm(serverDraft);
+    toast.success("Draft restored from link");
+  }, [serverDraft, isEdit]);
 
   const onSubmit = async (values: SolutionFormValues) => {
     setSubmitError(null);

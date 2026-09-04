@@ -291,6 +291,11 @@ export function SavedDraftPage() {
         initials: title.slice(0, 2).toUpperCase(),
         logoSrc: program?.logoUrl ?? "",
         logoAlt: program?.name || "Program logo",
+        severity:
+          draft.reportedSeverity && draft.reportedSeverity !== "NONE"
+            ? draft.reportedSeverity
+            : undefined,
+        organizationName: program?.name,
       });
     });
 
@@ -324,6 +329,8 @@ export function SavedDraftPage() {
           initials: title.slice(0, 2).toUpperCase(),
           logoSrc: "",
           logoAlt: title,
+          categoryName: problem.category?.name,
+          problemType: problem.problemType,
         });
       });
 
@@ -347,10 +354,13 @@ export function SavedDraftPage() {
             })
           : "Recently",
         updatedAtIso: draft.updatedAt,
-        tags: ["Showcase", ...(draft.tags ?? [])],
+        tags: (draft.tags ?? []).filter(Boolean),
         initials: title.slice(0, 2).toUpperCase(),
         logoSrc: draft.coverImageUrl || "",
         logoAlt: title,
+        repoUrl: draft.repoUrl || undefined,
+        liveUrl: draft.liveUrl || undefined,
+        categoryName: "Showcase",
       });
     });
 
@@ -364,7 +374,10 @@ export function SavedDraftPage() {
         const techTags = (draft.testedWith ?? [])
           .map((t) => t.technology)
           .filter((t): t is string => Boolean(t));
-        const tags = ["Solution", ...(draft.approachType ? [draft.approachType] : []), ...techTags];
+        const tags = [
+          ...(draft.approachType ? [draft.approachType] : []),
+          ...techTags,
+        ];
 
         items.push({
           id: draft.id,
@@ -385,6 +398,7 @@ export function SavedDraftPage() {
           initials: title.slice(0, 2).toUpperCase(),
           logoSrc: "",
           logoAlt: title,
+          approachType: draft.approachType || undefined,
         });
       });
 

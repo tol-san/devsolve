@@ -24,4 +24,11 @@ export type SavedDraftItem = {
   logoAlt: string;
   problemId?: string;
   programDraftKind?: ProgramDraftKind;
+  repoUrl?: string;
+  liveUrl?: string;
+  categoryName?: string;
+  problemType?: string;
+  approachType?: string;
+  severity?: string;
+  organizationName?: string;
 };

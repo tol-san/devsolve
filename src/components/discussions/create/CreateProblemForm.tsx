@@ -9,7 +9,7 @@ import {
   useForm,
   useWatch,
 } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Check,
@@ -67,6 +67,7 @@ import {
   useDeleteProblemAttachmentMutation,
   useUpdateProblemMutation,
   useGetMyProblemsQuery,
+  useGetProblemByIdQuery,
   type ProblemResponse,
 } from "@/lib/redux/services/problemsApi";
 import {
@@ -189,9 +190,17 @@ export function CreateProblemForm({
   stickyTop = "1.5rem",
 }: CreateProblemFormProps) {
   const router = useRouter();
-  const isDraftProblem = !problem || problem.status === "DRAFT";
-  const isPublishedEdit = Boolean(problem && problem.status !== "DRAFT");
-  const isEdit = Boolean(problem);
+  const searchParams = useSearchParams();
+  const draftId = searchParams?.get("draftId") || searchParams?.get("id") || undefined;
+
+  const { data: fetchedDraftProblem } = useGetProblemByIdQuery(draftId ?? "", {
+    skip: !draftId || Boolean(problem),
+  });
+
+  const activeProblem = problem ?? fetchedDraftProblem;
+  const isDraftProblem = !activeProblem || activeProblem.status === "DRAFT";
+  const isPublishedEdit = Boolean(activeProblem && activeProblem.status !== "DRAFT");
+  const isEdit = Boolean(activeProblem);
   const [deleteAttachment] = useDeleteProblemAttachmentMutation();
 
   /**
@@ -200,9 +209,10 @@ export function CreateProblemForm({
    * invalidated tag, which is what takes the row off the list.
    */
   const handleRemoveAttachment = async (attachmentId: string) => {
-    if (!problem?.id) return;
+    const targetProblem = activeProblem ?? preparedDraft;
+    if (!targetProblem?.id) return;
     try {
-      await deleteAttachment({ problemId: problem.id, attachmentId }).unwrap();
+      await deleteAttachment({ problemId: targetProblem.id, attachmentId }).unwrap();
       toast.success("Attachment removed");
     } catch (error) {
       toast.error("That attachment could not be removed", {
@@ -384,20 +394,15 @@ export function CreateProblemForm({
     toast.success("Draft loaded into editor.");
   };
 
+  const appliedProblemId = useRef<string | null>(null);
   useEffect(() => {
-    if (typeof window === "undefined" || preparedDraft || !myProblemsData?.content) return;
-    const params = new URLSearchParams(window.location.search);
-    const draftId = params.get("draftId");
-    if (draftId) {
-      const match = myProblemsData.content.find((p) => p.id === draftId);
-      if (match) {
-        const timer = setTimeout(() => {
-          loadDraftIntoForm(match);
-        }, 0);
-        return () => clearTimeout(timer);
-      }
+    if (!activeProblem || appliedProblemId.current === activeProblem.id) return;
+    appliedProblemId.current = activeProblem.id ?? null;
+    loadDraftIntoForm(activeProblem);
+    if (activeProblem.status === "DRAFT") {
+      toast.success("Draft restored from link");
     }
-  }, [preparedDraft, myProblemsData]);
+  }, [activeProblem]);
 
   const handleInsertTemplate = (template: "expected" | "steps" | "logs") => {
     let snippet = "";
@@ -532,7 +537,7 @@ export function CreateProblemForm({
     /* On an edit, emptied collections are sent as `[]` rather than dropped:
        PATCH reads an absent field as "leave it alone", so omitting a list the
        author just cleared would silently restore the old rows. */
-    const workingProblem = preparedDraft ?? problem;
+    const workingProblem = preparedDraft ?? activeProblem ?? problem;
     const updatingExisting = Boolean(workingProblem?.id);
     const listOrUndefined = <T,>(list: T[]) =>
       updatingExisting ? list : list.length ? list : undefined;
@@ -779,7 +784,7 @@ export function CreateProblemForm({
       .map((step) => step.trim())
       .filter(Boolean);
 
-    const workingProblem = preparedDraft ?? problem;
+    const workingProblem = preparedDraft ?? activeProblem ?? problem;
     const updatingExisting = Boolean(workingProblem?.id);
     const listOrUndefined = <T,>(list: T[]) =>
       updatingExisting ? list : list.length ? list : undefined;
@@ -1800,11 +1805,11 @@ export function CreateProblemForm({
                 {/* What is already stored. The dropzone below can only hold
                     files picked in this session, so without this an author
                     editing a problem saw none of their own evidence. */}
-                {problem?.attachments?.length ? (
+                {(activeProblem ?? preparedDraft)?.attachments?.length ? (
                   <ExistingAttachments
-                    attachments={problem.attachments}
-                    disabled={submitting}
+                    attachments={(activeProblem ?? preparedDraft)!.attachments!}
                     onRemove={handleRemoveAttachment}
+                    disabled={mutationLoading}
                   />
                 ) : null}
 
