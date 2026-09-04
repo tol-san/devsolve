@@ -95,7 +95,7 @@ export function SectionBackdrop({
   particles = true,
   beams = false,
   aurora = true,
-  cells = true,
+  cells = false,
   gridSize = 88,
   className = "",
 }: SectionBackdropProps) {
@@ -107,6 +107,7 @@ export function SectionBackdrop({
   const inView = useInView(containerRef, { margin: "200px 0px" });
 
   const cellSpecs = useMemo(() => {
+    if (!cells) return [];
     const rand = mulberry32(seed * 977 + 7);
     return Array.from({ length: compact ? 4 : CELL_COUNT }, () => ({
       col: Math.floor(rand() * 22),
@@ -115,7 +116,7 @@ export function SectionBackdrop({
       delay: rand() * 9,
       duration: 3.5 + rand() * 3,
     }));
-  }, [seed, compact]);
+  }, [seed, compact, cells]);
 
   const particleSpecs = useMemo(() => {
     const rand = mulberry32(seed * 5081 + 23);

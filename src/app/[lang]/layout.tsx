@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Kantumruy_Pro } from "next/font/google";
+import localFont from "next/font/local";
 import "../globals.css";
 import { cn } from "@/lib/utils";
 import StoreProvider from "@/lib/redux/StoreProvider";
@@ -24,6 +25,12 @@ import {
   SITE_URL,
   TWITTER_HANDLE,
 } from "@/lib/seo/site";
+
+const hackdaddy = localFont({
+  src: "../fonts/Hackdaddy.otf",
+  variable: "--font-cyber",
+  display: "swap",
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -111,7 +118,7 @@ export default async function RootLayout({
     <html
       lang={LOCALE_TAGS[locale]}
       suppressHydrationWarning
-      className={cn("h-full", "antialiased", inter.variable, khmer.variable)}
+      className={cn("h-full", "antialiased", inter.variable, khmer.variable, hackdaddy.variable)}
     >
       <body suppressHydrationWarning className={cn("h-full font-sans antialiased")}>
         <ThemeProvider

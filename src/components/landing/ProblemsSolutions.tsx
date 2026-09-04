@@ -171,7 +171,8 @@ export function ProblemsSolutions() {
 
             <Link
               href="/problems"
-              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-[#1E293B] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white"
+              className="group mt-8 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:brightness-110 shadow-[0_4px_16px_rgba(16,185,129,0.35)]"
+              style={{ backgroundColor: ACCENT }}
             >
               {t("sections.problems.openFeed")}
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

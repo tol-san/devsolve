@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HeroPlatform } from "@/components/landing/HeroPlatform";
+import { AetherFlowHero } from "@/components/ui/aether-flow-hero";
 import { FeatureHighlights } from "@/components/landing/FeatureHighlights";
 import { StatsSection } from "@/components/landing/StatsSection";
 import { BountyPreview } from "@/components/landing/BountyPreview";
@@ -32,7 +32,7 @@ export default function Page() {
     <main className="text-slate-900 selection:bg-blue-100 selection:text-blue-900 dark:text-neutral-100 dark:selection:bg-blue-500/30 dark:selection:text-blue-50">
       <JsonLd data={[organizationSchema(), websiteSchema()]} />
 
-      <HeroPlatform />
+      <AetherFlowHero />
 
       <FeatureHighlights />
 
