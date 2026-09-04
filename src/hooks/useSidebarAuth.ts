@@ -6,6 +6,7 @@ import { useGetEditProfileFormQuery } from "@/lib/redux/services/profileApi";
 import { getAccessToken, clearAccessToken } from "@/lib/auth/access-token";
 import { baseApi } from "@/lib/redux/services/baseApi";
 import { proxyApi } from "@/lib/redux/services/proxyApi";
+import { useRouter } from "next/navigation";
 
 /** Extension of the better-auth session user that includes the role field injected by Keycloak */
 interface SessionUserWithRole {
@@ -25,12 +26,17 @@ export interface SidebarUser {
 
 export function useSidebarAuth() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
   const { data: profile } = useGetEditProfileFormQuery(undefined, { skip: !session });
   const displayName = profile?.fullName || user?.name || user?.email || "User";
   const [tokenRoles, setTokenRoles] = useState<string[]>([]);
   const [tokenRolesResolved, setTokenRolesResolved] = useState(false);
+  // Tracks whether the Keycloak JWT is genuinely available (not just that
+  // the better-auth session cookie exists). Used by the rest of the app to
+  // decide whether it is safe to fire authenticated requests.
+  const [tokenReady, setTokenReady] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -47,15 +53,24 @@ export function useSidebarAuth() {
       .then((rawToken) => {
         if (cancelled) return;
 
-        if (rawToken) {
-          const realmRoles = extractRealmRolesFromToken(rawToken);
-          const appRoles = realmRoles.filter((r) =>
-            ["USER", "COMPANY", "ADMIN", "MODERATOR"].includes(r)
-          );
-          setTokenRoles(
-            appRoles.length > 0 ? Array.from(new Set(appRoles)) : ["USER"]
-          );
+        if (!rawToken) {
+          // A session cookie exists but the Keycloak refresh token has
+          // expired (or was revoked). The cookie is now stale: clear it
+          // server-side and send the user back to the login page so they
+          // can get a fresh Keycloak token instead of seeing 401 errors
+          // on every API call.
+          router.replace("/api/auth/stale-session?to=/");
+          return;
         }
+
+        setTokenReady(true);
+        const realmRoles = extractRealmRolesFromToken(rawToken);
+        const appRoles = realmRoles.filter((r) =>
+          ["USER", "COMPANY", "ADMIN", "MODERATOR"].includes(r)
+        );
+        setTokenRoles(
+          appRoles.length > 0 ? Array.from(new Set(appRoles)) : ["USER"]
+        );
       })
       .finally(() => {
         if (!cancelled) setTokenRolesResolved(true);
@@ -64,7 +79,7 @@ export function useSidebarAuth() {
     return () => {
       cancelled = true;
     };
-  }, [session]);
+  }, [session, router]);
 
   const sessionRoles = (user as SessionUserWithRole)?.role
     ? String((user as SessionUserWithRole).role)
@@ -132,6 +147,7 @@ export function useSidebarAuth() {
     user: effectiveUser,
     isPending,
     areRolesResolved,
+    tokenReady,
     displayName,
     handleSignOut,
   };

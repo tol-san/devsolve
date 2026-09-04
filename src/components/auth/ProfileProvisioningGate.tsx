@@ -7,6 +7,7 @@ import { AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSyncSocialAccountMutation } from "@/lib/redux/services/authApi";
 import { useGetProfileProvisioningStatusQuery } from "@/lib/redux/services/profileApi";
+import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 
 function isNotFound(error: unknown): boolean {
   return (
@@ -39,7 +40,13 @@ export function ProfileProvisioningGate({
 }: {
   children: React.ReactNode;
 }) {
-  const { error, isFetching, refetch } = useGetProfileProvisioningStatusQuery();
+  // Wait until the Keycloak token is confirmed before firing any API calls.
+  // If roles haven't resolved yet the token may not be ready, and the
+  // provisioning query would race it and get a 401.
+  const { areRolesResolved } = useSidebarAuth();
+  const { error, isFetching, refetch } = useGetProfileProvisioningStatusQuery(undefined, {
+    skip: !areRolesResolved,
+  });
   const [syncSocialAccount, syncState] = useSyncSocialAccountMutation();
 
   // One automatic attempt per mount, so a backend that keeps answering 404
