@@ -233,6 +233,13 @@ export function CreateProblemForm({
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const [dismissedDraftBanner, setDismissedDraftBanner] = useState(false);
 
+  const preparedDraftRef = useRef<ProblemResponse | null>(preparedDraft);
+  useEffect(() => {
+    preparedDraftRef.current = preparedDraft;
+  }, [preparedDraft]);
+
+  const lastSavedPayloadRef = useRef<string>("");
+
   // Fetch caller's problems (including drafts) when creating a problem
   const { data: myProblemsData } = useGetMyProblemsQuery(
     { size: 30 },
@@ -260,7 +267,7 @@ export function CreateProblemForm({
   const [submitProblem, { isLoading: submittingDraft }] =
     useSubmitProblemMutation();
   const mutationLoading =
-    creating || creatingDraft || saving || uploading || submittingDraft || isSavingDraft;
+    creating || creatingDraft || saving || uploading || submittingDraft;
 
   const categoryItems = useMemo(
     () =>
@@ -368,6 +375,13 @@ export function CreateProblemForm({
 
   const loadDraftIntoForm = (draft: ProblemResponse) => {
     setPreparedDraft(draft);
+    preparedDraftRef.current = draft;
+    lastSavedPayloadRef.current = JSON.stringify({
+      title: (draft.title ?? "").trim(),
+      description: (draft.description ?? "").trim(),
+      categoryId: draft.category?.id,
+      problemType: draft.problemType,
+    });
     reset({
       title: draft.title ?? "",
       description: draft.description ?? "",
@@ -422,6 +436,10 @@ export function CreateProblemForm({
   };
 
   const submitting = isSubmitting || mutationLoading;
+  const submittingRef = useRef(submitting);
+  useEffect(() => {
+    submittingRef.current = submitting;
+  }, [submitting]);
   const titleLength = title.trim().length;
   const descriptionLength = description.trim().length;
   const titleReady = titleLength >= 10 && titleLength <= 180;
@@ -496,6 +514,9 @@ export function CreateProblemForm({
   };
 
   const onSubmit = async (values: ProblemFormValues) => {
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+    }
     setSubmitError(null);
 
     const pendingTag = tagDraft.trim().replace(/^#+/, "");
@@ -825,6 +846,8 @@ export function CreateProblemForm({
       }
 
       setPreparedDraft(saved);
+      preparedDraftRef.current = saved;
+      lastSavedPayloadRef.current = JSON.stringify(body);
 
       for (const attached of attachedFiles) {
         try {
@@ -870,55 +893,62 @@ export function CreateProblemForm({
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
 
     autoSaveTimer.current = setTimeout(async () => {
-      if (autoSaving.current || submitting) return;
+      if (autoSaving.current || submittingRef.current) return;
+
+      const values = getValues();
+      const pendingTag = tagDraft.trim().replace(/^#+/, "");
+      let submittedTags = values.newTagNames ?? [];
+      if (pendingTag && !submittedTags.includes(pendingTag)) {
+        submittedTags = [...submittedTags, pendingTag];
+      }
+
+      const trimmedOrUndefined = (val?: string) => val?.trim() || undefined;
+      const environment = (values.environment ?? [])
+        .filter((entry) => entry.technology.trim())
+        .map((entry) => ({
+          technology: entry.technology.trim(),
+          version: entry.version?.trim() || undefined,
+        }));
+      const steps = (values.reproductionSteps ?? [])
+        .map((step) => step.trim())
+        .filter(Boolean);
+
+      const workingProblem = preparedDraftRef.current ?? problem;
+      const updatingExisting = Boolean(workingProblem?.id);
+      const listOrUndefined = <T,>(list: T[]) =>
+        updatingExisting ? list : list.length ? list : undefined;
+
+      const body = {
+        ...values,
+        title: values.title.trim(),
+        description: values.description.trim(),
+        categoryId: values.categoryId,
+        problemType: values.problemType,
+        technologies: listOrUndefined(
+          (values.technologies ?? []).map((technology) => ({
+            name: technology.name.trim(),
+            version: technology.version?.trim() || undefined,
+          })),
+        ),
+        environment: listOrUndefined(environment),
+        reproductionSteps: listOrUndefined(steps),
+        expectedBehavior: trimmedOrUndefined(values.expectedBehavior),
+        actualBehavior: trimmedOrUndefined(values.actualBehavior),
+        attemptsTried: trimmedOrUndefined(values.attemptsTried),
+        errorMessage: trimmedOrUndefined(values.errorMessage),
+        repositoryUrl: trimmedOrUndefined(values.repositoryUrl),
+        newTagNames: listOrUndefined(submittedTags.map((tag) => tag.trim())),
+      };
+
+      const payloadString = JSON.stringify(body);
+      // Prevent redundant background saves if form data has not changed
+      if (payloadString === lastSavedPayloadRef.current) {
+        return;
+      }
+
       autoSaving.current = true;
       setIsSavingDraft(true);
       try {
-        const values = getValues();
-        const pendingTag = tagDraft.trim().replace(/^#+/, "");
-        let submittedTags = values.newTagNames ?? [];
-        if (pendingTag && !submittedTags.includes(pendingTag)) {
-          submittedTags = [...submittedTags, pendingTag];
-        }
-
-        const trimmedOrUndefined = (val?: string) => val?.trim() || undefined;
-        const environment = (values.environment ?? [])
-          .filter((entry) => entry.technology.trim())
-          .map((entry) => ({
-            technology: entry.technology.trim(),
-            version: entry.version?.trim() || undefined,
-          }));
-        const steps = (values.reproductionSteps ?? [])
-          .map((step) => step.trim())
-          .filter(Boolean);
-
-        const workingProblem = preparedDraft ?? problem;
-        const updatingExisting = Boolean(workingProblem?.id);
-        const listOrUndefined = <T,>(list: T[]) =>
-          updatingExisting ? list : list.length ? list : undefined;
-
-        const body = {
-          ...values,
-          title: values.title.trim(),
-          description: values.description.trim(),
-          categoryId: values.categoryId,
-          problemType: values.problemType,
-          technologies: listOrUndefined(
-            (values.technologies ?? []).map((technology) => ({
-              name: technology.name.trim(),
-              version: technology.version?.trim() || undefined,
-            })),
-          ),
-          environment: listOrUndefined(environment),
-          reproductionSteps: listOrUndefined(steps),
-          expectedBehavior: trimmedOrUndefined(values.expectedBehavior),
-          actualBehavior: trimmedOrUndefined(values.actualBehavior),
-          attemptsTried: trimmedOrUndefined(values.attemptsTried),
-          errorMessage: trimmedOrUndefined(values.errorMessage),
-          repositoryUrl: trimmedOrUndefined(values.repositoryUrl),
-          newTagNames: listOrUndefined(submittedTags.map((tag) => tag.trim())),
-        };
-
         let saved: ProblemResponse;
         if (workingProblem?.id) {
           saved = await updateProblem({
@@ -929,6 +959,8 @@ export function CreateProblemForm({
         } else {
           saved = await createProblemDraft(body).unwrap();
         }
+        preparedDraftRef.current = saved;
+        lastSavedPayloadRef.current = payloadString;
         setPreparedDraft(saved);
         setDraftSavedAt(saved.updatedAt ?? new Date().toISOString());
       } catch {
@@ -937,7 +969,7 @@ export function CreateProblemForm({
         autoSaving.current = false;
         setIsSavingDraft(false);
       }
-    }, 1500);
+    }, 2000);
 
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -958,14 +990,12 @@ export function CreateProblemForm({
     tags,
     tagDraft,
     isDirty,
-    isEdit,
+    isPublishedEdit,
     session?.user,
-    preparedDraft,
-    problem,
     createProblemDraft,
     updateProblem,
     getValues,
-    submitting,
+    problem,
   ]);
 
   return (
@@ -2356,8 +2386,8 @@ export function CreateProblemForm({
                           <LoaderCircle className="size-3 animate-spin" /> Saving draft…
                         </span>
                       ) : draftSavedAt ? (
-                        <span>
-                          Saved at {new Date(draftSavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                          <Check className="size-3" /> Saved at {new Date(draftSavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       ) : preparedDraft ? (
                         <span>Draft saved</span>
@@ -2428,7 +2458,7 @@ export function CreateProblemForm({
                   type="button"
                   variant="ghost"
                   size="lg"
-                  disabled={submitting || isSavingDraft}
+                  disabled={submitting}
                   onClick={() => router.push(cancelHref)}
                   className="h-10 w-full rounded-xl text-muted-foreground hover:text-foreground"
                 >

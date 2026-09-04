@@ -47,6 +47,7 @@ export function useServerProblemDraft({
   latest.current = values;
   const currentDraft = useRef<ProblemResponse | null>(activeDraft);
   currentDraft.current = activeDraft;
+  const lastSaved = useRef<string>("");
 
   const hasMinimumRequirements = useCallback((): boolean => {
     const v = latest.current;
@@ -60,6 +61,9 @@ export function useServerProblemDraft({
   const persist = useCallback(async (): Promise<boolean> => {
     if (!enabled || !hasMinimumRequirements()) return false;
 
+    const payload = JSON.stringify(latest.current);
+    if (payload === lastSaved.current) return false;
+
     setIsSaving(true);
     setError(null);
 
@@ -71,6 +75,7 @@ export function useServerProblemDraft({
           version: existing.version ?? 0,
           body: latest.current,
         }).unwrap();
+        lastSaved.current = payload;
         setActiveDraft(updated);
         setSavedAt(updated.updatedAt ?? new Date().toISOString());
         return true;
@@ -78,6 +83,7 @@ export function useServerProblemDraft({
         creating.current = true;
         try {
           const created = await createDraft(latest.current).unwrap();
+          lastSaved.current = payload;
           setActiveDraft(created);
           setSavedAt(created.updatedAt ?? new Date().toISOString());
           return true;
