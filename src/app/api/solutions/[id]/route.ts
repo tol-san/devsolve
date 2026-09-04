@@ -56,7 +56,8 @@ export async function PATCH(request: NextRequest, context: Context) {
   const id = asUuid(raw);
   if (!id) return badRequest("Solution id must be a UUID");
 
-  const ifMatch = request.headers.get("If-Match");
+  const ifMatch =
+    request.headers.get("x-if-match") || request.headers.get("if-match");
   if (!ifMatch) {
     return badRequest(
       "An If-Match header carrying the solution's version is required",

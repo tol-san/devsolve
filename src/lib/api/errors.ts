@@ -29,8 +29,8 @@ const STATUS_FALLBACKS: Record<number, string> = {
   401: "Your session has expired. Sign in again to continue.",
   403: "You don't have permission to make this change.",
   404: "That record no longer exists.",
-  409: "That value is already taken by someone else.",
-  412: "This changed somewhere else while you were working on it. Reload to pick up the current version before saving again.",
+  409: "This item is awaiting moderation or closed, and cannot be edited.",
+  412: "This item has been updated on the server. Please refresh or review your changes before saving.",
   413: "That file is too large.",
   415: "That file type isn't supported.",
   422: "Some of the details weren't accepted. Check the fields below.",
@@ -57,12 +57,13 @@ function extractFieldErrors(body: Record<string, unknown>): Record<string, strin
     }
   }
 
-  // Spring validation: { errors: [{ field, defaultMessage }] }
-  const springErrors = body.errors ?? body.errorDetails;
+  // Spring validation: { errors: [{ field, defaultMessage }], violations: [{ property, message }] }
+  const springErrors = body.errors ?? body.errorDetails ?? body.violations;
   if (Array.isArray(springErrors)) {
     for (const entry of springErrors) {
       if (!isRecord(entry)) continue;
-      const field = entry.field ?? entry.fieldName ?? entry.property;
+      const field =
+        entry.field ?? entry.fieldName ?? entry.property ?? entry.propertyPath;
       const text = entry.defaultMessage ?? entry.message ?? entry.reason;
       if (typeof field === "string" && typeof text === "string" && text) {
         found[field] = text;

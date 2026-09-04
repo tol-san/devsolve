@@ -117,6 +117,7 @@ export interface ProblemResponse {
   publishedAt?: string;
   deletedAt?: string;
   version?: number;
+  etag?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -156,17 +157,36 @@ export interface DuplicateCheckResponse {
   suggestions: DuplicateSuggestion[];
 }
 
+function extractEtagVersion(response: ProblemResponse, meta: any): ProblemResponse {
+  const etag = meta?.response?.headers?.get?.("etag");
+  let version = response.version;
+  if (etag) {
+    const unquoted = etag.replace(/^W\//, "").replace(/^"|"$/g, "").trim();
+    const num = parseInt(unquoted, 10);
+    if (!isNaN(num)) {
+      version = num;
+    }
+  }
+  return {
+    ...response,
+    version,
+    etag: etag ?? (version != null ? `"${version}"` : undefined),
+  };
+}
+
 export const problemsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     /** POST /api/problems -> POST /api/v1/problems. */
     createProblem: builder.mutation<ProblemResponse, CreateProblemRequest>({
       query: (body) => ({ url: "/problems", method: "POST", body }),
+      transformResponse: extractEtagVersion,
       invalidatesTags: [{ type: "Discussion", id: "LIST" }],
     }),
 
     /** Creates an editable draft so files can be scanned before moderation. */
     createProblemDraft: builder.mutation<ProblemResponse, CreateProblemRequest>({
       query: (body) => ({ url: "/problems/drafts", method: "POST", body }),
+      transformResponse: extractEtagVersion,
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
           const { data: saved } = await queryFulfilled;
@@ -192,6 +212,7 @@ export const problemsApi = baseApi.injectEndpoints({
           body,
         };
       },
+      transformResponse: extractEtagVersion,
       invalidatesTags: (_result, _error, { problemId }) => [
         { type: "Problem", id: problemId },
         { type: "Problem", id: "MINE" },
@@ -223,6 +244,7 @@ export const problemsApi = baseApi.injectEndpoints({
     /** GET /api/problems/{id} -> GET /api/v1/problems/{id}. */
     getProblemById: builder.query<ProblemResponse, string>({
       query: (id) => `/problems/${id}`,
+      transformResponse: extractEtagVersion,
       providesTags: (_result, _error, id) => [{ type: "Problem", id }],
     }),
 
@@ -257,9 +279,13 @@ export const problemsApi = baseApi.injectEndpoints({
       query: ({ id, version, body }) => ({
         url: `/problems/${id}`,
         method: "PATCH",
-        headers: { "If-Match": `"${version}"` },
+        headers: {
+          "If-Match": `"${version}"`,
+          "X-If-Match": `"${version}"`,
+        },
         body,
       }),
+      transformResponse: extractEtagVersion,
       invalidatesTags: (_result, _error, { id }) => [
         { type: "Problem", id },
         { type: "Problem", id: "LIST" },
@@ -276,9 +302,13 @@ export const problemsApi = baseApi.injectEndpoints({
       query: ({ id, version, body }) => ({
         url: `/problems/${id}`,
         method: "PATCH",
-        headers: { "If-Match": `"${version}"` },
+        headers: {
+          "If-Match": `"${version}"`,
+          "X-If-Match": `"${version}"`,
+        },
         body,
       }),
+      transformResponse: extractEtagVersion,
       async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
         try {
           const { data: saved } = await queryFulfilled;
@@ -299,6 +329,7 @@ export const problemsApi = baseApi.injectEndpoints({
      */
     submitProblem: builder.mutation<ProblemResponse, string>({
       query: (id) => ({ url: `/problems/${id}/submit`, method: "POST" }),
+      transformResponse: extractEtagVersion,
       invalidatesTags: (_result, _error, id) => [
         { type: "Problem", id },
         { type: "Problem", id: "LIST" },
@@ -338,6 +369,7 @@ export const problemsApi = baseApi.injectEndpoints({
         method: "PUT",
         body: { solutionId },
       }),
+      transformResponse: extractEtagVersion,
       invalidatesTags: (_result, _error, { problemId }) => [
         { type: "Problem", id: problemId },
         { type: "Solution", id: problemId },
@@ -357,6 +389,7 @@ export const problemsApi = baseApi.injectEndpoints({
         url: `/problems/${problemId}/accepted-solutions/${solutionId}`,
         method: "DELETE",
       }),
+      transformResponse: extractEtagVersion,
       invalidatesTags: (_result, _error, { problemId }) => [
         { type: "Problem", id: problemId },
         { type: "Solution", id: problemId },

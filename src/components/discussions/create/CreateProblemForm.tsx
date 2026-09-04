@@ -12,6 +12,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import {
+  AlertTriangle,
   Check,
   CheckCircle2,
   Circle,
@@ -81,6 +82,8 @@ import {
   SDLC_LABELS,
   SDLC_PHASES,
   SEVERITY_LABELS,
+  type CreateProblemRequest,
+  type ProblemUpdateRequest,
   type ProblemType,
 } from "@/lib/validations/problem";
 import { cn } from "@/lib/utils";
@@ -174,6 +177,389 @@ function serverFieldPath(field: string): FieldPath<ProblemFormInput> | null {
   return null;
 }
 
+interface FieldConflict {
+  field: string;
+  label: string;
+  serverValue: string;
+  authorValue: string;
+}
+
+function getContentDifferences(
+  fresh: ProblemResponse,
+  baseline: ProblemResponse | null,
+  currentValues: ProblemFormValues,
+  submittedTags: string[],
+): FieldConflict[] {
+  if (!baseline) return [];
+  const diffs: FieldConflict[] = [];
+
+  const check = (
+    field: string,
+    label: string,
+    serverVal: string | undefined | null,
+    baseVal: string | undefined | null,
+    authorVal: string | undefined | null,
+  ) => {
+    const s = (serverVal ?? "").trim();
+    const b = (baseVal ?? "").trim();
+    const a = (authorVal ?? "").trim();
+    if (s !== b && s !== a) {
+      diffs.push({
+        field,
+        label,
+        serverValue: s || "(empty)",
+        authorValue: a || "(empty)",
+      });
+    }
+  };
+
+  check("title", "Title", fresh.title, baseline.title, currentValues.title);
+  check(
+    "description",
+    "Description",
+    fresh.description,
+    baseline.description,
+    currentValues.description,
+  );
+  check(
+    "problemType",
+    "Problem Type",
+    fresh.problemType,
+    baseline.problemType,
+    currentValues.problemType,
+  );
+  check(
+    "severity",
+    "Severity",
+    fresh.severity,
+    baseline.severity,
+    currentValues.severity,
+  );
+  check(
+    "sdlcPhase",
+    "SDLC Phase",
+    fresh.sdlcPhase,
+    baseline.sdlcPhase,
+    currentValues.sdlcPhase,
+  );
+  check(
+    "expectedBehavior",
+    "Expected Behavior",
+    fresh.expectedBehavior,
+    baseline.expectedBehavior,
+    currentValues.expectedBehavior,
+  );
+  check(
+    "actualBehavior",
+    "Actual Behavior",
+    fresh.actualBehavior,
+    baseline.actualBehavior,
+    currentValues.actualBehavior,
+  );
+  check(
+    "attemptsTried",
+    "Attempts Tried",
+    fresh.attemptsTried,
+    baseline.attemptsTried,
+    currentValues.attemptsTried,
+  );
+  check(
+    "errorMessage",
+    "Error Output",
+    fresh.errorMessage,
+    baseline.errorMessage,
+    currentValues.errorMessage,
+  );
+  check(
+    "repositoryUrl",
+    "Repository URL",
+    fresh.repositoryUrl,
+    baseline.repositoryUrl,
+    currentValues.repositoryUrl,
+  );
+
+  if (
+    fresh.category?.id !== baseline.category?.id &&
+    fresh.category?.id !== currentValues.categoryId
+  ) {
+    diffs.push({
+      field: "categoryId",
+      label: "Category",
+      serverValue: fresh.category?.name || "(unknown)",
+      authorValue: "(selected category)",
+    });
+  }
+
+  const serverTech = (fresh.technologies ?? [])
+    .map((t) => (t.name ?? "").trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  const baseTech = (baseline.technologies ?? [])
+    .map((t) => (t.name ?? "").trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  const authorTech = (currentValues.technologies ?? [])
+    .map((t) => (t.name ?? "").trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  if (serverTech !== baseTech && serverTech !== authorTech) {
+    diffs.push({
+      field: "technologies",
+      label: "Technologies",
+      serverValue: serverTech || "(none)",
+      authorValue: authorTech || "(none)",
+    });
+  }
+
+  const serverEnv = (fresh.environment ?? [])
+    .map((e) => `${e.technology ?? ""} ${e.version ?? ""}`.trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  const baseEnv = (baseline.environment ?? [])
+    .map((e) => `${e.technology ?? ""} ${e.version ?? ""}`.trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  const authorEnv = (currentValues.environment ?? [])
+    .map((e) => `${e.technology ?? ""} ${e.version ?? ""}`.trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  if (serverEnv !== baseEnv && serverEnv !== authorEnv) {
+    diffs.push({
+      field: "environment",
+      label: "Environment",
+      serverValue: serverEnv || "(none)",
+      authorValue: authorEnv || "(none)",
+    });
+  }
+
+  const serverSteps = (fresh.reproductionSteps ?? [])
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(" -> ");
+  const baseSteps = (baseline.reproductionSteps ?? [])
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(" -> ");
+  const authorSteps = (currentValues.reproductionSteps ?? [])
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(" -> ");
+  if (serverSteps !== baseSteps && serverSteps !== authorSteps) {
+    diffs.push({
+      field: "reproductionSteps",
+      label: "Reproduction Steps",
+      serverValue: serverSteps || "(none)",
+      authorValue: authorSteps || "(none)",
+    });
+  }
+
+  const serverTags = (fresh.tags ?? [])
+    .map((t) => (t.name ?? "").trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  const baseTags = (baseline.tags ?? [])
+    .map((t) => (t.name ?? "").trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  const authorTags = submittedTags
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .sort()
+    .join(", ");
+  if (serverTags !== baseTags && serverTags !== authorTags) {
+    diffs.push({
+      field: "tags",
+      label: "Tags",
+      serverValue: serverTags || "(none)",
+      authorValue: authorTags || "(none)",
+    });
+  }
+
+  return diffs;
+}
+
+function buildProblemCreateBody(
+  values: ProblemFormValues,
+  submittedTags: string[],
+): CreateProblemRequest {
+  const trimmedOrUndefined = (val?: string) => val?.trim() || undefined;
+  const environment = (values.environment ?? [])
+    .filter((entry) => entry.technology.trim())
+    .map((entry) => ({
+      technology: entry.technology.trim(),
+      version: entry.version?.trim() || undefined,
+    }));
+  const steps = (values.reproductionSteps ?? [])
+    .map((step) => step.trim())
+    .filter(Boolean);
+  const tech = (values.technologies ?? [])
+    .filter((t) => t.name.trim())
+    .map((t) => ({
+      name: t.name.trim(),
+      version: t.version?.trim() || undefined,
+    }));
+  const normalizedTags = Array.from(
+    new Set(submittedTags.map((tag) => tag.trim()).filter(Boolean)),
+  );
+
+  return {
+    title: values.title.trim(),
+    description: values.description.trim(),
+    categoryId: values.categoryId,
+    problemType: values.problemType,
+    severity: values.severity ?? undefined,
+    sdlcPhase: values.sdlcPhase ?? undefined,
+    expectedBehavior: trimmedOrUndefined(values.expectedBehavior),
+    actualBehavior: trimmedOrUndefined(values.actualBehavior),
+    attemptsTried: trimmedOrUndefined(values.attemptsTried),
+    errorMessage: trimmedOrUndefined(values.errorMessage),
+    repositoryUrl: trimmedOrUndefined(values.repositoryUrl),
+    technologies: tech.length ? tech : undefined,
+    environment: environment.length ? environment : undefined,
+    reproductionSteps: steps.length ? steps : undefined,
+    newTagNames: normalizedTags.length ? normalizedTags : undefined,
+  };
+}
+
+function buildProblemPatchBody(
+  values: ProblemFormValues,
+  baseline: ProblemResponse | null | undefined,
+  submittedTags: string[],
+): ProblemUpdateRequest {
+  if (!baseline) {
+    return buildProblemCreateBody(values, submittedTags) as ProblemUpdateRequest;
+  }
+
+  const patch: Record<string, unknown> = {};
+
+  const curTitle = values.title?.trim();
+  const baseTitle = baseline.title?.trim() ?? "";
+  if (curTitle && curTitle !== baseTitle) {
+    patch.title = curTitle;
+  }
+
+  const curDesc = values.description?.trim();
+  const baseDesc = baseline.description?.trim() ?? "";
+  if (curDesc && curDesc !== baseDesc) {
+    patch.description = curDesc;
+  }
+
+  if (values.categoryId && values.categoryId !== baseline.category?.id) {
+    patch.categoryId = values.categoryId;
+  }
+
+  if (values.problemType && values.problemType !== baseline.problemType) {
+    patch.problemType = values.problemType;
+  }
+
+  const curSeverity = values.severity ?? undefined;
+  const baseSeverity = baseline.severity ?? undefined;
+  if (curSeverity !== baseSeverity) {
+    patch.severity = curSeverity;
+  }
+
+  const curSdlc = values.sdlcPhase ?? undefined;
+  const baseSdlc = baseline.sdlcPhase ?? undefined;
+  if (curSdlc !== baseSdlc) {
+    patch.sdlcPhase = curSdlc;
+  }
+
+  const curExpected = values.expectedBehavior?.trim() || undefined;
+  const baseExpected = baseline.expectedBehavior?.trim() || undefined;
+  if (curExpected !== baseExpected) {
+    patch.expectedBehavior = curExpected;
+  }
+
+  const curActual = values.actualBehavior?.trim() || undefined;
+  const baseActual = baseline.actualBehavior?.trim() || undefined;
+  if (curActual !== baseActual) {
+    patch.actualBehavior = curActual;
+  }
+
+  const curAttempts = values.attemptsTried?.trim() || undefined;
+  const baseAttempts = baseline.attemptsTried?.trim() || undefined;
+  if (curAttempts !== baseAttempts) {
+    patch.attemptsTried = curAttempts;
+  }
+
+  const curError = values.errorMessage?.trim() || undefined;
+  const baseError = baseline.errorMessage?.trim() || undefined;
+  if (curError !== baseError) {
+    patch.errorMessage = curError;
+  }
+
+  const curRepo = values.repositoryUrl?.trim() || undefined;
+  const baseRepo = baseline.repositoryUrl?.trim() || undefined;
+  if (curRepo !== baseRepo) {
+    patch.repositoryUrl = curRepo;
+  }
+
+  // Technologies: diffed against baseline. Empty array clears on server.
+  const curTech = (values.technologies ?? [])
+    .filter((t) => t.name.trim())
+    .map((t) => ({
+      name: t.name.trim(),
+      version: t.version?.trim() || undefined,
+    }));
+  const baseTech = (baseline.technologies ?? []).map((t) => ({
+    name: (t.name ?? "").trim(),
+    version: t.version?.trim() || undefined,
+  }));
+  if (JSON.stringify(curTech) !== JSON.stringify(baseTech)) {
+    patch.technologies = curTech;
+  }
+
+  // Environment: diffed against baseline.
+  const curEnv = (values.environment ?? [])
+    .filter((e) => e.technology.trim())
+    .map((e) => ({
+      technology: e.technology.trim(),
+      version: e.version?.trim() || undefined,
+    }));
+  const baseEnv = (baseline.environment ?? []).map((e) => ({
+    technology: (e.technology ?? "").trim(),
+    version: e.version?.trim() || undefined,
+  }));
+  if (JSON.stringify(curEnv) !== JSON.stringify(baseEnv)) {
+    patch.environment = curEnv;
+  }
+
+  // Reproduction steps: diffed against baseline.
+  const curSteps = (values.reproductionSteps ?? [])
+    .map((step) => step.trim())
+    .filter(Boolean);
+  const baseSteps = (baseline.reproductionSteps ?? [])
+    .map((step) => step.trim())
+    .filter(Boolean);
+  if (JSON.stringify(curSteps) !== JSON.stringify(baseSteps)) {
+    patch.reproductionSteps = curSteps;
+  }
+
+  // Tags: diffed against baseline.
+  const normalizedTags = Array.from(
+    new Set(submittedTags.map((tag) => tag.trim()).filter(Boolean)),
+  );
+  const baseTags = Array.from(
+    new Set((baseline.tags ?? []).map((tag) => (tag.name ?? "").trim()).filter(Boolean)),
+  );
+  if (
+    normalizedTags.slice().sort().join(",") !==
+    baseTags.slice().sort().join(",")
+  ) {
+    patch.newTagNames = normalizedTags;
+  }
+
+  return patch as ProblemUpdateRequest;
+}
+
 interface CreateProblemFormProps {
   /**
    * An existing problem to revise. Its presence is what puts the form in edit
@@ -236,6 +622,13 @@ export function CreateProblemForm({
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const [dismissedDraftBanner, setDismissedDraftBanner] = useState(false);
+  const [conflictData, setConflictData] = useState<{
+    fresh: ProblemResponse;
+    diffs: FieldConflict[];
+  } | null>(null);
+
+  const baselineProblemRef = useRef<ProblemResponse | null>(problem ?? null);
+  const hasSubmittedRef = useRef(false);
 
   const preparedDraftRef = useRef<ProblemResponse | null>(preparedDraft);
   useEffect(() => {
@@ -459,6 +852,7 @@ export function CreateProblemForm({
 
   const loadDraftIntoForm = (draft: ProblemResponse) => {
     hasLoadedDraftRef.current = true;
+    baselineProblemRef.current = draft;
     setPreparedDraft(draft);
     preparedDraftRef.current = draft;
     lastSavedPayloadRef.current = JSON.stringify({
@@ -499,6 +893,9 @@ export function CreateProblemForm({
     if (!activeProblem || hasLoadedDraftRef.current) return;
     hasLoadedDraftRef.current = true;
     appliedProblemId.current = activeProblem.id ?? null;
+    if (!baselineProblemRef.current) {
+      baselineProblemRef.current = activeProblem;
+    }
     loadDraftIntoForm(activeProblem);
     if (activeProblem.status === "DRAFT") {
       toast.success("Draft restored from link");
@@ -600,11 +997,30 @@ export function CreateProblemForm({
     setTagDraftError(null);
   };
 
+  const handleForceOverwrite = async () => {
+    if (!conflictData) return;
+    const fresh = conflictData.fresh;
+    baselineProblemRef.current = fresh;
+    preparedDraftRef.current = fresh;
+    setPreparedDraft(fresh);
+    setConflictData(null);
+    toast.info("Applying your changes to the latest version...");
+    void handleSubmit(onSubmit)();
+  };
+
+  const handleDiscardAndReload = () => {
+    if (!conflictData) return;
+    loadDraftIntoForm(conflictData.fresh);
+    setConflictData(null);
+    toast.info("Server version reloaded into editor.");
+  };
+
   const onSubmit = async (values: ProblemFormValues) => {
     if (autoSaveTimer.current) {
       clearTimeout(autoSaveTimer.current);
     }
     setSubmitError(null);
+    setConflictData(null);
 
     const pendingTag = tagDraft.trim().replace(/^#+/, "");
     let submittedTags = values.newTagNames ?? [];
@@ -627,73 +1043,74 @@ export function CreateProblemForm({
       }
     }
 
-    /* Blank rows and empty optional text are dropped rather than sent: the
-       backend treats "" as a value, and an empty string fails its URL and
-       length rules where an absent field passes. */
-    const trimmedOrUndefined = (value?: string) => value?.trim() || undefined;
-
-    const environment = (values.environment ?? [])
-      .filter((entry) => entry.technology.trim())
-      .map((entry) => ({
-        technology: entry.technology.trim(),
-        version: entry.version?.trim() || undefined,
-      }));
-    const steps = (values.reproductionSteps ?? [])
-      .map((step) => step.trim())
-      .filter(Boolean);
-
-    /* On an edit, emptied collections are sent as `[]` rather than dropped:
-       PATCH reads an absent field as "leave it alone", so omitting a list the
-       author just cleared would silently restore the old rows. */
-    const workingProblem = preparedDraft ?? activeProblem ?? problem;
-    const updatingExisting = Boolean(workingProblem?.id);
-    const listOrUndefined = <T,>(list: T[]) =>
-      updatingExisting ? list : list.length ? list : undefined;
-
-    const body = {
-      ...values,
-      technologies: listOrUndefined(
-        (values.technologies ?? []).map((technology) => ({
-          name: technology.name.trim(),
-          version: technology.version?.trim() || undefined,
-        })),
-      ),
-      environment: listOrUndefined(environment),
-      reproductionSteps: listOrUndefined(steps),
-      expectedBehavior: trimmedOrUndefined(values.expectedBehavior),
-      actualBehavior: trimmedOrUndefined(values.actualBehavior),
-      attemptsTried: trimmedOrUndefined(values.attemptsTried),
-      errorMessage: trimmedOrUndefined(values.errorMessage),
-      repositoryUrl: trimmedOrUndefined(values.repositoryUrl),
-      newTagNames: listOrUndefined(submittedTags.map((tag) => tag.trim())),
-    };
-
+    submittingRef.current = true;
     let releaseWriteLane: (() => void) | null = null;
     try {
-      /* Let any background save finish, then keep the timer out for the
-         duration: both requests would otherwise carry the same version and
-         whichever landed second would be refused as stale. */
       releaseWriteLane = await holdWriteLane();
 
-      if (workingProblem?.id) {
-        let saved = await updateProblem({
-          id: workingProblem.id,
-          version: versionForWrite(workingProblem.id),
-          body,
-        }).unwrap();
+      const workingProblem =
+        preparedDraftRef.current ?? activeProblemRef.current ?? problem;
 
-        setPreparedDraft(saved);
-        preparedDraftRef.current = saved;
+      if (workingProblem?.id) {
+        const patchBody = buildProblemPatchBody(
+          values,
+          baselineProblemRef.current,
+          submittedTags,
+        );
+
+        let saved = workingProblem;
+
+        if (Object.keys(patchBody).length > 0) {
+          try {
+            saved = await updateProblem({
+              id: workingProblem.id,
+              version: versionForWrite(workingProblem.id),
+              body: patchBody,
+            }).unwrap();
+            baselineProblemRef.current = saved;
+            preparedDraftRef.current = saved;
+            setPreparedDraft(saved);
+          } catch (updateErr) {
+            if (statusOf(updateErr) === 412) {
+              const fresh = await refetchProblem(workingProblem.id).unwrap();
+              const diffs = getContentDifferences(
+                fresh,
+                baselineProblemRef.current,
+                values,
+                submittedTags,
+              );
+              if (diffs.length === 0) {
+                baselineProblemRef.current = fresh;
+                preparedDraftRef.current = fresh;
+                setPreparedDraft(fresh);
+                saved = await updateProblem({
+                  id: workingProblem.id,
+                  version: fresh.version ?? 0,
+                  body: patchBody,
+                }).unwrap();
+                baselineProblemRef.current = saved;
+                preparedDraftRef.current = saved;
+                setPreparedDraft(saved);
+              } else {
+                setConflictData({ fresh, diffs });
+                setSubmitError(
+                  "The problem was updated on the server while you were editing. Review the differences below before overwriting.",
+                );
+                return;
+              }
+            } else {
+              throw updateErr;
+            }
+          }
+        }
+
         for (const attached of attachedFiles) {
           try {
             saved = await uploadProblemAttachment({
               problemId: saved.id!,
               file: attached.file,
             }).unwrap();
-            /* Each upload advances the version upstream. Recording it here is
-               what lets a retry work after one of them fails below — without
-               it the next save would carry the pre-upload version and be
-               refused as stale, which is not what went wrong. */
+            baselineProblemRef.current = saved;
             setPreparedDraft(saved);
             preparedDraftRef.current = saved;
             setAttachedFiles((current) =>
@@ -713,6 +1130,7 @@ export function CreateProblemForm({
           saved = await submitProblem(saved.id!).unwrap();
         }
 
+        hasSubmittedRef.current = true;
         setPreparedDraft(null);
         toast.success(
           isPublishedEdit ? "Problem updated." : "Problem submitted for review.",
@@ -721,9 +1139,12 @@ export function CreateProblemForm({
         return;
       }
 
+      const createBody = buildProblemCreateBody(values, submittedTags);
       if (attachedFiles.length) {
-        let draftProblem = await createProblemDraft(body).unwrap();
+        let draftProblem = await createProblemDraft(createBody).unwrap();
+        baselineProblemRef.current = draftProblem;
         setPreparedDraft(draftProblem);
+        preparedDraftRef.current = draftProblem;
 
         for (const attached of attachedFiles) {
           try {
@@ -731,7 +1152,9 @@ export function CreateProblemForm({
               problemId: draftProblem.id!,
               file: attached.file,
             }).unwrap();
+            baselineProblemRef.current = draftProblem;
             setPreparedDraft(draftProblem);
+            preparedDraftRef.current = draftProblem;
             setAttachedFiles((current) =>
               current.filter((file) => file.id !== attached.id),
             );
@@ -746,6 +1169,7 @@ export function CreateProblemForm({
         }
 
         const submitted = await submitProblem(draftProblem.id!).unwrap();
+        hasSubmittedRef.current = true;
         setPreparedDraft(null);
         toast.success(
           submitted.status === "PENDING_APPROVAL"
@@ -756,8 +1180,8 @@ export function CreateProblemForm({
         return;
       }
 
-      const created = await createProblem(body).unwrap();
-
+      const created = await createProblem(createBody).unwrap();
+      hasSubmittedRef.current = true;
       toast.success(
         created.status === "PENDING_APPROVAL"
           ? "Problem submitted. Screening content…"
@@ -765,15 +1189,13 @@ export function CreateProblemForm({
       );
       router.push(successHref);
     } catch (error) {
-      /* A 412 is the concurrency guard, not a validation failure: someone
-         saved a newer version between this form loading and submitting. */
       const status = statusOf(error);
 
       if (status === 412) {
         const conflicted = preparedDraftRef.current?.id ?? activeProblem?.id;
         await resyncAfterConflict(conflicted);
         setSubmitError(
-          "This problem changed while you were editing it, so your save was not applied — someone else's version is now stored. Your text is still here: review it against the current problem, then submit again to overwrite.",
+          "The problem was updated on the server while you were editing. Review your changes and submit again.",
         );
         return;
       }
@@ -813,11 +1235,13 @@ export function CreateProblemForm({
       toast.error(parsed.message);
     } finally {
       releaseWriteLane?.();
+      submittingRef.current = false;
     }
   };
 
   const handleSaveDraft = async () => {
     setSubmitError(null);
+    setConflictData(null);
 
     const values = getValues();
     const draftTitle = values.title?.trim();
@@ -895,63 +1319,75 @@ export function CreateProblemForm({
       submittedTags = [...submittedTags, pendingTag];
     }
 
-    const trimmedOrUndefined = (val?: string) => val?.trim() || undefined;
-    const environment = (values.environment ?? [])
-      .filter((entry) => entry.technology.trim())
-      .map((entry) => ({
-        technology: entry.technology.trim(),
-        version: entry.version?.trim() || undefined,
-      }));
-    const steps = (values.reproductionSteps ?? [])
-      .map((step) => step.trim())
-      .filter(Boolean);
-
-    const workingProblem = preparedDraft ?? activeProblem ?? problem;
-    const updatingExisting = Boolean(workingProblem?.id);
-    const listOrUndefined = <T,>(list: T[]) =>
-      updatingExisting ? list : list.length ? list : undefined;
-
-    const body = {
-      ...values,
-      title: draftTitle,
-      description: draftDesc,
-      categoryId: values.categoryId,
-      problemType: values.problemType,
-      technologies: listOrUndefined(
-        (values.technologies ?? []).map((technology) => ({
-          name: technology.name.trim(),
-          version: technology.version?.trim() || undefined,
-        })),
-      ),
-      environment: listOrUndefined(environment),
-      reproductionSteps: listOrUndefined(steps),
-      expectedBehavior: trimmedOrUndefined(values.expectedBehavior),
-      actualBehavior: trimmedOrUndefined(values.actualBehavior),
-      attemptsTried: trimmedOrUndefined(values.attemptsTried),
-      errorMessage: trimmedOrUndefined(values.errorMessage),
-      repositoryUrl: trimmedOrUndefined(values.repositoryUrl),
-      newTagNames: listOrUndefined(submittedTags.map((tag) => tag.trim())),
-    };
-
     setIsSavingDraft(true);
     let releaseWriteLane: (() => void) | null = null;
     try {
       releaseWriteLane = await holdWriteLane();
 
+      const workingProblem =
+        preparedDraftRef.current ?? activeProblemRef.current ?? problem;
+
       let saved: ProblemResponse;
       if (workingProblem?.id) {
-        saved = await updateProblemDraft({
-          id: workingProblem.id,
-          version: versionForWrite(workingProblem.id),
-          body,
-        }).unwrap();
-      } else {
-        saved = await createProblemDraft(body).unwrap();
-      }
+        const patchBody = buildProblemPatchBody(
+          values,
+          baselineProblemRef.current,
+          submittedTags,
+        );
 
-      setPreparedDraft(saved);
-      preparedDraftRef.current = saved;
-      lastSavedPayloadRef.current = JSON.stringify(body);
+        if (Object.keys(patchBody).length > 0) {
+          try {
+            saved = await updateProblemDraft({
+              id: workingProblem.id,
+              version: versionForWrite(workingProblem.id),
+              body: patchBody,
+            }).unwrap();
+            baselineProblemRef.current = saved;
+            preparedDraftRef.current = saved;
+            setPreparedDraft(saved);
+          } catch (updateErr) {
+            if (statusOf(updateErr) === 412) {
+              const fresh = await refetchProblem(workingProblem.id).unwrap();
+              const diffs = getContentDifferences(
+                fresh,
+                baselineProblemRef.current,
+                values,
+                submittedTags,
+              );
+              if (diffs.length === 0) {
+                baselineProblemRef.current = fresh;
+                preparedDraftRef.current = fresh;
+                setPreparedDraft(fresh);
+                saved = await updateProblemDraft({
+                  id: workingProblem.id,
+                  version: fresh.version ?? 0,
+                  body: patchBody,
+                }).unwrap();
+                baselineProblemRef.current = saved;
+                preparedDraftRef.current = saved;
+                setPreparedDraft(saved);
+              } else {
+                setConflictData({ fresh, diffs });
+                const message =
+                  "The problem was updated on the server while you were editing. Review the differences below before overwriting.";
+                setSubmitError(message);
+                toast.error(message);
+                return;
+              }
+            } else {
+              throw updateErr;
+            }
+          }
+        } else {
+          saved = workingProblem;
+        }
+      } else {
+        const createBody = buildProblemCreateBody(values, submittedTags);
+        saved = await createProblemDraft(createBody).unwrap();
+        baselineProblemRef.current = saved;
+        preparedDraftRef.current = saved;
+        setPreparedDraft(saved);
+      }
 
       for (const attached of attachedFiles) {
         try {
@@ -959,7 +1395,9 @@ export function CreateProblemForm({
             problemId: saved.id!,
             file: attached.file,
           }).unwrap();
+          baselineProblemRef.current = saved;
           setPreparedDraft(saved);
+          preparedDraftRef.current = saved;
           setAttachedFiles((current) =>
             current.filter((file) => file.id !== attached.id),
           );
@@ -978,7 +1416,7 @@ export function CreateProblemForm({
           preparedDraftRef.current?.id ?? activeProblem?.id,
         );
         const message =
-          "This draft changed while you were editing it. Its current version is loaded now — save again to keep what you have here.";
+          "The problem was updated on the server while you were editing. Review your changes and save again.";
         setSubmitError(message);
         toast.error(message);
         return;
@@ -1030,7 +1468,29 @@ export function CreateProblemForm({
   }, [settleAutoSave]);
 
   useEffect(() => {
-    if (isPublishedEdit || !session?.user || !isDirty) return;
+    if (
+      isPublishedEdit ||
+      !session?.user ||
+      !isDirty ||
+      hasSubmittedRef.current ||
+      conflictData !== null
+    ) {
+      return;
+    }
+
+    const currentStatus =
+      preparedDraftRef.current?.status ??
+      activeProblemRef.current?.status ??
+      problem?.status;
+    if (
+      currentStatus === "PENDING_APPROVAL" ||
+      currentStatus === "PUBLISHED" ||
+      currentStatus === "CLOSED" ||
+      currentStatus === "REJECTED"
+    ) {
+      return;
+    }
+
     const canAutoSave =
       title.trim().length >= 10 &&
       Boolean(categoryId) &&
@@ -1042,7 +1502,14 @@ export function CreateProblemForm({
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
 
     autoSaveTimer.current = setTimeout(async () => {
-      if (autoSaving.current || submittingRef.current) return;
+      if (
+        autoSaving.current ||
+        submittingRef.current ||
+        hasSubmittedRef.current ||
+        conflictData !== null
+      ) {
+        return;
+      }
 
       const values = getValues();
       const pendingTag = tagDraft.trim().replace(/^#+/, "");
@@ -1051,51 +1518,12 @@ export function CreateProblemForm({
         submittedTags = [...submittedTags, pendingTag];
       }
 
-      const trimmedOrUndefined = (val?: string) => val?.trim() || undefined;
-      const environment = (values.environment ?? [])
-        .filter((entry) => entry.technology.trim())
-        .map((entry) => ({
-          technology: entry.technology.trim(),
-          version: entry.version?.trim() || undefined,
-        }));
-      const steps = (values.reproductionSteps ?? [])
-        .map((step) => step.trim())
-        .filter(Boolean);
-
-      /* Same source as the two save paths. This used to omit `activeProblem`,
-         so a draft opened by `?draftId=` before its first autosave looked like
-         a new problem and got created a second time. */
       const workingProblem =
         preparedDraftRef.current ?? activeProblemRef.current ?? problem;
-      const updatingExisting = Boolean(workingProblem?.id);
-      const listOrUndefined = <T,>(list: T[]) =>
-        updatingExisting ? list : list.length ? list : undefined;
-
-      const body = {
-        ...values,
-        title: values.title.trim(),
-        description: values.description.trim(),
-        categoryId: values.categoryId,
-        problemType: values.problemType,
-        technologies: listOrUndefined(
-          (values.technologies ?? []).map((technology) => ({
-            name: technology.name.trim(),
-            version: technology.version?.trim() || undefined,
-          })),
-        ),
-        environment: listOrUndefined(environment),
-        reproductionSteps: listOrUndefined(steps),
-        expectedBehavior: trimmedOrUndefined(values.expectedBehavior),
-        actualBehavior: trimmedOrUndefined(values.actualBehavior),
-        attemptsTried: trimmedOrUndefined(values.attemptsTried),
-        errorMessage: trimmedOrUndefined(values.errorMessage),
-        repositoryUrl: trimmedOrUndefined(values.repositoryUrl),
-        newTagNames: listOrUndefined(submittedTags.map((tag) => tag.trim())),
-      };
-
-      const payloadString = JSON.stringify(body);
-      // Prevent redundant background saves if form data has not changed
-      if (payloadString === lastSavedPayloadRef.current) {
+      if (
+        workingProblem?.status === "PENDING_APPROVAL" ||
+        workingProblem?.status === "PUBLISHED"
+      ) {
         return;
       }
 
@@ -1105,38 +1533,69 @@ export function CreateProblemForm({
       try {
         let saved: ProblemResponse;
         if (workingProblem?.id) {
-          const write = () =>
+          const patchBody = buildProblemPatchBody(
+            values,
+            baselineProblemRef.current,
+            submittedTags,
+          );
+
+          if (Object.keys(patchBody).length === 0) {
+            return;
+          }
+
+          const payloadString = JSON.stringify(patchBody);
+          if (payloadString === lastSavedPayloadRef.current) {
+            return;
+          }
+
+          const write = (v: number) =>
             updateProblemDraft({
               id: workingProblem.id!,
-              version: versionForWrite(workingProblem.id),
-              body,
+              version: v,
+              body: patchBody,
             }).unwrap();
 
           try {
-            saved = await write();
+            saved = await write(versionForWrite(workingProblem.id));
           } catch (error) {
-            /* A background save that loses the version check used to be
-               swallowed whole, and nothing put the version back — so every
-               later autosave repeated the same stale number and failed the
-               same way, silently, for the rest of the session. Re-reading it
-               once and retrying is safe here: this is the author's own draft,
-               and the payload is what is on their screen either way. */
             if (statusOf(error) !== 412) throw error;
-            await resyncAfterConflict(workingProblem.id);
-            saved = await write();
+            const fresh = await refetchProblem(workingProblem.id).unwrap();
+            const diffs = getContentDifferences(
+              fresh,
+              baselineProblemRef.current,
+              values,
+              submittedTags,
+            );
+            if (diffs.length === 0) {
+              baselineProblemRef.current = fresh;
+              preparedDraftRef.current = fresh;
+              setPreparedDraft(fresh);
+              saved = await write(fresh.version ?? 0);
+            } else {
+              baselineProblemRef.current = fresh;
+              preparedDraftRef.current = fresh;
+              setConflictData({ fresh, diffs });
+              return;
+            }
           }
+          lastSavedPayloadRef.current = payloadString;
         } else {
-          saved = await createProblemDraft(body).unwrap();
+          const createBody = buildProblemCreateBody(values, submittedTags);
+          const payloadString = JSON.stringify(createBody);
+          if (payloadString === lastSavedPayloadRef.current) {
+            return;
+          }
+          saved = await createProblemDraft(createBody).unwrap();
+          lastSavedPayloadRef.current = payloadString;
         }
+
         if (currentSeq !== autoSaveReqSeq.current) return;
+        baselineProblemRef.current = saved;
         preparedDraftRef.current = saved;
-        lastSavedPayloadRef.current = payloadString;
         setPreparedDraft(saved);
         setDraftSavedAt(saved.updatedAt ?? new Date().toISOString());
       } catch {
-        /* Still silent: a background save is not something the author asked
-           for, so a failure here must not interrupt their typing. The explicit
-           save paths report properly. */
+        /* Background saves are silent to not interrupt typing */
       } finally {
         if (currentSeq === autoSaveReqSeq.current) {
           autoSaving.current = false;
@@ -1165,19 +1624,15 @@ export function CreateProblemForm({
     tagDraft,
     isDirty,
     isPublishedEdit,
+    conflictData,
     session?.user,
     createProblemDraft,
-    /* The effect calls `updateProblemDraft`, not `updateProblem` — the latter
-       was listed here and the one actually used was not. Both are stable, so
-       this changes nothing at runtime; it stops the list describing the wrong
-       thing. `activeProblem` stays out deliberately and is read through a ref
-       instead: listing it would restart the debounce every time the problem
-       refetches, which is most of the time. */
     updateProblemDraft,
     versionForWrite,
     resyncAfterConflict,
     getValues,
     problem,
+    refetchProblem,
   ]);
 
   return (
@@ -1226,6 +1681,85 @@ export function CreateProblemForm({
                   className="h-8 text-xs text-muted-foreground hover:text-foreground px-2.5 cursor-pointer"
                 >
                   Dismiss
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Server Update Conflict Banner ── */}
+          {conflictData && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-xs sm:text-sm space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                    <AlertTriangle className="size-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground text-sm">
+                      Problem Updated on Server
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      The problem was updated on the server while you were editing. Review the differences below before choosing whether to overwrite or keep the server version.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  size="icon-xs"
+                  variant="ghost"
+                  onClick={() => setConflictData(null)}
+                  className="text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+                >
+                  <X className="size-3.5" />
+                </Button>
+              </div>
+
+              {/* Differences List */}
+              <div className="space-y-2 rounded-lg border border-border/60 bg-background/60 p-3">
+                {conflictData.diffs.map((diff) => (
+                  <div
+                    key={diff.field}
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-4 py-1.5 border-b border-border/40 last:border-0 text-xs"
+                  >
+                    <span className="font-medium text-foreground">{diff.label}</span>
+                    <div className="text-muted-foreground">
+                      <span className="text-[11px] uppercase font-semibold text-amber-600 dark:text-amber-400 block sm:inline mr-1">
+                        Server:
+                      </span>
+                      <span className="line-clamp-2">{diff.serverValue}</span>
+                    </div>
+                    <div className="text-foreground">
+                      <span className="text-[11px] uppercase font-semibold text-primary block sm:inline mr-1">
+                        Your version:
+                      </span>
+                      <span className="line-clamp-2">{diff.authorValue}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  onClick={handleForceOverwrite}
+                  className="h-8 text-xs font-medium cursor-pointer"
+                >
+                  Overwrite server version
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleDiscardAndReload}
+                  className="h-8 text-xs font-medium cursor-pointer"
+                >
+                  Discard my changes & reload
                 </Button>
               </div>
             </motion.div>

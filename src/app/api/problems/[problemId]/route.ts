@@ -48,15 +48,25 @@ export async function GET(request: NextRequest, context: Context) {
       }
     }
 
+    const etag = upstream.headers.get("etag");
+    const headers = new Headers();
+    if (etag) {
+      headers.set("etag", etag);
+      headers.set("Access-Control-Expose-Headers", "ETag");
+    }
+
     // If upstream returns 404 or missing fields (common for pending/moderation problems), fallback to DB
     if (!upstream.ok || !body?.title) {
       const dbProblem = await getProblemFromDb(id);
       if (dbProblem) {
-        return Response.json(dbProblem, { status: 200 });
+        const dbEtag = `"${dbProblem.version ?? 1}"`;
+        headers.set("etag", dbEtag);
+        headers.set("Access-Control-Expose-Headers", "ETag");
+        return Response.json(dbProblem, { status: 200, headers });
       }
       return Response.json(
         body ?? { message: "Problem not found" },
-        { status: upstream.status }
+        { status: upstream.status, headers }
       );
     }
 
@@ -78,11 +88,14 @@ export async function GET(request: NextRequest, context: Context) {
       }
     }
 
-    return Response.json(body, { status: 200 });
+    return Response.json(body, { status: 200, headers });
   } catch {
     const dbProblem = await getProblemFromDb(id);
     if (dbProblem) {
-      return Response.json(dbProblem, { status: 200 });
+      const headers = new Headers();
+      headers.set("etag", `"${dbProblem.version ?? 1}"`);
+      headers.set("Access-Control-Expose-Headers", "ETag");
+      return Response.json(dbProblem, { status: 200, headers });
     }
     return unreachable("problem");
   }
@@ -106,12 +119,26 @@ export async function PATCH(request: NextRequest, context: Context) {
   const id = asUuid(raw);
   if (!id) return badRequest("Problem id must be a UUID");
 
-  const ifMatch = request.headers.get("If-Match");
-  if (!ifMatch) {
+  const rawIfMatch =
+    request.headers.get("if-match") || request.headers.get("x-if-match");
+  if (!rawIfMatch) {
     return badRequest(
       "An If-Match header carrying the problem's version is required",
     );
   }
+
+  const trimmed = rawIfMatch.trim();
+  const withoutWeak = trimmed.startsWith("W/") ? trimmed.slice(2).trim() : trimmed;
+  const unquoted =
+    withoutWeak.startsWith('"') && withoutWeak.endsWith('"')
+      ? withoutWeak.slice(1, -1).trim()
+      : withoutWeak;
+
+  if (!/^\d+$/.test(unquoted)) {
+    return badRequest("If-Match must be a numeric version (e.g. \"5\")");
+  }
+
+  const ifMatch = `"${unquoted}"`;
 
   let payload: unknown;
   try {

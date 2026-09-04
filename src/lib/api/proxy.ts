@@ -21,6 +21,12 @@ const PROVIDER_ID = "keycloak";
 export async function bearerTokenFor(
   request: NextRequest,
 ): Promise<string | null> {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+
   const session = await auth.api.getSession({ headers: request.headers });
   if (!session) return null;
 
@@ -174,18 +180,25 @@ export async function relay(upstream: Response, fallbackMessage: string) {
     }
   }
 
-  if (!upstream.ok) {
-    const message =
-      (body as { message?: string } | null)?.message ?? fallbackMessage;
-    return NextResponse.json(
-      { message, details: body },
-      { status: upstream.status },
-    );
+  const headers = new Headers();
+  const etag = upstream.headers.get("etag");
+  if (etag) {
+    headers.set("etag", etag);
+    headers.set("Access-Control-Expose-Headers", "ETag");
   }
 
-  if (body === null) return new NextResponse(null, { status: 204 });
+  if (!upstream.ok) {
+    const errorBody =
+      body ?? { message: fallbackMessage, status: upstream.status };
+    return NextResponse.json(errorBody, {
+      status: upstream.status,
+      headers,
+    });
+  }
 
-  return NextResponse.json(body, { status: upstream.status });
+  if (body === null) return new NextResponse(null, { status: upstream.status, headers });
+
+  return NextResponse.json(body, { status: upstream.status, headers });
 }
 
 /**

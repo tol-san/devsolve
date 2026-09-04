@@ -35,7 +35,8 @@ export async function DELETE(request: NextRequest, context: Context) {
     return badRequest("id and attachmentId must be valid UUIDs");
   }
 
-  const ifMatch = request.headers.get("if-match");
+  const ifMatch =
+    request.headers.get("x-if-match") || request.headers.get("if-match");
   if (!ifMatch) {
     return badRequest(
       "An If-Match header carrying the solution's version is required",

@@ -202,7 +202,7 @@ export const solutionsApi = baseApi.injectEndpoints({
         return {
           url: `/solutions/${solutionId}/attachments`,
           method: "POST",
-          headers: { "If-Match": `"${version}"` },
+          headers: { "X-If-Match": `"${version}"` },
           body,
         };
       },
@@ -227,7 +227,7 @@ export const solutionsApi = baseApi.injectEndpoints({
       query: ({ solutionId, version, attachmentId }) => ({
         url: `/solutions/${solutionId}/attachments/${attachmentId}`,
         method: "DELETE",
-        headers: { "If-Match": `"${version}"` },
+        headers: { "X-If-Match": `"${version}"` },
       }),
       invalidatesTags: (_result, _error, { solutionId }) => [
         { type: "Solution", id: solutionId },
@@ -322,7 +322,7 @@ export const solutionsApi = baseApi.injectEndpoints({
       query: ({ id, version, body }) => ({
         url: `/solutions/${id}`,
         method: "PATCH",
-        headers: { "If-Match": `"${version}"` },
+        headers: { "X-If-Match": `"${version}"` },
         body,
       }),
       invalidatesTags: (_result, _error, { id, problemId }) => [
