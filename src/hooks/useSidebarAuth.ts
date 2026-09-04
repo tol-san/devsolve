@@ -109,17 +109,18 @@ export function useSidebarAuth() {
 
   const handleSignOut = async () => {
     try {
-      // 1. Clear cached access token in memory
+      // 1. Clear cached access token in memory (also poisons any in-flight fetch).
       clearAccessToken();
 
-      // 2. Dispatch RTK Query resetApiState to wipe cached user data from Redux
+      // 2. Dispatch RTK Query resetApiState to wipe cached user data from Redux.
       dispatch(baseApi.util.resetApiState());
       dispatch(proxyApi.util.resetApiState());
 
-      // 3. Clear better-auth session & cookies on the client domain
+      // 3. Clear better-auth session & cookies on the client domain.
+      //    Await this so the Set-Cookie response is received before we navigate.
       await authClient.signOut();
 
-      // 4. Clear client storage
+      // 4. Clear client storage.
       if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
@@ -127,18 +128,26 @@ export function useSidebarAuth() {
     } catch (error) {
       console.error("Error during sign out:", error);
     } finally {
-      // 5. Redirect to Keycloak OIDC end_session endpoint to clear Keycloak SSO session & cookies
+      // 5. Redirect to Keycloak OIDC end_session endpoint to clear Keycloak SSO session & cookies.
+      //    Use the stale-session handler as post_logout_redirect_uri so any surviving
+      //    better-auth session cookie is killed server-side when Keycloak bounces back.
       const issuer = process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER;
       const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
 
-      if (issuer && clientId) {
+      if (issuer && clientId && typeof window !== "undefined") {
         const cleanIssuer = issuer.replace(/\/+$/, "");
         const logoutUrl = new URL(`${cleanIssuer}/protocol/openid-connect/logout`);
         logoutUrl.searchParams.set("client_id", clientId);
-        logoutUrl.searchParams.set("post_logout_redirect_uri", window.location.origin);
+        // Route the Keycloak post-logout callback through stale-session so that
+        // any residual better-auth cookie is expired by the server before the
+        // final redirect to the landing page.  Without this the middleware reads
+        // the stale cookie and bounces the user back to /dashboard for one render.
+        const postLogoutUri = new URL("/api/auth/stale-session", window.location.origin);
+        postLogoutUri.searchParams.set("to", "/");
+        logoutUrl.searchParams.set("post_logout_redirect_uri", postLogoutUri.toString());
         window.location.href = logoutUrl.toString();
-      } else {
-        window.location.href = "/";
+      } else if (typeof window !== "undefined") {
+        window.location.href = "/api/auth/stale-session?to=/";
       }
     }
   };
