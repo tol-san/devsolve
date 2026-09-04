@@ -22,6 +22,8 @@ const FALLBACK_TTL_MS = 60_000;
 
 let cached: { token: string; expiresAt: number } | null = null;
 let inFlight: Promise<string | null> | null = null;
+/** Incremented on every clearAccessToken call; lets in-flight fetches know they are stale. */
+let generation = 0;
 
 function expiryOf(jwt: string): number {
   try {
@@ -53,10 +55,11 @@ export async function getAccessToken(): Promise<string | null> {
   }
   if (inFlight) return inFlight;
 
+  const myGeneration = generation;
   inFlight = (async () => {
     try {
       const sessionRes = await authClient.getSession();
-      if (!sessionRes?.data) {
+      if (!sessionRes?.data || myGeneration !== generation) {
         cached = null;
         return null;
       }
@@ -64,6 +67,12 @@ export async function getAccessToken(): Promise<string | null> {
       const res = (await authClient.getAccessToken({
         providerId: PROVIDER_ID,
       })) as AccessTokenResponse;
+
+      // If clearAccessToken() was called while we were awaiting, discard the result.
+      if (myGeneration !== generation) {
+        cached = null;
+        return null;
+      }
 
       const raw =
         typeof res?.data === "string"
@@ -91,4 +100,6 @@ export async function getAccessToken(): Promise<string | null> {
 /** Drop the cached token — call after a 401 or on sign-out. */
 export function clearAccessToken() {
   cached = null;
+  inFlight = null;
+  generation += 1; // Poison any in-flight fetch started before this clear.
 }

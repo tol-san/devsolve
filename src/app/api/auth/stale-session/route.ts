@@ -15,8 +15,18 @@ import { NextResponse, type NextRequest } from "next/server";
  * and the home page renders as it does for any signed-out visitor.
  */
 
-/** Every cookie better-auth may be holding the session in, across prefixes. */
+/**
+ * Cookie patterns to wipe on logout / stale-session cleanup.
+ *
+ * - SESSION_COOKIE  — every shape better-auth stores the session token in.
+ * - OIDC_COOKIE     — state / nonce / PKCE verifier cookies written during the
+ *                     Keycloak redirect dance; these can survive a normal
+ *                     better-auth signOut and cause the middleware to see an
+ *                     active-looking cookie on the very next navigation.
+ */
 const SESSION_COOKIE = /^(__Secure-|__Host-)?better-auth\.session[_.]/;
+const OIDC_COOKIE =
+  /^(__Secure-|__Host-)?(better-auth\.|oidc[-_.]|keycloak[-_.]|oauth[-_.]state|oauth[-_.]nonce|oauth[-_.]pkce|oauth[-_.]code)/i;
 
 /**
  * Only same-origin paths. An open redirect here would be handed to anyone who
@@ -36,7 +46,7 @@ export async function GET(request: NextRequest) {
   const response = NextResponse.redirect(new URL(target, request.url));
 
   for (const cookie of request.cookies.getAll()) {
-    if (SESSION_COOKIE.test(cookie.name)) {
+    if (SESSION_COOKIE.test(cookie.name) || OIDC_COOKIE.test(cookie.name)) {
       response.cookies.set(cookie.name, "", { path: "/", maxAge: 0 });
     }
   }

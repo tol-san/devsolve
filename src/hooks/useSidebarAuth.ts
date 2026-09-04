@@ -3,15 +3,10 @@ import { useDispatch } from "react-redux";
 import { authClient } from "@/lib/auth/auth-client";
 import { extractRealmRolesFromToken } from "@/lib/auth/token-utils";
 import { useGetEditProfileFormQuery } from "@/lib/redux/services/profileApi";
-import { clearAccessToken } from "@/lib/auth/access-token";
+import { getAccessToken, clearAccessToken } from "@/lib/auth/access-token";
 import { baseApi } from "@/lib/redux/services/baseApi";
 import { proxyApi } from "@/lib/redux/services/proxyApi";
-
-/** Shape of the object returned by authClient.getAccessToken */
-interface AccessTokenResponse {
-  data?: string | { accessToken?: string; token?: string } | null;
-  token?: string;
-}
+import { useRouter } from "next/navigation";
 
 /** Extension of the better-auth session user that includes the role field injected by Keycloak */
 interface SessionUserWithRole {
@@ -31,37 +26,51 @@ export interface SidebarUser {
 
 export function useSidebarAuth() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
   const { data: profile } = useGetEditProfileFormQuery(undefined, { skip: !session });
   const displayName = profile?.fullName || user?.name || user?.email || "User";
   const [tokenRoles, setTokenRoles] = useState<string[]>([]);
   const [tokenRolesResolved, setTokenRolesResolved] = useState(false);
+  // Tracks whether the Keycloak JWT is genuinely available (not just that
+  // the better-auth session cookie exists). Used by the rest of the app to
+  // decide whether it is safe to fire authenticated requests.
+  const [tokenReady, setTokenReady] = useState(false);
 
   useEffect(() => {
     if (!session) return;
 
     let cancelled = false;
 
-    authClient
-      .getAccessToken({ providerId: "keycloak" })
-      .then((res: AccessTokenResponse) => {
+    // Use the shared getAccessToken() from access-token.ts so that the
+    // singleton token cache is warm by the time areRolesResolved flips to
+    // true. Previously, calling authClient.getAccessToken() directly left the
+    // cache cold, causing RTK Query's prepareHeaders to race the token fetch
+    // on first load — resulting in a 401 "Not authenticated" error on every
+    // fresh page visit.
+    getAccessToken()
+      .then((rawToken) => {
         if (cancelled) return;
 
-        const rawToken =
-          typeof res?.data === "string"
-            ? res.data
-            : res?.data?.accessToken || res?.data?.token || res?.token;
-
-        if (rawToken) {
-          const realmRoles = extractRealmRolesFromToken(rawToken);
-          const appRoles = realmRoles.filter((r) =>
-            ["USER", "COMPANY", "ADMIN", "MODERATOR"].includes(r)
-          );
-          setTokenRoles(
-            appRoles.length > 0 ? Array.from(new Set(appRoles)) : ["USER"]
-          );
+        if (!rawToken) {
+          // A session cookie exists but the Keycloak refresh token has
+          // expired (or was revoked). The cookie is now stale: clear it
+          // server-side and send the user back to the login page so they
+          // can get a fresh Keycloak token instead of seeing 401 errors
+          // on every API call.
+          router.replace("/api/auth/stale-session?to=/");
+          return;
         }
+
+        setTokenReady(true);
+        const realmRoles = extractRealmRolesFromToken(rawToken);
+        const appRoles = realmRoles.filter((r) =>
+          ["USER", "COMPANY", "ADMIN", "MODERATOR"].includes(r)
+        );
+        setTokenRoles(
+          appRoles.length > 0 ? Array.from(new Set(appRoles)) : ["USER"]
+        );
       })
       .finally(() => {
         if (!cancelled) setTokenRolesResolved(true);
@@ -70,7 +79,7 @@ export function useSidebarAuth() {
     return () => {
       cancelled = true;
     };
-  }, [session]);
+  }, [session, router]);
 
   const sessionRoles = (user as SessionUserWithRole)?.role
     ? String((user as SessionUserWithRole).role)
@@ -100,17 +109,18 @@ export function useSidebarAuth() {
 
   const handleSignOut = async () => {
     try {
-      // 1. Clear cached access token in memory
+      // 1. Clear cached access token in memory (also poisons any in-flight fetch).
       clearAccessToken();
 
-      // 2. Dispatch RTK Query resetApiState to wipe cached user data from Redux
+      // 2. Dispatch RTK Query resetApiState to wipe cached user data from Redux.
       dispatch(baseApi.util.resetApiState());
       dispatch(proxyApi.util.resetApiState());
 
-      // 3. Clear better-auth session & cookies on the client domain
+      // 3. Clear better-auth session & cookies on the client domain.
+      //    Await this so the Set-Cookie response is received before we navigate.
       await authClient.signOut();
 
-      // 4. Clear client storage
+      // 4. Clear client storage.
       if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
@@ -118,18 +128,26 @@ export function useSidebarAuth() {
     } catch (error) {
       console.error("Error during sign out:", error);
     } finally {
-      // 5. Redirect to Keycloak OIDC end_session endpoint to clear Keycloak SSO session & cookies
+      // 5. Redirect to Keycloak OIDC end_session endpoint to clear Keycloak SSO session & cookies.
+      //    Use the stale-session handler as post_logout_redirect_uri so any surviving
+      //    better-auth session cookie is killed server-side when Keycloak bounces back.
       const issuer = process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER;
       const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
 
-      if (issuer && clientId) {
+      if (issuer && clientId && typeof window !== "undefined") {
         const cleanIssuer = issuer.replace(/\/+$/, "");
         const logoutUrl = new URL(`${cleanIssuer}/protocol/openid-connect/logout`);
         logoutUrl.searchParams.set("client_id", clientId);
-        logoutUrl.searchParams.set("post_logout_redirect_uri", window.location.origin);
+        // Route the Keycloak post-logout callback through stale-session so that
+        // any residual better-auth cookie is expired by the server before the
+        // final redirect to the landing page.  Without this the middleware reads
+        // the stale cookie and bounces the user back to /dashboard for one render.
+        const postLogoutUri = new URL("/api/auth/stale-session", window.location.origin);
+        postLogoutUri.searchParams.set("to", "/");
+        logoutUrl.searchParams.set("post_logout_redirect_uri", postLogoutUri.toString());
         window.location.href = logoutUrl.toString();
-      } else {
-        window.location.href = "/";
+      } else if (typeof window !== "undefined") {
+        window.location.href = "/api/auth/stale-session?to=/";
       }
     }
   };
@@ -138,6 +156,7 @@ export function useSidebarAuth() {
     user: effectiveUser,
     isPending,
     areRolesResolved,
+    tokenReady,
     displayName,
     handleSignOut,
   };
