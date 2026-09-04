@@ -244,6 +244,12 @@ export function CreateProblemForm({
 
   const [refetchProblem] = useLazyGetProblemByIdQuery();
 
+  /** The HTTP status out of whatever RTK Query rejected with, if it had one. */
+  const statusOf = (error: unknown) =>
+    typeof error === "object" && error !== null && "status" in error
+      ? (error as { status?: number }).status
+      : undefined;
+
   /* Read through a ref, not a closure: the helpers below are called from an
      autosave timer set up on an earlier render, and a captured `activeProblem`
      there would be exactly the stale snapshot this is meant to avoid. */
@@ -293,18 +299,23 @@ export function CreateProblemForm({
    * edit is sitting there, and silently replaying ours would overwrite it —
    * the exact thing the check exists to stop. The author is told, and decides.
    */
-  const resyncAfterConflict = async (id: string | undefined) => {
-    if (!id) return;
-    try {
-      const fresh = await refetchProblem(id).unwrap();
-      if (fresh?.id) {
-        setPreparedDraft(fresh);
-        preparedDraftRef.current = fresh;
+  const resyncAfterConflict = useCallback(
+    async (id: string | undefined) => {
+      if (!id) return;
+      try {
+        const fresh = await refetchProblem(id).unwrap();
+        if (fresh?.id) {
+          setPreparedDraft(fresh);
+          preparedDraftRef.current = fresh;
+        }
+      } catch {
+        /* Leaves the message standing; a reload is still the way out. */
       }
-    } catch {
-      /* Leaves the message below standing; a reload is still the way out. */
-    }
-  };
+    },
+    /* `setPreparedDraft` is listed because the compiler infers it; state
+       setters are stable, so this never re-creates the callback. */
+    [refetchProblem, setPreparedDraft],
+  );
 
   const lastSavedPayloadRef = useRef<string>("");
 
@@ -756,10 +767,7 @@ export function CreateProblemForm({
     } catch (error) {
       /* A 412 is the concurrency guard, not a validation failure: someone
          saved a newer version between this form loading and submitting. */
-      const status =
-        typeof error === "object" && error !== null && "status" in error
-          ? (error as { status?: number }).status
-          : undefined;
+      const status = statusOf(error);
 
       if (status === 412) {
         const conflicted = preparedDraftRef.current?.id ?? activeProblem?.id;
@@ -965,6 +973,16 @@ export function CreateProblemForm({
       toast.success("Draft saved successfully.");
       router.push("/dashboard/saved-draft");
     } catch (error) {
+      if (statusOf(error) === 412) {
+        await resyncAfterConflict(
+          preparedDraftRef.current?.id ?? activeProblem?.id,
+        );
+        const message =
+          "This draft changed while you were editing it. Its current version is loaded now — save again to keep what you have here.";
+        setSubmitError(message);
+        toast.error(message);
+        return;
+      }
       const parsed = parseApiError(error, "The draft could not be saved.");
       setSubmitError(parsed.message);
       toast.error(parsed.message);
@@ -1087,11 +1105,26 @@ export function CreateProblemForm({
       try {
         let saved: ProblemResponse;
         if (workingProblem?.id) {
-          saved = await updateProblemDraft({
-            id: workingProblem.id,
-            version: versionForWrite(workingProblem.id),
-            body,
-          }).unwrap();
+          const write = () =>
+            updateProblemDraft({
+              id: workingProblem.id!,
+              version: versionForWrite(workingProblem.id),
+              body,
+            }).unwrap();
+
+          try {
+            saved = await write();
+          } catch (error) {
+            /* A background save that loses the version check used to be
+               swallowed whole, and nothing put the version back — so every
+               later autosave repeated the same stale number and failed the
+               same way, silently, for the rest of the session. Re-reading it
+               once and retrying is safe here: this is the author's own draft,
+               and the payload is what is on their screen either way. */
+            if (statusOf(error) !== 412) throw error;
+            await resyncAfterConflict(workingProblem.id);
+            saved = await write();
+          }
         } else {
           saved = await createProblemDraft(body).unwrap();
         }
@@ -1101,7 +1134,9 @@ export function CreateProblemForm({
         setPreparedDraft(saved);
         setDraftSavedAt(saved.updatedAt ?? new Date().toISOString());
       } catch {
-        // Silently ignore background autosave failures
+        /* Still silent: a background save is not something the author asked
+           for, so a failure here must not interrupt their typing. The explicit
+           save paths report properly. */
       } finally {
         if (currentSeq === autoSaveReqSeq.current) {
           autoSaving.current = false;
@@ -1140,6 +1175,7 @@ export function CreateProblemForm({
        refetches, which is most of the time. */
     updateProblemDraft,
     versionForWrite,
+    resyncAfterConflict,
     getValues,
     problem,
   ]);

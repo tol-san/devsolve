@@ -9,6 +9,8 @@
  *    request doesn't reach a controller
  *  - Spring validation's `{ errors: [{ field, defaultMessage }] }`
  *  - our Next route handlers' `{ message, formErrors, fieldErrors }` from Zod
+ *  - the production edge's `{ error: { code, message } }`, which replaces the
+ *    body entirely and often says only "An error occurred"
  *
  * Plus RTK Query's own transport failures, which carry no body at all.
  */
@@ -28,6 +30,7 @@ const STATUS_FALLBACKS: Record<number, string> = {
   403: "You don't have permission to make this change.",
   404: "That record no longer exists.",
   409: "That value is already taken by someone else.",
+  412: "This changed somewhere else while you were working on it. Reload to pick up the current version before saving again.",
   413: "That file is too large.",
   415: "That file type isn't supported.",
   422: "Some of the details weren't accepted. Check the fields below.",
@@ -75,6 +78,22 @@ function extractFieldErrors(body: Record<string, unknown>): Record<string, strin
   }
 
   return found;
+}
+
+/**
+ * The message out of `{ error: { code, message } }`.
+ *
+ * Null for the generic placeholder that envelope carries when the edge has
+ * nothing specific to say — "An error occurred" tells a person less than the
+ * status-based wording it would otherwise displace.
+ */
+function nestedErrorMessage(body: Record<string, unknown>): string | null {
+  if (!isRecord(body.error)) return null;
+  const text = body.error.message;
+  if (typeof text !== "string") return null;
+  const trimmed = text.trim();
+  if (!trimmed || /^an error occurred\.?$/i.test(trimmed)) return null;
+  return trimmed;
 }
 
 export function parseApiError(
@@ -139,6 +158,12 @@ export function parseApiError(
       (Array.isArray(body.formErrors) && typeof body.formErrors[0] === "string"
         ? body.formErrors[0]
         : null) ??
+      /* `{ error: { code, message } }` — the envelope the production edge
+         wraps a failed API response in. Read before the status fallback so a
+         real message is not replaced by a generic one, but only when it says
+         something: it sends a literal "An error occurred" for anything it did
+         not recognise, which is worth less than our own wording. */
+      nestedErrorMessage(body) ??
       STATUS_FALLBACKS[status] ??
       (typeof body.error === "string" && body.error.trim()
         ? body.error
