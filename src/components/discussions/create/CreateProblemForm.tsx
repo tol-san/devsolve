@@ -189,6 +189,8 @@ export function CreateProblemForm({
   stickyTop = "1.5rem",
 }: CreateProblemFormProps) {
   const router = useRouter();
+  const isDraftProblem = !problem || problem.status === "DRAFT";
+  const isPublishedEdit = Boolean(problem && problem.status !== "DRAFT");
   const isEdit = Boolean(problem);
   const [deleteAttachment] = useDeleteProblemAttachmentMutation();
 
@@ -581,12 +583,14 @@ export function CreateProblemForm({
           }
         }
 
-        if (!problem) {
+        if (isDraftProblem) {
           saved = await submitProblem(saved.id!).unwrap();
         }
 
         setPreparedDraft(null);
-        toast.success(problem ? "Problem updated." : "Problem submitted for review.");
+        toast.success(
+          isPublishedEdit ? "Problem updated." : "Problem submitted for review.",
+        );
         router.push(successHref);
         return;
       }
@@ -651,7 +655,7 @@ export function CreateProblemForm({
 
       const parsed = parseApiError(
         error,
-        isEdit
+        isPublishedEdit
           ? "Your changes could not be saved. Please try again."
           : "The problem could not be submitted. Please try again.",
       );
@@ -835,6 +839,7 @@ export function CreateProblemForm({
 
       setDraftSavedAt(saved.updatedAt ?? new Date().toISOString());
       toast.success("Draft saved successfully.");
+      router.push("/dashboard/saved-draft");
     } catch (error) {
       const parsed = parseApiError(error, "The draft could not be saved.");
       setSubmitError(parsed.message);
@@ -848,7 +853,7 @@ export function CreateProblemForm({
   const autoSaving = useRef(false);
 
   useEffect(() => {
-    if (isEdit || !session?.user || !isDirty) return;
+    if (isPublishedEdit || !session?.user || !isDirty) return;
     const canAutoSave =
       title.trim().length >= 10 &&
       Boolean(categoryId) &&
@@ -2264,7 +2269,7 @@ export function CreateProblemForm({
                       id="submit-problem-heading"
                       className="text-lg font-bold"
                     >
-                      {isEdit ? "Save changes" : "Submit problem"}
+                      {isPublishedEdit ? "Save changes" : "Submit problem"}
                     </h2>
                   </CardTitle>
                   <Badge
@@ -2337,7 +2342,7 @@ export function CreateProblemForm({
               </CardContent>
 
               <CardFooter className="flex-col gap-2 border-t border-border/70 pt-4">
-                {!isEdit && (
+                {isDraftProblem && (
                   <div className="w-full flex items-center justify-between text-xs text-muted-foreground pb-2 border-b border-border/70">
                     <span>Autosave</span>
                     <span className="font-medium">
@@ -2376,18 +2381,18 @@ export function CreateProblemForm({
                           aria-hidden="true"
                           className="animate-spin motion-reduce:animate-none"
                         />
-                        {isEdit ? "Saving…" : "Submitting…"}
+                        {isPublishedEdit ? "Saving…" : "Submitting…"}
                       </>
                     ) : (
                       <>
                         <Send data-icon="inline-start" aria-hidden="true" />
-                        {isEdit ? "Save changes" : "Submit problem"}
+                        {isPublishedEdit ? "Save changes" : "Submit problem"}
                       </>
                     )}
                   </Button>
                 </motion.div>
 
-                {!isEdit && (
+                {isDraftProblem && (
                   <Button
                     type="button"
                     variant="outline"

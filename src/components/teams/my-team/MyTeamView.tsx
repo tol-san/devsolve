@@ -79,6 +79,13 @@ const DESTINATIONS: {
     description: "Who may report to this organization.",
     icon: UserRoundCheck,
   },
+  {
+    permissions: ["MANAGE_MEMBERS"],
+    href: "/dashboard/team-management",
+    label: "Team management",
+    description: "Manage team members, roles, and access.",
+    icon: Users,
+  },
 ];
 
 const STATUS_COPY: Record<

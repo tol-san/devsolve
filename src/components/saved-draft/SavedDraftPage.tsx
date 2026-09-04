@@ -31,6 +31,15 @@ import {
   useDeleteProblemMutation,
   useGetMyProblemsQuery,
 } from "@/lib/redux/services/problemsApi";
+import {
+  useDeleteShowcaseDraftMutation,
+  useGetShowcaseDraftsQuery,
+} from "@/lib/redux/services/showcaseDraftsApi";
+import {
+  useDeleteSolutionDraftMutation,
+  useGetSolutionDraftsQuery,
+} from "@/lib/redux/services/solutionDraftsApi";
+import { excerptOf } from "@/lib/markdown-excerpt";
 import { toDate } from "@/lib/format/datetime";
 import { describe } from "@/lib/seo/text";
 import { isEditableDraft, isUnderReview } from "@/lib/programs/draft-status";
@@ -41,10 +50,17 @@ const ITEMS_PER_PAGE = 6;
 const SEARCH_PLACEHOLDERS: Record<DraftCategory, string> = {
   all: "Search all saved drafts...",
   problem: "Search problem drafts...",
+  showcase: "Search showcase drafts...",
+  solution: "Search solution drafts...",
   program: "Search program drafts...",
   response: "Search response drafts...",
   report: "Search report drafts...",
 };
+
+function firstLine(text: string, max = 90): string {
+  const opening = text.split(/(?<=[.!?])\s/)[0] ?? text;
+  return opening.length > max ? `${opening.slice(0, max).trimEnd()}…` : opening;
+}
 
 function getUpdatedRank(item: SavedDraftItem) {
   /* A formatted date cannot be ordered, so the instant is used when the item
@@ -84,10 +100,27 @@ export function SavedDraftPage() {
   const { hasCompanyAccess: isCompany, can, membership } = useCompanyAccess();
   const isUser = userRoles.includes("USER");
 
-  const ALL_TABS: DraftCategory[] = ["all", "problem", "program", "response", "report"];
+  const ALL_TABS: DraftCategory[] = [
+    "all",
+    "problem",
+    "showcase",
+    "solution",
+    "report",
+    "program",
+    "response",
+  ];
   const visibleTabs: DraftCategory[] = ALL_TABS.filter((tab) => {
-    if (tab === "problem" && !isUser) return false;
-    if ((tab === "program" || tab === "response") && isUser && !isCompany) return false;
+    if (
+      (tab === "problem" || tab === "showcase" || tab === "solution") &&
+      !isUser
+    )
+      return false;
+    if (
+      (tab === "program" || tab === "response") &&
+      isUser &&
+      !isCompany
+    )
+      return false;
     if (tab === "report" && isCompany && !isUser) return false;
     return true;
   });
@@ -109,11 +142,31 @@ export function SavedDraftPage() {
 
   // Fetch real company programs (filter by state: DRAFT)
   const { data: companyProgramsData, isLoading: isCompanyProgramsLoading } =
-    useGetMyCompanyProgramsQuery({ size: 100 }, { skip: !isCompany });
+    useGetMyCompanyProgramsQuery(
+      { size: 100 },
+      { skip: !isCompany, refetchOnMountOrArgChange: true },
+    );
 
   // Fetch caller's problem drafts
   const { data: myProblemsData, isLoading: isProblemsLoading } =
-    useGetMyProblemsQuery({ size: 100 }, { skip: !isUser });
+    useGetMyProblemsQuery(
+      { size: 100 },
+      { skip: !isUser, refetchOnMountOrArgChange: true },
+    );
+
+  // Fetch caller's showcase drafts
+  const { data: showcaseDrafts, isLoading: isShowcaseDraftsLoading } =
+    useGetShowcaseDraftsQuery(
+      { size: 100 },
+      { skip: !isUser, refetchOnMountOrArgChange: true },
+    );
+
+  // Fetch caller's solution drafts
+  const { data: solutionDrafts, isLoading: isSolutionDraftsLoading } =
+    useGetSolutionDraftsQuery(
+      { size: 100 },
+      { skip: !isUser, refetchOnMountOrArgChange: true },
+    );
 
   /* The reporter side of the same screen. Report drafts are saved by the
      submit form as it is typed into, and this is the only place they can be
@@ -123,9 +176,6 @@ export function SavedDraftPage() {
       {},
       {
         skip: !isUser,
-        /* Re-read on every visit. Autosave deliberately does not invalidate
-           this list — it would refetch mid-sentence — so landing here is the
-           moment to find out what the drafts actually say now. */
         refetchOnMountOrArgChange: true,
       },
     );
@@ -138,11 +188,17 @@ export function SavedDraftPage() {
   );
 
   const isLoading =
-    isCompanyProgramsLoading || isReportDraftsLoading || isProblemsLoading;
+    isCompanyProgramsLoading ||
+    isReportDraftsLoading ||
+    isProblemsLoading ||
+    isShowcaseDraftsLoading ||
+    isSolutionDraftsLoading;
 
   const [deleteProgram] = useDeleteProgramMutation();
   const [deleteReportDraft] = useDeleteReportDraftMutation();
   const [deleteProblem] = useDeleteProblemMutation();
+  const [deleteShowcaseDraft] = useDeleteShowcaseDraftMutation();
+  const [deleteSolutionDraft] = useDeleteSolutionDraftMutation();
 
   const programsById = useMemo(() => {
     const byId = new Map<string, { name: string; logoUrl: string }>();
@@ -271,8 +327,77 @@ export function SavedDraftPage() {
         });
       });
 
+    /* One card per saved showcase draft. */
+    (showcaseDrafts ?? []).forEach((draft) => {
+      const title = draft.title?.trim() || "Untitled showcase draft";
+      items.push({
+        id: draft.id,
+        title,
+        description: describe(
+          draft.overview,
+          "No overview provided yet. Pick this up where you left off.",
+          160,
+        ),
+        category: "showcase",
+        updatedAt: draft.updatedAt
+          ? new Date(draft.updatedAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "Recently",
+        updatedAtIso: draft.updatedAt,
+        tags: ["Showcase", ...(draft.tags ?? [])],
+        initials: title.slice(0, 2).toUpperCase(),
+        logoSrc: draft.coverImageUrl || "",
+        logoAlt: title,
+      });
+    });
+
+    /* One card per saved solution draft. */
+    (solutionDrafts ?? []).forEach((draft) => {
+      const body = excerptOf(draft.bodyMarkdown ?? "", 160);
+      const title =
+        draft.summary?.trim() ||
+        (draft.bodyMarkdown ? firstLine(draft.bodyMarkdown) : "") ||
+        "Untitled solution draft";
+        const techTags = (draft.testedWith ?? [])
+          .map((t) => t.technology)
+          .filter((t): t is string => Boolean(t));
+        const tags = ["Solution", ...(draft.approachType ? [draft.approachType] : []), ...techTags];
+
+        items.push({
+          id: draft.id,
+          problemId: draft.problemId,
+          title,
+          description:
+            body || "No solution write-up yet. Pick this up where you left off.",
+          category: "solution",
+          updatedAt: draft.updatedAt
+            ? new Date(draft.updatedAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "Recently",
+          updatedAtIso: draft.updatedAt,
+          tags,
+          initials: title.slice(0, 2).toUpperCase(),
+          logoSrc: "",
+          logoAlt: title,
+        });
+      });
+
     return items;
-  }, [companyProgramsData, companyOrg, reportDrafts, programsById, myProblemsData]);
+  }, [
+    companyProgramsData,
+    companyOrg,
+    reportDrafts,
+    programsById,
+    myProblemsData,
+    showcaseDrafts,
+    solutionDrafts,
+  ]);
 
   /**
    * Programs the reviewers are holding.
@@ -300,6 +425,8 @@ export function SavedDraftPage() {
     return {
       all: draftItems.length,
       problem: draftItems.filter((item) => item.category === "problem").length,
+      showcase: draftItems.filter((item) => item.category === "showcase").length,
+      solution: draftItems.filter((item) => item.category === "solution").length,
       program: draftItems.filter(
         (item) => item.category === "program" || item.programDraftKind === "bounty"
       ).length,
@@ -317,6 +444,8 @@ export function SavedDraftPage() {
       .filter((item) => {
         if (activeTab === "all") return true;
         if (activeTab === "problem") return item.category === "problem";
+        if (activeTab === "showcase") return item.category === "showcase";
+        if (activeTab === "solution") return item.category === "solution";
         if (activeTab === "program")
           return item.category === "program" || item.programDraftKind === "bounty";
         if (activeTab === "response")
@@ -353,13 +482,16 @@ export function SavedDraftPage() {
   );
 
   const handleDeleteItem = async (itemId: string) => {
-    /* Three kinds of draft share this list and they live at different
+    /* Different kinds of drafts share this list and they live at different
        endpoints — deleting through the wrong endpoint would 404. */
     const item = draftItems.find((draft) => draft.id === itemId);
 
-    /* A problem or report draft is the user's own and always theirs to discard.
+    /* A problem, showcase, solution, or report draft is the user's own and always theirs to discard.
        A program draft belongs to the organization, so it takes DELETE_PROGRAM. */
-    if (item?.category === "program" && !can("DELETE_PROGRAM")) {
+    if (
+      (item?.category === "program" || item?.category === "response") &&
+      !can("DELETE_PROGRAM")
+    ) {
       toast.error("Deleting a program needs the delete permission");
       return;
     }
@@ -367,6 +499,10 @@ export function SavedDraftPage() {
     try {
       if (item?.category === "problem") {
         await deleteProblem(itemId).unwrap();
+      } else if (item?.category === "showcase") {
+        await deleteShowcaseDraft(itemId).unwrap();
+      } else if (item?.category === "solution") {
+        await deleteSolutionDraft(itemId).unwrap();
       } else if (item?.category === "report") {
         await deleteReportDraft(itemId).unwrap();
       } else {

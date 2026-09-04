@@ -12,8 +12,8 @@ export function SavedDraftHeader({ totalDrafts }: SavedDraftHeaderProps) {
           Saved Draft
         </h1>
         <p className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">
-          Manage all your saved drafts across problems, solutions, programs, and
-          reports.
+          Manage all your saved drafts across problems, showcases, solutions,
+          programs, and reports.
         </p>
       </div>
     </header>

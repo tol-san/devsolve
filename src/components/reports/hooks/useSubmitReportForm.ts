@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useGetProgramsQuery, useGetProgramByIdQuery } from "@/lib/redux/services/program/programsApi";
@@ -43,6 +44,7 @@ export interface ReportSuccessModalData {
 }
 
 export function useSubmitReportForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedProgramId = searchParams.get("programId") || "";
 
@@ -443,10 +445,14 @@ export function useSubmitReportForm() {
        worst thing a save button can do. The failure is left to `DraftStatus`,
        which renders the reason the upstream gave. */
     const saved = await draft.saveNow();
-    if (!saved) return;
+    if (!saved) {
+      toast.error(draft.error || "Please select a program before saving a draft.");
+      return;
+    }
 
     setIsDraftSaved(true);
-    setTimeout(() => setIsDraftSaved(false), 3000);
+    toast.success("Draft saved successfully.");
+    router.push("/dashboard/saved-draft");
   };
 
   const handleResetForm = () => {

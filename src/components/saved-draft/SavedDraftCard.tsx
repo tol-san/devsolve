@@ -36,6 +36,12 @@ function getDraftMeta(item: SavedDraftItem) {
   if (item.category === "problem") {
     return { label: "Problem draft" };
   }
+  if (item.category === "showcase") {
+    return { label: "Showcase draft" };
+  }
+  if (item.category === "solution") {
+    return { label: "Solution draft" };
+  }
   if (item.category === "report") {
     return { label: "Report draft" };
   }
@@ -47,7 +53,15 @@ function getDraftMeta(item: SavedDraftItem) {
 
 function getDraftHref(item: SavedDraftItem) {
   if (item.category === "problem") {
-    return `/community/create/problem?draftId=${encodeURIComponent(item.id)}`;
+    return `/community/${encodeURIComponent(item.id)}/edit`;
+  }
+  if (item.category === "showcase") {
+    return `/community/create/showcase?draftId=${encodeURIComponent(item.id)}`;
+  }
+  if (item.category === "solution") {
+    return item.problemId
+      ? `/community/${encodeURIComponent(item.problemId)}/solutions/create?draftId=${encodeURIComponent(item.id)}`
+      : `/community`;
   }
   if (item.category === "report") {
     return `/dashboard/submit-report?id=${encodeURIComponent(item.id)}`;
@@ -56,12 +70,14 @@ function getDraftHref(item: SavedDraftItem) {
 }
 
 export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
-  /* A problem or report draft is the user's own and always theirs to discard. A
+  /* A problem, showcase, solution, or report draft is the user's own and always theirs to discard. A
      program draft belongs to the organization and takes DELETE_PROGRAM, so
      without it there is nothing here to press. */
   const { can } = useCompanyAccess();
   const canDelete =
     item.category === "problem" ||
+    item.category === "showcase" ||
+    item.category === "solution" ||
     item.category === "report" ||
     can("DELETE_PROGRAM");
   const [imageError, setImageError] = useState(false);
@@ -109,19 +125,21 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
                 <ChevronRight className="w-4 h-4 mr-2" />
                 Continue editing
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  router.push(
-                    lp(
-                      `/dashboard/programs/${encodeURIComponent(item.id)}?from=saved-draft`,
-                    ),
-                  )
-                }
-                className="rounded-[10px] px-3 py-2 text-foreground focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:text-blue-600 dark:focus:text-blue-400 cursor-pointer"
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View in card
-              </DropdownMenuItem>
+              {item.category === "program" || item.category === "response" ? (
+                <DropdownMenuItem
+                  onClick={() =>
+                    router.push(
+                      lp(
+                        `/dashboard/programs/${encodeURIComponent(item.id)}?from=saved-draft`,
+                      ),
+                    )
+                  }
+                  className="rounded-[10px] px-3 py-2 text-foreground focus:bg-blue-50 dark:focus:bg-blue-500/10 focus:text-blue-600 dark:focus:text-blue-400 cursor-pointer"
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  View in card
+                </DropdownMenuItem>
+              ) : null}
               {canDelete && (
                 <>
                   <DropdownMenuSeparator className="my-1" />

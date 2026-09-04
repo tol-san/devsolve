@@ -391,6 +391,7 @@ export function CreateShowcaseForm({
     available: availableDraft,
     savedAt,
     isSaving: isSavingDraft,
+    error: draftError,
     take: takeDraft,
     discard: discardDraft,
     saveNow: saveDraftNow,
@@ -1037,7 +1038,15 @@ export function CreateShowcaseForm({
                     disabled={isSavingDraft || submitting}
                     onClick={async () => {
                       const ok = await saveDraftNow();
-                      if (ok) toast.success("Draft saved to server");
+                      if (ok) {
+                        toast.success("Draft saved successfully.");
+                        router.push("/dashboard/saved-draft");
+                      } else {
+                        toast.error(
+                          draftError ||
+                            "Please provide some details before saving a draft.",
+                        );
+                      }
                     }}
                     className="h-11 w-full rounded-full text-sm font-semibold"
                   >

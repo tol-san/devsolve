@@ -96,7 +96,11 @@ export async function PATCH(
         (body as { message?: string } | null)?.message ??
         "Failed to update member permissions.";
       return NextResponse.json(
-        { message, details: body },
+        {
+          message,
+          details: body,
+          errorDetails: (body as { errorDetails?: unknown } | null)?.errorDetails,
+        },
         { status: upstream.status }
       );
     }

@@ -15,6 +15,15 @@ type SavedDraftEmptyStateProps = {
 };
 
 function getCreateHref(category: DraftCategory) {
+  if (category === "problem") {
+    return "/community/create/problem";
+  }
+  if (category === "showcase") {
+    return "/community/create/showcase";
+  }
+  if (category === "solution") {
+    return "/community";
+  }
   if (category === "report") {
     return "/dashboard/submit-report";
   }

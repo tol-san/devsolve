@@ -124,6 +124,12 @@ export type UpdateMemberPermissionsRequest = {
   permissions: OrganizationInvitationPermission[];
 };
 
+export type OrganizationRoleResponse = {
+  role: OrganizationInvitationRole;
+  defaultPermissions: OrganizationInvitationPermission[];
+  allowedPermissions: OrganizationInvitationPermission[];
+};
+
 export type RemoveMemberRequest = {
   userId: string;
 };
@@ -557,6 +563,13 @@ export const organizationsApi = proxyApi.injectEndpoints({
       }),
       providesTags: ["Organization"],
     }),
+    getOrganizationRoles: builder.query<OrganizationRoleResponse[], void>({
+      query: () => ({
+        url: "/organizations/roles",
+        method: "GET",
+      }),
+      providesTags: ["OrganizationRoles"],
+    }),
   }),
   overrideExisting: true,
 });
@@ -586,4 +599,5 @@ export const {
   useUpdateMemberRoleMutation,
   useUpdateMemberPermissionsMutation,
   useRemoveMemberMutation,
+  useGetOrganizationRolesQuery,
 } = organizationsApi;

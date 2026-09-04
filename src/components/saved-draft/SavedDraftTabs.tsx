@@ -5,7 +5,9 @@ import {
   FolderKanban,
   HelpCircle,
   LayoutGrid,
+  Lightbulb,
   Shield,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,9 +32,11 @@ type DraftTabConfig = {
 const TAB_CONFIG: DraftTabConfig[] = [
   { key: "all", label: "All", icon: LayoutGrid },
   { key: "problem", label: "Problems", icon: HelpCircle },
-  { key: "program", label: "Program", icon: FolderKanban },
-  { key: "response", label: "Response", icon: Shield },
-  { key: "report", label: "Report", icon: FileText },
+  { key: "showcase", label: "Showcases", icon: Sparkles },
+  { key: "solution", label: "Solutions", icon: Lightbulb },
+  { key: "report", label: "Reports", icon: FileText },
+  { key: "program", label: "Programs", icon: FolderKanban },
+  { key: "response", label: "Responses", icon: Shield },
 ];
 
 export function SavedDraftTabs({

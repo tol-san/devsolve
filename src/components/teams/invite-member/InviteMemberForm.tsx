@@ -28,6 +28,7 @@ import {
   DEFAULT_PERMISSIONS_BY_ROLE,
   INVITE_PERMISSION_OPTIONS,
   INVITE_ROLE_OPTIONS,
+  MAX_PERMISSIONS_BY_ROLE,
 } from "@/components/teams/invite-member/mock-data";
 import type {
   InvitePermissionOption,
@@ -89,10 +90,8 @@ const inviteMemberSchema = z.object({
 
   permissions: z
     .array(z.enum(permissionValues))
-    /* The upstream validates `@Size(max = 10)` on this list and there are
-       exactly ten permissions, so the ceiling is the whole set. */
     .min(1, "Select at least one permission.")
-    .max(10, "You can select up to ten permissions."),
+    .max(11, "You can select up to 11 permissions."),
 });
 
 type InviteMemberFormValues = z.infer<
@@ -105,6 +104,7 @@ type PermissionCategory =
   | "Disclosure"
   | "Rewards"
   | "Researchers"
+  | "Members"
   | "General";
 
 const roleIcons = {
@@ -320,9 +320,14 @@ export function InviteMemberForm() {
   }
 
   function handlePermissionChange(values: string[]) {
+    const roleCeiling = MAX_PERMISSIONS_BY_ROLE[selectedRole] ?? [];
+    const validValues = values.filter((v) =>
+      roleCeiling.includes(v as (typeof roleCeiling)[number]),
+    );
+
     setValue(
       "permissions",
-      values as InviteMemberFormValues["permissions"],
+      validValues as InviteMemberFormValues["permissions"],
       {
         shouldDirty: true,
         shouldTouch: true,
@@ -603,15 +608,21 @@ export function InviteMemberForm() {
                         className="w-full gap-0"
                       >
                         {INVITE_PERMISSION_OPTIONS.map(
-                          (option) => (
-                            <PermissionTableRow
-                              key={option.value}
-                              option={option}
-                              selected={selectedPermissions.includes(
-                                option.value,
-                              )}
-                            />
-                          ),
+                          (option) => {
+                            const isAllowed = (
+                              MAX_PERMISSIONS_BY_ROLE[selectedRole] ?? []
+                            ).includes(option.value);
+                            return (
+                              <PermissionTableRow
+                                key={option.value}
+                                option={option}
+                                selected={selectedPermissions.includes(
+                                  option.value,
+                                )}
+                                disabled={!isAllowed}
+                              />
+                            );
+                          },
                         )}
                       </ToggleGroup>
                     </div>
@@ -705,11 +716,13 @@ export function InviteMemberForm() {
 type PermissionTableRowProps = {
   option: InvitePermissionOption;
   selected: boolean;
+  disabled?: boolean;
 };
 
 function PermissionTableRow({
   option,
   selected,
+  disabled = false,
 }: PermissionTableRowProps) {
   const category =
     getPermissionCategory(option.value);
@@ -717,6 +730,7 @@ function PermissionTableRow({
   return (
       <ToggleGroupItem
         value={option.value}
+        disabled={disabled}
         aria-label={`${
           selected ? "Remove" : "Add"
         } ${option.title} permission`}
@@ -725,6 +739,7 @@ function PermissionTableRow({
         "focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2563EB]/25",
         "hover:bg-transparent aria-pressed:bg-transparent data-[state=on]:bg-transparent dark:hover:bg-transparent dark:aria-pressed:bg-transparent dark:data-[state=on]:bg-transparent",
         "text-slate-900 dark:text-slate-100",
+        disabled && "opacity-50 cursor-not-allowed",
       )}
       >
         <motion.div
@@ -740,7 +755,9 @@ function PermissionTableRow({
           "flex items-center justify-between gap-4 rounded-lg border border-transparent px-3 py-3.5 transition-all duration-200",
           selected
             ? "bg-slate-50/90 shadow-none dark:bg-slate-900/80"
-            : "bg-white hover:bg-slate-50 dark:bg-slate-950 dark:hover:bg-slate-900/70",
+            : disabled
+              ? "bg-muted/40 text-muted-foreground"
+              : "bg-white hover:bg-slate-50 dark:bg-slate-950 dark:hover:bg-slate-900/70",
         )}
       >
         <div className="flex min-w-0 items-center gap-3">
@@ -766,7 +783,13 @@ function PermissionTableRow({
               title={option.description}
               className="mt-0.5 line-clamp-1 text-sm text-slate-500 dark:text-slate-400"
             >
-              {option.description}
+              {disabled ? (
+                <span className="font-medium text-amber-700 dark:text-amber-400">
+                  Not available for this role &mdash; promote to grant.
+                </span>
+              ) : (
+                option.description
+              )}
             </p>
           </div>
         </div>
@@ -932,6 +955,9 @@ function PermissionCategoryBadge({
 
     Researchers:
       "border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-300",
+
+    Members:
+      "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300",
 
     General:
       "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
@@ -1171,6 +1197,10 @@ function getPermissionCategory(
 
   if (permission.includes("RESEARCHER")) {
     return "Researchers";
+  }
+
+  if (permission.includes("MEMBER")) {
+    return "Members";
   }
 
   return "General";

@@ -69,6 +69,7 @@ import {
   useRemoveMemberMutation,
   useUpdateMemberPermissionsMutation,
   useUpdateMemberRoleMutation,
+  useGetOrganizationRolesQuery,
   type OrganizationInvitationPermission,
   type OrganizationInvitationRole,
 } from "@/lib/redux/services/organizationsApi";
@@ -121,6 +122,13 @@ function memberActionMessage(error: unknown, fallback: string): string {
   }
   if (status === 404) {
     return "That person is no longer on this team — the list is already out of date.";
+  }
+  if (status === 422) {
+    const backendMessage = apiErrorMessage(error, "");
+    return (
+      backendMessage ||
+      "One or more permissions are not allowed for this role. Adjust them to match the role ceiling."
+    );
   }
 
   return apiErrorMessage(error, fallback);
@@ -1094,14 +1102,21 @@ function EditPermissionsDialog({
     () => member.permissions,
   );
 
+  const { data: organizationRoles } = useGetOrganizationRolesQuery();
+
   const apiRole = API_ROLE[role];
-  const roleDefaults = DEFAULT_PERMISSIONS_BY_ROLE[apiRole] ?? [];
-  const roleCeiling = MAX_PERMISSIONS_BY_ROLE[apiRole] ?? [];
+  const backendRoleInfo = organizationRoles?.find((r) => r.role === apiRole);
+  const roleDefaults =
+    backendRoleInfo?.defaultPermissions ??
+    DEFAULT_PERMISSIONS_BY_ROLE[apiRole] ??
+    [];
+  const roleCeiling =
+    backendRoleInfo?.allowedPermissions ??
+    MAX_PERMISSIONS_BY_ROLE[apiRole] ??
+    [];
 
   /* Granted above their rank — only reachable from before this rule existed, or
-     from a write that did not come through this dialog. Shown rather than
-     silently dropped, because quietly revoking access nobody asked to revoke is
-     worse than naming it. */
+     from a write that did not come through this dialog. Must be removed before saving. */
   const beyondRole = selected.filter(
     (permission) => !roleCeiling.includes(permission),
   );
@@ -1222,12 +1237,32 @@ function EditPermissionsDialog({
         </div>
 
         {beyondRole.length > 0 ? (
-          <p className="mx-5 mt-4 rounded-xl bg-amber-500/10 p-3 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
-            {beyondRole.length === 1 ? "One permission is" : `${beyondRole.length} permissions are`}{" "}
-            above a {role.toLowerCase()}&rsquo;s rank. The workspace
-            honours them today, so the badge understates what this account can
-            do.
-          </p>
+          <div className="mx-5 mt-4 flex flex-col gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
+            <div className="flex items-start justify-between gap-3">
+              <p>
+                {beyondRole.length === 1
+                  ? "1 permission is"
+                  : `${beyondRole.length} permissions are`}{" "}
+                outside a {role.toLowerCase()}&rsquo;s allowed permissions. You
+                must remove them before saving.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setSelected((current) =>
+                    current.filter((permission) =>
+                      roleCeiling.includes(permission),
+                    ),
+                  )
+                }
+                className="shrink-0 h-7 rounded-lg border-amber-500/30 bg-amber-500/10 text-xs font-semibold text-amber-800 hover:bg-amber-500/20 dark:text-amber-200 cursor-pointer"
+              >
+                Remove disallowed
+              </Button>
+            </div>
+          </div>
         ) : null}
 
         {error ? (
@@ -1262,7 +1297,7 @@ function EditPermissionsDialog({
             </Button>
             <Button
               type="button"
-              disabled={isSaving || !isDirty}
+              disabled={isSaving || !isDirty || beyondRole.length > 0}
               onClick={() => onSave(selected)}
               className="h-10 cursor-pointer rounded-full px-4"
             >

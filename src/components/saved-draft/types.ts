@@ -1,4 +1,11 @@
-export type DraftCategory = "all" | "problem" | "program" | "response" | "report";
+export type DraftCategory =
+  | "all"
+  | "problem"
+  | "showcase"
+  | "solution"
+  | "program"
+  | "response"
+  | "report";
 
 export type ProgramDraftKind = "bounty" | "response";
 
@@ -15,5 +22,6 @@ export type SavedDraftItem = {
   initials: string;
   logoSrc: string;
   logoAlt: string;
+  problemId?: string;
   programDraftKind?: ProgramDraftKind;
 };
