@@ -21,12 +21,16 @@ import {
   useAddBookmarkMutation,
   useRemoveBookmarkMutation,
 } from "@/lib/redux/services/bookmarksApi";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 
 interface ProgramDetailHeroProps {
   program: ProgramDetail;
 }
 
 export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
+  const lp = useLocalePath();
+  const orgId = program.organization?.id || program.organizationId;
+  const companyHref = orgId ? lp(`/company?id=${orgId}`) : lp("/company");
   const [imageError, setImageError] = React.useState(false);
   const logoUrl = !imageError ? (program.organization?.logoUrl || program.logoUrl) : null;
   const orgName = program.organizationName || program.organization?.name || program.handle || "Organization";
@@ -144,7 +148,7 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
             <Link
-              href="/dashboard/visit"
+              href={companyHref}
               className="flex items-center gap-3.5 group/org cursor-pointer"
             >
               <div className="w-11 h-11 bg-muted rounded-xl flex items-center justify-center font-bold text-foreground text-base ring-1 ring-foreground/5 dark:ring-foreground/10 shrink-0 overflow-hidden shadow-sm group-hover/org:scale-105 transition-all duration-300">

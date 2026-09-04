@@ -11,8 +11,6 @@ import {
   MapPin,
   ShieldCheck,
   Send,
-  Bookmark,
-  BookmarkCheck,
   ExternalLink,
   Award,
   DollarSign,
@@ -21,11 +19,10 @@ import {
   Check,
   Shield,
   FileCheck2,
-  Lock,
   Search,
-  Clock,
   Zap,
   Info,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -35,35 +32,12 @@ import {
 import { CountryDisplay } from "@/components/shared/CountryDisplay";
 import type { Program } from "@/lib/types/programs/types";
 
-const defaultCompanyProfile = {
-  name: "CyberShield Security",
-  handle: "@cybershield",
-  logo: null as string | null,
-  verified: true,
-  description:
-    "Official CyberShield Security Organization. We invite security researchers to help us keep our web applications, core API infrastructure, and payment gateways secure through responsible disclosure and reward-driven bug bounty programs.",
-  stats: {
-    activePrograms: 0,
-    resolvedReports: 0,
-    totalBountyPaid: "$0",
-    maxBounty: "$0",
-  },
-  details: {
-    industry: "Cybersecurity & SaaS",
-    companySize: "51-200 employees",
-    country: "United States",
-    domain: "cybershield.io",
-    websiteUrl: "https://cybershield.io",
-  },
-};
-
-type OrganizationTab = "programs" | "policy" | "about";
+type OrganizationTab = "programs" | "about";
 
 function CompanyProfileContent() {
   const [activeTab, setActiveTab] = useState<OrganizationTab>("programs");
   const [programFilter, setProgramFilter] = useState<"ALL" | "BOUNTY" | "RESPONSE">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isFollowing, setIsFollowing] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const searchParams = useSearchParams();
@@ -91,48 +65,50 @@ function CompanyProfileContent() {
   }, [orgProgramsData]);
 
   const activeProgramsCount =
+    orgData?.stats?.activePrograms ??
     (orgProgramsData as { totalElements?: number } | undefined)?.totalElements ??
     fetchedPrograms.length;
 
-  const displayProfile = useMemo(() => {
-    return {
-      name: orgData?.name || defaultCompanyProfile.name,
-      handle: orgData?.slug
-        ? `@${orgData.slug}`
-        : orgData?.name
-        ? `@${orgData.name.toLowerCase().replace(/\s+/g, "-")}`
-        : defaultCompanyProfile.handle,
-      logo: orgData?.logoUrl || defaultCompanyProfile.logo,
-      verified: orgData
-        ? !!orgData.verifiedAt || orgData.status === "ACTIVE"
-        : defaultCompanyProfile.verified,
-      description: orgData?.description || defaultCompanyProfile.description,
-      stats: {
-        activePrograms: activeProgramsCount,
-        resolvedReports: 0,
-        totalBountyPaid: "$0",
-        maxBounty: "$0",
-      },
-      details: {
-        industry: orgData?.industry || defaultCompanyProfile.details.industry,
-        companySize:
-          orgData?.companySize || defaultCompanyProfile.details.companySize,
-        country: orgData?.country || defaultCompanyProfile.details.country,
-        domain: orgData?.domain || defaultCompanyProfile.details.domain,
-        websiteUrl:
-          orgData?.websiteUrl ||
-          (orgData?.domain
-            ? `https://${orgData.domain}`
-            : defaultCompanyProfile.details.websiteUrl),
-      },
-    };
-  }, [orgData, activeProgramsCount]);
+  const resolvedReportsCount = orgData?.stats?.resolvedReports ?? 0;
+  const totalDisbursedFormatted = `$${(orgData?.stats?.totalDisbursed ?? 0).toLocaleString()}`;
+  const topBountyFormatted = orgData?.stats?.topBountyAward
+    ? `$${orgData.stats.topBountyAward.toLocaleString()}`
+    : "$0";
 
-  const logoUrl = orgData?.logoUrl;
+  const orgName = orgData?.name || "Organization";
+  const orgHandle = orgData?.slug
+    ? `@${orgData.slug}`
+    : orgData?.name
+    ? `@${orgData.name.toLowerCase().replace(/\s+/g, "-")}`
+    : "";
+
+  const isVerified = Boolean(orgData?.verifiedAt || orgData?.status === "ACTIVE");
+  const logoUrl = orgData?.logoUrl || null;
   const coverUrl =
     orgData?.coverUrl ||
-    (orgData as { coverImageUrl?: string } | undefined)?.coverImageUrl;
-  const companyInitials = (displayProfile.name || "OR")
+    (orgData as { coverImageUrl?: string } | undefined)?.coverImageUrl ||
+    null;
+
+  const websiteUrl =
+    orgData?.websiteUrl ||
+    (orgData?.domain ? `https://${orgData.domain}` : undefined);
+
+  const memberSince = orgData?.createdAt
+    ? new Date(orgData.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      })
+    : null;
+
+  const verifiedDate = orgData?.verifiedAt
+    ? new Date(orgData.verifiedAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null;
+
+  const companyInitials = (orgName || "OR")
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
@@ -150,18 +126,6 @@ function CompanyProfileContent() {
       setCopied(true);
       toast.success("Organization link copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const handleToggleFollow = () => {
-    setIsFollowing((prev) => {
-      const next = !prev;
-      if (next) {
-        toast.success(`Following ${displayProfile.name}`);
-      } else {
-        toast.success(`Unfollowed ${displayProfile.name}`);
-      }
-      return next;
     });
   };
 
@@ -215,7 +179,7 @@ function CompanyProfileContent() {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={coverUrl}
-              alt={`${displayProfile.name} cover`}
+              alt={`${orgName} cover`}
               className="size-full object-cover"
             />
           ) : (
@@ -237,7 +201,7 @@ function CompanyProfileContent() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={logoUrl}
-                    alt={displayProfile.name}
+                    alt={orgName}
                     className="size-full object-cover"
                   />
                 ) : (
@@ -250,9 +214,9 @@ function CompanyProfileContent() {
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2.5">
                   <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-                    {displayProfile.name}
+                    {orgName}
                   </h1>
-                  {displayProfile.verified && (
+                  {isVerified && (
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                       <ShieldCheck className="size-3.5" />
                       Verified Org
@@ -261,18 +225,20 @@ function CompanyProfileContent() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground/80 font-mono">
-                    {displayProfile.handle}
-                  </span>
-                  {displayProfile.details.industry && (
-                    <span className="inline-flex items-center gap-1">
-                      <Building2 className="size-3.5" />
-                      {displayProfile.details.industry}
+                  {orgHandle && (
+                    <span className="font-medium text-foreground/80 font-mono">
+                      {orgHandle}
                     </span>
                   )}
-                  {displayProfile.details.country && (
+                  {orgData?.industry && (
+                    <span className="inline-flex items-center gap-1">
+                      <Building2 className="size-3.5" />
+                      {orgData.industry}
+                    </span>
+                  )}
+                  {orgData?.country && (
                     <CountryDisplay
-                      value={displayProfile.details.country}
+                      value={orgData.country}
                       size={12}
                       className="gap-1"
                     />
@@ -283,38 +249,18 @@ function CompanyProfileContent() {
 
             {/* Right: Actions Hub */}
             <div className="flex flex-wrap items-center gap-2.5 pt-2 sm:pt-0">
-              <button
-                type="button"
-                onClick={handleToggleFollow}
-                className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors cursor-pointer ${
-                  isFollowing
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
-                    : "border-border bg-card text-foreground hover:bg-accent"
-                }`}
-              >
-                {isFollowing ? (
-                  <>
-                    <BookmarkCheck className="size-4" />
-                    <span>Following</span>
-                  </>
-                ) : (
-                  <>
-                    <Bookmark className="size-4 text-muted-foreground" />
-                    <span>Follow</span>
-                  </>
-                )}
-              </button>
-
-              <a
-                href={displayProfile.details.websiteUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-2xs transition-colors hover:bg-primary/90 cursor-pointer"
-              >
-                <Globe className="size-4" />
-                <span>Website</span>
-                <ExternalLink className="size-3.5 opacity-80" />
-              </a>
+              {websiteUrl && (
+                <a
+                  href={websiteUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-2xs transition-colors hover:bg-primary/90 cursor-pointer"
+                >
+                  <Globe className="size-4" />
+                  <span>Website</span>
+                  <ExternalLink className="size-3.5 opacity-80" />
+                </a>
+              )}
 
               <motion.button
                 whileTap={{ scale: 0.96 }}
@@ -340,8 +286,9 @@ function CompanyProfileContent() {
         </div>
       </div>
 
-      {/* ── 2. Performance & Activity Metrics Strip ─────────────────── */}
+      {/* ── 2. Performance & Activity Metrics Strip (Real API Data) ─── */}
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+        {/* Metric 1: Active Programs */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-blue-500/30">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -353,7 +300,7 @@ function CompanyProfileContent() {
           </div>
           <div className="mt-3">
             <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              {displayProfile.stats.activePrograms}
+              {activeProgramsCount}
             </p>
             <p className="mt-1 text-xs font-medium text-muted-foreground">
               Live bug bounty scopes
@@ -361,25 +308,27 @@ function CompanyProfileContent() {
           </div>
         </div>
 
+        {/* Metric 2: Resolved Reports */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-emerald-500/30">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Avg. Response SLA
+              Resolved Reports
             </span>
             <div className="flex size-8 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <Clock className="size-4" />
+              <FileCheck2 className="size-4" />
             </div>
           </div>
           <div className="mt-3">
             <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              &lt; 24h
+              {resolvedReportsCount}
             </p>
             <p className="mt-1 text-xs font-medium text-muted-foreground">
-              First triage response
+              Validated vulnerabilities
             </p>
           </div>
         </div>
 
+        {/* Metric 3: Total Disbursed */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-emerald-500/30">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -391,7 +340,7 @@ function CompanyProfileContent() {
           </div>
           <div className="mt-3">
             <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-              {displayProfile.stats.totalBountyPaid}
+              {totalDisbursedFormatted}
             </p>
             <p className="mt-1 text-xs font-medium text-muted-foreground">
               Bounties rewarded
@@ -399,6 +348,7 @@ function CompanyProfileContent() {
           </div>
         </div>
 
+        {/* Metric 4: Top Bounty Award */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-purple-500/30">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -410,10 +360,10 @@ function CompanyProfileContent() {
           </div>
           <div className="mt-3">
             <p className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-              {displayProfile.stats.maxBounty}
+              {topBountyFormatted}
             </p>
             <p className="mt-1 text-xs font-medium text-muted-foreground">
-              For Critical findings
+              Highest single payout
             </p>
           </div>
         </div>
@@ -437,26 +387,6 @@ function CompanyProfileContent() {
               {activeProgramsCount}
             </span>
             {activeTab === "programs" && (
-              <motion.div
-                layoutId="org-tab-indicator"
-                className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary"
-                transition={{ type: "spring", stiffness: 400, damping: 35 }}
-              />
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("policy")}
-            className={`relative flex items-center gap-2 pb-3.5 pt-1 text-sm font-semibold transition cursor-pointer ${
-              activeTab === "policy"
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <FileCheck2 className="size-4" />
-            <span>Scope & Disclosure Policy</span>
-            {activeTab === "policy" && (
               <motion.div
                 layoutId="org-tab-indicator"
                 className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary"
@@ -572,7 +502,7 @@ function CompanyProfileContent() {
                     const rewardBadgeText = isBounty
                       ? maxBounty > 0
                         ? `Up to $${maxBounty.toLocaleString()}`
-                        : "Up to $15,000"
+                        : "Bounty Available"
                       : "Points Only";
 
                     return (
@@ -626,66 +556,67 @@ function CompanyProfileContent() {
             </div>
           )}
 
-          {/* TAB 2: POLICY & SAFE HARBOR */}
-          {activeTab === "policy" && (
-            <div className="space-y-5">
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-                  <ShieldCheck className="size-5 text-emerald-500" />
-                  <span>DevSolve Safe Harbor Commitment</span>
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {displayProfile.name} adheres to the DevSolve Standard Safe Harbor terms. When you conduct vulnerability research within the stated scope and in compliance with this policy:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground pl-2">
-                  <li>We consider your research activities to be authorized and will not initiate legal action against you.</li>
-                  <li>We will work with you to understand and resolve the report quickly.</li>
-                  <li>We will recognize your contribution publicly unless you request anonymity.</li>
-                </ul>
-              </div>
-
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-                  <Clock className="size-5 text-primary" />
-                  <span>Response SLA Targets</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
-                    <p className="text-xs text-muted-foreground">First Response</p>
-                    <p className="text-lg font-bold text-foreground mt-0.5">&lt; 24 Hours</p>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
-                    <p className="text-xs text-muted-foreground">Triage & Validation</p>
-                    <p className="text-lg font-bold text-foreground mt-0.5">&lt; 48 Hours</p>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-muted/40 border border-border">
-                    <p className="text-xs text-muted-foreground">Bounty Award</p>
-                    <p className="text-lg font-bold text-foreground mt-0.5">&lt; 5 Days</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: ABOUT */}
+          {/* TAB 2: ABOUT */}
           {activeTab === "about" && (
             <div className="space-y-5">
               <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-3">
                 <h3 className="text-base font-bold text-foreground">
                   Organization Summary
                 </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {displayProfile.description}
-                </p>
+                {orgData?.description ? (
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {orgData.description}
+                  </p>
+                ) : (
+                  <p className="text-sm italic text-muted-foreground">
+                    No public description provided by this organization.
+                  </p>
+                )}
               </div>
 
-              <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-3">
+              {/* Organization Metadata Highlights */}
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4">
                 <h3 className="text-base font-bold text-foreground">
-                  Security Operations
+                  Overview & Credentials
                 </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {displayProfile.name}&apos;s security engineering team conducts continuous reviews and coordinates with independent researchers worldwide to safeguard user data and maintain zero-day defense integrity.
-                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  {orgData?.industry && (
+                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/70 space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                        Industry
+                      </p>
+                      <p className="font-bold text-foreground">{orgData.industry}</p>
+                    </div>
+                  )}
+                  {orgData?.companySize && (
+                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/70 space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                        Company Size
+                      </p>
+                      <p className="font-bold text-foreground">{orgData.companySize} employees</p>
+                    </div>
+                  )}
+                  {orgData?.country && (
+                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/70 space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                        Country
+                      </p>
+                      <CountryDisplay
+                        value={orgData.country}
+                        size={14}
+                        textClassName="font-bold text-foreground"
+                      />
+                    </div>
+                  )}
+                  {memberSince && (
+                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/70 space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">
+                        Member Since
+                      </p>
+                      <p className="font-bold text-foreground">{memberSince}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -700,7 +631,7 @@ function CompanyProfileContent() {
               <span>Found a Vulnerability?</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Report security findings responsibly to {displayProfile.name} and earn rewards.
+              Report security findings responsibly to {orgName} and earn rewards.
             </p>
             <Link
               href={catalogHref}
@@ -718,66 +649,90 @@ function CompanyProfileContent() {
             </h3>
 
             <div className="space-y-3.5 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Building2 className="size-4 text-muted-foreground" />
-                  Industry
-                </span>
-                <span className="font-semibold text-foreground truncate">
-                  {displayProfile.details.industry}
-                </span>
-              </div>
+              {orgData?.industry && (
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <Building2 className="size-4 text-muted-foreground" />
+                    Industry
+                  </span>
+                  <span className="font-semibold text-foreground truncate">
+                    {orgData.industry}
+                  </span>
+                </div>
+              )}
 
-              <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Users className="size-4 text-muted-foreground" />
-                  Size
-                </span>
-                <span className="font-semibold text-foreground truncate">
-                  {displayProfile.details.companySize}
-                </span>
-              </div>
+              {orgData?.companySize && (
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <Users className="size-4 text-muted-foreground" />
+                    Size
+                  </span>
+                  <span className="font-semibold text-foreground truncate">
+                    {orgData.companySize} employees
+                  </span>
+                </div>
+              )}
 
-              <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <MapPin className="size-4 text-muted-foreground" />
-                  Country
-                </span>
-                <CountryDisplay
-                  value={displayProfile.details.country}
-                  size={14}
-                  textClassName="font-semibold text-foreground"
-                />
-              </div>
+              {orgData?.country && (
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <MapPin className="size-4 text-muted-foreground" />
+                    Country
+                  </span>
+                  <CountryDisplay
+                    value={orgData.country}
+                    size={14}
+                    textClassName="font-semibold text-foreground"
+                  />
+                </div>
+              )}
 
-              <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Globe className="size-4 text-muted-foreground" />
-                  Domain
-                </span>
-                <a
-                  href={displayProfile.details.websiteUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 font-mono text-xs font-bold text-primary hover:underline"
-                >
-                  <span>{displayProfile.details.domain}</span>
-                  <ExternalLink className="size-3" />
-                </a>
-              </div>
+              {orgData?.domain && (
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <Globe className="size-4 text-muted-foreground" />
+                    Domain
+                  </span>
+                  <a
+                    href={websiteUrl || `https://${orgData.domain}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 font-mono text-xs font-bold text-primary hover:underline truncate"
+                  >
+                    <span className="truncate">{orgData.domain}</span>
+                    <ExternalLink className="size-3 shrink-0" />
+                  </a>
+                </div>
+              )}
+
+              {memberSince && (
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <Calendar className="size-4 text-muted-foreground" />
+                    Joined
+                  </span>
+                  <span className="font-semibold text-foreground truncate">
+                    {memberSince}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Security Verification Card */}
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs space-y-2.5">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              <Lock className="size-4 text-primary" />
-              <span>Verified Enterprise</span>
+          {isVerified && (
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 shadow-2xs space-y-2.5">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                <ShieldCheck className="size-4" />
+                <span>Verified Organization</span>
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {verifiedDate
+                  ? `Identity-verified on ${verifiedDate} on the DevSolve bug bounty platform.`
+                  : "Identity-verified enterprise on the DevSolve bug bounty platform."}
+              </p>
             </div>
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              This organization is identity-verified and registered on the DevSolve bug bounty marketplace.
-            </p>
-          </div>
+          )}
         </div>
       </div>
     </motion.div>

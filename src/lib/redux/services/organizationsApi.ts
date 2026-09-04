@@ -18,6 +18,13 @@ export type OrganizationIndustry =
   | "OTHER"
   | (string & {});
 
+export type OrganizationStats = {
+  activePrograms?: number;
+  resolvedReports?: number;
+  totalDisbursed?: number;
+  topBountyAward?: number;
+};
+
 export type Organization = {
   id: string;
   ownerId?: string;
@@ -39,6 +46,7 @@ export type Organization = {
   verifiedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  stats?: OrganizationStats;
   [key: string]: unknown;
 };
 

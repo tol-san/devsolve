@@ -23,8 +23,8 @@ const defaultCompanyData = {
   name: "Organization Profile",
   handle: "@organization",
   logo: null as string | null,
-  verified: true,
-  website: "https://cybershield.io",
+  verified: false,
+  website: undefined as string | undefined,
 };
 
 function CompanyProgramsCatalogContent() {
@@ -59,7 +59,7 @@ function CompanyProgramsCatalogContent() {
         orgData?.websiteUrl ||
         (orgData?.domain
           ? `https://${orgData.domain}`
-          : defaultCompanyData.website),
+          : undefined),
     };
   }, [orgData]);
 

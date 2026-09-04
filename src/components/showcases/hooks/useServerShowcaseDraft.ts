@@ -23,7 +23,7 @@ export interface ServerShowcaseDraftState {
   error: string | null;
   take: () => ShowcaseDraftResponse | null;
   discard: () => Promise<void>;
-  saveNow: () => Promise<boolean>;
+  saveNow: () => Promise<{ success: boolean; draftId?: string }>;
   clear: () => Promise<void>;
   draftId: string | null;
 }
@@ -74,9 +74,87 @@ export function useServerShowcaseDraft({
     setAvailable(found);
   }, [drafts, enabled, resumeId]);
 
-  const persist = useCallback(async (): Promise<boolean> => {
-    if (!enabled) return false;
-    // Don't save completely empty drafts
+  const persist = useCallback(
+    async (force = false): Promise<boolean> => {
+      if (!enabled) return false;
+
+      const hasAnyContent = Boolean(
+        latest.current.title?.trim() ||
+          latest.current.overview?.trim() ||
+          latest.current.categoryId ||
+          latest.current.coverImageUrl ||
+          latest.current.liveUrl ||
+          latest.current.repoUrl ||
+          latest.current.videoUrl ||
+          (latest.current.tags && latest.current.tags.length > 0) ||
+          draftId.current ||
+          resumeId,
+      );
+
+      if (!hasAnyContent) {
+        if (!force) return false;
+        latest.current = {
+          ...latest.current,
+          title: "Untitled draft",
+        };
+      }
+
+      const payload = JSON.stringify(latest.current);
+      if (payload === lastSaved.current) {
+        return true;
+      }
+
+      const currentSeq = ++reqSeq.current;
+      setIsSaving(true);
+      setError(null);
+      const existing = draftId.current || resumeId || null;
+
+      try {
+        if (existing) {
+          const saved = await updateDraft({
+            id: existing,
+            body: latest.current,
+          }).unwrap();
+          if (currentSeq !== reqSeq.current) return false;
+          draftId.current = existing;
+          lastSaved.current = payload;
+          setSavedAt(saved.updatedAt ?? new Date().toISOString());
+          return true;
+        } else if (!creating.current) {
+          creating.current = true;
+          try {
+            const created = await createDraft(latest.current).unwrap();
+            if (currentSeq !== reqSeq.current) return false;
+            draftId.current = created.id;
+            lastSaved.current = payload;
+            setSavedAt(created.updatedAt ?? new Date().toISOString());
+            return true;
+          } finally {
+            creating.current = false;
+          }
+        }
+        return false;
+      } catch (err) {
+        if (currentSeq !== reqSeq.current) return false;
+        setError(
+          apiErrorMessage(err, "Could not save your draft. Retrying as you type."),
+        );
+        return false;
+      } finally {
+        if (currentSeq === reqSeq.current) {
+          setIsSaving(false);
+        }
+      }
+    },
+    [createDraft, enabled, resumeId, updateDraft],
+  );
+
+  const serialised = JSON.stringify(values);
+
+  useEffect(() => {
+    if (!enabled) return;
+    if (available) return;
+
     const hasAnyContent = Boolean(
       latest.current.title?.trim() ||
         latest.current.overview?.trim() ||
@@ -84,65 +162,14 @@ export function useServerShowcaseDraft({
         latest.current.coverImageUrl ||
         latest.current.liveUrl ||
         latest.current.repoUrl ||
+        latest.current.videoUrl ||
         (latest.current.tags && latest.current.tags.length > 0),
     );
-    if (!hasAnyContent && !draftId.current && !resumeId) return false;
+    if (!hasAnyContent && !draftId.current && !resumeId) return;
 
-    const payload = JSON.stringify(latest.current);
-    if (payload === lastSaved.current) return false;
-
-    const currentSeq = ++reqSeq.current;
-    setIsSaving(true);
-    setError(null);
-    const existing = draftId.current || resumeId || null;
-
-    try {
-      if (existing) {
-        const saved = await updateDraft({
-          id: existing,
-          body: latest.current,
-        }).unwrap();
-        if (currentSeq !== reqSeq.current) return false;
-        draftId.current = existing;
-        lastSaved.current = payload;
-        setSavedAt(saved.updatedAt ?? new Date().toISOString());
-        return true;
-      } else if (!creating.current) {
-        creating.current = true;
-        try {
-          const created = await createDraft(latest.current).unwrap();
-          if (currentSeq !== reqSeq.current) return false;
-          draftId.current = created.id;
-          lastSaved.current = payload;
-          setSavedAt(created.updatedAt ?? new Date().toISOString());
-          return true;
-        } finally {
-          creating.current = false;
-        }
-      }
-      return false;
-    } catch (err) {
-      if (currentSeq !== reqSeq.current) return false;
-      setError(
-        apiErrorMessage(err, "Could not save your draft. Retrying as you type."),
-      );
-      return false;
-    } finally {
-      if (currentSeq === reqSeq.current) {
-        setIsSaving(false);
-      }
-    }
-  }, [createDraft, enabled, resumeId, updateDraft]);
-
-  const serialised = JSON.stringify(values);
-
-  useEffect(() => {
-    if (!enabled || !isDirty) return;
-    if (available) return;
-
-    const timer = setTimeout(() => void persist(), DEBOUNCE_MS);
+    const timer = setTimeout(() => void persist(false), DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [serialised, enabled, isDirty, available, persist]);
+  }, [serialised, enabled, available, persist, resumeId]);
 
   const take = useCallback(() => {
     const found = available;
@@ -162,9 +189,16 @@ export function useServerShowcaseDraft({
     }
   }, [available, deleteDraft]);
 
-  const saveNow = useCallback(async () => {
+  const saveNow = useCallback(async (): Promise<{
+    success: boolean;
+    draftId?: string;
+  }> => {
     setAvailable(null);
-    return persist();
+    const success = await persist(true);
+    return {
+      success,
+      draftId: draftId.current ?? undefined,
+    };
   }, [persist]);
 
   const clear = useCallback(async () => {

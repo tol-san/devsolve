@@ -24,9 +24,10 @@ export interface Notification {
   content: string;
   notifiableType: NotificationType;
   notifiableId: string; // UUID of related entity
-  /** Actor metadata is currently included for comment notifications. */
+  /** Actor metadata when notification is associated with a user action */
   authorId?: string | null;
   authorName?: string | null;
+  authorUsername?: string | null;
   authorAvatarUrl?: string | null;
   read: boolean;
   readAt: string | null; // ISO-8601 LocalDateTime, e.g. "2025-08-13T10:30:00"

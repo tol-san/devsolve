@@ -167,7 +167,9 @@ export default function NotificationsPage() {
         const query = searchTerm.toLowerCase();
         const matchesTitle = item.title?.toLowerCase().includes(query);
         const matchesContent = item.content?.toLowerCase().includes(query);
-        const matchesAuthor = item.authorName?.toLowerCase().includes(query);
+        const matchesAuthor =
+          item.authorName?.toLowerCase().includes(query) ||
+          item.authorUsername?.toLowerCase().includes(query);
         if (!matchesTitle && !matchesContent && !matchesAuthor) {
           return false;
         }

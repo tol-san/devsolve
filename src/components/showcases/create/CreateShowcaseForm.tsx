@@ -735,12 +735,16 @@ export function CreateShowcaseForm({
                   aspectClassName="aspect-video"
                   value={coverImageUrl}
                   onChange={(url) =>
-                    setValue("coverImageUrl", url, { shouldValidate: true })
+                    setValue("coverImageUrl", url, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
                   }
                   file={coverImageFile ?? null}
                   onFileChange={(next) =>
                     setValue("coverImageFile", next ?? undefined, {
                       shouldValidate: true,
+                      shouldDirty: true,
                     })
                   }
                   uploading={uploadingCover}
@@ -785,7 +789,10 @@ export function CreateShowcaseForm({
                   <MarkdownEditor
                     value={overview}
                     onChange={(next) =>
-                      setValue("overview", next ?? "", { shouldValidate: true })
+                      setValue("overview", next ?? "", {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
                     }
                     placeholder="What the project does, why you built it, and what makes it worth a look. This doubles as the excerpt on the showcase index."
                     height={260}
@@ -1049,18 +1056,18 @@ export function CreateShowcaseForm({
                     variant="outline"
                     disabled={isSavingDraft || submitting}
                     onClick={async () => {
-                      const ok = await saveDraftNow();
-                      if (ok) {
-                        const targetId = resumeId || currentDraftId;
+                      const res = await saveDraftNow();
+                      if (res.success) {
+                        const targetId = res.draftId || resumeId || currentDraftId;
                         if (targetId) {
                           if (coverImageFile) {
                             try {
-                              const res = await uploadDraftCover({
+                              const uploadRes = await uploadDraftCover({
                                 id: targetId,
                                 file: coverImageFile,
                               }).unwrap();
-                              if (res.coverImageUrl) {
-                                setValue("coverImageUrl", res.coverImageUrl);
+                              if (uploadRes.coverImageUrl) {
+                                setValue("coverImageUrl", uploadRes.coverImageUrl);
                                 setValue("coverImageFile", undefined);
                               }
                             } catch (err) {
@@ -1079,7 +1086,7 @@ export function CreateShowcaseForm({
                       } else {
                         toast.error(
                           draftError ||
-                            "Please provide some details before saving a draft.",
+                            "Unable to save draft. Please check your details and try again.",
                         );
                       }
                     }}
