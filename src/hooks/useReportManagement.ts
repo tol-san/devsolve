@@ -22,7 +22,7 @@ export type ReportSortOption =
   | "SEVERITY_ASC"
   | "TITLE_ASC";
 
-const SEVERITY_WEIGHTS: Record<ReportSeverity, number> = {
+const SEVERITY_WEIGHTS: Record<string, number> = {
   Critical: 4,
   High: 3,
   Medium: 2,
@@ -113,13 +113,13 @@ export function useReportManagement() {
           return dateA - dateB;
         }
         case "SEVERITY_DESC": {
-          const weightA = SEVERITY_WEIGHTS[a.severity] ?? 0;
-          const weightB = SEVERITY_WEIGHTS[b.severity] ?? 0;
+          const weightA = a.severity ? SEVERITY_WEIGHTS[a.severity] ?? 0 : 0;
+          const weightB = b.severity ? SEVERITY_WEIGHTS[b.severity] ?? 0 : 0;
           return weightB - weightA;
         }
         case "SEVERITY_ASC": {
-          const weightA = SEVERITY_WEIGHTS[a.severity] ?? 0;
-          const weightB = SEVERITY_WEIGHTS[b.severity] ?? 0;
+          const weightA = a.severity ? SEVERITY_WEIGHTS[a.severity] ?? 0 : 0;
+          const weightB = b.severity ? SEVERITY_WEIGHTS[b.severity] ?? 0 : 0;
           return weightA - weightB;
         }
         case "TITLE_ASC":

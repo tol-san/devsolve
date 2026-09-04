@@ -20,7 +20,7 @@ export type PriorityReviewItem = {
   id: string | number;
   reportId: string;
   title: string;
-  severity: ReviewSeverity;
+  severity: ReviewSeverity | null;
   reporter: string;
   submittedAt: string;
   submittedAtIso?: string;

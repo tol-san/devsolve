@@ -29,6 +29,7 @@ import { ResolveReportDialog } from "@/components/report-management/ResolveRepor
 import { RetestRequestDialog } from "@/components/report-management/RetestRequestDialog";
 import { ThankResearcherDialog } from "@/components/report-management/ThankResearcherDialog";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { WeaknessDisplay } from "@/components/reports/WeaknessDisplay";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -338,7 +339,16 @@ export function ReportManagementSidebar({
         </div>
 
         <div>
-          <SeverityBadge severity={effectiveSeverity as any} />
+          {report.severity ? (
+            <SeverityBadge severity={report.severity} />
+          ) : (
+            <DisputedSeverityPair
+              reportedSeverity={report.reportedSeverity || report.claimedSeverity}
+              triageSeverity={report.triageSeverity || report.confirmedSeverity}
+              cvssScore={report.cvssScore}
+              size="md"
+            />
+          )}
         </div>
 
         {/* Severity Disagreement Alert */}

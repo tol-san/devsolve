@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 /** Tier colours for the verdict dots, so the two sides read apart at a glance. */
-const SEVERITY_DOT: Record<"Critical" | "High" | "Medium" | "Low", string> = {
+const SEVERITY_DOT: Record<string, string> = {
   Critical: "bg-red-500",
   High: "bg-orange-500",
   Medium: "bg-amber-500",
@@ -18,7 +18,10 @@ import { cn } from "@/lib/utils";
 import {
   useGetReportConfirmationByIdQuery,
   useUpdateConfirmReportMutation,
+  useResolveAdminDisputeMutation,
 } from "@/lib/redux/services/adminApi";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
+import SeverityBadge from "@/components/reports/SeverityBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -58,6 +61,7 @@ export default function ReportConfirmationDetailPage() {
     skip: !id,
   });
   const [updateConfirm] = useUpdateConfirmReportMutation();
+  const [resolveDispute] = useResolveAdminDisputeMutation();
 
   /* Null until the reviewer picks one. The displayed severity is derived from
      this and the report below, so it starts as whatever triage actually
@@ -128,17 +132,27 @@ export default function ReportConfirmationDetailPage() {
      the old fallback printed "CVSS 7.0 - 8.9" on every report, which reads as
      a measurement rather than as the placeholder it was. */
   const claimedCvss = report.cvssScore ? `CVSS ${report.cvssScore}` : undefined;
-  const hackerSev = report.hackerClaimedSeverity ?? {
-    tier: report.severity,
+  type SeverityBox = {
+    tier: "Critical" | "High" | "Medium" | "Low" | "None" | null;
+    cvss?: string;
+    typicalReward?: string;
+  };
+  const hackerSev: SeverityBox = report.hackerClaimedSeverity ?? {
+    tier: report.reportedSeverity ?? report.severity ?? null,
     cvss: claimedCvss,
   };
-  const companySev = report.companyConfirmedSeverity ?? {
-    tier: report.severity,
+  const companySev: SeverityBox = report.companyConfirmedSeverity ?? {
+    tier: report.triageSeverity ?? report.severity ?? null,
     cvss: claimedCvss,
   };
 
   /* What triage recorded, until the reviewer changes it on this screen. */
-  const selectedSeverity = severityOverride ?? companySev.tier;
+  const selectedSeverity: "Critical" | "High" | "Medium" | "Low" =
+    severityOverride ??
+    (companySev.tier && companySev.tier !== "None" ? companySev.tier : null) ??
+    (hackerSev.tier && hackerSev.tier !== "None" ? hackerSev.tier : null) ??
+    (report.severity && (report.severity as string) !== "None" ? report.severity : null) ??
+    "Medium";
   /* Compared as displayed, so the badge cannot contradict the two boxes under
      it while the reviewer is editing. */
   const severitiesAgree = hackerSev.tier === selectedSeverity;
@@ -160,6 +174,15 @@ export default function ReportConfirmationDetailPage() {
   const handleAction = async (status: "CONFIRMED" | "REJECTED" | "ESCALATED") => {
     setIsSubmitting(true);
     try {
+      if (report?.disputeId) {
+        await resolveDispute({
+          id: report.disputeId,
+          status: status === "REJECTED" ? "DISMISSED" : "RESOLVED",
+          finalSeverity: (selectedSeverity.toUpperCase()) as any,
+          resolutionNotes: adminNote || `Admin ruled severity as ${selectedSeverity}`,
+        }).unwrap().catch((e) => console.warn("Failed resolving dispute via admin disputes API:", e));
+      }
+
       await updateConfirm({
         id: report.id,
         status,
@@ -233,9 +256,16 @@ export default function ReportConfirmationDetailPage() {
               <span className="font-mono text-sm font-bold text-muted-foreground">
                 {report.reportCode || `DS-${report.id}`}
               </span>
-              <Badge className="bg-orange-500 text-white font-bold rounded-full px-3 py-0.5 text-xs">
-                {selectedSeverity} Severity
-              </Badge>
+              {report.severity ? (
+                <SeverityBadge severity={report.severity} />
+              ) : (
+                <DisputedSeverityPair
+                  reportedSeverity={report.reportedSeverity || hackerSev.tier}
+                  triageSeverity={report.triageSeverity || companySev.tier}
+                  cvssScore={report.cvssScore}
+                  size="sm"
+                />
+              )}
               <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-semibold border-border">
                 {report.category}
               </Badge>
@@ -341,7 +371,7 @@ export default function ReportConfirmationDetailPage() {
                   <span
                     className={cn(
                       "w-2.5 h-2.5 rounded-full",
-                      SEVERITY_DOT[hackerSev.tier],
+                      (hackerSev.tier && SEVERITY_DOT[hackerSev.tier]) || "bg-slate-500",
                     )}
                   />
                   <span className="text-lg font-extrabold text-foreground">
@@ -351,9 +381,14 @@ export default function ReportConfirmationDetailPage() {
                 {/* Rendered only when the API gave one — an omitted score
                     leaves the line out rather than printing a blank or an
                     invented band. */}
-                {(hackerSev.cvss || hackerSev.typicalReward) && (
+                {(hackerSev.cvss || hackerSev.typicalReward || report.cvssVector) && (
                   <div className="text-xs text-muted-foreground space-y-0.5">
                     {hackerSev.cvss && <div>{hackerSev.cvss}</div>}
+                    {report.cvssVector && (
+                      <div className="font-mono text-[11px] text-muted-foreground break-all">
+                        {report.cvssVector}
+                      </div>
+                    )}
                     {hackerSev.typicalReward && (
                       <div>{hackerSev.typicalReward}</div>
                     )}
@@ -413,6 +448,26 @@ export default function ReportConfirmationDetailPage() {
               )}
             </div>
           </Card>
+
+          {/* RESEARCHER'S DISPUTE ARGUMENT CARD */}
+          {report.disputeReason && (
+            <Card className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-6 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-bold text-rose-700 dark:text-rose-300">
+                  <ShieldAlert className="w-4 h-4 text-rose-500" />
+                  <span>Researcher&apos;s Case for Dispute</span>
+                </div>
+                {report.disputeStatus && (
+                  <Badge variant="outline" className="text-[10px] font-bold uppercase border-rose-500/30 text-rose-700 dark:text-rose-300">
+                    Dispute: {report.disputeStatus}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm leading-relaxed text-foreground bg-background/80 p-4 rounded-xl border border-rose-500/20 whitespace-pre-wrap">
+                {report.disputeReason}
+              </p>
+            </Card>
+          )}
 
           {/* COMPANY'S REASONING CARD */}
           <Card className="rounded-2xl border border-border bg-card p-6 space-y-3 shadow-2xs">

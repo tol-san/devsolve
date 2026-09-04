@@ -61,16 +61,16 @@ export interface ReportItem {
   organizationWebsiteUrl?: string;
   avatarLetter: string;
   type: "Bounty" | "Response";
-  /** The settled severity: `severity ?? triageSeverity ?? reportedSeverity`. */
-  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  /** The agreed severity. Null while disputed or unsettled. */
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | null;
   /** What the reporter claimed. Always set on report. */
-  reportedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE";
+  reportedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
   /** What the organization assessed. Null until triaged. */
   triageSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
   /** The agreed severity. Null while the two disagree, and null on untriaged reports. */
   agreedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
-  /** Settled severity shorthand. */
-  settledSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  /** Settled severity shorthand (null if disputed/unsettled). */
+  settledSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | null;
   /** True when severity is null and triageSeverity is set (disagreement surfaced). */
   hasSeverityDisagreement?: boolean;
   /** When non-null, severity is contested under dispute. */

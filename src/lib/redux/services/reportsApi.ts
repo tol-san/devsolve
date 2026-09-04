@@ -220,13 +220,12 @@ interface ReportsEnvelope<T> {
   data?: T[];
 }
 
-// severity/triageSeverity are only set once a report has been triaged, so
-// reportedSeverity (the hacker's self-assessment) is the fallback. "NONE"
-// has no equivalent in ReportItem's severity union, so it collapses to LOW
-// rather than breaking the badge renderer.
-function toSeverity(report: ReportApiResponse): ReportItem["severity"] {
-  const value = report.severity ?? report.triageSeverity ?? report.reportedSeverity;
-  return value === "CRITICAL" || value === "HIGH" || value === "MEDIUM" || value === "LOW" ? value : "LOW";
+// Returns the agreed severity when settled, or null when disputed/unsettled.
+// NEVER fall back to triageSeverity or reportedSeverity: a null severity means
+// "not agreed yet" and must not be masked as an agreed decision.
+function toSeverity(value: ApiSeverity | null | undefined): ReportItem["severity"] {
+  if (!value) return null;
+  return value === "CRITICAL" || value === "HIGH" || value === "MEDIUM" || value === "LOW" ? value : null;
 }
 
 // Backend state enum is more granular than the UI's status union — collapse
@@ -430,11 +429,11 @@ function toReportItem(
       undefined,
     avatarLetter: programName.slice(0, 1).toUpperCase(),
     type: "Bounty",
-    severity: toSeverity(report),
-    reportedSeverity: report.reportedSeverity,
-    triageSeverity: report.triageSeverity,
+    severity: toSeverity(report.severity),
+    reportedSeverity: report.reportedSeverity ?? null,
+    triageSeverity: report.triageSeverity ?? null,
     agreedSeverity: report.severity ?? null,
-    settledSeverity: toSeverity(report),
+    settledSeverity: toSeverity(report.severity),
     hasSeverityDisagreement:
       report.severity === null &&
       report.triageSeverity != null &&
@@ -553,8 +552,8 @@ function toReportDetail(
   return {
     ...item,
     submittedAgo,
-    claimedSeverity: report.reportedSeverity ?? report.severity ?? item.severity,
-    confirmedSeverity: report.triageSeverity ?? report.severity ?? item.severity,
+    claimedSeverity: report.reportedSeverity ?? "Not specified",
+    confirmedSeverity: report.triageSeverity ?? "Pending triage",
     /* The reporter's own score. It used to be derived from the severity band
        with a fixed ladder — 9.8 for anything Critical, 8.1 for High — so every
        report of a given severity displayed the same invented number. */
@@ -788,7 +787,7 @@ export const reportsApi = baseApi.injectEndpoints({
 
         if (params?.severity && params.severity !== "All" && params.severity !== "Severity: All") {
           results = results.filter(
-            (item) => item.severity.toLowerCase() === params.severity?.toLowerCase()
+            (item) => (item.severity ? item.severity.toLowerCase() === params.severity?.toLowerCase() : false)
           );
         }
 

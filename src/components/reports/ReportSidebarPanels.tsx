@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { AlertCircle, Building2, CircleAlert, ExternalLink, Globe, ShieldAlert, ShieldCheck } from "lucide-react";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { Badge } from "@/components/ui/badge";
 import type { ReportDetail } from "@/lib/types/reports/types";
 import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
@@ -86,20 +87,21 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
         </div>
 
         <div>
-          <SeverityBadge
-            severity={
-              (report.settledSeverity ||
-                report.agreedSeverity ||
-                report.triageSeverity ||
-                report.reportedSeverity ||
-                report.severity) as any
-            }
-          />
+          {report.severity ? (
+            <SeverityBadge severity={report.severity} />
+          ) : (
+            <DisputedSeverityPair
+              reportedSeverity={report.reportedSeverity || report.claimedSeverity}
+              triageSeverity={report.triageSeverity || report.confirmedSeverity}
+              cvssScore={report.cvssScore}
+              size="md"
+            />
+          )}
         </div>
 
         {/* Severity Disagreement Alert */}
         {(report.hasSeverityDisagreement ||
-          (report.agreedSeverity === null &&
+          (!report.severity &&
             report.triageSeverity != null &&
             report.reportedSeverity != null &&
             report.triageSeverity !== report.reportedSeverity)) && (
@@ -135,8 +137,8 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
             label="Confirmed by triage"
             value={report.triageSeverity || report.confirmedSeverity || "Pending triage"}
           />
-          {report.agreedSeverity && (
-            <Fact label="Agreed severity" value={report.agreedSeverity} />
+          {report.severity && (
+            <Fact label="Agreed severity" value={report.severity} />
           )}
           {report.dispute?.resolvedSeverity && (
             <Fact label="Admin ruling" value={report.dispute.resolvedSeverity} />

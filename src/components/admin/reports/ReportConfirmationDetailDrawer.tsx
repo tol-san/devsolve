@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ReportConfirmationItem } from "@/lib/types/admin/types";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import {
   Dialog,
   DialogContent,
@@ -62,7 +63,13 @@ export function ReportConfirmationDetailDrawer({
 
   useEffect(() => {
     if (report) {
-      setSelectedSeverity(report.severity);
+      if (report.severity) {
+        setSelectedSeverity(report.severity);
+      } else if (report.triageSeverity && report.triageSeverity !== "None") {
+        setSelectedSeverity(report.triageSeverity as any);
+      } else if (report.reportedSeverity && report.reportedSeverity !== "None") {
+        setSelectedSeverity(report.reportedSeverity as any);
+      }
       setBountyEstimate(report.rewardEstimate || "");
       setTriageNotes(report.triageNotes || "");
     }
@@ -112,9 +119,17 @@ export function ReportConfirmationDetailDrawer({
                   {report.reportCode}
                 </span>
               )}
-              <Badge className={`rounded-full px-2.5 py-0.5 text-xs ${getSeverityBadgeClass(report.severity)}`}>
-                {report.severity}
-              </Badge>
+              {report.severity ? (
+                <Badge className={`rounded-full px-2.5 py-0.5 text-xs ${getSeverityBadgeClass(report.severity)}`}>
+                  {report.severity}
+                </Badge>
+              ) : (
+                <DisputedSeverityPair
+                  reportedSeverity={report.reportedSeverity || report.hackerClaimedSeverity?.tier}
+                  triageSeverity={report.triageSeverity || report.companyConfirmedSeverity?.tier}
+                  size="sm"
+                />
+              )}
               <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs font-semibold border-border">
                 {report.status}
               </Badge>
@@ -229,6 +244,26 @@ export function ReportConfirmationDetailDrawer({
                   <span className="text-xs font-bold text-blue-900 dark:text-blue-300">CWE Classification</span>
                   <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">{report.cwe}</p>
                 </div>
+              </div>
+            )}
+
+            {/* Researcher Dispute Argument */}
+            {report.disputeReason && (
+              <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
+                    Researcher Dispute Case
+                  </span>
+                  {report.disputeStatus && (
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase border-rose-500/30 text-rose-700 dark:text-rose-300">
+                      Dispute: {report.disputeStatus}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+                  {report.disputeReason}
+                </p>
               </div>
             )}
 

@@ -28,6 +28,7 @@ import { ReportSummaryTab } from "@/components/reports/ReportSummaryTab";
 import { RetestHistoryTimeline } from "@/components/report-management/RetestHistoryTimeline";
 import { ReportManagementSidebar } from "@/components/report-management/ReportManagementSidebar";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { buildReportManagementDetailFromApiReport } from "@/components/report-management/mock-data";
 import {
   useGetReportActivitiesQuery,
@@ -280,8 +281,15 @@ export default function ReportManagementDetailPage() {
               <span>{statusCfg.label}</span>
             </Badge>
 
-            {apiReport.reportedSeverity && (
-              <SeverityBadge severity={apiReport.reportedSeverity as any} />
+            {apiReport.severity ? (
+              <SeverityBadge severity={apiReport.severity} />
+            ) : (
+              <DisputedSeverityPair
+                reportedSeverity={apiReport.reportedSeverity || apiReport.claimedSeverity}
+                triageSeverity={apiReport.triageSeverity || apiReport.confirmedSeverity}
+                cvssScore={apiReport.cvssScore}
+                size="md"
+              />
             )}
           </div>
 

@@ -1,20 +1,20 @@
 import { baseApi } from "../baseApi";
 import { toApiSeverity } from "@/lib/reports/severity";
-import { ReportConfirmationItem } from "@/lib/types/admin/types";
+import {
+  ReportConfirmationItem,
+  DisputeItem,
+  ResolveDisputePayload,
+} from "@/lib/types/admin/types";
 import {
   mockReportConfirmationsStore,
   updateMockReportConfirmationsStore,
 } from "./adminMockData";
 
 type ApiTier = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE";
-type DisplayTier = ReportConfirmationItem["severity"];
+type DisplayTier = NonNullable<ReportConfirmationItem["severity"]>;
 
 /**
  * A row of `GET /reports/management`, as far as this screen reads it.
- *
- * Deliberately all-optional: the endpoint serves several screens and this one
- * uses a slice of it, so a field it does not need going missing must not be a
- * type error here.
  */
 type ManagementRow = {
   id: string;
@@ -22,25 +22,30 @@ type ManagementRow = {
   title?: string;
   author?: string;
   type?: string;
-  /**
-   * Already in display form — the route maps it before sending. The two
-   * fields below are the raw API constants (`"LOW"`), so they are *not*
-   * interchangeable with this one and must not be compared to it directly.
-   */
-  severity?: DisplayTier;
-  reportedSeverity?: ApiTier | null;
-  triageSeverity?: ApiTier | null;
+  severity?: DisplayTier | null;
+  reportedSeverity?: ApiTier | string | null;
+  triageSeverity?: ApiTier | string | null;
   cvssScore?: number | null;
+  cvssVector?: string | null;
   queueState?: string;
   status?: string;
   submittedAt?: string;
   summary?: string;
   assets?: string[];
+  dispute?: {
+    id?: string;
+    status?: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "DISMISSED" | "AWAITING_REPORTER";
+    reason?: string;
+    resolvedSeverity?: ApiTier | string | null;
+    respondBy?: string | null;
+  } | null;
 };
 
 /** The API's constant as it reads on screen. */
-function toTier(value: ApiTier | null | undefined): DisplayTier | null {
-  switch (value) {
+function toTier(value: ApiTier | string | null | undefined): DisplayTier | null {
+  if (!value) return null;
+  const upper = value.toUpperCase();
+  switch (upper) {
     case "CRITICAL":
       return "Critical";
     case "HIGH":
@@ -49,9 +54,6 @@ function toTier(value: ApiTier | null | undefined): DisplayTier | null {
       return "Medium";
     case "LOW":
       return "Low";
-    /* NONE is a real rating — "not a vulnerability" — but this screen's tier
-       union has nowhere to put it, and rounding it up to Low would overstate
-       the finding. Absent instead, so the caller falls back rather than lies. */
     default:
       return null;
   }
@@ -60,14 +62,7 @@ function toTier(value: ApiTier | null | undefined): DisplayTier | null {
 /**
  * The two sides of the severity rating, kept apart.
  *
- * This screen exists to compare what the researcher claimed against what the
- * company decided, so the one thing it must never do is read both from the
- * same field. `severity` on the managed report is the *settled* rating — it
- * collapses `severity ?? triageSeverity ?? reportedSeverity` — so filling both
- * boxes from it made every report agree with itself.
- *
- * Each side falls back to the settled rating only when its own field is
- * missing, which is what older reports return.
+ * Never falls back to settled rating to mask disagreements.
  */
 function toSeverityPair(
   raw: Pick<
@@ -78,22 +73,16 @@ function toSeverityPair(
   ReportConfirmationItem,
   "hackerClaimedSeverity" | "companyConfirmedSeverity" | "severitiesAgree"
 > {
-  /* Already display-form; passing it through `toTier` would return null for
-     every value and silently make both sides "Medium". */
-  const settled: DisplayTier = raw.severity ?? "Medium";
-  const claimed = toTier(raw.reportedSeverity) ?? settled;
-  const confirmed = toTier(raw.triageSeverity) ?? settled;
-  /* Only stated when triage has actually rated it. Before that there is no
-     company verdict to agree or disagree with, and claiming agreement would
-     put a decision on screen that nobody made. */
+  const claimedTier = toTier(raw.reportedSeverity) ?? (raw.severity || "Medium");
+  const confirmedTier = toTier(raw.triageSeverity) ?? (raw.severity || "Medium");
   const triaged = toTier(raw.triageSeverity) !== null;
   const cvss =
     typeof raw.cvssScore === "number" ? `CVSS ${raw.cvssScore}` : undefined;
 
   return {
-    hackerClaimedSeverity: { tier: claimed, cvss },
-    companyConfirmedSeverity: { tier: confirmed, cvss },
-    severitiesAgree: triaged ? claimed === confirmed : undefined,
+    hackerClaimedSeverity: { tier: claimedTier, cvss },
+    companyConfirmedSeverity: { tier: confirmedTier, cvss },
+    severitiesAgree: triaged && raw.severity != null ? claimedTier === confirmedTier : false,
   };
 }
 
@@ -110,7 +99,14 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
               APPROVED: "CONFIRMED",
               CLOSED: "REJECTED",
             };
-            const status = statusMap[r.queueState ?? ""] || (r.status === "Open" ? "PENDING" : "CONFIRMED");
+            const isDisputed = Boolean(
+              r.dispute &&
+              r.dispute.status !== "RESOLVED" &&
+              r.dispute.status !== "DISMISSED"
+            );
+            const status = isDisputed
+              ? "ESCALATED"
+              : statusMap[r.queueState ?? ""] || (r.status === "Open" ? "PENDING" : "CONFIRMED");
             return {
               id: r.id,
               reportCode: r.reportId || `RPT-${r.id.slice(0, 8)}`,
@@ -118,7 +114,9 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
               researcherName: r.author || "Security Researcher",
               companyName: "DevSolve Security",
               programName: r.type ? `${r.type} Program` : "Bug Bounty Program",
-              severity: r.severity || "Medium",
+              severity: r.severity ?? null,
+              reportedSeverity: toTier(r.reportedSeverity),
+              triageSeverity: toTier(r.triageSeverity),
               status,
               submittedAt: r.submittedAt || "Recently",
               rewardEstimate:
@@ -131,6 +129,11 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
               targetAsset: r.assets?.[0] || "Target System",
               description: r.summary || "Submitted vulnerability report awaiting organization triage.",
               impact: r.summary || "Vulnerability impact details.",
+              disputeId: r.dispute?.id,
+              disputeReason: r.dispute?.reason,
+              disputeStatus: r.dispute?.status,
+              disputeResolvedSeverity: toTier(r.dispute?.resolvedSeverity),
+              disputeRespondBy: r.dispute?.respondBy,
               ...toSeverityPair(r),
             };
           });
@@ -143,16 +146,94 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
     getReportConfirmationById: builder.query<ReportConfirmationItem, string>({
       async queryFn(id, _api, _extraOptions, fetchWithBQ) {
         const foundMock = mockReportConfirmationsStore.find((r) => r.id === id);
+
+        // 1. Fetch live report details first for full dispute & severity fidelity
+        const reportRes = await fetchWithBQ(`/reports/${id}`);
+        if (!reportRes.error && reportRes.data && typeof reportRes.data === "object") {
+          const raw = reportRes.data as any;
+          const claimedTier = toTier(raw.reportedSeverity) ?? "Medium";
+          const confirmedTier = toTier(raw.triageSeverity) ?? "Medium";
+          const agreedTier = toTier(raw.severity);
+          const isDisputed = Boolean(
+            raw.dispute &&
+            raw.dispute.status !== "RESOLVED" &&
+            raw.dispute.status !== "DISMISSED"
+          );
+
+          const mapped: ReportConfirmationItem = {
+            ...(foundMock || {}),
+            id: raw.id,
+            reportCode: raw.reportCode || raw.reportId || `RPT-${raw.id.slice(0, 8)}`,
+            title: raw.title || "Untitled Vulnerability Report",
+            researcherName:
+              raw.reporter?.name ||
+              raw.researcherName ||
+              raw.authorName ||
+              raw.submitterName ||
+              "Security Researcher",
+            companyName: raw.organizationName || "DevSolve Security",
+            programName: raw.programName ? `${raw.programName}` : "Bug Bounty Program",
+            severity: agreedTier,
+            reportedSeverity: toTier(raw.reportedSeverity),
+            triageSeverity: toTier(raw.triageSeverity),
+            status: isDisputed
+              ? "ESCALATED"
+              : raw.state === "RESOLVED" || raw.state === "VALID_CONFIRMED"
+              ? "CONFIRMED"
+              : raw.state === "REJECTED"
+              ? "REJECTED"
+              : "PENDING",
+            submittedAt: raw.submittedAt || raw.createdAt || "Recently",
+            rewardEstimate:
+              raw.rewards?.[0]?.amount
+                ? `$${raw.rewards[0].amount}`
+                : agreedTier === "Critical"
+                ? "$2,500 - $5,000"
+                : agreedTier === "High"
+                ? "$1,000 - $2,500"
+                : "$250 - $1,000",
+            rewardAmount: raw.rewards?.[0]?.amount ? `$${raw.rewards[0].amount}` : undefined,
+            category: raw.type || raw.category || "Vulnerability",
+            cwe: raw.weakness?.cweId || raw.cweIdentifier,
+            cvssScore: typeof raw.cvssScore === "number" ? raw.cvssScore.toFixed(1) : undefined,
+            cvssVector: raw.cvssVector || undefined,
+            targetAsset: raw.targetEndpoint || raw.asset?.identifier || raw.assetName || "Target System",
+            description: raw.summary || raw.vulnerabilityInformation || raw.description || "Submitted vulnerability report awaiting triage.",
+            impact: raw.impact || "Vulnerability impact details.",
+            reproduceSteps: raw.stepsToReproduce ? raw.stepsToReproduce.split("\n") : (raw.reproduceStepsList || []),
+            pocPayload: raw.proofOfConcept || raw.pocPayload,
+            attachments: Array.isArray(raw.attachments)
+              ? raw.attachments.map((a: any) => ({
+                  name: a.fileName || a.name || "attachment",
+                  size: a.sizeBytes ? `${(a.sizeBytes / 1024).toFixed(1)} KB` : undefined,
+                  type: a.mimeType || a.type || "application/octet-stream",
+                  previewUrl: a.downloadUrl,
+                }))
+              : [],
+            hackerClaimedSeverity: {
+              tier: claimedTier,
+              cvss: raw.cvssScore ? `CVSS ${raw.cvssScore}` : undefined,
+            },
+            companyConfirmedSeverity: {
+              tier: confirmedTier,
+              cvss: raw.cvssScore ? `CVSS ${raw.cvssScore}` : undefined,
+            },
+            severitiesAgree: raw.severity != null && claimedTier === confirmedTier,
+            disputeId: raw.dispute?.id,
+            disputeReason: raw.dispute?.reason,
+            disputeStatus: raw.dispute?.status,
+            disputeResolvedSeverity: toTier(raw.dispute?.resolvedSeverity),
+            disputeRespondBy: raw.dispute?.respondBy,
+          };
+          return { data: mapped };
+        }
+
+        // 2. Fallback to /reports/management list
         const result = await fetchWithBQ("/reports/management");
         if (!result.error && Array.isArray(result.data)) {
           const raw = (result.data as ManagementRow[]).find((r) => r.id === id);
           if (raw) {
             const mapped: ReportConfirmationItem = {
-              /* Mock first, live second. This endpoint has no answer for some
-                 of the shape (audit log, reproduction steps), so the fixture
-                 fills those in — but where the API spoke it wins. Spread last,
-                 as it was, a stale fixture silently overwrote the real
-                 severities on any report whose id it happened to match. */
               ...(foundMock || {}),
               id: raw.id,
               reportCode: raw.reportId || `RPT-${raw.id.slice(0, 8)}`,
@@ -160,9 +241,13 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
               researcherName: raw.author || "Security Researcher",
               companyName: "DevSolve Security",
               programName: raw.type ? `${raw.type} Program` : "Bug Bounty Program",
-              severity: raw.severity || "Medium",
+              severity: raw.severity ?? null,
+              reportedSeverity: toTier(raw.reportedSeverity),
+              triageSeverity: toTier(raw.triageSeverity),
               status:
-                raw.queueState === "PENDING"
+                raw.dispute?.status === "OPEN" || raw.dispute?.status === "UNDER_REVIEW"
+                  ? "ESCALATED"
+                  : raw.queueState === "PENDING"
                   ? "PENDING"
                   : raw.queueState === "APPROVED"
                   ? "CONFIRMED"
@@ -180,6 +265,11 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
               targetAsset: raw.assets?.[0] || "Target System",
               description: raw.summary || "Submitted vulnerability report awaiting organization triage.",
               impact: raw.summary || "Vulnerability impact details.",
+              disputeId: raw.dispute?.id,
+              disputeReason: raw.dispute?.reason,
+              disputeStatus: raw.dispute?.status,
+              disputeResolvedSeverity: toTier(raw.dispute?.resolvedSeverity),
+              disputeRespondBy: raw.dispute?.respondBy,
               ...toSeverityPair(raw),
             };
             return { data: mapped };
@@ -316,6 +406,42 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
         "Leaderboard",
       ],
     }),
+    getAdminDisputes: builder.query<
+      DisputeItem[],
+      { status?: string; pendingOnly?: boolean; page?: number; size?: number } | void
+    >({
+      query: (params) => {
+        const searchParams = new URLSearchParams();
+        if (params?.status) searchParams.set("status", params.status);
+        if (params?.pendingOnly !== undefined)
+          searchParams.set("pendingOnly", String(params.pendingOnly));
+        if (params?.page !== undefined) searchParams.set("page", String(params.page));
+        if (params?.size !== undefined) searchParams.set("size", String(params.size));
+        const qs = searchParams.toString();
+        return `/admin/disputes${qs ? `?${qs}` : ""}`;
+      },
+      transformResponse: (response: { content?: DisputeItem[] } | DisputeItem[]) => {
+        if (Array.isArray(response)) return response;
+        if (Array.isArray(response?.content)) return response.content;
+        return [];
+      },
+      providesTags: ["Report"],
+    }),
+    getAdminDisputeById: builder.query<DisputeItem, string>({
+      query: (id) => `/admin/disputes/${id}`,
+      providesTags: (_result, _error, id) => [{ type: "Report", id }],
+    }),
+    resolveAdminDispute: builder.mutation<DisputeItem, ResolveDisputePayload>({
+      query: ({ id, ...body }) => ({
+        url: `/admin/disputes/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Report", id },
+        "Report",
+      ],
+    }),
   }),
 });
 
@@ -323,4 +449,8 @@ export const {
   useGetReportConfirmationsQuery,
   useGetReportConfirmationByIdQuery,
   useUpdateConfirmReportMutation,
+  useGetAdminDisputesQuery,
+  useGetAdminDisputeByIdQuery,
+  useResolveAdminDisputeMutation,
 } = reportConfirmationApi;
+

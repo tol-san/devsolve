@@ -36,11 +36,12 @@ function getQueueBadgeClass(queue: Exclude<ReviewQueueLaneFilter, "All">) {
   return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20";
 }
 
-function getSeverityBadgeClass(severity: ReviewSeverity) {
+function getSeverityBadgeClass(severity: ReviewSeverity | null) {
   if (severity === "Critical") return "border-red-200 bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
   if (severity === "High") return "border-amber-200 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20";
   if (severity === "Medium") return "border-sky-200 bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20";
-  return "border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
+  if (severity === "Low") return "border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20";
+  return "border-purple-200 bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20";
 }
 
 const badgeBaseClass =
@@ -276,7 +277,7 @@ function ReviewQueueReportRow({
                 getSeverityBadgeClass(item.severity)
               )}
             >
-              {item.severity}
+              {item.severity || "Disputed"}
             </Badge>
           </div>
         </div>
@@ -334,7 +335,7 @@ function ReviewQueueReportRow({
                   variant="outline"
                   className={cn(badgeBaseClass, getSeverityBadgeClass(item.severity))}
                 >
-                  {item.severity}
+                  {item.severity || "Disputed"}
                 </Badge>
               </div>
 

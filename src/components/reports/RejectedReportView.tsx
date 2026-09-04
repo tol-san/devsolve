@@ -13,6 +13,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/reports/StatusBadge";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { MarkdownView } from "@/components/ui/markdown-view";
 import { ReportSidebarPanels } from "@/components/reports/ReportSidebarPanels";
 import { ReportTimeline } from "@/components/reports/ReportTimeline";
@@ -92,8 +93,15 @@ export function RejectedReportView({
 
         <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border">
           <StatusBadge status="REJECTED" />
-          {displaySeverity && (
-            <SeverityBadge severity={displaySeverity as any} />
+          {report.severity ? (
+            <SeverityBadge severity={report.severity} />
+          ) : (
+            <DisputedSeverityPair
+              reportedSeverity={report.reportedSeverity || report.claimedSeverity}
+              triageSeverity={report.triageSeverity || report.confirmedSeverity}
+              cvssScore={report.cvssScore}
+              size="md"
+            />
           )}
         </div>
       </div>

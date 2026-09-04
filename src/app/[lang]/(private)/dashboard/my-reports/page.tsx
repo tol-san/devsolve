@@ -222,7 +222,11 @@ function MyReportsContent() {
         MEDIUM: 2,
         LOW: 1,
       };
-      return list.sort((a, b) => (rank[b.severity] || 0) - (rank[a.severity] || 0));
+      return list.sort(
+        (a, b) =>
+          ((b.severity ? rank[b.severity] : 0) || 0) -
+          ((a.severity ? rank[a.severity] : 0) || 0)
+      );
     }
     if (sortBy === "bounty") {
       return list.sort((a, b) => parseBounty(b.bountyOrRep) - parseBounty(a.bountyOrRep));
