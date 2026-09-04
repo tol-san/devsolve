@@ -885,20 +885,25 @@ export function ReportSeverityAdjustmentForm({
           </div>
 
           {/* 6. Action Bar */}
-          <div className="flex flex-col gap-4 rounded-2xl border border-border bg-muted/40 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between min-w-0">
-            <div className="flex flex-col gap-1 min-w-0">
-              <p className="text-sm sm:text-base font-semibold text-foreground truncate">
-                Triage Decision for Report {cleanReportId}
-              </p>
-              <p className="text-xs sm:text-sm text-muted-foreground flex flex-wrap gap-1 items-center">
-                <span>Target:</span>
-                <span className="font-semibold text-foreground">{selectedSeverity}</span>
-                <span>· Bounty:</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">${bountyAmount} USD</span>
-              </p>
+          <div className="rounded-2xl border border-border bg-muted/40 p-4 sm:p-5 space-y-4 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-3 border-b border-border/60 min-w-0">
+              <div className="flex flex-col gap-0.5 min-w-0">
+                <p className="text-sm sm:text-base font-bold text-foreground truncate">
+                  Triage Decision for Report {cleanReportId}
+                </p>
+                <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <span>
+                    Target: <span className="font-semibold text-foreground">{selectedSeverity}</span>
+                  </span>
+                  <span className="text-muted-foreground/40">•</span>
+                  <span>
+                    Bounty: <span className="font-semibold text-emerald-600 dark:text-emerald-400">${bountyAmount} USD</span>
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 w-full">
               <Button
                 type="button"
                 variant="outline"
@@ -909,10 +914,10 @@ export function ReportSeverityAdjustmentForm({
                     ? "An administrator must resolve the severity dispute first"
                     : undefined
                 }
-                className="w-full sm:w-auto rounded-xl border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 cursor-pointer font-semibold text-xs sm:text-sm h-10 px-4 justify-center"
+                className="w-full rounded-xl border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 cursor-pointer font-semibold text-xs sm:text-sm h-10 px-3 justify-center gap-2"
               >
-                <ShieldX className="size-4" />
-                <span>Reject Submission</span>
+                <ShieldX className="size-4 shrink-0" />
+                <span className="truncate">Reject Submission</span>
               </Button>
 
               {/* A real state change rather than the mailto link this used to
@@ -928,10 +933,10 @@ export function ReportSeverityAdjustmentForm({
                     ? "An administrator must resolve the severity dispute first"
                     : undefined
                 }
-                className="w-full sm:w-auto rounded-xl border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer font-semibold text-xs sm:text-sm h-10 px-4 justify-center"
+                className="w-full rounded-xl border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer font-semibold text-xs sm:text-sm h-10 px-3 justify-center gap-2"
               >
-                <AlertCircle className="size-4" />
-                <span>Needs more info</span>
+                <AlertCircle className="size-4 shrink-0" />
+                <span className="truncate">Needs more info</span>
               </Button>
 
               {/* Distinct from a rejection: `duplicateOfId` names the report
@@ -946,10 +951,10 @@ export function ReportSeverityAdjustmentForm({
                     ? "An administrator must resolve the severity dispute first"
                     : undefined
                 }
-                className="w-full sm:w-auto rounded-xl border-border bg-card hover:bg-muted cursor-pointer font-semibold text-xs sm:text-sm h-10 px-4 justify-center"
+                className="w-full rounded-xl border-border bg-card hover:bg-muted cursor-pointer font-semibold text-xs sm:text-sm h-10 px-3 justify-center gap-2"
               >
-                <Copy className="size-4" />
-                <span>Duplicate</span>
+                <Copy className="size-4 shrink-0" />
+                <span className="truncate">Duplicate</span>
               </Button>
 
               <Button
@@ -963,10 +968,10 @@ export function ReportSeverityAdjustmentForm({
                       ? "An administrator must resolve the severity dispute first"
                       : undefined
                 }
-                className="w-full sm:w-auto rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white cursor-pointer px-4 sm:px-5 shadow-xs gap-2 text-xs sm:text-sm h-10 justify-center"
+                className="w-full rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white cursor-pointer px-3 sm:px-4 shadow-xs gap-2 text-xs sm:text-sm h-10 justify-center"
               >
-                <CheckCircle2 className="size-4" />
-                <span>
+                <CheckCircle2 className="size-4 shrink-0" />
+                <span className="truncate">
                   {isAlreadyConfirmed
                     ? "Update severity"
                     : "Approve Report & Issue Bounty"}
