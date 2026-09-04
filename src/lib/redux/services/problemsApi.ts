@@ -436,6 +436,9 @@ export const {
   useUpdateProblemDraftMutation,
   useSubmitProblemMutation,
   useGetProblemByIdQuery,
+  /* Used to re-read a problem's version after a 412, without needing a
+     component to own a subscription to it. */
+  useLazyGetProblemByIdQuery,
   useIncrementProblemViewsMutation,
   useGetProblemsQuery,
   useDeleteProblemMutation,

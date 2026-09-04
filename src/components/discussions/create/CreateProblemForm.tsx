@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Controller,
@@ -69,6 +69,7 @@ import {
   useUpdateProblemDraftMutation,
   useGetMyProblemsQuery,
   useGetProblemByIdQuery,
+  useLazyGetProblemByIdQuery,
   type ProblemResponse,
 } from "@/lib/redux/services/problemsApi";
 import {
@@ -240,6 +241,70 @@ export function CreateProblemForm({
   useEffect(() => {
     preparedDraftRef.current = preparedDraft;
   }, [preparedDraft]);
+
+  const [refetchProblem] = useLazyGetProblemByIdQuery();
+
+  /* Read through a ref, not a closure: the helpers below are called from an
+     autosave timer set up on an earlier render, and a captured `activeProblem`
+     there would be exactly the stale snapshot this is meant to avoid. */
+  const activeProblemRef = useRef<ProblemResponse | undefined>(activeProblem);
+  useEffect(() => {
+    activeProblemRef.current = activeProblem;
+  }, [activeProblem]);
+
+  /**
+   * The version to send as `If-Match`.
+   *
+   * Every write to a problem — a PATCH, an attachment upload, an attachment
+   * delete — advances its version upstream, and a save carrying an older one
+   * is refused with a 412. Two snapshots of the same problem are in play:
+   * `preparedDraft`, written after each of this form's own saves, and
+   * `activeProblem`, which tracks the RTK Query cache and so also moves when
+   * an attachment mutation invalidates its tag.
+   *
+   * Neither is reliably the newer one, and `preparedDraft` used to simply
+   * shadow the other — so an upload that advanced the cache was invisible to
+   * the next save. Taking the highest of the two means our own writes can
+   * never make the next save look stale; a 412 then means what it says, that
+   * somebody else moved it.
+   */
+  const versionForWrite = useCallback((id: string | undefined) => {
+    /* `activeProblemRef` already covers the `problem` prop — `activeProblem`
+       is `problem ?? fetchedDraftProblem` — so reading refs alone keeps this
+       stable, and safe to call from the autosave timer. */
+    const versions = [preparedDraftRef.current, activeProblemRef.current]
+      .filter(
+        (entry): entry is ProblemResponse =>
+          Boolean(entry?.id) && entry?.id === id,
+      )
+      .map((entry) => entry.version ?? 0);
+    return versions.length ? Math.max(...versions) : 0;
+  }, []);
+
+  /**
+   * Re-read the problem after a 412 so the next attempt is not doomed too.
+   *
+   * The backend's own words are "fetch it again before editing", and until now
+   * the only way to do that was a full page reload — which costs the author
+   * everything they had typed. This refreshes the version in place and leaves
+   * the form untouched, so pressing save again works.
+   *
+   * Deliberately not an automatic retry: a genuine 412 means someone else's
+   * edit is sitting there, and silently replaying ours would overwrite it —
+   * the exact thing the check exists to stop. The author is told, and decides.
+   */
+  const resyncAfterConflict = async (id: string | undefined) => {
+    if (!id) return;
+    try {
+      const fresh = await refetchProblem(id).unwrap();
+      if (fresh?.id) {
+        setPreparedDraft(fresh);
+        preparedDraftRef.current = fresh;
+      }
+    } catch {
+      /* Leaves the message below standing; a reload is still the way out. */
+    }
+  };
 
   const lastSavedPayloadRef = useRef<string>("");
 
@@ -592,21 +657,34 @@ export function CreateProblemForm({
       newTagNames: listOrUndefined(submittedTags.map((tag) => tag.trim())),
     };
 
+    let releaseWriteLane: (() => void) | null = null;
     try {
+      /* Let any background save finish, then keep the timer out for the
+         duration: both requests would otherwise carry the same version and
+         whichever landed second would be refused as stale. */
+      releaseWriteLane = await holdWriteLane();
+
       if (workingProblem?.id) {
         let saved = await updateProblem({
           id: workingProblem.id,
-          version: workingProblem.version ?? 0,
+          version: versionForWrite(workingProblem.id),
           body,
         }).unwrap();
 
         setPreparedDraft(saved);
+        preparedDraftRef.current = saved;
         for (const attached of attachedFiles) {
           try {
             saved = await uploadProblemAttachment({
               problemId: saved.id!,
               file: attached.file,
             }).unwrap();
+            /* Each upload advances the version upstream. Recording it here is
+               what lets a retry work after one of them fails below — without
+               it the next save would carry the pre-upload version and be
+               refused as stale, which is not what went wrong. */
+            setPreparedDraft(saved);
+            preparedDraftRef.current = saved;
             setAttachedFiles((current) =>
               current.filter((file) => file.id !== attached.id),
             );
@@ -684,8 +762,10 @@ export function CreateProblemForm({
           : undefined;
 
       if (status === 412) {
+        const conflicted = preparedDraftRef.current?.id ?? activeProblem?.id;
+        await resyncAfterConflict(conflicted);
         setSubmitError(
-          "This problem changed since you opened it. Reload the page to pick up the newer version, then edit again.",
+          "This problem changed while you were editing it, so your save was not applied — someone else's version is now stored. Your text is still here: review it against the current problem, then submit again to overwrite.",
         );
         return;
       }
@@ -723,6 +803,8 @@ export function CreateProblemForm({
 
       setSubmitError(parsed.message);
       toast.error(parsed.message);
+    } finally {
+      releaseWriteLane?.();
     }
   };
 
@@ -844,12 +926,15 @@ export function CreateProblemForm({
     };
 
     setIsSavingDraft(true);
+    let releaseWriteLane: (() => void) | null = null;
     try {
+      releaseWriteLane = await holdWriteLane();
+
       let saved: ProblemResponse;
       if (workingProblem?.id) {
         saved = await updateProblemDraft({
           id: workingProblem.id,
-          version: workingProblem.version ?? 0,
+          version: versionForWrite(workingProblem.id),
           body,
         }).unwrap();
       } else {
@@ -884,6 +969,7 @@ export function CreateProblemForm({
       setSubmitError(parsed.message);
       toast.error(parsed.message);
     } finally {
+      releaseWriteLane?.();
       setIsSavingDraft(false);
     }
   };
@@ -891,6 +977,39 @@ export function CreateProblemForm({
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
   const autoSaving = useRef(false);
   const autoSaveReqSeq = useRef(0);
+
+  /**
+   * Wait for a background save to land before writing.
+   *
+   * `submittingRef` stops a *new* autosave starting mid-submit, but one already
+   * in flight kept going — and both requests then carried the same version, so
+   * whichever arrived second was refused with a 412. The author saw their save
+   * fail for something the page itself did a second earlier.
+   *
+   * Bounded, because a request that never settles must not trap the save
+   * button; after that the version check is still there to catch it.
+   */
+  const settleAutoSave = useCallback(async () => {
+    for (let waited = 0; autoSaving.current && waited < 5000; waited += 100) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }, []);
+
+  /**
+   * Claim the write lane for a manual save.
+   *
+   * The autosave timer already refuses to start while `autoSaving` is set, so
+   * holding it for the duration of an explicit save keeps a debounce that
+   * happens to fire mid-save from issuing a second write against the same
+   * version. Returns the release.
+   */
+  const holdWriteLane = useCallback(async () => {
+    await settleAutoSave();
+    autoSaving.current = true;
+    return () => {
+      autoSaving.current = false;
+    };
+  }, [settleAutoSave]);
 
   useEffect(() => {
     if (isPublishedEdit || !session?.user || !isDirty) return;
@@ -925,7 +1044,11 @@ export function CreateProblemForm({
         .map((step) => step.trim())
         .filter(Boolean);
 
-      const workingProblem = preparedDraftRef.current ?? problem;
+      /* Same source as the two save paths. This used to omit `activeProblem`,
+         so a draft opened by `?draftId=` before its first autosave looked like
+         a new problem and got created a second time. */
+      const workingProblem =
+        preparedDraftRef.current ?? activeProblemRef.current ?? problem;
       const updatingExisting = Boolean(workingProblem?.id);
       const listOrUndefined = <T,>(list: T[]) =>
         updatingExisting ? list : list.length ? list : undefined;
@@ -966,7 +1089,7 @@ export function CreateProblemForm({
         if (workingProblem?.id) {
           saved = await updateProblemDraft({
             id: workingProblem.id,
-            version: workingProblem.version ?? 0,
+            version: versionForWrite(workingProblem.id),
             body,
           }).unwrap();
         } else {
@@ -1009,7 +1132,14 @@ export function CreateProblemForm({
     isPublishedEdit,
     session?.user,
     createProblemDraft,
-    updateProblem,
+    /* The effect calls `updateProblemDraft`, not `updateProblem` — the latter
+       was listed here and the one actually used was not. Both are stable, so
+       this changes nothing at runtime; it stops the list describing the wrong
+       thing. `activeProblem` stays out deliberately and is read through a ref
+       instead: listing it would restart the debounce every time the problem
+       refetches, which is most of the time. */
+    updateProblemDraft,
+    versionForWrite,
     getValues,
     problem,
   ]);
