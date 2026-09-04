@@ -8,6 +8,7 @@ import {
   VULNERABILITY_CATEGORIES,
   SEVERITY_LABELS,
   parseCvssScore,
+  claimableSeverityForCvss,
   severityForCvss,
 } from "@/lib/validations/report";
 import { Input } from "@/components/ui/input";
@@ -26,12 +27,15 @@ interface SubmitReportClassificationSectionProps {
   watch: UseFormWatch<SubmitReportFormValues>;
 }
 
+/* `reportedSeverity` accepts LOW, MEDIUM, HIGH and CRITICAL — never NONE, and
+   "Info" mapped to exactly that. Offering it produced a submission the API
+   refuses, so the claim a reporter can make stops at Low. Triage can still
+   settle a finding at NONE; that is its call, not the reporter's. */
 const SEVERITY_OPTIONS = [
   { id: "CRITICAL", label: "Critical", scoreRange: "9.0–10.0", color: "red" },
   { id: "HIGH", label: "High", scoreRange: "7.0–8.9", color: "orange" },
   { id: "MEDIUM", label: "Medium", scoreRange: "4.0–6.9", color: "amber" },
   { id: "LOW", label: "Low", scoreRange: "0.1–3.9", color: "blue" },
-  { id: "INFO", label: "Info", scoreRange: "0.0", color: "slate" },
 ] as const;
 
 const CWE_MAP: Record<string, { cwe: string; score: string; vector: string }> = {
@@ -88,8 +92,9 @@ export function SubmitReportClassificationSection({
       setValue("cvssVector", info.vector);
 
       const score = parseCvssScore(info.score);
-      if (score !== null) {
-        setValue("severity", severityForCvss(score), { shouldValidate: true });
+      const banded = score !== null ? claimableSeverityForCvss(score) : null;
+      if (banded) {
+        setValue("severity", banded, { shouldValidate: true });
       }
     }
   }, [selectedCategory, setValue]);
@@ -101,8 +106,11 @@ export function SubmitReportClassificationSection({
     setValue("cvssScore", value, { shouldValidate: true, shouldDirty: true });
 
     const score = parseCvssScore(value);
-    if (score !== null) {
-      setValue("severity", severityForCvss(score), { shouldValidate: true });
+    /* Null at 0.0, which is not a claimable band — the severity is left as
+       the reporter set it rather than moved to a value the API refuses. */
+    const banded = score !== null ? claimableSeverityForCvss(score) : null;
+    if (banded) {
+      setValue("severity", banded, { shouldValidate: true });
     }
   };
 

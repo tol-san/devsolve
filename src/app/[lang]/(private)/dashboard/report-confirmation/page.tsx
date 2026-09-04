@@ -85,12 +85,12 @@ export default function ReportConfirmationPage() {
       className="space-y-6 w-full pb-12"
     >
       {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Platform Report Triage & Confirmation
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-muted-foreground">
             Audit submitted vulnerability reports, confirm CVSS severity, verify PoC payloads, and approve escalation to program owners.
           </p>
         </div>
@@ -126,19 +126,19 @@ export default function ReportConfirmationPage() {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-28 bg-slate-100 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-800"
+                className="h-28 bg-muted rounded-2xl border border-border"
               />
             ))}
           </div>
         ) : filteredReports.length === 0 ? (
-          <Card className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-3 shadow-2xs">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center">
+          <Card className="rounded-2xl border border-border bg-card p-12 text-center space-y-3 shadow-2xs">
+            <div className="w-12 h-12 rounded-2xl bg-muted text-muted-foreground mx-auto flex items-center justify-center">
               <FileCheck className="w-6 h-6" />
             </div>
-            <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <CardTitle className="text-lg font-bold text-foreground">
               No Reports Pending Triage
             </CardTitle>
-            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
               There are no vulnerability reports matching your current search or filter criteria.
             </p>
           </Card>

@@ -36,6 +36,7 @@ import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
 import { useReopenResolvedReportMutation } from "@/lib/redux/services/reportsApi";
 import { apiErrorMessage } from "@/lib/api/error-message";
 import { toApiSeverity } from "@/lib/reports/severity";
+import { isDisputeSettled } from "@/lib/reports/dispute";
 import {
   awaitingVerdictLabel,
   formatBountyAmount,
@@ -99,6 +100,13 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
     : null;
   /* The attempt the researcher still owes an answer on, which is the one with
      a deadline worth showing. */
+  /* A severity the reporter accepted, or an administrator ruled on, is final:
+     the reporter cannot change their mind and the company cannot re-triage
+     around it. Offering "adjust severity" there is offering a call the
+     backend refuses — and on an accepted rating it would also reopen a
+     negotiation both sides have already closed. */
+  const isSeverityFinal = isDisputeSettled(detail.dispute);
+
   const openRetest = openRetestAttempt(detail.retestHistory);
   const openRetestDue = retestDeadline(openRetest?.dueAt);
   const openRetestBonus = hasBountyReward(openRetest?.bountyReward)
@@ -404,19 +412,28 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                     </p>
                   )}
 
-                  <Link
-                    href={`/dashboard/report-management/${detail.id}/severity-review`}
-                    className="block"
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full h-8 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground gap-1.5 cursor-pointer"
+                  {/* Gone once the rating is settled — resolving is the only
+                      step left. A note stands in for the control so the
+                      absence reads as a decision rather than an omission. */}
+                  {isSeverityFinal ? (
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      The severity is settled and can no longer be changed.
+                    </p>
+                  ) : (
+                    <Link
+                      href={`/dashboard/report-management/${detail.id}/severity-review`}
+                      className="block"
                     >
-                      <Sliders className="size-3.5" />
-                      <span>Adjust / Re-evaluate Severity</span>
-                    </Button>
-                  </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full h-8 text-xs font-medium rounded-lg text-muted-foreground hover:text-foreground gap-1.5 cursor-pointer"
+                      >
+                        <Sliders className="size-3.5" />
+                        <span>Adjust / Re-evaluate Severity</span>
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </div>
             ) : (

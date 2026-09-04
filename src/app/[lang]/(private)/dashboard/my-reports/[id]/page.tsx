@@ -19,12 +19,16 @@ import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth/auth-client";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
 import { isNotFoundError } from "@/lib/api/query-error";
+import { useGetReportActivitiesQuery } from "@/lib/redux/services/reportsApi";
 import { useReportDetail } from "@/components/reports/hooks/useReportDetail";
 import { ReportDetailHeader } from "@/components/reports/ReportDetailHeader";
 import { RejectedReportView } from "@/components/reports/RejectedReportView";
 import { ReportStatusTracker } from "@/components/reports/ReportStatusTracker";
 import { ReportSummaryTab } from "@/components/reports/ReportSummaryTab";
 import { ReportEarnings } from "@/components/reports/ReportEarnings";
+import { ReportResponseTime } from "@/components/reports/ReportResponseTime";
+import { SeverityDisputePanel } from "@/components/reports/SeverityDisputePanel";
+import { ReportTimeline } from "@/components/reports/ReportTimeline";
 import { RetestHistoryTimeline } from "@/components/report-management/RetestHistoryTimeline";
 import { SubmitRetestModal } from "@/components/report-management/SubmitRetestModal";
 import {
@@ -58,6 +62,13 @@ export default function ReportDetailPage() {
     handleBack,
     handleCopyPayload,
   } = useReportDetail();
+
+  /* Fetched once with the report, as the timeline is unpaged and small. */
+  const {
+    data: activities = [],
+    isLoading: activitiesLoading,
+    isError: activitiesError,
+  } = useGetReportActivitiesQuery(reportId, { skip: !reportId });
 
   if (isLoading) {
     return (
@@ -292,8 +303,31 @@ export default function ReportDetailPage() {
             <ReportStatusTracker status={report.status} />
           </div>
 
+          {/* First: while a severity is unanswered the report is blocked, so
+              the choice outranks everything else on the page. */}
+          <SeverityDisputePanel
+            reportId={reportId}
+            dispute={report.dispute}
+            reportedSeverity={report.reportedSeverity}
+            triageSeverity={report.triageSeverity}
+            isReporter={isReporter}
+          />
+
+          <ReportResponseTime
+            submittedAt={report.submittedAt}
+            firstRespondedAt={report.firstRespondedAt}
+          />
+
           {/* Only renders once reputation has actually been awarded. */}
           <ReportEarnings report={report} />
+
+          {/* Prominent, not tucked into a tab: this is the record both sides
+              argue from when a severity is disputed. */}
+          <ReportTimeline
+            activities={activities}
+            isLoading={activitiesLoading}
+            isError={activitiesError}
+          />
 
           {/* Navigation Tabs */}
           <div className="flex items-center p-1 bg-muted/60 rounded-xl gap-1 border border-border w-full sm:w-auto self-start">

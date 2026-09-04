@@ -64,7 +64,7 @@ export function ReportConfirmationCard({
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs hover:shadow-xs transition">
+      <Card className="rounded-2xl border border-border bg-card shadow-2xs hover:shadow-xs transition">
         <CardContent className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Main Info */}
           <div className="flex items-start gap-4">
@@ -84,13 +84,13 @@ export function ReportConfirmationCard({
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
                 {report.reportCode && (
-                  <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">
+                  <span className="font-mono text-xs font-bold text-muted-foreground">
                     {report.reportCode}
                   </span>
                 )}
                 <Link
                   href={`/dashboard/report-confirmation/${report.id}`}
-                  className="text-base font-bold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                  className="text-base font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition"
                 >
                   {report.title}
                 </Link>
@@ -102,15 +102,15 @@ export function ReportConfirmationCard({
                 </Badge>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-slate-400" />
-                  Researcher: <strong className="text-slate-700 dark:text-slate-300 font-semibold">{report.researcherName}</strong>
+                  <User className="w-3.5 h-3.5 text-muted-foreground" />
+                  Researcher: <strong className="text-foreground font-semibold">{report.researcherName}</strong>
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                  Target: <strong className="text-slate-700 dark:text-slate-300 font-semibold">{report.companyName}</strong>
+                  <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                  Target: <strong className="text-foreground font-semibold">{report.companyName}</strong>
                 </span>
                 <span>•</span>
                 <span>Category: {report.category}</span>
@@ -121,7 +121,7 @@ export function ReportConfirmationCard({
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                   {report.submittedAt}
                 </span>
               </div>
@@ -136,7 +136,7 @@ export function ReportConfirmationCard({
                   size="sm"
                   variant="outline"
                   onClick={() => onQuickAction(report, "REJECTED")}
-                  className="h-9 px-3 rounded-xl border-slate-200 dark:border-slate-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold cursor-pointer"
+                  className="h-9 px-3 rounded-xl border-border text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold cursor-pointer"
                 >
                   <XCircle className="w-3.5 h-3.5 mr-1" />
                   Reject
@@ -145,7 +145,7 @@ export function ReportConfirmationCard({
                   size="sm"
                   variant="outline"
                   onClick={() => onQuickAction(report, "CONFIRMED")}
-                  className="h-9 px-3 rounded-xl border-slate-200 dark:border-slate-800 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-semibold cursor-pointer"
+                  className="h-9 px-3 rounded-xl border-border text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-semibold cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                   Confirm
@@ -155,7 +155,7 @@ export function ReportConfirmationCard({
 
             <Link href={`/dashboard/report-confirmation/${report.id}`}>
               <Button
-                className="h-9 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 text-xs font-semibold cursor-pointer shadow-2xs"
+                className="h-9 px-4 rounded-xl bg-foreground hover:bg-foreground/90 text-background text-xs font-semibold cursor-pointer shadow-2xs"
               >
                 Review & Triage
                 <ChevronRight className="w-3.5 h-3.5 ml-1" />

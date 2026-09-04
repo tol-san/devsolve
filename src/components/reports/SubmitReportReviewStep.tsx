@@ -151,9 +151,6 @@ export function SubmitReportReviewStep({
           </div>
 
           <div className="flex items-center gap-2 pt-1">
-            <Badge variant="outline" className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 text-xs font-bold rounded-md px-2.5 py-0.5">
-              {values.httpMethod || "GET"}
-            </Badge>
             <Badge variant="outline" className="bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 border-red-200 text-xs font-semibold rounded-md px-2.5 py-0.5">
               {environmentLabel(values.environment)}
             </Badge>

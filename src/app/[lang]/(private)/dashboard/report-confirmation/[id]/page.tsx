@@ -2,10 +2,19 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect } from "react";
+/** Tier colours for the verdict dots, so the two sides read apart at a glance. */
+const SEVERITY_DOT: Record<"Critical" | "High" | "Medium" | "Low", string> = {
+  Critical: "bg-red-500",
+  High: "bg-orange-500",
+  Medium: "bg-amber-500",
+  Low: "bg-blue-500",
+};
+
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
+import { cn } from "@/lib/utils";
 import {
   useGetReportConfirmationByIdQuery,
   useUpdateConfirmReportMutation,
@@ -50,36 +59,34 @@ export default function ReportConfirmationDetailPage() {
   });
   const [updateConfirm] = useUpdateConfirmReportMutation();
 
-  const [selectedSeverity, setSelectedSeverity] = useState<
-    "Critical" | "High" | "Medium" | "Low"
-  >("High");
-  const [rewardAmount, setRewardAmount] = useState("$1,800");
-  const [companyReasoning, setCompanyReasoning] = useState("");
-  const [adminNote, setAdminNote] = useState("");
+  /* Null until the reviewer picks one. The displayed severity is derived from
+     this and the report below, so it starts as whatever triage actually
+     recorded instead of a constant — and no effect is needed to sync it when
+     the report loads. */
+  const [severityOverride, setSeverityOverride] = useState<
+    "Critical" | "High" | "Medium" | "Low" | null
+  >(null);
+  /* Null until edited, same as the severity above. An effect used to copy the
+     report into all of these on load, which is what pinned the severity to the
+     settled rating; each is derived from the report below instead, so what is
+     on screen is the report's own value until someone changes it. */
+  const [rewardOverride, setRewardOverride] = useState<string | null>(null);
+  const [noteOverride, setNoteOverride] = useState<string | null>(null);
   const [copiedPayload, setCopiedPayload] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<DetailTab>("overview");
 
-  useEffect(() => {
-    if (report) {
-      setSelectedSeverity(report.severity);
-      setRewardAmount(report.rewardAmount || report.rewardEstimate || "$1,800");
-      setCompanyReasoning(report.companyReasoning || "");
-      setAdminNote(report.triageNotes || "");
-    }
-  }, [report]);
-
   if (isLoading) {
     return (
       <div className="space-y-6 w-full pb-12 animate-pulse">
-        <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-        <div className="h-44 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+        <div className="h-6 w-48 bg-muted rounded-lg" />
+        <div className="h-44 bg-muted rounded-2xl" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2 space-y-6">
-            <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-            <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            <div className="h-48 bg-muted rounded-2xl" />
+            <div className="h-96 bg-muted rounded-2xl" />
           </div>
-          <div className="h-[500px] bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+          <div className="h-[500px] bg-muted rounded-2xl" />
         </div>
       </div>
     );
@@ -90,24 +97,24 @@ export default function ReportConfirmationDetailPage() {
       <div className="space-y-6 w-full pb-12">
         <Link
           href="/dashboard/report-confirmation"
-          className="inline-flex items-center text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition"
+          className="inline-flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground transition"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Triage Queue
         </Link>
-        <Card className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center space-y-4 shadow-2xs">
+        <Card className="rounded-2xl border border-border bg-card p-12 text-center space-y-4 shadow-2xs">
           <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 mx-auto flex items-center justify-center">
             <ShieldAlert className="w-7 h-7" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+          <h2 className="text-xl font-bold text-foreground">
             Report Not Found
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
             The requested report ID `{id}` could not be located in the platform confirmation queue.
           </p>
           <Button
             onClick={() => router.push("/dashboard/report-confirmation")}
-            className="rounded-xl font-semibold bg-slate-900 hover:bg-slate-800 text-white cursor-pointer px-6 h-10 text-sm"
+            className="rounded-xl font-semibold bg-foreground hover:bg-foreground/90 text-background cursor-pointer px-6 h-10 text-sm"
           >
             Return to Confirmation Queue
           </Button>
@@ -116,19 +123,31 @@ export default function ReportConfirmationDetailPage() {
     );
   }
 
-  const hackerSev = report.hackerClaimedSeverity || {
+  /* Both sides fall back to the settled rating only when their own is absent.
+     The CVSS line is shown when there is a real score and omitted otherwise —
+     the old fallback printed "CVSS 7.0 - 8.9" on every report, which reads as
+     a measurement rather than as the placeholder it was. */
+  const claimedCvss = report.cvssScore ? `CVSS ${report.cvssScore}` : undefined;
+  const hackerSev = report.hackerClaimedSeverity ?? {
     tier: report.severity,
-    cvss: report.cvssVector ? `CVSS ${report.cvssScore}` : "CVSS 7.0 - 8.9",
-    typicalReward: `Typically ${report.rewardEstimate}`,
+    cvss: claimedCvss,
+  };
+  const companySev = report.companyConfirmedSeverity ?? {
+    tier: report.severity,
+    cvss: claimedCvss,
   };
 
-  const companySev = report.companyConfirmedSeverity || {
-    tier: selectedSeverity,
-    cvss: report.cvssVector ? `CVSS ${report.cvssScore}` : "CVSS 7.0 - 8.9",
-    typicalReward: `Typically ${report.rewardEstimate}`,
-  };
+  /* What triage recorded, until the reviewer changes it on this screen. */
+  const selectedSeverity = severityOverride ?? companySev.tier;
+  /* Compared as displayed, so the badge cannot contradict the two boxes under
+     it while the reviewer is editing. */
+  const severitiesAgree = hackerSev.tier === selectedSeverity;
 
-  const severitiesAgree = report.severitiesAgree ?? hackerSev.tier === selectedSeverity;
+  const rewardAmount =
+    rewardOverride ?? report.rewardAmount ?? report.rewardEstimate ?? "";
+  const adminNote = noteOverride ?? report.triageNotes ?? "";
+  /* Read-only on this screen — nothing here edits it, so it needs no state. */
+  const companyReasoning = report.companyReasoning ?? "";
 
   const handleCopyPayload = () => {
     if (report.pocPayload) {
@@ -170,36 +189,36 @@ export default function ReportConfirmationDetailPage() {
       className="space-y-6 w-full pb-12"
     >
       {/* 1. PAGE BREADCRUMB HEADER */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Link
               href="/dashboard/report-confirmation"
-              className="hover:text-slate-900 dark:hover:text-slate-100 flex items-center gap-1 transition"
+              className="hover:text-foreground flex items-center gap-1 transition"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Triage Queue
             </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="font-mono font-bold text-foreground">
               {report.reportCode || `DS-${report.id}`}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Report Validation & Triage Review
           </h1>
         </div>
 
         <Badge
           variant="outline"
-          className="rounded-full px-3.5 py-1 text-sm font-bold border-slate-200 dark:border-slate-800 self-start sm:self-center"
+          className="rounded-full px-3.5 py-1 text-sm font-bold border-border self-start sm:self-center"
         >
           Status: {report.status}
         </Badge>
       </header>
 
       {/* 2. HERO CARD HEADER */}
-      <Card className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-5 shadow-2xs">
+      <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-5 shadow-2xs">
         <div className="flex items-start gap-4">
           <div
             className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-base shrink-0 shadow-2xs ${
@@ -211,53 +230,53 @@ export default function ReportConfirmationDetailPage() {
 
           <div className="space-y-2 flex-1">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="font-mono text-sm font-bold text-slate-500 dark:text-slate-400">
+              <span className="font-mono text-sm font-bold text-muted-foreground">
                 {report.reportCode || `DS-${report.id}`}
               </span>
               <Badge className="bg-orange-500 text-white font-bold rounded-full px-3 py-0.5 text-xs">
                 {selectedSeverity} Severity
               </Badge>
-              <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-semibold border-slate-200 dark:border-slate-800">
+              <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-semibold border-border">
                 {report.category}
               </Badge>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-snug">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">
               {report.title}
             </h2>
           </div>
         </div>
 
         {/* Metadata Details Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border text-sm">
           <div className="space-y-1">
-            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
               <User className="w-3.5 h-3.5" /> Researcher
             </span>
-            <p className="font-bold text-slate-900 dark:text-slate-100">{report.researcherName}</p>
+            <p className="font-bold text-foreground">{report.researcherName}</p>
           </div>
 
           <div className="space-y-1">
-            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5" /> Target Program
             </span>
-            <p className="font-bold text-slate-900 dark:text-slate-100 truncate">
+            <p className="font-bold text-foreground truncate">
               {report.companyName} {report.programName && `(${report.programName})`}
             </p>
           </div>
 
           <div className="space-y-1">
-            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
               <Coins className="w-3.5 h-3.5 text-emerald-500" /> Confirmed Reward
             </span>
             <p className="font-extrabold text-emerald-600 dark:text-emerald-400 text-base">{rewardAmount}</p>
           </div>
 
           <div className="space-y-1">
-            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" /> Timeline
             </span>
-            <p className="font-medium text-slate-700 dark:text-slate-300 text-xs">
+            <p className="font-medium text-foreground text-xs">
               Submitted {report.submittedAt}
               {report.acceptedAt && ` • Accepted ${report.acceptedAt}`}
             </p>
@@ -270,78 +289,156 @@ export default function ReportConfirmationDetailPage() {
         {/* LEFT COLUMN: MAIN CONTENT & TABS */}
         <div className="lg:col-span-2 space-y-6">
           {/* SEVERITY VERDICT CARD */}
-          <Card className="rounded-2xl border border-emerald-200/90 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/20 p-6 space-y-5 shadow-2xs">
+          <Card
+            className={cn(
+              "rounded-2xl border p-6 space-y-5 shadow-2xs",
+              severitiesAgree
+                ? "border-emerald-200/90 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/20"
+                : "border-amber-200/90 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20",
+            )}
+          >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+              <span
+                className={cn(
+                  "text-xs font-extrabold uppercase tracking-wider",
+                  severitiesAgree
+                    ? "text-emerald-800 dark:text-emerald-300"
+                    : "text-amber-800 dark:text-amber-300",
+                )}
+              >
                 Severity Verdict Matrix
               </span>
 
-              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/60 dark:text-emerald-200 dark:border-emerald-800 rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                {severitiesAgree ? "Severities agree" : "Severity Overridden"}
+              {/* The tick used to show either way, so an override was styled as
+                  agreement — the one thing this card must not do. */}
+              <Badge
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1.5 shadow-2xs",
+                  severitiesAgree
+                    ? "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/60 dark:text-emerald-200 dark:border-emerald-800"
+                    : "bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-900/60 dark:text-amber-100 dark:border-amber-800",
+                )}
+              >
+                {severitiesAgree ? (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                )}
+                {severitiesAgree ? "Severities agree" : "Severity overridden"}
               </Badge>
             </div>
 
-            {/* Hacker Claimed vs Company Confirmed Side-by-Side */}
+            {/* Researcher's claim vs the company's verdict, side by side. */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40 space-y-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                  Hacker Claimed
+              <div className="p-4 rounded-xl bg-card/70 border border-border space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Researcher claimed
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-                  <span className="text-lg font-extrabold text-slate-900 dark:text-slate-100">
+                  {/* Coloured by tier. A fixed orange dot made Critical and Low
+                      look alike, which is the opposite of what this card is
+                      for. */}
+                  <span
+                    className={cn(
+                      "w-2.5 h-2.5 rounded-full",
+                      SEVERITY_DOT[hackerSev.tier],
+                    )}
+                  />
+                  <span className="text-lg font-extrabold text-foreground">
                     {hackerSev.tier}
                   </span>
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
-                  <div>{hackerSev.cvss}</div>
-                  <div>{hackerSev.typicalReward}</div>
-                </div>
+                {/* Rendered only when the API gave one — an omitted score
+                    leaves the line out rather than printing a blank or an
+                    invented band. */}
+                {(hackerSev.cvss || hackerSev.typicalReward) && (
+                  <div className="text-xs text-muted-foreground space-y-0.5">
+                    {hackerSev.cvss && <div>{hackerSev.cvss}</div>}
+                    {hackerSev.typicalReward && (
+                      <div>{hackerSev.typicalReward}</div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="p-4 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40 space-y-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                  Company Confirmed
+              <div className="p-4 rounded-xl bg-card/70 border border-border space-y-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Company confirmed
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-                  <span className="text-lg font-extrabold text-slate-900 dark:text-slate-100">
+                  <span
+                    className={cn(
+                      "w-2.5 h-2.5 rounded-full",
+                      SEVERITY_DOT[selectedSeverity],
+                    )}
+                  />
+                  <span className="text-lg font-extrabold text-foreground">
                     {selectedSeverity}
                   </span>
+                  {/* Says so when this is the reviewer's unsaved pick rather
+                      than what triage recorded. */}
+                  {severityOverride !== null &&
+                    severityOverride !== companySev.tier && (
+                      <span className="rounded-md border border-border bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+                        Not saved
+                      </span>
+                    )}
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
-                  <div>{companySev.cvss}</div>
-                  <div>{companySev.typicalReward}</div>
-                </div>
+                {(companySev.cvss || companySev.typicalReward) && (
+                  <div className="text-xs text-muted-foreground space-y-0.5">
+                    {companySev.cvss && <div>{companySev.cvss}</div>}
+                    {companySev.typicalReward && (
+                      <div>{companySev.typicalReward}</div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Confirmed Reward Banner Footer */}
-            <div className="pt-3 border-t border-emerald-200/70 dark:border-emerald-900/40 flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+            <div className="pt-3 border-t border-border/70 flex items-center justify-between gap-3">
+              <span className="text-sm font-medium text-muted-foreground">
                 Reward based on confirmed severity
               </span>
-              <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                {rewardAmount}
-              </span>
+              {rewardAmount ? (
+                <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                  {rewardAmount}
+                </span>
+              ) : (
+                /* The default was a hardcoded "$1,800" that no report had
+                   agreed to pay. Empty says so. */
+                <span className="text-sm font-semibold text-muted-foreground">
+                  Not set
+                </span>
+              )}
             </div>
           </Card>
 
           {/* COMPANY'S REASONING CARD */}
-          <Card className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3 shadow-2xs">
-            <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100">
-              <Lock className="w-4 h-4 text-slate-400" />
+          <Card className="rounded-2xl border border-border bg-card p-6 space-y-3 shadow-2xs">
+            <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+              <Lock className="w-4 h-4 text-muted-foreground" />
               <span>{report.companyName}&apos;s Reasoning</span>
             </div>
-            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
+            {/* Only what they actually wrote. The fallback here used to invent
+                a justification ("well-documented, clean PoC") and attribute it
+                to the company by name — a quote nobody said, on the record an
+                appeal would be argued from. */}
+            <p
+              className={cn(
+                "text-sm leading-relaxed font-normal",
+                companyReasoning
+                  ? "text-foreground"
+                  : "italic text-muted-foreground",
+              )}
+            >
               {companyReasoning ||
-                `${report.companyName} severity aligns with our bounty matrix for ${report.category}. ${selectedSeverity} is correct — well-documented, clean PoC.`}
+                "No reasoning has been recorded for this decision."}
             </p>
           </Card>
 
           {/* ELEVATED TAB NAVIGATION BAR WITH ANIMATED UNDERLINE */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-1.5 shadow-2xs">
+          <div className="bg-card rounded-xl border border-border p-1.5 shadow-2xs">
             <div className="flex items-center gap-1 overflow-x-auto">
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
@@ -352,12 +449,12 @@ export default function ReportConfirmationDetailPage() {
                     className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition cursor-pointer shrink-0 ${
                       isActive
                         ? "text-blue-600 dark:text-blue-400"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-slate-50 dark:hover:bg-slate-800/50"
                     }`}
                   >
                     <span>{tab.label}</span>
                     {typeof tab.count === "number" && (
-                      <span className="px-1.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                      <span className="px-1.5 py-0.5 rounded-full text-xs font-bold bg-muted text-muted-foreground">
                         {tab.count}
                       </span>
                     )}
@@ -385,34 +482,34 @@ export default function ReportConfirmationDetailPage() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                <Card className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-2xs">
+                <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-2xs">
                   {/* Vulnerability Description */}
                   <div className="space-y-2">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                       <FileText className="w-4.5 h-4.5 text-blue-600" />
                       Vulnerability Description
                     </h3>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800">
+                    <p className="text-sm text-foreground leading-relaxed bg-muted/40 p-4 rounded-xl border border-border">
                       {report.description}
                     </p>
                   </div>
 
                   {/* Security Impact */}
                   <div className="space-y-2">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                       <Flame className="w-4.5 h-4.5 text-rose-500" />
                       Security & Threat Impact
                     </h3>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800">
+                    <p className="text-sm text-foreground leading-relaxed bg-muted/40 p-4 rounded-xl border border-border">
                       {report.impact}
                     </p>
                   </div>
 
                   {/* Target Scope & CWE Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
-                      <span className="text-xs font-semibold text-slate-400">Target Scope URL</span>
-                      <div className="font-mono text-sm font-bold text-slate-900 dark:text-slate-100 break-all flex items-center justify-between">
+                    <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-1">
+                      <span className="text-xs font-semibold text-muted-foreground">Target Scope URL</span>
+                      <div className="font-mono text-sm font-bold text-foreground break-all flex items-center justify-between">
                         <span>{report.targetAsset || "N/A"}</span>
                         {report.targetAsset && (
                           <a
@@ -427,13 +524,13 @@ export default function ReportConfirmationDetailPage() {
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
-                      <span className="text-xs font-semibold text-slate-400">CVSS Vector Rating</span>
+                    <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-1">
+                      <span className="text-xs font-semibold text-muted-foreground">CVSS Vector Rating</span>
                       <div className="flex items-center gap-2">
                         <Badge className="bg-rose-600 text-white font-bold text-xs px-2 py-0.5">
                           {report.cvssScore || "N/A"}
                         </Badge>
-                        <span className="font-mono text-xs text-slate-600 dark:text-slate-400">
+                        <span className="font-mono text-xs text-muted-foreground">
                           {report.cvssVector || "N/A"}
                         </span>
                       </div>
@@ -452,31 +549,31 @@ export default function ReportConfirmationDetailPage() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                <Card className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-2xs">
+                <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-2xs">
                   {/* Steps to Reproduce */}
                   <div className="space-y-3">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                       <ShieldCheck className="w-4.5 h-4.5 text-blue-600" />
                       Steps to Reproduce
                     </h3>
                     {report.reproduceSteps && report.reproduceSteps.length > 0 ? (
-                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-2 font-mono text-sm text-slate-800 dark:text-slate-200">
+                      <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2 font-mono text-sm text-foreground">
                         {report.reproduceSteps.map((step, idx) => (
                           <div key={idx} className="leading-relaxed flex items-start gap-2">
-                            <span className="text-slate-400 font-bold shrink-0">{idx + 1}.</span>
+                            <span className="text-muted-foreground font-bold shrink-0">{idx + 1}.</span>
                             <span>{step}</span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-500">No reproduction steps listed.</p>
+                      <p className="text-sm text-muted-foreground">No reproduction steps listed.</p>
                     )}
                   </div>
 
                   {/* PoC Payload Snippet */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      <h3 className="text-base font-bold text-foreground">
                         Proof of Concept Code Payload
                       </h3>
                       {report.pocPayload && (
@@ -484,7 +581,7 @@ export default function ReportConfirmationDetailPage() {
                           size="sm"
                           variant="ghost"
                           onClick={handleCopyPayload}
-                          className="h-8 px-3 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                          className="h-8 px-3 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-muted cursor-pointer"
                         >
                           {copiedPayload ? (
                             <>
@@ -506,14 +603,14 @@ export default function ReportConfirmationDetailPage() {
                         <code>{report.pocPayload}</code>
                       </pre>
                     ) : (
-                      <p className="text-sm text-slate-500">No payload code snippet provided.</p>
+                      <p className="text-sm text-muted-foreground">No payload code snippet provided.</p>
                     )}
                   </div>
 
                   {/* Attachments */}
                   <div className="space-y-3">
-                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <Paperclip className="w-4.5 h-4.5 text-slate-400" />
+                    <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                      <Paperclip className="w-4.5 h-4.5 text-muted-foreground" />
                       Evidence & Attachments
                     </h3>
 
@@ -522,14 +619,14 @@ export default function ReportConfirmationDetailPage() {
                         {report.attachments.map((att, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition cursor-pointer"
+                            className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-muted/40 text-sm font-semibold text-foreground hover:bg-muted/60 transition cursor-pointer"
                           >
                             <div className="flex items-center gap-2.5 truncate">
                               <FileText className="w-4 h-4 text-blue-500 shrink-0" />
                               <span className="truncate">{att.name}</span>
                             </div>
                             {att.size && (
-                              <span className="text-xs font-normal text-slate-400 shrink-0 ml-2">
+                              <span className="text-xs font-normal text-muted-foreground shrink-0 ml-2">
                                 {att.size}
                               </span>
                             )}
@@ -537,7 +634,7 @@ export default function ReportConfirmationDetailPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-500">No attachments provided.</p>
+                      <p className="text-sm text-muted-foreground">No attachments provided.</p>
                     )}
                   </div>
                 </Card>
@@ -553,13 +650,13 @@ export default function ReportConfirmationDetailPage() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                <Card className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <div className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-slate-100">
-                      <MessageSquare className="w-4.5 h-4.5 text-slate-400" />
+                <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-2xs">
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div className="flex items-center gap-2 text-base font-bold text-foreground">
+                      <MessageSquare className="w-4.5 h-4.5 text-muted-foreground" />
                       <span>Discussion Thread</span>
                     </div>
-                    <span className="text-xs font-semibold text-slate-400">
+                    <span className="text-xs font-semibold text-muted-foreground">
                       {report.discussionThread?.length || 0} messages
                     </span>
                   </div>
@@ -580,32 +677,32 @@ export default function ReportConfirmationDetailPage() {
                             {msg.author.replace("@", "").slice(0, 2).toUpperCase()}
                           </div>
 
-                          <div className="space-y-1.5 flex-1 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
+                          <div className="space-y-1.5 flex-1 p-4 rounded-xl bg-muted/40 border border-border">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-900 dark:text-slate-100">
+                                <span className="font-bold text-foreground">
                                   {msg.author}
                                 </span>
                                 <Badge
                                   variant="outline"
-                                  className="rounded-full px-2 py-0 text-[10px] font-extrabold tracking-wider uppercase border-slate-200 dark:border-slate-800"
+                                  className="rounded-full px-2 py-0 text-[10px] font-extrabold tracking-wider uppercase border-border"
                                 >
                                   {msg.role}
                                 </Badge>
                               </div>
-                              <span className="text-xs text-slate-400 font-medium">
+                              <span className="text-xs text-muted-foreground font-medium">
                                 {msg.timestamp}
                               </span>
                             </div>
 
-                            <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm">
+                            <p className="text-foreground leading-relaxed text-sm">
                               {msg.text}
                             </p>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-slate-500">No messages in discussion thread.</p>
+                      <p className="text-sm text-muted-foreground">No messages in discussion thread.</p>
                     )}
                   </div>
                 </Card>
@@ -621,8 +718,8 @@ export default function ReportConfirmationDetailPage() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                <Card className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-2xs">
-                  <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-2xs">
+                  <h3 className="text-base font-bold text-foreground">
                     Audit & Triage History
                   </h3>
                   {report.auditLog && report.auditLog.length > 0 ? (
@@ -631,12 +728,12 @@ export default function ReportConfirmationDetailPage() {
                         <div key={log.id} className="relative space-y-1">
                           <div className="absolute -left-6 top-1.5 w-3.5 h-3.5 rounded-full bg-blue-600 ring-4 ring-white dark:ring-slate-900" />
                           <div className="flex items-center justify-between text-sm">
-                            <span className="font-bold text-slate-900 dark:text-slate-100">{log.action}</span>
-                            <span className="text-xs text-slate-400">{log.timestamp}</span>
+                            <span className="font-bold text-foreground">{log.action}</span>
+                            <span className="text-xs text-muted-foreground">{log.timestamp}</span>
                           </div>
-                          <p className="text-xs text-slate-500">By: {log.actor}</p>
+                          <p className="text-xs text-muted-foreground">By: {log.actor}</p>
                           {log.note && (
-                            <div className="text-sm p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 mt-1.5 border border-slate-200/80 dark:border-slate-800">
+                            <div className="text-sm p-3 rounded-xl bg-muted text-foreground mt-1.5 border border-border">
                               {log.note}
                             </div>
                           )}
@@ -644,7 +741,7 @@ export default function ReportConfirmationDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-500">No audit activity logged yet.</p>
+                    <p className="text-sm text-muted-foreground">No audit activity logged yet.</p>
                   )}
                 </Card>
               </motion.div>
@@ -654,15 +751,15 @@ export default function ReportConfirmationDetailPage() {
 
         {/* RIGHT COLUMN: TRIAGE ACTION CONTROLS SIDEBAR */}
         <aside className="space-y-6 sticky top-6">
-          <Card className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-5 shadow-2xs">
-            <div className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <Card className="rounded-2xl border border-border bg-card p-6 space-y-5 shadow-2xs">
+            <div className="flex items-center gap-2 text-base font-bold text-foreground border-b border-border pb-3">
               <FileCheck className="w-5 h-5 text-blue-600" />
               <span>Triage Audit Decision</span>
             </div>
 
             {/* Confirmed Severity Selector */}
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-bold text-foreground">
                 Confirmed Severity Tier
               </Label>
               <div className="grid grid-cols-2 gap-2">
@@ -671,7 +768,7 @@ export default function ReportConfirmationDetailPage() {
                     key={sev}
                     type="button"
                     variant={selectedSeverity === sev ? "default" : "outline"}
-                    onClick={() => setSelectedSeverity(sev)}
+                    onClick={() => setSeverityOverride(sev)}
                     className={`rounded-xl h-10 text-xs font-bold cursor-pointer transition ${
                       selectedSeverity === sev
                         ? sev === "Critical"
@@ -681,7 +778,7 @@ export default function ReportConfirmationDetailPage() {
                           : sev === "Medium"
                           ? "bg-blue-600 text-white shadow-2xs"
                           : "bg-slate-700 text-white shadow-2xs"
-                        : "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50"
+                        : "border-border text-foreground hover:bg-slate-50"
                     }`}
                   >
                     {sev}
@@ -692,33 +789,33 @@ export default function ReportConfirmationDetailPage() {
 
             {/* Confirmed Bounty Amount */}
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-bold text-foreground">
                 Confirmed Bounty Amount
               </Label>
               <Input
                 value={rewardAmount}
-                onChange={(e) => setRewardAmount(e.target.value)}
+                onChange={(e) => setRewardOverride(e.target.value)}
                 placeholder="e.g. $1,800"
-                className="h-10 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 rounded-xl text-sm font-semibold"
+                className="h-10 bg-card border-border rounded-xl text-sm font-semibold"
               />
             </div>
 
             {/* Admin Note / Rationale */}
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-bold text-foreground">
                 Triager Rationale Note
               </Label>
               <textarea
                 value={adminNote}
-                onChange={(e) => setAdminNote(e.target.value)}
+                onChange={(e) => setNoteOverride(e.target.value)}
                 placeholder="Internal note or message to include with your decision..."
                 rows={4}
-                className="w-full p-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
+                className="w-full p-3.5 bg-card border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
               />
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="space-y-2.5 pt-2 border-t border-border">
               <Button
                 disabled={isSubmitting}
                 onClick={() => handleAction("CONFIRMED")}

@@ -279,8 +279,7 @@ export function SubmitReportStep1Basics({
       <div className="pt-2">
         <SeverityCvssField
           value={{
-            severity:
-              watch("severity") === "INFO" ? "" : (watch("severity") as Severity),
+            severity: (watch("severity") as Severity) || "",
             cvssVector: watch("cvssVector") || "",
             cvssScore: watch("cvssScore") || "",
           }}

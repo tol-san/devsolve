@@ -208,16 +208,27 @@ export interface ReportConfirmationItem {
   reproduceSteps?: string[];
   pocPayload?: string;
   attachments?: { name: string; size?: string; type?: string; previewUrl?: string }[];
+  /**
+   * What the researcher claimed and what the company's triage decided. Two
+   * separate ratings — the whole point of the confirmation screen is that they
+   * can differ, so neither may be derived from the other or from the settled
+   * `severity` above.
+   *
+   * `cvss` and `typicalReward` are optional because the API supplies neither
+   * for most reports; omitted rather than filled with a plausible-looking
+   * constant, which reads as a real score on screen.
+   */
   hackerClaimedSeverity?: {
     tier: "Critical" | "High" | "Medium" | "Low";
-    cvss: string;
-    typicalReward: string;
+    cvss?: string;
+    typicalReward?: string;
   };
   companyConfirmedSeverity?: {
     tier: "Critical" | "High" | "Medium" | "Low";
-    cvss: string;
-    typicalReward: string;
+    cvss?: string;
+    typicalReward?: string;
   };
+  /** Undefined until triage has rated it — there is nothing to agree with yet. */
   severitiesAgree?: boolean;
   companyReasoning?: string;
   discussionThread?: {

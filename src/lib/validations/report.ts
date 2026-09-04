@@ -188,6 +188,24 @@ export function severityForCvss(score: number): ReportSeverity {
   return "INFO";
 }
 
+/** The four a reporter may claim. `reportedSeverity` upstream has no NONE. */
+export type ClaimableSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+
+/**
+ * The band a CVSS score falls in, as a severity someone may actually report.
+ *
+ * Null at exactly 0.0, which no band covers: 0.1-3.9 is LOW and below that
+ * there is nothing to claim. Callers leave the severity alone rather than
+ * writing a value the API would refuse.
+ */
+export function claimableSeverityForCvss(score: number): ClaimableSeverity | null {
+  if (score >= 9) return "CRITICAL";
+  if (score >= 7) return "HIGH";
+  if (score >= 4) return "MEDIUM";
+  if (score > 0) return "LOW";
+  return null;
+}
+
 /** The score as a number, or null when the field is empty or unparseable. */
 export function parseCvssScore(value?: string): number | null {
   const trimmed = value?.trim();
@@ -217,12 +235,13 @@ const MAX_LINK_LENGTH = 500;
 export const submitReportSchema = z.object({
   // Step 1: Target & Scope
   programId: z.string().min(1, "Please select a target program."),
+  /* Which in-scope asset the finding is on. Optional: a reporter who cannot
+     tell should send nothing rather than have one picked for them. */
+  assetId: z.string().optional(),
   targetAsset: z
     .string()
     .min(2, "Target asset or endpoint URL is required.")
     .max(MAX_TARGET, `Endpoint cannot exceed ${MAX_TARGET} characters.`),
-  httpMethod: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]),
-  vulnerableParameter: z.string().optional(),
   environment: z.enum(ENVIRONMENT_VALUES),
   /* A plain `YYYY-MM-DD` from a date input. Optional, because a researcher
      does not always remember the day — but never in the future, which is the
@@ -257,7 +276,10 @@ export const submitReportSchema = z.object({
     .optional(),
   /** UI mode selection for weakness picker: catalog, unsure, or custom. */
   weaknessMode: z.enum(["catalog", "unsure", "custom"]).optional(),
-  severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]),
+  /* What the reporter claims. `reportedSeverity` upstream has no NONE, and
+     "INFO" was translated into exactly that on the way out — a value the API
+     refuses. LOW is the floor for a claim. */
+  severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]),
   cweIdentifier: z.string().optional(),
   /* Text rather than a number because the input is free-form; the range is the
      one the API accepts, and an unparseable score is rejected here rather than
@@ -278,7 +300,15 @@ export const submitReportSchema = z.object({
     .min(20, "Please provide a description/summary (at least 20 characters).")
     .refine(isCleanText, profanityMessage("The summary"))
     .refine(isReadableText, readabilityMessage("The summary")),
-  reproduceStepsList: z.array(z.string()),
+  /* `stepsToReproduce` is capped at 20 000 upstream, and these lines are
+     composed into it — so the ceiling belongs on the total, not on any one
+     step. Caught here while the reporter still has the text on screen. */
+  reproduceStepsList: z
+    .array(z.string())
+    .refine(
+      (steps) => steps.join("\n").length <= MAX_LONG_TEXT,
+      `The reproduction steps cannot exceed ${MAX_LONG_TEXT} characters in total.`,
+    ),
   impact: z.string().optional(),
   remediation: z
     .string()

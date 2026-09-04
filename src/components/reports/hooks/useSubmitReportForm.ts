@@ -114,9 +114,10 @@ export function useSubmitReportForm() {
        leftovers from the report. */
     defaultValues: {
       programId: preselectedProgramId,
+      assetId: "",
       targetAsset: "",
-      httpMethod: "GET",
-      vulnerableParameter: "",
+      /* Blank on purpose: whatever is here is written into the report body
+         verbatim, so a default becomes a statement the reporter never made. */
       environment: "PRODUCTION",
       discoveredAt: "",
       title: "",
@@ -173,10 +174,9 @@ export function useSubmitReportForm() {
         ? new Date(watched.discoveredAt).toISOString()
         : undefined,
       referenceLinks: links.length ? links.slice(0, 10) : undefined,
-      /* `INFO` is the form's own tier and has no counterpart upstream; a
-         draft may legitimately be undecided, so it maps to NONE. */
-      reportedSeverity:
-        watched.severity === "INFO" ? "NONE" : watched.severity || undefined,
+      /* Only what a reporter may claim reaches the draft; an undecided one
+         sends nothing rather than NONE, which `reportedSeverity` refuses. */
+      reportedSeverity: watched.severity || undefined,
       cvssVector: watched.cvssVector || undefined,
       cvssScore: Number.isFinite(score) && watched.cvssScore ? score : undefined,
       weaknessId:
@@ -187,9 +187,10 @@ export function useSubmitReportForm() {
         watched.weaknessMode === "custom" && watched.suggestedWeakness && watched.suggestedWeakness.trim()
           ? watched.suggestedWeakness.trim().slice(0, 255)
           : null,
-      /* `assetId` is absent until the form asks which in-scope asset was
-         targeted. Submit currently derives it from the program's first
-         asset, which is not something worth persisting into a draft. */
+      /* The draft is a whole-document replace, not a patch: a field left out
+         is cleared on save, so the asset the reporter picked has to travel
+         with every write or it is lost on the next blur. */
+      assetId: watched.assetId || undefined,
     };
   }, [watched, externalLinks, reproduceStepsList]);
 
@@ -473,7 +474,12 @@ export function useSubmitReportForm() {
     const programName = selectedProg
       ? selectedProg.organizationName
       : "CloudVault Security Program";
-    const assetId = selectedProg?.inScopeAssets?.[0]?.id;
+    /* What the reporter picked. This used to be `inScopeAssets[0].id` — the
+       program's first asset regardless of where the finding actually was — so
+       every report was filed against whichever asset happened to sort first.
+       That is stored data a triager acts on, and each asset carries its own
+       `maxSeverity`, so a wrong one can cap the severity of a real finding. */
+    const assetId = values.assetId || undefined;
 
     try {
       const res = await submitReport({
@@ -481,8 +487,6 @@ export function useSubmitReportForm() {
         programName,
         assetId,
         targetAsset: values.targetAsset,
-        httpMethod: values.httpMethod,
-        vulnerableParameter: values.vulnerableParameter,
         environment: values.environment,
         discoveredAt: values.discoveredAt,
         category: values.category,

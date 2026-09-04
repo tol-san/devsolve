@@ -15,6 +15,7 @@ import {
   type ApiSeverity as SharedApiSeverity,
 } from "@/lib/reports/severity";
 import { attachmentUrl } from "@/lib/api/attachment-url";
+import type { ReportActivity } from "@/lib/types/reports/activity";
 import {
   ReportItem,
   ReportsFilterParams,
@@ -116,6 +117,19 @@ interface ReportApiResponse {
    */
   reputationPoints?: number | null;
   reputationAwardedAt?: string | null;
+  /**
+   * The first time anyone other than the reporter acted on this report.
+   *
+   * Stamped once and never moved, which is why it — and not `triagedAt` — is
+   * what a time-to-first-response is measured from: `triagedAt` is rewritten
+   * by every re-triage, so a report answered within an hour and re-triaged a
+   * month later would read as a month of silence.
+   *
+   * Null means nobody has responded **or** that the report predates the
+   * field. The two are indistinguishable here, so neither this layer nor the
+   * screens above it may accuse a program of ignoring anything.
+   */
+  firstRespondedAt?: string | null;
   submittedAt?: string;
   triagedAt?: string;
   resolvedAt?: string;
@@ -321,41 +335,36 @@ function extractReports(
 
 
 /**
- * The write-up, carrying only what `CreateReportRequest` has no field for.
+ * The write-up, which is now almost always exactly what the reporter typed.
  *
- * It used to carry everything: the request exposed one free-text field, so the
- * whole multi-step form was flattened into a single Markdown document —
- * reproduction steps, PoC, remediation and all. The request now has real
- * fields for those, and they are sent as themselves, which is what lets a
- * triager read, filter and act on them instead of parsing prose.
+ * It used to carry the whole multi-step form flattened into one Markdown
+ * document, because the request exposed a single free-text field. The request
+ * has real fields now and everything is sent as itself, which is what lets a
+ * triager filter and act on it instead of parsing prose.
  *
- * What is left here has genuinely nowhere else to go: the HTTP method and
- * parameter that qualify the endpoint, and the classification. Classification
- * stays as text because `weaknessId` is a UUID into a weakness catalogue the
- * API publishes no endpoint to read — there is no id to look up, so the CWE
- * the reporter typed is preserved as prose rather than dropped.
+ * The HTTP method and vulnerable parameter used to be appended here as a
+ * `## Request` block. They were the last two inputs with no field upstream,
+ * and both are better said in `targetEndpoint` — `POST /v1/orders?id=1337`
+ * states the method, the route and the parameter in a line the reporter chose
+ * to write, rather than a heading injected into their own text.
+ *
+ * What remains is the single exception: a CWE number the reporter typed for a
+ * weakness the catalogue does not list. `suggestedWeakness` keeps its name but
+ * not its number, so without this the number would be lost.
  */
 function composeVulnerabilityInformation(payload: SubmitReportPayload): string {
-  const sections: string[] = [`## Summary\n${payload.summaryPoC}`];
+  const summary = payload.summaryPoC ?? "";
 
-  const targetLines = [
-    payload.httpMethod ? `HTTP Method: ${payload.httpMethod}` : null,
-    payload.vulnerableParameter ? `Vulnerable Parameter: ${payload.vulnerableParameter}` : null,
-  ].filter((line): line is string => Boolean(line));
-  if (targetLines.length) sections.push(`## Request\n${targetLines.join("\n")}`);
-
-  /* Dropped entirely when the reporter answered "I'm not sure": a
-     Classification heading over the word "undefined" is worse than no heading,
-     and triage classifies it from the write-up anyway. */
-  const classificationLines = [
-    payload.category ? `Category: ${payload.category}` : null,
-    payload.cweIdentifier ? `CWE: ${payload.cweIdentifier}` : null,
-  ].filter((line): line is string => Boolean(line));
-  if (classificationLines.length) {
-    sections.push(`## Classification\n${classificationLines.join("\n")}`);
+  /* The one thing with nowhere else to live: a CWE number the reporter typed
+     themselves. `suggestedWeakness` carries the name but not the number, a
+     catalogue pick is already carried by `weaknessId`, and "I'm not sure"
+     classifies nothing. Everything else the form collects now has a field of
+     its own, so the write-up is what the reporter wrote and nothing more. */
+  if (payload.weaknessMode === "custom" && payload.cweIdentifier) {
+    return `## Summary\n${summary}\n\n## Classification\nCWE: ${payload.cweIdentifier}`;
   }
 
-  return sections.join("\n\n");
+  return summary;
 }
 
 /** The numbered steps, with the outcome they were meant to produce. */
@@ -441,6 +450,7 @@ function toReportItem(
        corrected after resolution does not change what was already paid. */
     reputationPoints: report.reputationPoints ?? null,
     reputationAwardedAt: report.reputationAwardedAt ?? null,
+    firstRespondedAt: report.firstRespondedAt ?? null,
     ...toBountyDisplay(report, status),
     lastActivityDate: toLastActivityDate(report),
     lastActivityBadge: toActivityBadge(status),
@@ -601,6 +611,18 @@ function toReportDetail(
     programOffersBounties: programOffersBounties ?? null,
   };
 }
+
+/**
+ * Whether a value is a UUID the API will accept as a reference.
+ *
+ * Several triage fields are ids into other records — `weaknessId`,
+ * `duplicateOfId`, `assetId` — and sending anything else is a 400 or a 404.
+ * Checked here rather than trusting a form value that may be a placeholder,
+ * a pasted URL, or an empty string.
+ */
+const isUuid = (value?: string | null): value is string =>
+  typeof value === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 /** `RequestRetestRequest` upstream. Everything but the report is optional. */
 export interface RequestRetestArgs {
@@ -789,6 +811,28 @@ export const reportsApi = baseApi.injectEndpoints({
       providesTags: ["Report"],
     }),
 
+    /**
+     * The report's timeline, oldest entry first.
+     *
+     * A plain array rather than a page, small enough to fetch once with the
+     * report — the brief is explicit that it is neither paginated nor polled.
+     * An empty array is a normal answer, not an error: the timeline only
+     * records what happened after the feature shipped, so every older report
+     * legitimately has none.
+     */
+    getReportActivities: builder.query<ReportActivity[], string>({
+      query: (id) => `/reports/${id}/activities`,
+      transformResponse: (response: ReportActivity[] | null) =>
+        Array.isArray(response) ? response : [],
+      /* A tag of its own. The severity calls answer with the whole updated
+         report, which is written straight into the detail cache — but the
+         timeline gains a SEVERITY_CHANGED entry that only a re-read can
+         bring back, and sharing the report's tag would re-fetch both. */
+      providesTags: (_result, _error, id) => [
+        { type: "Report", id: `activities-${id}` },
+      ],
+    }),
+
     getReportById: builder.query<ReportDetail, string>({
       async queryFn(id, _api, _extraOptions, fetchWithBQ) {
         const reportResult = await fetchWithBQ(`/reports/${id}`);
@@ -846,18 +890,13 @@ export const reportsApi = baseApi.injectEndpoints({
 
     submitReport: builder.mutation<SubmitReportResponse, SubmitReportPayload>({
       async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
-        const isUuid = (str?: string | null): str is string =>
-          typeof str === "string" &&
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-
         /* The backend refuses a report whose CVSS score is rated differently
            from its severity ("A CVSS score of 8.6 is rated HIGH, which does
            not match the reported severity LOW"). The severity is what the
            reporter chose on screen, so a score that contradicts it is dropped
            here rather than failing the whole submission — this is the last
            point every path passes through, whichever screen set what. */
-        const reportedSeverity =
-          payload.severity === "INFO" ? "NONE" : payload.severity;
+        const reportedSeverity = payload.severity;
         const parsedScore = parseCvssScore(payload.cvssScore);
         const scoreAgreesWithSeverity =
           parsedScore !== null && severityForCvss(parsedScore) === payload.severity;
@@ -880,8 +919,9 @@ export const reportsApi = baseApi.injectEndpoints({
             referenceLinks: payload.externalLinks?.length
               ? payload.externalLinks.map((link) => link.trim()).filter(Boolean).slice(0, 10)
               : undefined,
-            // Backend has no "INFO" tier — the closest real equivalent is
-            // NONE (see CreateReportRequest.reportedSeverity enum).
+            /* One of LOW, MEDIUM, HIGH, CRITICAL. There is no NONE here:
+               that is a severity triage can settle on, never one a reporter
+               claims, and the enum refuses it. */
             reportedSeverity,
             // A vector implies the score it produces, so the two travel together.
             cvssVector: scoreAgreesWithSeverity
@@ -963,6 +1003,8 @@ export const reportsApi = baseApi.injectEndpoints({
         improvementSuggestions?: string;
         bountyAmount?: string;
         files?: string[];
+        /** Reclassification. `TriageReportRequest` takes the catalogue id. */
+        weaknessId?: string;
       }
     >({
       async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
@@ -979,6 +1021,11 @@ export const reportsApi = baseApi.injectEndpoints({
                body. Falling back to NONE keeps an unrated finding unrated. */
             triageSeverity: toApiSeverity(payload.severity) ?? "NONE",
             state: "VALID_CONFIRMED",
+            /* Only when triage actually reclassified it — sending the value
+               the report already carries would be a no-op write. */
+            ...(isUuid(payload.weaknessId)
+              ? { weaknessId: payload.weaknessId }
+              : {}),
           },
         });
 
@@ -1007,6 +1054,32 @@ export const reportsApi = baseApi.injectEndpoints({
               return { error: rewardResult.error };
             }
           }
+        }
+
+        /* Everything the triager wrote, delivered to the reporter.
+           `TriageReportRequest` carries no free text, and the reward `note` is
+           only written when a bounty is actually paid — so on a confirmed
+           report with no money attached, the findings summary and the advice
+           were both collected and then discarded. */
+        const feedback = [
+          payload.findingsSummary,
+          payload.explanation || payload.decisionReason,
+          payload.improvementSuggestions,
+        ]
+          .map((part) => part?.trim())
+          .filter((part): part is string => Boolean(part));
+
+        if (feedback.length) {
+          await fetchWithBQ({
+            url: "/comments",
+            method: "POST",
+            body: {
+              commentableType: "REPORT",
+              commentableId: payload.id,
+              content: `**[Report Accepted]** ${feedback.join("\n\n")}`,
+              internal: false,
+            },
+          });
         }
 
         return {
@@ -1051,6 +1124,27 @@ export const reportsApi = baseApi.injectEndpoints({
           return { error: triageResult.error };
         }
 
+        /* The reason the triager wrote, delivered to the reporter.
+           `TriageReportRequest` carries no free text, so without this every
+           word of it was accepted by the form and then dropped — a researcher
+           saw their report rejected and was told nothing about why. The
+           comment thread is where a person's own words belong, and is what
+           `resolveReport` already uses for the same purpose. */
+        const reason =
+          payload.decisionReason || payload.reason || payload.explanation;
+        if (reason) {
+          await fetchWithBQ({
+            url: "/comments",
+            method: "POST",
+            body: {
+              commentableType: "REPORT",
+              commentableId: payload.id,
+              content: `**[Report Rejected]** ${reason}`,
+              internal: false,
+            },
+          });
+        }
+
         return {
           data: {
             success: true,
@@ -1077,6 +1171,123 @@ export const reportsApi = baseApi.injectEndpoints({
      * `Leaderboard` is still invalidated because `recognitionCount` is a
      * column on it; `reputation` is untouched by this call.
      */
+    /**
+     * Asking the reporter for more before triage can continue.
+     *
+     * A real state change, not a mailto link: `NEEDS_MORE_INFO` is a member of
+     * the state enum, so the report moves, the reporter sees it move, and the
+     * question arrives in the thread rather than in an email nobody else on
+     * the team can read. `triageSeverity` is required on every triage and
+     * nothing is settled at this point, so the report's current rating is sent
+     * back unchanged.
+     */
+    requestMoreInfo: builder.mutation<
+      { success: boolean; message: string; reportId?: string },
+      { id: string; severity?: string; question: string }
+    >({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        const triageResult = await fetchWithBQ({
+          url: `/reports/${payload.id}/triage`,
+          method: "PATCH",
+          body: {
+            triageSeverity: toApiSeverity(payload.severity) ?? "NONE",
+            state: "NEEDS_MORE_INFO",
+          },
+        });
+
+        if (triageResult.error) return { error: triageResult.error };
+
+        const question = payload.question?.trim();
+        if (question) {
+          await fetchWithBQ({
+            url: "/comments",
+            method: "POST",
+            body: {
+              commentableType: "REPORT",
+              commentableId: payload.id,
+              content: `**[More Information Needed]** ${question}`,
+              internal: false,
+            },
+          });
+        }
+
+        return {
+          data: {
+            success: true,
+            message: "The reporter has been asked for more information.",
+            reportId: payload.id,
+          },
+        };
+      },
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Report", id },
+        "Report",
+      ],
+    }),
+
+    /**
+     * Closing a report as a duplicate of one already filed.
+     *
+     * `duplicateOfId` is what distinguishes this from a rejection: it names
+     * the original, so the reporter can read the report that got there first
+     * rather than being told only that theirs is closed. A duplicate is not
+     * rated, which is what `NONE` means here.
+     */
+    markDuplicate: builder.mutation<
+      { success: boolean; message: string; reportId?: string },
+      { id: string; duplicateOfId: string; note?: string }
+    >({
+      async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
+        if (!isUuid(payload.duplicateOfId)) {
+          return {
+            error: {
+              status: 400,
+              data: {
+                message:
+                  "The original report's id must be a UUID. Copy it from that report's address bar.",
+              },
+            },
+          };
+        }
+
+        const triageResult = await fetchWithBQ({
+          url: `/reports/${payload.id}/triage`,
+          method: "PATCH",
+          body: {
+            triageSeverity: "NONE",
+            state: "DUPLICATE",
+            duplicateOfId: payload.duplicateOfId,
+          },
+        });
+
+        if (triageResult.error) return { error: triageResult.error };
+
+        const note = payload.note?.trim();
+        await fetchWithBQ({
+          url: "/comments",
+          method: "POST",
+          body: {
+            commentableType: "REPORT",
+            commentableId: payload.id,
+            content: `**[Closed as Duplicate]** This finding was already reported as ${payload.duplicateOfId}.${note ? ` ${note}` : ""}`,
+            internal: false,
+          },
+        });
+
+        return {
+          data: {
+            success: true,
+            message: "The report has been closed as a duplicate.",
+            reportId: payload.id,
+          },
+        };
+      },
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Report", id },
+        "Report",
+      ],
+    }),
+
     awardRecognition: builder.mutation<
       {
         id: string;
@@ -1198,6 +1409,77 @@ export const reportsApi = baseApi.injectEndpoints({
         "Report",
         "Profile",
         "Leaderboard",
+      ],
+    }),
+
+    /**
+     * The reporter agrees with the severity triage settled on.
+     *
+     * Irreversible: the rating becomes final, and neither side can move it
+     * afterwards. The dialog that calls this says so — this layer only
+     * records that it happened.
+     *
+     * The response is the updated report, so it is written into the cache
+     * rather than followed by a second GET. Only the timeline is re-read,
+     * since accepting appends a `SEVERITY_CHANGED` entry.
+     */
+    acceptSeverity: builder.mutation<ReportDetail, { id: string }>({
+      async queryFn({ id }, _api, _extraOptions, fetchWithBQ) {
+        const result = await fetchWithBQ({
+          url: `/reports/${id}/severity/accept`,
+          method: "POST",
+        });
+
+        if (result.error) return { error: result.error };
+
+        return {
+          data: await toDetailWithProgram(
+            result.data as ReportApiResponse,
+            fetchWithBQ as never,
+          ),
+        };
+      },
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await applyReportResponse(id, dispatch, queryFulfilled);
+      },
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Report", id: `activities-${id}` },
+        "Report",
+      ],
+    }),
+
+    /**
+     * The reporter refuses the triage severity, escalating to an admin.
+     *
+     * `reason` is what the administrator rules on, so it is required upstream
+     * and non-blank — the form enforces it before the button enables.
+     */
+    rejectSeverity: builder.mutation<
+      ReportDetail,
+      { id: string; reason: string }
+    >({
+      async queryFn({ id, reason }, _api, _extraOptions, fetchWithBQ) {
+        const result = await fetchWithBQ({
+          url: `/reports/${id}/severity/reject`,
+          method: "POST",
+          body: { reason: reason.trim() },
+        });
+
+        if (result.error) return { error: result.error };
+
+        return {
+          data: await toDetailWithProgram(
+            result.data as ReportApiResponse,
+            fetchWithBQ as never,
+          ),
+        };
+      },
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        await applyReportResponse(id, dispatch, queryFulfilled);
+      },
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Report", id: `activities-${id}` },
+        "Report",
       ],
     }),
 
@@ -1381,6 +1663,9 @@ export const {
   useGetManagedReportsQuery,
   useGetReportsQuery,
   useGetReportByIdQuery,
+  useGetReportActivitiesQuery,
+  useAcceptSeverityMutation,
+  useRejectSeverityMutation,
   useGetCompanyReportsQueueQuery,
   useGetProgramReportsQuery,
   useAddReportCommentMutation,
@@ -1388,6 +1673,8 @@ export const {
   useUploadReportAttachmentMutation,
   useApproveReportMutation,
   useRejectReportMutation,
+  useRequestMoreInfoMutation,
+  useMarkDuplicateMutation,
   useAwardRecognitionMutation,
   useRecordRewardMutation,
   useResolveReportMutation,

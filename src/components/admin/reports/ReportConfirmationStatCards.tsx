@@ -46,8 +46,8 @@ export function ReportConfirmationStatCards({ reports }: ReportConfirmationStatC
       value: rejectedCount,
       subtext: "Invalid submissions",
       icon: XCircle,
-      bgColor: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
-      borderColor: "border-slate-200 dark:border-slate-800",
+      bgColor: "bg-muted text-muted-foreground",
+      borderColor: "border-border",
     },
   ];
 
@@ -58,16 +58,16 @@ export function ReportConfirmationStatCards({ reports }: ReportConfirmationStatC
         return (
           <div
             key={idx}
-            className={`p-4 rounded-2xl bg-white dark:bg-slate-900 border ${item.borderColor} shadow-2xs flex items-center justify-between transition hover:shadow-xs`}
+            className={`p-4 rounded-2xl bg-card border ${item.borderColor} shadow-2xs flex items-center justify-between transition hover:shadow-xs`}
           >
             <div className="space-y-1">
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              <span className="text-sm font-medium text-muted-foreground">
                 {item.label}
               </span>
-              <div className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              <div className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 {item.value}
               </div>
-              <p className="text-xs text-slate-400 dark:text-slate-500">{item.subtext}</p>
+              <p className="text-xs text-muted-foreground">{item.subtext}</p>
             </div>
             <div className={`w-12 h-12 rounded-xl ${item.bgColor} flex items-center justify-center shrink-0`}>
               <Icon className="w-6 h-6" />

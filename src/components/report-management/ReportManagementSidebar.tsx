@@ -239,12 +239,17 @@ export function ReportManagementSidebar({
             </Button>
           </Link>
 
-          {/* Request Retest Button */}
-          {canRequestRetest && (
+          {/* Only on a resolved report. The API allows a retest from
+              `RESOLVED` and nowhere else — it answers "Only a resolved report
+              can be sent for retest, and this one is <state>" otherwise — so
+              on a new or confirmed report this was an enabled button that
+              could only ever produce a 409. It is hidden rather than
+              disabled: before resolution a retest is not a step that is
+              temporarily unavailable, it is not part of the workflow yet. */}
+          {canRequestRetest && isResolved && (
             <Button
               variant="outline"
               onClick={() => setShowRetestDialog(true)}
-              disabled={isWaitingForRetest || isRejected}
               className="w-full rounded-xl h-9.5 text-xs font-semibold gap-1.5 cursor-pointer bg-card hover:bg-muted"
             >
               <RotateCcw className="size-3.5 text-cyan-600 dark:text-cyan-400" />

@@ -457,9 +457,18 @@ export function buildReportManagementDetailFromApiReport(
     summary: report.description || "",
     assets: report.targetEndpoint ? [report.targetEndpoint] : (report.program ? [report.program] : []),
     affectedUrl: report.targetEndpoint || "",
-    httpMethod: (report as any).httpMethod || "GET",
+    /* `ReportResponse` carries no HTTP method — the submit form folds the
+       reporter's choice into the write-up instead, since the API has no field
+       for it. This used to fall back to "GET", which meant every report on
+       this screen claimed GET regardless of what was actually reported, and
+       contradicted the description whenever it was not. Empty now, and the
+       screens omit the row rather than guess. */
+    httpMethod: (report as any).httpMethod || "",
     parameter: (report as any).vulnerableParameter || "",
-    environment: report.environment || "Production",
+    /* Empty when unreported. Defaulting to "Production" told the triager a
+       finding was live when the reporter never said so — and a production
+       finding reads as more urgent than a staging one. */
+    environment: report.environment || "",
     environmentNote:
       report.environment === "PRODUCTION"
         ? "Live production environment"

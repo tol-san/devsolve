@@ -103,53 +103,53 @@ export function ReportConfirmationDetailDrawer({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl text-slate-900 dark:text-slate-100">
-        <DialogHeader className="space-y-3 pb-4 border-b border-slate-200 dark:border-slate-800">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl bg-card border border-border p-6 shadow-2xl text-foreground">
+        <DialogHeader className="space-y-3 pb-4 border-b border-border">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               {report.reportCode && (
-                <span className="font-mono text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                <span className="font-mono text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-md">
                   {report.reportCode}
                 </span>
               )}
               <Badge className={`rounded-full px-2.5 py-0.5 text-xs ${getSeverityBadgeClass(report.severity)}`}>
                 {report.severity}
               </Badge>
-              <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs font-semibold border-slate-200 dark:border-slate-800">
+              <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs font-semibold border-border">
                 {report.status}
               </Badge>
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="text-xs text-muted-foreground">
               Submitted {report.submittedAt}
             </div>
           </div>
 
-          <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+          <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
             {report.title}
           </DialogTitle>
 
-          <DialogDescription className="text-sm text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-4 pt-1">
+          <DialogDescription className="text-sm text-muted-foreground flex flex-wrap items-center gap-4 pt-1">
             <span className="flex items-center gap-1">
-              <User className="w-4 h-4 text-slate-400" />
-              Researcher: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{report.researcherName}</strong>
+              <User className="w-4 h-4 text-muted-foreground" />
+              Researcher: <strong className="text-foreground dark:text-foreground font-semibold">{report.researcherName}</strong>
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
-              <Building2 className="w-4 h-4 text-slate-400" />
-              Target: <strong className="text-slate-700 dark:text-slate-200 font-semibold">{report.companyName}</strong>
-              {report.programName && <span className="text-slate-400 dark:text-slate-500"> ({report.programName})</span>}
+              <Building2 className="w-4 h-4 text-muted-foreground" />
+              Target: <strong className="text-foreground dark:text-foreground font-semibold">{report.companyName}</strong>
+              {report.programName && <span className="text-muted-foreground"> ({report.programName})</span>}
             </span>
           </DialogDescription>
         </DialogHeader>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1 border-b border-slate-200 dark:border-slate-800 pb-2">
+        <div className="flex items-center gap-1 border-b border-border pb-2">
           <button
             onClick={() => setActiveTab("overview")}
             className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold transition cursor-pointer ${
               activeTab === "overview"
-                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:bg-muted"
             }`}
           >
             Overview & Scope
@@ -158,8 +158,8 @@ export function ReportConfirmationDetailDrawer({
             onClick={() => setActiveTab("poc")}
             className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold transition cursor-pointer ${
               activeTab === "poc"
-                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:bg-muted"
             }`}
           >
             PoC & Attachments
@@ -168,8 +168,8 @@ export function ReportConfirmationDetailDrawer({
             onClick={() => setActiveTab("triage")}
             className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold transition cursor-pointer ${
               activeTab === "triage"
-                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:bg-muted"
             }`}
           >
             Triage Audit Action
@@ -178,8 +178,8 @@ export function ReportConfirmationDetailDrawer({
             onClick={() => setActiveTab("timeline")}
             className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold transition cursor-pointer ${
               activeTab === "timeline"
-                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
-                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                ? "bg-foreground text-background"
+                : "text-muted-foreground hover:bg-muted"
             }`}
           >
             Activity History
@@ -191,9 +191,9 @@ export function ReportConfirmationDetailDrawer({
           <div className="space-y-5 pt-2">
             {/* Target Asset & Scores */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-1">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Target Asset / Scope</span>
-                <div className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100 break-all flex items-center justify-between">
+              <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-1">
+                <span className="text-xs font-semibold text-muted-foreground">Target Asset / Scope</span>
+                <div className="font-mono text-xs font-bold text-foreground break-all flex items-center justify-between">
                   <span>{report.targetAsset || "N/A"}</span>
                   {report.targetAsset && (
                     <a
@@ -208,13 +208,13 @@ export function ReportConfirmationDetailDrawer({
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-1">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">CVSS Rating</span>
+              <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-1">
+                <span className="text-xs font-semibold text-muted-foreground">CVSS Rating</span>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-rose-600 text-white text-xs font-bold px-2 py-0.5">
                     {report.cvssScore || "N/A"}
                   </Badge>
-                  <span className="font-mono text-xs text-slate-600 dark:text-slate-400">
+                  <span className="font-mono text-xs text-muted-foreground">
                     {report.cvssVector || "N/A"}
                   </span>
                 </div>
@@ -234,22 +234,22 @@ export function ReportConfirmationDetailDrawer({
 
             {/* Description */}
             <div className="space-y-2">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-slate-400" />
+              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <FileText className="w-4 h-4 text-muted-foreground" />
                 Vulnerability Description
               </h4>
-              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <p className="text-sm text-foreground leading-relaxed bg-card p-4 rounded-2xl border border-border">
                 {report.description || "No description provided."}
               </p>
             </div>
 
             {/* Impact */}
             <div className="space-y-2">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Flame className="w-4 h-4 text-rose-500" />
                 Security Impact & Threat Assessment
               </h4>
-              <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <p className="text-sm text-foreground leading-relaxed bg-card p-4 rounded-2xl border border-border">
                 {report.impact || "No impact assessment provided."}
               </p>
             </div>
@@ -261,11 +261,11 @@ export function ReportConfirmationDetailDrawer({
           <div className="space-y-5 pt-2">
             {/* Steps to reproduce */}
             <div className="space-y-2">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <h4 className="text-sm font-bold text-foreground">
                 Steps to Reproduce
               </h4>
               {report.reproduceSteps && report.reproduceSteps.length > 0 ? (
-                <ol className="list-decimal list-inside space-y-2 text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <ol className="list-decimal list-inside space-y-2 text-sm text-foreground bg-muted/40 p-4 rounded-2xl border border-border">
                   {report.reproduceSteps.map((step, idx) => (
                     <li key={idx} className="leading-relaxed">
                       {step}
@@ -273,14 +273,14 @@ export function ReportConfirmationDetailDrawer({
                   ))}
                 </ol>
               ) : (
-                <p className="text-sm text-slate-500">No reproduction steps listed.</p>
+                <p className="text-sm text-muted-foreground">No reproduction steps listed.</p>
               )}
             </div>
 
             {/* PoC Payload code block */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                <h4 className="text-sm font-bold text-foreground">
                   Proof of Concept Payload
                 </h4>
                 {report.pocPayload && (
@@ -288,7 +288,7 @@ export function ReportConfirmationDetailDrawer({
                     size="sm"
                     variant="ghost"
                     onClick={handleCopyPayload}
-                    className="h-8 px-2.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="h-8 px-2.5 rounded-lg text-xs font-semibold text-muted-foreground hover:bg-muted"
                   >
                     {copiedPayload ? (
                       <>
@@ -310,14 +310,14 @@ export function ReportConfirmationDetailDrawer({
                   <code>{report.pocPayload}</code>
                 </pre>
               ) : (
-                <p className="text-sm text-slate-500">No payload snippet provided.</p>
+                <p className="text-sm text-muted-foreground">No payload snippet provided.</p>
               )}
             </div>
 
             {/* Attachments */}
             <div className="space-y-2">
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <Paperclip className="w-4 h-4 text-slate-400" />
+              <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Paperclip className="w-4 h-4 text-muted-foreground" />
                 Submitted Evidence & Attachments
               </h4>
               {report.attachments && report.attachments.length > 0 ? (
@@ -325,20 +325,20 @@ export function ReportConfirmationDetailDrawer({
                   {report.attachments.map((file, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-medium text-slate-700 dark:text-slate-300"
+                      className="flex items-center justify-between p-3 rounded-xl border border-border bg-card text-xs font-medium text-foreground"
                     >
                       <div className="flex items-center gap-2 truncate">
                         <FileText className="w-4 h-4 text-blue-500 shrink-0" />
                         <span className="truncate">{file.name}</span>
                       </div>
-                      <span className="text-slate-400 dark:text-slate-500 text-[11px] shrink-0 ml-2">
+                      <span className="text-muted-foreground text-[11px] shrink-0 ml-2">
                         {file.size}
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">No attachments provided.</p>
+                <p className="text-sm text-muted-foreground">No attachments provided.</p>
               )}
             </div>
           </div>
@@ -349,7 +349,7 @@ export function ReportConfirmationDetailDrawer({
           <div className="space-y-5 pt-2">
             {/* Severity Override */}
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-bold text-foreground">
                 Confirmed Severity Tier Override
               </Label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -368,7 +368,7 @@ export function ReportConfirmationDetailDrawer({
                           : sev === "Medium"
                           ? "bg-blue-600 text-white"
                           : "bg-slate-700 text-white"
-                        : "border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300"
+                        : "border-border text-foreground"
                     }`}
                   >
                     {sev}
@@ -379,23 +379,23 @@ export function ReportConfirmationDetailDrawer({
 
             {/* Reward Estimate Input */}
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-bold text-foreground">
                 Suggested Bounty Payout Range
               </Label>
               <div className="relative">
-                <Coins className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Coins className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={bountyEstimate}
                   onChange={(e) => setBountyEstimate(e.target.value)}
                   placeholder="e.g. $3,500 - $5,000"
-                  className="pl-9 h-10 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 rounded-xl text-sm"
+                  className="pl-9 h-10 bg-card border-border rounded-xl text-sm"
                 />
               </div>
             </div>
 
             {/* Triager Notes */}
             <div className="space-y-2">
-              <Label className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              <Label className="text-sm font-bold text-foreground">
                 Triager Internal Notes & Justification
               </Label>
               <textarea
@@ -403,12 +403,12 @@ export function ReportConfirmationDetailDrawer({
                 onChange={(e) => setTriageNotes(e.target.value)}
                 placeholder="Add audit justification notes for the program owner..."
                 rows={3}
-                className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
+                className="w-full p-3 bg-card border border-border rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-foreground"
               />
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row gap-3 justify-end">
+            <div className="pt-3 border-t border-border flex flex-col sm:flex-row gap-3 justify-end">
               <Button
                 variant="destructive"
                 disabled={isSubmitting}
@@ -442,7 +442,7 @@ export function ReportConfirmationDetailDrawer({
         {/* Tab 4: Activity History Timeline */}
         {activeTab === "timeline" && (
           <div className="space-y-4 pt-2">
-            <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            <h4 className="text-sm font-bold text-foreground">
               Report Audit Timeline
             </h4>
             {report.auditLog && report.auditLog.length > 0 ? (
@@ -451,12 +451,12 @@ export function ReportConfirmationDetailDrawer({
                   <div key={log.id} className="relative space-y-1">
                     <div className="absolute -left-6 top-1 w-3 h-3 rounded-full bg-blue-600 ring-4 ring-white dark:ring-slate-900" />
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-900 dark:text-slate-100">{log.action}</span>
-                      <span className="text-slate-400">{log.timestamp}</span>
+                      <span className="font-bold text-foreground">{log.action}</span>
+                      <span className="text-muted-foreground">{log.timestamp}</span>
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">By: {log.actor}</p>
+                    <p className="text-xs text-muted-foreground">By: {log.actor}</p>
                     {log.note && (
-                      <div className="text-xs p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 mt-1">
+                      <div className="text-xs p-2.5 rounded-xl bg-muted text-foreground mt-1">
                         {log.note}
                       </div>
                     )}
@@ -464,7 +464,7 @@ export function ReportConfirmationDetailDrawer({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No activity logged yet.</p>
+              <p className="text-sm text-muted-foreground">No activity logged yet.</p>
             )}
           </div>
         )}

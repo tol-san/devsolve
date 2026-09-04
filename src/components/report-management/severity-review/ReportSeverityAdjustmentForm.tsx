@@ -14,7 +14,9 @@ import {
   CheckCircle2,
   CloudUpload,
   Coins,
+  AlertCircle,
   Copy,
+  Lock,
   DollarSign,
   ExternalLink,
   FileText,
@@ -34,7 +36,13 @@ import { apiErrorMessage } from "@/lib/api/error-message";
 import type { ReportManagementDetail } from "@/components/report-management/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { disputeStatusLabel, isDisputeBlocking } from "@/lib/reports/dispute";
+import { formatDate } from "@/lib/format/datetime";
+import {
+  disputeStatusLabel,
+  isAwaitingReporter,
+  isDisputeBlocking,
+  isDisputeSettled,
+} from "@/lib/reports/dispute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
@@ -50,6 +58,8 @@ import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import {
   useApproveReportMutation,
   useRejectReportMutation,
+  useRequestMoreInfoMutation,
+  useMarkDuplicateMutation,
 } from "@/lib/redux/services/reportsApi";
 import { cn } from "@/lib/utils";
 
@@ -146,6 +156,13 @@ export function ReportSeverityAdjustmentForm({
      would otherwise return, so nobody fills this form in for nothing. */
   const dispute = detail.dispute ?? null;
   const isBlockedByDispute = isDisputeBlocking(dispute);
+  /* Blocked, but by the researcher's pending answer rather than by an
+     administrator — a different hold, with different copy and no admin. */
+  const isAwaitingReporterAnswer = isAwaitingReporter(dispute);
+  /* Settled by the reporter accepting, or by an administrator ruling. Final
+     on both sides — the sidebar hides the link here, and this guards the page
+     itself, which is still reachable by typing the address. */
+  const isSeverityFinal = isDisputeSettled(dispute);
 
   const reportState = (
     detail.rawStatus ||
@@ -163,6 +180,14 @@ export function ReportSeverityAdjustmentForm({
   const actionParam = searchParams?.get("action");
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showMoreInfoModal, setShowMoreInfoModal] = useState(false);
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+  const [moreInfoQuestion, setMoreInfoQuestion] = useState("");
+  const [duplicateOfId, setDuplicateOfId] = useState("");
+  const [duplicateNote, setDuplicateNote] = useState("");
+  /* Triage may reclassify. Empty means "leave the weakness as filed", which
+     is different from clearing it — `TriageReportRequest` only ever sets. */
+  const [reclassifiedWeaknessId, setReclassifiedWeaknessId] = useState("");
   const [approvalSuccess, setApprovalSuccess] = useState<boolean | null>(null);
   const [rejectionSuccess, setRejectionSuccess] = useState<boolean | null>(null);
 
@@ -178,6 +203,48 @@ export function ReportSeverityAdjustmentForm({
   // RTK Mutations
   const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
   const [rejectReport, { isLoading: isRejecting }] = useRejectReportMutation();
+  const [requestMoreInfo, { isLoading: isAskingForInfo }] =
+    useRequestMoreInfoMutation();
+  const [markDuplicate, { isLoading: isMarkingDuplicate }] =
+    useMarkDuplicateMutation();
+
+  /** Asks the reporter for what triage is missing, and moves the state. */
+  const handleRequestMoreInfo = async () => {
+    if (isBlockedByDispute || !moreInfoQuestion.trim()) return;
+    try {
+      await requestMoreInfo({
+        id: String(detail.id),
+        severity: selectedSeverity,
+        question: moreInfoQuestion,
+      }).unwrap();
+      setShowMoreInfoModal(false);
+      setMoreInfoQuestion("");
+      toast.success("Asked the reporter for more information");
+    } catch (err) {
+      toast.error(
+        apiErrorMessage(err, "The request could not be sent. Try again."),
+      );
+    }
+  };
+
+  /** Closes this report against the one that got there first. */
+  const handleMarkDuplicate = async () => {
+    if (isBlockedByDispute) return;
+    try {
+      await markDuplicate({
+        id: String(detail.id),
+        duplicateOfId: duplicateOfId.trim(),
+        note: duplicateNote,
+      }).unwrap();
+      setShowDuplicateModal(false);
+      onOutcomeChange?.("rejected");
+      toast.success("Closed as a duplicate");
+    } catch (err) {
+      toast.error(
+        apiErrorMessage(err, "The report could not be closed as a duplicate."),
+      );
+    }
+  };
 
   const actionsDisabled = isApproving || isRejecting || isBlockedByDispute;
 
@@ -205,6 +272,7 @@ export function ReportSeverityAdjustmentForm({
         improvementSuggestions,
         bountyAmount: `$${numericBounty}`,
         files: selectedFiles,
+        weaknessId: reclassifiedWeaknessId || undefined,
       }).unwrap();
 
       setShowApprovalModal(false);
@@ -517,24 +585,83 @@ export function ReportSeverityAdjustmentForm({
             <div className="min-w-0 space-y-2">
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <h3 className="text-base font-bold text-amber-900 dark:text-amber-200">
-                  Triage is on hold — the severity is disputed
+                  {isAwaitingReporterAnswer
+                    ? "Triage is on hold — waiting for the researcher"
+                    : "Triage is on hold — the severity is disputed"}
                 </h3>
                 <span className="rounded-md border border-amber-500/30 bg-background/60 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-200">
                   {disputeStatusLabel(dispute)}
                 </span>
               </div>
 
-              <p className="text-sm leading-relaxed text-amber-900/90 dark:text-amber-200/90">
-                An administrator has to rule on this dispute before the report
-                can be approved or rejected. Nothing you change here will
-                release it, and the actions below stay disabled until it is
-                settled.
-              </p>
+              {/* Two different holds. The reporter is asked first now, and
+                  no administrator is involved unless they refuse — saying one
+                  is deciding while the researcher has not answered describes
+                  a step that has not happened. */}
+              {isAwaitingReporterAnswer ? (
+                <p className="text-sm leading-relaxed text-amber-900/90 dark:text-amber-200/90">
+                  The researcher is confirming the severity you set. If they
+                  accept it{dispute.respondBy ? ", or do not answer by " : ", or do not answer, "}
+                  {dispute.respondBy && (
+                    <strong>{formatDate(dispute.respondBy, "the deadline")}</strong>
+                  )}
+                  {dispute.respondBy ? ", " : ""}
+                  your rating stands and triage continues. If they refuse, an
+                  administrator rules on it. There is nothing to do here, and
+                  the actions below stay disabled until it settles.
+                </p>
+              ) : (
+                <p className="text-sm leading-relaxed text-amber-900/90 dark:text-amber-200/90">
+                  An administrator has to rule on this dispute before the report
+                  can be approved or rejected. Nothing you change here will
+                  release it, and the actions below stay disabled until it is
+                  settled.
+                </p>
+              )}
 
-              {dispute.reason && (
+              {/* Only written when the researcher refused, so it never shows
+                  while they are still being asked. */}
+              {dispute.reason && !isAwaitingReporterAnswer && (
                 <p className="rounded-xl border border-amber-500/20 bg-background/60 p-3 text-sm leading-relaxed text-foreground">
-                  <span className="font-semibold">Reason given: </span>
+                  <span className="font-semibold">
+                    The researcher&apos;s case:{" "}
+                  </span>
                   {dispute.reason}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settled ratings are final on both sides. Stated here because the
+          page is reachable directly, not only through the link the sidebar
+          now hides. */}
+      {isSeverityFinal && dispute && (
+        <div className="mb-5 rounded-2xl border border-border bg-muted/40 p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <Lock className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+            <div className="min-w-0 space-y-1.5">
+              <h3 className="text-base font-bold text-foreground">
+                The severity is settled
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {dispute.resolvedSeverity ? (
+                  <>
+                    It was settled at{" "}
+                    <strong className="text-foreground">
+                      {dispute.resolvedSeverity}
+                    </strong>
+                    .{" "}
+                  </>
+                ) : null}
+                Once a rating is agreed it is final: the researcher cannot
+                change their mind and it cannot be re-triaged around. The
+                report can still be resolved from here.
+              </p>
+              {dispute.resolutionNotes && (
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {dispute.resolutionNotes}
                 </p>
               )}
             </div>
@@ -788,14 +915,53 @@ export function ReportSeverityAdjustmentForm({
                 <span>Reject Submission</span>
               </Button>
 
+              {/* A real state change rather than the mailto link this used to
+                  be: NEEDS_MORE_INFO moves the report, so the reporter sees
+                  it move and the question lands in the thread. */}
               <Button
                 type="button"
-                onClick={() => setShowApprovalModal(true)}
+                variant="outline"
+                onClick={() => setShowMoreInfoModal(true)}
                 disabled={actionsDisabled}
                 title={
                   isBlockedByDispute
                     ? "An administrator must resolve the severity dispute first"
                     : undefined
+                }
+                className="w-full sm:w-auto rounded-xl border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer font-semibold text-xs sm:text-sm h-10 px-4 justify-center"
+              >
+                <AlertCircle className="size-4" />
+                <span>Needs more info</span>
+              </Button>
+
+              {/* Distinct from a rejection: `duplicateOfId` names the report
+                  that got there first. */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDuplicateModal(true)}
+                disabled={actionsDisabled}
+                title={
+                  isBlockedByDispute
+                    ? "An administrator must resolve the severity dispute first"
+                    : undefined
+                }
+                className="w-full sm:w-auto rounded-xl border-border bg-card hover:bg-muted cursor-pointer font-semibold text-xs sm:text-sm h-10 px-4 justify-center"
+              >
+                <Copy className="size-4" />
+                <span>Duplicate</span>
+              </Button>
+
+              <Button
+                type="button"
+                onClick={() => setShowApprovalModal(true)}
+                disabled={actionsDisabled || isSeverityFinal}
+                title={
+                  isSeverityFinal
+                    ? "The severity is settled and can no longer be changed"
+                    : isBlockedByDispute
+                      ? "An administrator must resolve the severity dispute first"
+                      : undefined
                 }
                 className="w-full sm:w-auto rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white cursor-pointer px-4 sm:px-5 shadow-xs gap-2 text-xs sm:text-sm h-10 justify-center"
               >
@@ -928,6 +1094,148 @@ export function ReportSeverityAdjustmentForm({
 
       {/* 8. Rejection Confirmation Modal */}
       <AnimatePresence>
+        {showMoreInfoModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"
+            onClick={() => setShowMoreInfoModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-2.5 border-b border-border bg-amber-500/10 px-5 py-4">
+                <div className="flex size-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                  <AlertCircle className="size-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base font-bold text-foreground">
+                    Ask for more information
+                  </h3>
+                  <p className="truncate font-mono text-xs text-muted-foreground">
+                    Report {cleanReportId}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3 p-5">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  The report moves to <strong>Needs more info</strong> and your
+                  question is posted to its thread, so the reporter sees both
+                  the status and what you asked.
+                </p>
+                <Textarea
+                  autoFocus
+                  rows={4}
+                  value={moreInfoQuestion}
+                  onChange={(event) => setMoreInfoQuestion(event.target.value)}
+                  placeholder="What do you need from the reporter? A clearer reproduction, a payload, the account used…"
+                  className="resize-none border-border bg-background text-sm leading-relaxed"
+                />
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 border-t border-border p-4 sm:flex-row sm:justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowMoreInfoModal(false)}
+                  disabled={isAskingForInfo}
+                  className="rounded-xl font-semibold"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleRequestMoreInfo}
+                  disabled={isAskingForInfo || !moreInfoQuestion.trim()}
+                  className="rounded-xl bg-amber-600 font-semibold text-white hover:bg-amber-700"
+                >
+                  {isAskingForInfo ? "Sending…" : "Ask and update status"}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {showDuplicateModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"
+            onClick={() => setShowDuplicateModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-2.5 border-b border-border bg-muted px-5 py-4">
+                <div className="flex size-9 items-center justify-center rounded-xl bg-background text-muted-foreground">
+                  <Copy className="size-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base font-bold text-foreground">
+                    Close as a duplicate
+                  </h3>
+                  <p className="truncate font-mono text-xs text-muted-foreground">
+                    Report {cleanReportId}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3 p-5">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="duplicateOfId"
+                    className="text-sm font-semibold text-foreground"
+                  >
+                    Original report id
+                  </label>
+                  <Input
+                    id="duplicateOfId"
+                    autoFocus
+                    value={duplicateOfId}
+                    onChange={(event) => setDuplicateOfId(event.target.value)}
+                    placeholder="f08fe404-173e-4cd2-b2c2-810d40842780"
+                    className="h-11 border-border bg-background font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    The id from that report&apos;s address bar. Naming it is
+                    what separates a duplicate from a rejection — the reporter
+                    can read the finding that got there first.
+                  </p>
+                </div>
+
+                <Textarea
+                  rows={3}
+                  value={duplicateNote}
+                  onChange={(event) => setDuplicateNote(event.target.value)}
+                  placeholder="Anything to add for the reporter (optional)"
+                  className="resize-none border-border bg-background text-sm leading-relaxed"
+                />
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 border-t border-border p-4 sm:flex-row sm:justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDuplicateModal(false)}
+                  disabled={isMarkingDuplicate}
+                  className="rounded-xl font-semibold"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleMarkDuplicate}
+                  disabled={isMarkingDuplicate || !duplicateOfId.trim()}
+                  className="rounded-xl bg-slate-800 font-semibold text-white hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600"
+                >
+                  {isMarkingDuplicate ? "Closing…" : "Close as duplicate"}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {showRejectModal && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"

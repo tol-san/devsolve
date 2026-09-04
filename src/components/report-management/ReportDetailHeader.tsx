@@ -415,7 +415,8 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                     Target Endpoint
                   </h4>
                   <code className="block text-xs font-mono font-semibold bg-muted/40 p-2.5 rounded-lg border border-border break-all">
-                    {detail.httpMethod} {detail.affectedUrl}
+                    {detail.httpMethod ? `${detail.httpMethod} ` : ""}
+                    {detail.affectedUrl}
                   </code>
                 </div>
 
@@ -590,9 +591,11 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                 <p className="font-mono text-xs font-bold text-foreground truncate" title={detail.affectedUrl}>
                   {detail.affectedUrl || detail.assets[0] || "Target Asset"}
                 </p>
-                <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-bold text-foreground">
-                  {detail.httpMethod || "GET"}
-                </span>
+                {detail.httpMethod && (
+                  <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-bold text-foreground">
+                    {detail.httpMethod}
+                  </span>
+                )}
               </div>
             </div>
 

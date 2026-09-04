@@ -78,21 +78,25 @@ export function ReportDetailTargetScope({
           </div>
         </FieldBlock>
 
-        <FieldBlock label="HTTP Method">
-          <div className="flex items-center min-h-10 px-3.5 rounded-xl border border-border bg-muted/30">
-            <span
-              className={cn(
-                "inline-flex items-center rounded-md px-2 py-0.5 font-mono text-xs font-bold",
-                detail.httpMethod === "GET" && "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-                detail.httpMethod === "POST" && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-                detail.httpMethod === "PUT" && "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-                detail.httpMethod === "DELETE" && "bg-red-500/10 text-red-700 dark:text-red-300"
-              )}
-            >
-              {detail.httpMethod || "GET"}
-            </span>
-          </div>
-        </FieldBlock>
+        {/* Only when the report actually carries one. The method the reporter
+            chose lives in the write-up, not in a field of its own. */}
+        {detail.httpMethod && (
+          <FieldBlock label="HTTP Method">
+            <div className="flex items-center min-h-10 px-3.5 rounded-xl border border-border bg-muted/30">
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-md px-2 py-0.5 font-mono text-xs font-bold",
+                  detail.httpMethod === "GET" && "bg-blue-500/10 text-blue-700 dark:text-blue-300",
+                  detail.httpMethod === "POST" && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                  detail.httpMethod === "PUT" && "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+                  detail.httpMethod === "DELETE" && "bg-red-500/10 text-red-700 dark:text-red-300"
+                )}
+              >
+                {detail.httpMethod}
+              </span>
+            </div>
+          </FieldBlock>
+        )}
 
         <FieldBlock label="Vulnerable Parameter">
           <div className="flex items-center min-h-10 px-3.5 rounded-xl border border-border bg-muted/30">
@@ -103,19 +107,25 @@ export function ReportDetailTargetScope({
         </FieldBlock>
       </div>
 
-      {/* 2. Environment Note Callout */}
-      <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
-        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
-        <div className="space-y-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
-            Target Environment: {detail.environment || "Production"}
-          </p>
-          <p className="text-sm leading-relaxed text-amber-600 dark:text-amber-300">
-            {detail.environmentNote ||
-              "Vulnerability validated directly against live application endpoints."}
-          </p>
+      {/* 2. Environment callout — only when the report states one. It used to
+             claim Production and "validated against live endpoints" for any
+             report that named no environment, which is a claim about where the
+             finding was proven that nobody made. */}
+      {detail.environment && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
+          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+              Target Environment: {detail.environment}
+            </p>
+            {detail.environmentNote && (
+              <p className="text-sm leading-relaxed text-amber-600 dark:text-amber-300">
+                {detail.environmentNote}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 3. In-Scope Asset List */}
       {detail.assets && detail.assets.length > 0 && (

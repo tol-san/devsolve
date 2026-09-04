@@ -1,13 +1,37 @@
+/**
+ * A disagreement about a report's severity.
+ *
+ * The reporter is asked first now. A triage severity that differs from what
+ * was reported opens the dispute as `AWAITING_REPORTER`; accepting settles it
+ * at the triage rating, refusing escalates it to an administrator, and silence
+ * settles it the same way accepting would after the deadline.
+ *
+ * While one is unanswered the report's `severity` is null and the report is
+ * blocked — it cannot be resolved, rewarded or retested.
+ */
 export interface DisputeDetail {
   id?: string;
   /**
-   * `DisputeStatus` upstream. `UNDER_REVIEW` was missing here: an admin who
-   * has picked a dispute up but not decided it still blocks triage, so
-   * treating it as resolved would have offered actions the backend refuses.
+   * `AWAITING_REPORTER` is the reporter's step and the only one either party
+   * can act on. `OPEN`/`UNDER_REVIEW` mean an administrator is deciding, and
+   * `RESOLVED`/`DISMISSED` mean it is settled.
    */
-  status: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "DISMISSED";
+  status:
+    | "AWAITING_REPORTER"
+    | "OPEN"
+    | "UNDER_REVIEW"
+    | "RESOLVED"
+    | "DISMISSED";
+  /** The reporter's case for refusing. Written by them, not the platform. */
   reason?: string;
   resolvedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
+  /** How it was settled, including the case where the deadline passed. */
+  resolutionNotes?: string | null;
+  /**
+   * The deadline to answer. Present only while `AWAITING_REPORTER` — null in
+   * every other status, where no deadline should be rendered at all.
+   */
+  respondBy?: string | null;
   createdAt?: string;
   resolvedAt?: string;
 }
@@ -69,6 +93,13 @@ export interface ReportItem {
    */
   reputationPoints?: number | null;
   reputationAwardedAt?: string | null;
+  /**
+   * The first time anyone but the reporter acted on this report, stamped once
+   * and never moved. Null means nobody has responded *or* that the report
+   * predates the field — the two cannot be told apart here, so no copy built
+   * on it may accuse a program of ignoring a report.
+   */
+  firstRespondedAt?: string | null;
   bountyOrRep: string;
   isBountyHighlight?: boolean;
   isBountyDim?: boolean;
@@ -177,15 +208,15 @@ export interface SubmitReportPayload {
   programName: string;
   assetId?: string;
   targetAsset: string;
-  httpMethod?: string;
-  vulnerableParameter?: string;
   /** One of `CreateReportRequest.environment`'s values, not a display label. */
   environment?: string;
   /** `YYYY-MM-DD` from the form; sent as an ISO instant. */
   discoveredAt?: string;
   /** Absent when the reporter answered "I'm not sure". */
   category?: string;
-  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
+  /* What the reporter claims. `reportedSeverity` upstream has no NONE, so
+     there is no tier below LOW to send. */
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   cweIdentifier?: string;
   cvssScore?: string;
   cvssVector?: string;

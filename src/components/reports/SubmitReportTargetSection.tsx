@@ -82,12 +82,35 @@ export function SubmitReportTargetSection({
   selectedProgram,
 }: SubmitReportTargetSectionProps) {
   const selectedEnvironment = watch("environment") || "PRODUCTION";
-  const selectedHttpMethod = watch("httpMethod") || "GET";
   const selectedProgramId = watch("programId");
 
   const companyInitials = selectedProgram?.organizationName
     ? selectedProgram.organizationName.substring(0, 2).toUpperCase()
     : "CV";
+
+  /* Only assets the API can be given an id for. The scope display below also
+     accepts bare strings, which cannot be submitted as `assetId`. */
+  type SelectableAsset = {
+    id: string;
+    identifier?: string;
+    assetType?: string;
+    maxSeverity?: string;
+    isInScope?: boolean;
+  };
+  const selectableAssets: SelectableAsset[] = (
+    selectedProgram?.inScopeAssets ?? []
+  ).filter(
+    (asset: unknown): asset is SelectableAsset =>
+      Boolean(asset) &&
+      typeof asset === "object" &&
+      typeof (asset as { id?: unknown }).id === "string",
+  )
+    /* Out-of-scope assets are refused with a 404, so they are never offered.
+       The list is named `inScopeAssets`, but the flag is on each record and
+       checking it costs nothing — an out-of-scope option would only ever
+       produce a rejected submission. */
+    .filter((asset: SelectableAsset) => asset.isInScope !== false);
+  const selectedAssetId = watch("assetId") || "";
 
   const inScopeList: string[] =
     selectedProgram?.inScopeAssets && selectedProgram.inScopeAssets.length > 0
@@ -205,6 +228,62 @@ export function SubmitReportTargetSection({
 
       {/* Inputs Form Section */}
       <div className="space-y-5 pt-4 border-t border-slate-200 dark:border-slate-800">
+        {/* Which in-scope asset this is on. The report used to be filed
+            against the program's first asset whatever the finding was, which
+            is stored data a triager acts on — and each asset carries its own
+            severity ceiling. Only shown when the program publishes assets we
+            can reference by id. */}
+        {selectableAssets.length > 0 && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="assetId"
+                className="text-sm font-semibold text-slate-900 dark:text-slate-100"
+              >
+                In-scope asset{" "}
+                <span className="font-normal text-muted-foreground">
+                  (optional)
+                </span>
+              </label>
+              <span className="text-xs text-slate-500 font-medium">
+                which listed asset this affects
+              </span>
+            </div>
+            <Select
+              value={selectedAssetId}
+              onValueChange={(val) =>
+                setValue("assetId", !val || val === "__none" ? "" : val, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                })
+              }
+            >
+              <SelectTrigger
+                id="assetId"
+                className="w-full h-11 data-[size=default]:h-11 px-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-2xs cursor-pointer"
+              >
+                <SelectValue placeholder="Not specified" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg p-1.5">
+                {/* Leaving it unset is a real answer — better than guessing. */}
+                <SelectItem value="__none" className="rounded-xl py-2 px-3 text-sm">
+                  Not specified
+                </SelectItem>
+                {selectableAssets.map((asset) => (
+                  <SelectItem
+                    key={asset.id}
+                    value={asset.id}
+                    className="rounded-xl py-2 px-3 text-sm"
+                  >
+                    {asset.identifier || "Asset"}
+                    {asset.assetType ? ` · ${asset.assetType}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Affected URL / Endpoint */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
@@ -215,101 +294,28 @@ export function SubmitReportTargetSection({
               Affected URL / Endpoint <span className="text-red-500">*</span>
             </label>
             <span className="text-xs text-slate-500 font-medium">
-              full URL including path and query
+              method, path and parameter if they matter
             </span>
           </div>
           <Input
             id="targetAsset"
-            placeholder="https://api.example.com/v1/invoices/1337"
+            placeholder="POST https://api.example.com/v1/invoices?id=1337"
             {...register("targetAsset")}
             className="bg-white dark:bg-slate-900 h-11 text-sm border-slate-300 dark:border-slate-700"
           />
+          {/* The method and vulnerable parameter used to be their own controls.
+              Neither had a field upstream, so both ended up as a `## Request`
+              heading inside the reporter's own write-up — a line here says the
+              same thing in words they chose. */}
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Include the HTTP method and the vulnerable parameter here when they
+            are part of the finding.
+          </p>
           {errors.targetAsset && (
             <p className="text-xs text-red-500 font-medium">
               {errors.targetAsset.message}
             </p>
           )}
-        </div>
-
-        {/* HTTP Method & Vulnerable Parameter */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="httpMethod"
-                className="text-sm font-semibold text-slate-900 dark:text-slate-100"
-              >
-                HTTP Method <span className="text-red-500">*</span>
-              </label>
-            </div>
-            <Select
-              value={selectedHttpMethod}
-              onValueChange={(val) =>
-                setValue(
-                  "httpMethod",
-                  val as SubmitReportFormValues["httpMethod"],
-                  {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  },
-                )
-              }
-            >
-              <SelectTrigger
-                id="httpMethod"
-                className="w-full h-11 data-[size=default]:h-11 px-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-2xs cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-md text-xs font-bold border ${
-                      HTTP_METHOD_STYLES[selectedHttpMethod]?.badge ||
-                      HTTP_METHOD_STYLES.GET.badge
-                    }`}
-                  >
-                    {selectedHttpMethod}
-                  </span>
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg p-1.5 min-w-[140px]">
-                {HTTP_METHODS.map((method) => (
-                  <SelectItem
-                    key={method}
-                    value={method}
-                    className="rounded-xl cursor-pointer py-2 px-3 text-sm font-semibold"
-                  >
-                    <span
-                      className={`px-2.5 py-0.5 rounded-md text-xs font-bold border ${
-                        HTTP_METHOD_STYLES[method]?.badge ||
-                        HTTP_METHOD_STYLES.GET.badge
-                      }`}
-                    >
-                      {method}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="vulnerableParameter"
-                className="text-sm font-semibold text-slate-900 dark:text-slate-100"
-              >
-                Vulnerable Parameter
-              </label>
-              <span className="text-xs text-slate-500 font-medium">
-                optional
-              </span>
-            </div>
-            <Input
-              id="vulnerableParameter"
-              placeholder="e.g. user_id, redirect_uri"
-              {...register("vulnerableParameter")}
-              className="bg-white dark:bg-slate-900 h-11 text-sm border-slate-300 dark:border-slate-700"
-            />
-          </div>
         </div>
 
         {/* Environment Selection */}

@@ -17,6 +17,15 @@ export type ManagedReport = {
   type: ReportType;
   status: ReportStatus;
   severity: ReportSeverity;
+  /**
+   * What the researcher claimed, and what triage decided — kept apart.
+   * `severity` above is the settled rating, which collapses
+   * `severity ?? triageSeverity ?? reportedSeverity`; it is right for a badge
+   * but cannot answer whether the two sides agree.
+   */
+  reportedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
+  triageSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
+  cvssScore?: number | null;
   queueState?: ReportWorkflowState;
   submittedAt: string;
   submittedAtIso?: string;

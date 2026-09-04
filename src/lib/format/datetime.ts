@@ -109,3 +109,38 @@ export function hasPassed(
   const date = toDate(value);
   return date ? date.getTime() <= now : false;
 }
+
+/**
+ * How long something took, as a span between two moments.
+ *
+ * Distinct from `formatTimeDistance`, which measures from *now* and phrases
+ * its answer relative to it ("3 days ago"). This one names a duration —
+ * "4 hours", "3 days" — which is what a time-to-first-response reads as.
+ *
+ * Null when either end is unusable, so a caller shows nothing rather than a
+ * confident "0 seconds" it cannot support.
+ */
+export function formatDuration(
+  from: string | null | undefined,
+  to: string | number | null | undefined,
+): string | null {
+  const start = toDate(from);
+  if (!start) return null;
+
+  const endMs =
+    typeof to === "number" ? to : toDate(to as string | null | undefined)?.getTime();
+  if (endMs === undefined || Number.isNaN(endMs)) return null;
+
+  /* Clock skew between the two stamps can make a span very slightly negative;
+     that is noise, not a report answered before it was filed. */
+  const seconds = Math.max(0, Math.round((endMs - start.getTime()) / 1000));
+
+  const plural = (amount: number, unit: string) =>
+    `${amount} ${unit}${amount === 1 ? "" : "s"}`;
+
+  if (seconds < 60) return "under a minute";
+  if (seconds < 3600) return plural(Math.round(seconds / 60), "minute");
+  if (seconds < 86400) return plural(Math.round(seconds / 3600), "hour");
+  if (seconds < 2592000) return plural(Math.round(seconds / 86400), "day");
+  return plural(Math.round(seconds / 2592000), "month");
+}

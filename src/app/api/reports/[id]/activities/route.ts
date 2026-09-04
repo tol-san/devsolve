@@ -1,0 +1,39 @@
+import { type NextRequest } from "next/server";
+import {
+  asUuid,
+  badRequest,
+  bearerTokenFor,
+  relay,
+  unauthorized,
+  unreachable,
+  upstreamFetch,
+} from "@/lib/api/proxy";
+
+/**
+ * GET /api/reports/{id}/activities — the report's timeline.
+ *
+ * Readable by anyone who can already read the report, so there is no extra
+ * check here: a 403 or 404 from upstream means exactly what it means on
+ * `GET /reports/{id}`, and is relayed rather than reinterpreted.
+ *
+ * The upstream answers a plain JSON array, not a page. It is small — tens of
+ * entries — and is fetched once alongside the report.
+ */
+
+type Context = { params: Promise<{ id: string }> };
+
+export async function GET(request: NextRequest, context: Context) {
+  const token = await bearerTokenFor(request);
+  if (!token) return unauthorized();
+
+  const { id: rawId } = await context.params;
+  const id = asUuid(rawId);
+  if (!id) return badRequest("Report id must be a UUID");
+
+  try {
+    const upstream = await upstreamFetch(`/reports/${id}/activities`, token);
+    return relay(upstream, "That report's activity could not be loaded.");
+  } catch {
+    return unreachable("report activity");
+  }
+}

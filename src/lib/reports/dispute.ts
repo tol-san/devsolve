@@ -26,12 +26,46 @@ export function isDisputeBlocking(
   dispute: DisputeDetail | null | undefined,
 ): boolean {
   if (!dispute) return false;
-  return dispute.status === "OPEN" || dispute.status === "UNDER_REVIEW";
+  return (
+    dispute.status === "AWAITING_REPORTER" ||
+    dispute.status === "OPEN" ||
+    dispute.status === "UNDER_REVIEW"
+  );
+}
+
+/**
+ * Whether the reporter is the one being waited on.
+ *
+ * The only status either party can act on, and only the reporter can: the
+ * company waits, and an administrator is deliberately kept out — the admin
+ * dispute queue excludes this status because there is nothing for them to
+ * rule on until the reporter answers.
+ */
+export function isAwaitingReporter(
+  dispute: DisputeDetail | null | undefined,
+): boolean {
+  return dispute?.status === "AWAITING_REPORTER";
+}
+
+/** An administrator is deciding. Neither party can do anything. */
+export function isWithAdministrator(
+  dispute: DisputeDetail | null | undefined,
+): boolean {
+  return dispute?.status === "OPEN" || dispute?.status === "UNDER_REVIEW";
+}
+
+/** Settled, whichever way. `resolvedSeverity` is the final rating. */
+export function isDisputeSettled(
+  dispute: DisputeDetail | null | undefined,
+): boolean {
+  return dispute?.status === "RESOLVED" || dispute?.status === "DISMISSED";
 }
 
 /** How the dispute's state reads on screen. */
 export function disputeStatusLabel(dispute: DisputeDetail): string {
   switch (dispute.status) {
+    case "AWAITING_REPORTER":
+      return "Awaiting the researcher";
     case "OPEN":
       return "Awaiting an administrator";
     case "UNDER_REVIEW":

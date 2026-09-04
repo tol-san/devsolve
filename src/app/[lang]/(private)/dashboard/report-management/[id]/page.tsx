@@ -29,7 +29,12 @@ import { RetestHistoryTimeline } from "@/components/report-management/RetestHist
 import { ReportManagementSidebar } from "@/components/report-management/ReportManagementSidebar";
 import SeverityBadge from "@/components/reports/SeverityBadge";
 import { buildReportManagementDetailFromApiReport } from "@/components/report-management/mock-data";
-import { useGetReportByIdQuery } from "@/lib/redux/services/reportsApi";
+import {
+  useGetReportActivitiesQuery,
+  useGetReportByIdQuery,
+} from "@/lib/redux/services/reportsApi";
+import { ReportTimeline } from "@/components/reports/ReportTimeline";
+import { SeverityDisputePanel } from "@/components/reports/SeverityDisputePanel";
 import { formatDateTime } from "@/lib/format/datetime";
 import { cn } from "@/lib/utils";
 
@@ -99,8 +104,8 @@ export default function ReportManagementDetailPage() {
     typeof params?.id === "string"
       ? params.id
       : Array.isArray(params?.id)
-      ? params.id[0]
-      : "";
+        ? params.id[0]
+        : "";
 
   const [activeTab, setActiveTab] = useState<"summary" | "retest">("summary");
 
@@ -110,6 +115,13 @@ export default function ReportManagementDetailPage() {
     isError,
     refetch: refetchReport,
   } = useGetReportByIdQuery(reportId, { skip: !reportId });
+
+  /* Fetched once with the report — unpaged, small, and never polled. */
+  const {
+    data: activities = [],
+    isLoading: activitiesLoading,
+    isError: activitiesError,
+  } = useGetReportActivitiesQuery(reportId, { skip: !reportId });
 
   const handleRefresh = React.useCallback(() => {
     void refetchReport();
@@ -161,7 +173,8 @@ export default function ReportManagementDetailPage() {
         </div>
         <h2 className="text-xl font-bold text-foreground">Report Not Found</h2>
         <p className="text-sm text-muted-foreground mt-2 mb-6">
-          The requested report could not be found or you do not have permission to view it.
+          The requested report could not be found or you do not have permission
+          to view it.
         </p>
         <div className="flex items-center gap-3">
           <Button
@@ -241,16 +254,6 @@ export default function ReportManagementDetailPage() {
             <ArrowLeft className="size-4" />
             <span>Back to Queue</span>
           </Button>
-
-          <Link href={`/dashboard/report-management/${reportId}/severity-review`}>
-            <Button
-              size="sm"
-              className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 px-3.5 gap-1.5 shadow-xs cursor-pointer"
-            >
-              <span>Severity Review</span>
-              <ArrowRight className="size-3.5" />
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -340,7 +343,8 @@ export default function ReportManagementDetailPage() {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Review the write-up and evidence below. Proceed to severity review to confirm CVSS score and finalize bounty eligibility.
+                Review the write-up and evidence below. Proceed to severity
+                review to confirm CVSS score and finalize bounty eligibility.
               </p>
             </div>
           </div>
@@ -359,6 +363,24 @@ export default function ReportManagementDetailPage() {
           </Link>
         </div>
       )}
+
+      {/* The company side has no action while the researcher is being asked,
+          but it explains why triage is frozen. */}
+      <SeverityDisputePanel
+        reportId={reportId}
+        dispute={apiReport.dispute}
+        reportedSeverity={apiReport.reportedSeverity}
+        triageSeverity={apiReport.triageSeverity}
+        isReporter={false}
+      />
+
+      {/* The record both sides argue from in a dispute, so it sits in the
+          main flow rather than behind a tab. */}
+      <ReportTimeline
+        activities={activities}
+        isLoading={activitiesLoading}
+        isError={activitiesError}
+      />
 
       {/* 4. Navigation Tabs */}
       <div className="flex items-center p-1 bg-muted/60 rounded-xl gap-1 border border-border w-full sm:w-auto self-start">
