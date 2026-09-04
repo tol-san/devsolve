@@ -14,7 +14,7 @@ import type {
 } from "@/lib/validations/solution-draft";
 import { apiErrorMessage } from "@/lib/api/error-message";
 
-const DEBOUNCE_MS = 1200;
+const DEBOUNCE_MS = 1500;
 
 export interface ServerSolutionDraftState {
   available: SolutionDraftResponse | null;
@@ -50,7 +50,11 @@ export function useServerSolutionDraft({
 
   const { data: drafts = [] } = useGetSolutionDraftsQuery(
     { problemId },
-    { skip: !problemId || !enabled },
+    {
+      skip: !problemId || !enabled,
+      refetchOnFocus: false,
+      refetchOnReconnect: false,
+    },
   );
 
   const [available, setAvailable] = useState<SolutionDraftResponse | null>(null);
@@ -63,6 +67,8 @@ export function useServerSolutionDraft({
   const offered = useRef<string | null>(null);
   const latest = useRef(values);
   latest.current = values;
+  const lastSaved = useRef<string>("");
+  const reqSeq = useRef(0);
 
   useEffect(() => {
     if (!problemId || !enabled || offered.current === problemId) return;
@@ -86,6 +92,10 @@ export function useServerSolutionDraft({
     );
     if (!hasAnyContent && !draftId.current && !resumeId) return false;
 
+    const payload = JSON.stringify(latest.current);
+    if (payload === lastSaved.current) return false;
+
+    const currentSeq = ++reqSeq.current;
     setIsSaving(true);
     setError(null);
     const existing = draftId.current || resumeId || null;
@@ -96,7 +106,9 @@ export function useServerSolutionDraft({
           id: existing,
           body: latest.current,
         }).unwrap();
+        if (currentSeq !== reqSeq.current) return false;
         draftId.current = existing;
+        lastSaved.current = payload;
         setSavedAt(saved.updatedAt ?? new Date().toISOString());
         return true;
       } else if (!creating.current) {
@@ -106,7 +118,9 @@ export function useServerSolutionDraft({
             problemId,
             body: latest.current,
           }).unwrap();
+          if (currentSeq !== reqSeq.current) return false;
           draftId.current = created.id;
+          lastSaved.current = payload;
           setSavedAt(created.updatedAt ?? new Date().toISOString());
           return true;
         } finally {
@@ -115,12 +129,15 @@ export function useServerSolutionDraft({
       }
       return false;
     } catch (err) {
+      if (currentSeq !== reqSeq.current) return false;
       setError(
         apiErrorMessage(err, "Could not save your draft. Retrying as you type."),
       );
       return false;
     } finally {
-      setIsSaving(false);
+      if (currentSeq === reqSeq.current) {
+        setIsSaving(false);
+      }
     }
   }, [createDraft, enabled, problemId, resumeId, updateDraft]);
 

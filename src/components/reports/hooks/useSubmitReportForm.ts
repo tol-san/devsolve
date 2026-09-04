@@ -54,6 +54,8 @@ export function useSubmitReportForm() {
   const resumeDraftId = searchParams.get("id") || "";
   const { data: linkedDraft } = useGetReportDraftQuery(resumeDraftId, {
     skip: !isUuid(resumeDraftId),
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
   });
 
   const preselectedProgramId = requestedProgramId || linkedDraft?.programId || "";
@@ -253,7 +255,10 @@ export function useSubmitReportForm() {
   /** Accepting the banner: the draft found for this program. */
   const restoreDraft = () => {
     const stored = draft.take();
-    if (stored) applyDraft(stored);
+    if (stored) {
+      applied.current = stored.id;
+      applyDraft(stored);
+    }
   };
 
   /* Arriving from a saved-drafts card. Applied once, when the draft lands —
@@ -261,7 +266,7 @@ export function useSubmitReportForm() {
      overwrite, and re-applying on every render would fight their typing. */
   const applied = useRef<string | null>(null);
   useEffect(() => {
-    if (!linkedDraft || applied.current === linkedDraft.id) return;
+    if (!linkedDraft || applied.current) return;
     applied.current = linkedDraft.id;
     applyDraft(linkedDraft);
     // eslint-disable-next-line react-hooks/exhaustive-deps

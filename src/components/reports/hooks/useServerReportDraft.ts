@@ -14,7 +14,7 @@ import type {
 } from "@/lib/validations/report-draft";
 import { apiErrorMessage } from "@/lib/api/error-message";
 
-const DEBOUNCE_MS = 1200;
+const DEBOUNCE_MS = 1500;
 
 export interface ServerDraftState {
   /** A stored draft found for this program, waiting to be resumed. */
@@ -77,7 +77,11 @@ export function useServerReportDraft({
 
   const { data: drafts = [] } = useGetReportDraftsQuery(
     { programId },
-    { skip: !programId },
+    {
+      skip: !programId,
+      refetchOnFocus: false,
+      refetchOnReconnect: false,
+    },
   );
 
   const [available, setAvailable] = useState<ReportDraftResponse | null>(null);
@@ -92,6 +96,8 @@ export function useServerReportDraft({
   const offered = useRef<string | null>(null);
   const latest = useRef(values);
   latest.current = values;
+  const lastSaved = useRef<string>("");
+  const reqSeq = useRef(0);
 
   /* Offered once per program. Re-offering after the reporter dismissed it
      would make the banner impossible to get rid of. */
@@ -108,6 +114,11 @@ export function useServerReportDraft({
 
   const persist = useCallback(async (): Promise<boolean> => {
     if (!programId) return false;
+
+    const payload = JSON.stringify(latest.current);
+    if (payload === lastSaved.current) return false;
+
+    const currentSeq = ++reqSeq.current;
     setIsSaving(true);
     setError(null);
     /* The draft this form is writing to: one already created or resumed, or
@@ -120,7 +131,9 @@ export function useServerReportDraft({
           id: existing,
           body: latest.current,
         }).unwrap();
+        if (currentSeq !== reqSeq.current) return false;
         draftId.current = existing;
+        lastSaved.current = payload;
         setSavedAt(saved.updatedAt ?? new Date().toISOString());
         return true;
       } else if (!creating.current) {
@@ -130,7 +143,9 @@ export function useServerReportDraft({
             programId,
             body: latest.current,
           }).unwrap();
+          if (currentSeq !== reqSeq.current) return false;
           draftId.current = created.id;
+          lastSaved.current = payload;
           setSavedAt(created.updatedAt ?? new Date().toISOString());
           return true;
         } finally {
@@ -146,12 +161,15 @@ export function useServerReportDraft({
          someone mid-sentence, and the next keystroke retries. The upstream
          says which field it refused, which is worth more than a generic
          apology when the reason is a field still on screen. */
+      if (currentSeq !== reqSeq.current) return false;
       setError(
         apiErrorMessage(err, "Could not save your draft. Retrying as you type."),
       );
       return false;
     } finally {
-      setIsSaving(false);
+      if (currentSeq === reqSeq.current) {
+        setIsSaving(false);
+      }
     }
   }, [createDraft, programId, resumeId, updateDraft]);
 

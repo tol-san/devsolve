@@ -167,7 +167,16 @@ export const problemsApi = baseApi.injectEndpoints({
     /** Creates an editable draft so files can be scanned before moderation. */
     createProblemDraft: builder.mutation<ProblemResponse, CreateProblemRequest>({
       query: (body) => ({ url: "/problems/drafts", method: "POST", body }),
-      invalidatesTags: [{ type: "Problem", id: "MINE" }],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data: saved } = await queryFulfilled;
+          if (saved?.id) {
+            dispatch(
+              problemsApi.util.upsertQueryData("getProblemById", saved.id, saved),
+            );
+          }
+        } catch {}
+      },
     }),
 
     uploadProblemAttachment: builder.mutation<
@@ -257,6 +266,29 @@ export const problemsApi = baseApi.injectEndpoints({
         { type: "Problem", id: "MINE" },
         { type: "Discussion", id: "LIST" },
       ],
+    }),
+
+    /** Autosave draft update — does NOT invalidate query tags to avoid refetches while typing. */
+    updateProblemDraft: builder.mutation<
+      ProblemResponse,
+      { id: string; version: number; body: ProblemUpdateRequest }
+    >({
+      query: ({ id, version, body }) => ({
+        url: `/problems/${id}`,
+        method: "PATCH",
+        headers: { "If-Match": `"${version}"` },
+        body,
+      }),
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        try {
+          const { data: saved } = await queryFulfilled;
+          if (saved?.id) {
+            dispatch(
+              problemsApi.util.upsertQueryData("getProblemById", id, saved),
+            );
+          }
+        } catch {}
+      },
     }),
 
     /**
@@ -401,6 +433,7 @@ export const {
   useUploadProblemAttachmentMutation,
   useDeleteProblemAttachmentMutation,
   useUpdateProblemMutation,
+  useUpdateProblemDraftMutation,
   useSubmitProblemMutation,
   useGetProblemByIdQuery,
   useIncrementProblemViewsMutation,

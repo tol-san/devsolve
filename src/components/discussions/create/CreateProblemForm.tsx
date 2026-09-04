@@ -66,6 +66,7 @@ import {
   useUploadProblemAttachmentMutation,
   useDeleteProblemAttachmentMutation,
   useUpdateProblemMutation,
+  useUpdateProblemDraftMutation,
   useGetMyProblemsQuery,
   useGetProblemByIdQuery,
   type ProblemResponse,
@@ -195,6 +196,8 @@ export function CreateProblemForm({
 
   const { data: fetchedDraftProblem } = useGetProblemByIdQuery(draftId ?? "", {
     skip: !draftId || Boolean(problem),
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
   });
 
   const activeProblem = problem ?? fetchedDraftProblem;
@@ -243,7 +246,11 @@ export function CreateProblemForm({
   // Fetch caller's problems (including drafts) when creating a problem
   const { data: myProblemsData } = useGetMyProblemsQuery(
     { size: 30 },
-    { skip: isEdit || !session?.user },
+    {
+      skip: isEdit || !session?.user,
+      refetchOnFocus: false,
+      refetchOnReconnect: false,
+    },
   );
 
   const existingDrafts = useMemo(() => {
@@ -262,6 +269,7 @@ export function CreateProblemForm({
   const [createProblemDraft, { isLoading: creatingDraft }] =
     useCreateProblemDraftMutation();
   const [updateProblem, { isLoading: saving }] = useUpdateProblemMutation();
+  const [updateProblemDraft] = useUpdateProblemDraftMutation();
   const [uploadProblemAttachment, { isLoading: uploading }] =
     useUploadProblemAttachmentMutation();
   const [submitProblem, { isLoading: submittingDraft }] =
@@ -374,6 +382,7 @@ export function CreateProblemForm({
     });
 
   const loadDraftIntoForm = (draft: ProblemResponse) => {
+    hasLoadedDraftRef.current = true;
     setPreparedDraft(draft);
     preparedDraftRef.current = draft;
     lastSavedPayloadRef.current = JSON.stringify({
@@ -408,9 +417,11 @@ export function CreateProblemForm({
     toast.success("Draft loaded into editor.");
   };
 
+  const hasLoadedDraftRef = useRef(false);
   const appliedProblemId = useRef<string | null>(null);
   useEffect(() => {
-    if (!activeProblem || appliedProblemId.current === activeProblem.id) return;
+    if (!activeProblem || hasLoadedDraftRef.current) return;
+    hasLoadedDraftRef.current = true;
     appliedProblemId.current = activeProblem.id ?? null;
     loadDraftIntoForm(activeProblem);
     if (activeProblem.status === "DRAFT") {
@@ -836,7 +847,7 @@ export function CreateProblemForm({
     try {
       let saved: ProblemResponse;
       if (workingProblem?.id) {
-        saved = await updateProblem({
+        saved = await updateProblemDraft({
           id: workingProblem.id,
           version: workingProblem.version ?? 0,
           body,
@@ -879,6 +890,7 @@ export function CreateProblemForm({
 
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
   const autoSaving = useRef(false);
+  const autoSaveReqSeq = useRef(0);
 
   useEffect(() => {
     if (isPublishedEdit || !session?.user || !isDirty) return;
@@ -946,12 +958,13 @@ export function CreateProblemForm({
         return;
       }
 
+      const currentSeq = ++autoSaveReqSeq.current;
       autoSaving.current = true;
       setIsSavingDraft(true);
       try {
         let saved: ProblemResponse;
         if (workingProblem?.id) {
-          saved = await updateProblem({
+          saved = await updateProblemDraft({
             id: workingProblem.id,
             version: workingProblem.version ?? 0,
             body,
@@ -959,6 +972,7 @@ export function CreateProblemForm({
         } else {
           saved = await createProblemDraft(body).unwrap();
         }
+        if (currentSeq !== autoSaveReqSeq.current) return;
         preparedDraftRef.current = saved;
         lastSavedPayloadRef.current = payloadString;
         setPreparedDraft(saved);
@@ -966,10 +980,12 @@ export function CreateProblemForm({
       } catch {
         // Silently ignore background autosave failures
       } finally {
-        autoSaving.current = false;
-        setIsSavingDraft(false);
+        if (currentSeq === autoSaveReqSeq.current) {
+          autoSaving.current = false;
+          setIsSavingDraft(false);
+        }
       }
-    }, 2000);
+    }, 1500);
 
     return () => {
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);

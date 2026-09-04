@@ -31,7 +31,7 @@ export const showcaseDraftsApi = proxyApi.injectEndpoints({
 
     getShowcaseDraft: builder.query<ShowcaseDraftResponse, string>({
       query: (id) => `/showcase-drafts/${id}`,
-      providesTags: ["ShowcaseDraft"],
+      providesTags: (_result, _error, id) => [{ type: "ShowcaseDraft", id }],
     }),
 
     createShowcaseDraft: builder.mutation<ShowcaseDraftResponse, SaveShowcaseDraftValues>({
@@ -75,7 +75,6 @@ export const showcaseDraftsApi = proxyApi.injectEndpoints({
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         await cacheWhatWasStored(dispatch, queryFulfilled);
       },
-      invalidatesTags: ["ShowcaseDraft"],
     }),
 
     removeShowcaseDraftCoverImage: builder.mutation<ShowcaseDraftResponse, string>({
@@ -86,7 +85,6 @@ export const showcaseDraftsApi = proxyApi.injectEndpoints({
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         await cacheWhatWasStored(dispatch, queryFulfilled);
       },
-      invalidatesTags: ["ShowcaseDraft"],
     }),
 
     deleteShowcaseDraft: builder.mutation<void, string>({
