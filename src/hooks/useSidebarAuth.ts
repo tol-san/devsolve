@@ -3,15 +3,9 @@ import { useDispatch } from "react-redux";
 import { authClient } from "@/lib/auth/auth-client";
 import { extractRealmRolesFromToken } from "@/lib/auth/token-utils";
 import { useGetEditProfileFormQuery } from "@/lib/redux/services/profileApi";
-import { clearAccessToken } from "@/lib/auth/access-token";
+import { getAccessToken, clearAccessToken } from "@/lib/auth/access-token";
 import { baseApi } from "@/lib/redux/services/baseApi";
 import { proxyApi } from "@/lib/redux/services/proxyApi";
-
-/** Shape of the object returned by authClient.getAccessToken */
-interface AccessTokenResponse {
-  data?: string | { accessToken?: string; token?: string } | null;
-  token?: string;
-}
 
 /** Extension of the better-auth session user that includes the role field injected by Keycloak */
 interface SessionUserWithRole {
@@ -43,15 +37,15 @@ export function useSidebarAuth() {
 
     let cancelled = false;
 
-    authClient
-      .getAccessToken({ providerId: "keycloak" })
-      .then((res: AccessTokenResponse) => {
+    // Use the shared getAccessToken() from access-token.ts so that the
+    // singleton token cache is warm by the time areRolesResolved flips to
+    // true. Previously, calling authClient.getAccessToken() directly left the
+    // cache cold, causing RTK Query's prepareHeaders to race the token fetch
+    // on first load — resulting in a 401 "Not authenticated" error on every
+    // fresh page visit.
+    getAccessToken()
+      .then((rawToken) => {
         if (cancelled) return;
-
-        const rawToken =
-          typeof res?.data === "string"
-            ? res.data
-            : res?.data?.accessToken || res?.data?.token || res?.token;
 
         if (rawToken) {
           const realmRoles = extractRealmRolesFromToken(rawToken);
