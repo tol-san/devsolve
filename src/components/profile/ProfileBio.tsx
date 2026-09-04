@@ -8,6 +8,7 @@ import {
   Users,
   VenusAndMars,
 } from "lucide-react";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 import { Profile } from "@/lib/types/profile/types";
 import { SiGithub, SiX } from "react-icons/si";
 
@@ -98,9 +99,12 @@ export default function ProfileBio({ profile }: ProfileBioProps) {
 
           <div className="grid grid-cols-1 gap-x-6 gap-y-3.5 sm:grid-cols-2">
             {location && (
-              <Row label="Address:">
+              <Row label="Country:">
                 <MapPin className={iconClass} />
-                <span className="truncate">{location}</span>
+                {/* `location` is the profile's `country` field. Usually an ISO
+                    code now; older profiles hold free text, which renders as
+                    written without a flag. */}
+                <CountryDisplay value={location} className="min-w-0" />
               </Row>
             )}
 

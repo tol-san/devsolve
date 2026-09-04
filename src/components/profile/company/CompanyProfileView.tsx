@@ -33,6 +33,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 import { OrgStatusBadge } from "@/components/organizations/OrgStatusBadge";
 import { cn } from "@/lib/utils";
 
@@ -200,7 +201,13 @@ export default function CompanyProfileView() {
     },
     {
       label: "Country",
-      value: organization.country || "Not specified",
+      value: (
+        <CountryDisplay
+          value={organization.country}
+          fallback="Not specified"
+          className="justify-end"
+        />
+      ),
       icon: MapPin,
     },
     {

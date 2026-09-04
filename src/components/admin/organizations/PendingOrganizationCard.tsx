@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Globe, User, Calendar, ChevronRight, Building2 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 
 interface PendingOrganizationCardProps {
   item: PendingOrganizationItem;
@@ -100,7 +101,11 @@ export const PendingOrganizationCard: React.FC<PendingOrganizationCardProps> = (
               {/* Country + company size */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                 {item.country && (
-                  <span className="font-medium text-slate-600 dark:text-slate-400">{item.country}</span>
+                  <CountryDisplay
+                    value={item.country}
+                    size={12}
+                    textClassName="font-medium text-slate-600 dark:text-slate-400"
+                  />
                 )}
                 {item.country && item.companySize && <span>•</span>}
                 {item.companySize && <span>{item.companySize} employees</span>}

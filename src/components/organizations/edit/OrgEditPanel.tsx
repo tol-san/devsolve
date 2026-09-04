@@ -17,9 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import CustomCountrySelect from "@/components/shared/CustomCountrySelect";
-import { useGetCountriesQuery } from "@/lib/redux/services/geoApi";
-import { DEFAULT_COUNTRIES } from "@/lib/constants/auth";
+import { CountrySelect } from "@/components/shared/CountrySelect";
 import {
   type Organization,
   type OrganizationIndustry,
@@ -47,11 +45,11 @@ import { cn } from "@/lib/utils";
  * nine fields and a description box do not belong in a modal you can lose by
  * clicking beside it.
  *
- * Country is the register flow's picker, on the register flow's data, so the
- * value saved here is spelled the same way as the one saved at sign-up. What
- * it does not do is auto-detect: the hook the register form uses fills the
- * field from the visitor's IP, which on an edit screen would quietly replace
- * a saved country with wherever the person happens to be sitting.
+ * Country is the shared picker, storing the ISO code exactly as the register
+ * flow does. What it does not do is auto-detect: the hook the register form
+ * uses fills the field from the visitor's IP, which on an edit screen would
+ * quietly replace a saved country with wherever the person happens to be
+ * sitting.
  */
 
 const BACK_HREF = "/dashboard/organizations";
@@ -166,26 +164,6 @@ export default function OrgEditPanel({
   const [saveError, setSaveError] = useState<ParsedApiError | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [coverError, setCoverError] = useState<string | null>(null);
-
-  /* The same list the register form shows. It resolves to `[]` rather than an
-     error when the CDN is unreachable, so the bundled shortlist stands in. */
-  const { data: fetchedCountries, isLoading: loadingCountries } =
-    useGetCountriesQuery();
-  const countries =
-    fetchedCountries && fetchedCountries.length > 0
-      ? fetchedCountries
-      : DEFAULT_COUNTRIES;
-
-  /* The organization stores a country name, not a code, and the flag needs a
-     code — so it is looked back up in the list. An unmatched name (a country
-     saved before this list, or a hand-typed one) simply shows no flag. */
-  const countryCode = useMemo(() => {
-    if (!form.country) return null;
-    const match = countries.find(
-      (c) => c.name.toLowerCase() === form.country.toLowerCase(),
-    );
-    return match?.code ?? null;
-  }, [countries, form.country]);
 
   const isDirty = useMemo(
     () => (Object.keys(initial) as (keyof FormState)[]).some(
@@ -512,14 +490,14 @@ export default function OrgEditPanel({
               htmlFor="org-country"
               error={fieldError("country")}
             >
-              <CustomCountrySelect
+              {/* Stores the ISO code. The picker still renders a legacy name
+                  saved here before that, so opening this page on an old
+                  organization does not read as an empty field. */}
+              <CountrySelect
                 id="org-country"
                 value={form.country}
-                countryCode={countryCode}
-                countries={countries}
-                isDetecting={loadingCountries}
                 error={Boolean(fieldError("country"))}
-                onSelect={(country) => patch({ country: country.name })}
+                onChange={(code) => patch({ country: code })}
               />
             </Field>
 

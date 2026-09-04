@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useKeycloakLogin, type IdpHint } from "@/hooks/useKeycloakLogin";
 import { useRegisterUserMutation } from "@/lib/redux/services/authApi";
-import { CustomCountrySelect } from "@/components/auth/CustomCountrySelect";
+import { CountrySelect } from "@/components/shared/CountrySelect";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
 import { useAutoDetectCountry } from "@/hooks/useAutoDetectCountry";
 import { useT, useLocalePath } from "@/lib/i18n/I18nProvider";
@@ -72,12 +72,15 @@ export function UserRegisterForm() {
     },
   });
 
-  const handleCountryDetect = (name: string) => {
-    setValue("country", name, { shouldValidate: true });
-  };
+  /* Prefills the picker with a guess. The stored value is the ISO code. */
+  const handleCountryDetect = useCallback(
+    (code: string) => {
+      setValue("country", code, { shouldValidate: true });
+    },
+    [setValue],
+  );
 
-  const { countriesList, countryCode, isDetecting, handleSetCountry } =
-    useAutoDetectCountry(handleCountryDetect);
+  const { isDetecting } = useAutoDetectCountry(handleCountryDetect);
 
   const password = watch("password");
   const countryValue = watch("country");
@@ -366,16 +369,21 @@ export function UserRegisterForm() {
           >
             {t("auth.userRegister.country")}
           </Label>
-          <CustomCountrySelect
-            value={countryValue || ""}
-            countryCode={countryCode}
-            countries={countriesList}
+          <CountrySelect
+            id="country"
+            value={countryValue}
             isDetecting={isDetecting}
-            onSelect={(c) => {
-              setValue("country", c.name, { shouldValidate: true });
-              handleSetCountry(c.name, c.code);
-            }}
+            onChange={(code) =>
+              setValue("country", code, { shouldValidate: true })
+            }
           />
+          {/* This endpoint has nowhere to put it: the backend's RegisterRequest
+              carries no country, and the direct-Keycloak fallback's profile
+              INSERT has no country column either. Saying so beats a field that
+              looks saved and is not. */}
+          <p className="mt-1.5 text-xs text-slate-500 dark:text-muted-foreground">
+            {t("auth.userRegister.countryHint")}
+          </p>
         </div>
 
         {/* Password & Confirm Password */}

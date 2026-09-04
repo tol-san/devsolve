@@ -26,10 +26,10 @@ import { ThanksSkeleton } from "./ThanksSkeleton";
 import { ThanksEmptyState } from "./ThanksEmptyState";
 import { ThanksNotFoundState } from "./ThanksNotFoundState";
 import {
-  countryCodeToFlag,
   formatFullDateTime,
   formatRelativeTime,
 } from "./thanks-utils";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -301,7 +301,6 @@ function BoardHeader({
 }
 
 function ThanksRowItem({ entry }: { entry: ThanksEntry }) {
-  const flag = countryCodeToFlag(entry.country);
   const displayName = entry.fullName?.trim() || entry.username;
   const profileHref = `/profile/${encodeURIComponent(entry.username || entry.id)}`;
   const initials = (entry.fullName || entry.username || "??")
@@ -359,14 +358,10 @@ function ThanksRowItem({ entry }: { entry: ThanksEntry }) {
               {displayName}
             </Link>
 
-            {flag && (
-              <span
-                className="text-sm shrink-0 cursor-default"
-                title={entry.country ?? "Country"}
-              >
-                {flag}
-              </span>
-            )}
+            {/* An image flag, not the emoji this used to render: Windows has
+                no glyphs for regional-indicator pairs, so it showed as the
+                bare letters "KH" for most of our users. */}
+            <CountryDisplay value={entry.country} flagOnly className="shrink-0" />
           </div>
 
           <Link

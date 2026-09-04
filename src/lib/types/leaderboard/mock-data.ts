@@ -7,6 +7,7 @@ import {
   REPUTATION_POINTS,
   SeverityLabel,
 } from "./types";
+import { countryLabel } from "@/lib/countries";
 
 /* Deterministic PRNG — the same seed always yields the same board, so the
    server render and the client render never disagree. */
@@ -24,55 +25,54 @@ function mulberry32(seed: number) {
 type Person = {
   username: string;
   displayName: string;
-  countryCode: string;
-  countryName: string;
+  country: string;
 };
 
 /** Roster only — every number below is generated, never hand-written, so the
  *  totals stay internally consistent (valid ≤ total, severities sum to valid). */
 const PEOPLE: Person[] = [
-  { username: "darkp4tch", displayName: "Amara Diallo", countryCode: "SN", countryName: "Senegal" },
-  { username: "n1ghtw0lf", displayName: "Ivan Petrov", countryCode: "RU", countryName: "Russia" },
-  { username: "cipherqueen", displayName: "Lin Xiaoyu", countryCode: "CN", countryName: "China" },
-  { username: "byte_reaper", displayName: "Diego Alvarez", countryCode: "MX", countryName: "Mexico" },
-  { username: "ghostsh3ll", displayName: "Fatima Noor", countryCode: "PK", countryName: "Pakistan" },
-  { username: "sok_vireak", displayName: "Sok Vireak", countryCode: "KH", countryName: "Cambodia" },
-  { username: "h4ck_atlas", displayName: "Pavel Novikov", countryCode: "RU", countryName: "Russia" },
-  { username: "seoyeon", displayName: "Seo Yeon Park", countryCode: "KR", countryName: "South Korea" },
-  { username: "v3ct0r_x", displayName: "Riya Sharma", countryCode: "IN", countryName: "India" },
-  { username: "shellsh0ck", displayName: "Tobias Müller", countryCode: "DE", countryName: "Germany" },
-  { username: "pixelp0wn", displayName: "Yasmine Cherkaoui", countryCode: "MA", countryName: "Morocco" },
-  { username: "deadc0de", displayName: "Arjun Kapoor", countryCode: "IN", countryName: "India" },
-  { username: "bl4ckm1rror", displayName: "Sofia Andersson", countryCode: "SE", countryName: "Sweden" },
-  { username: "zeroway", displayName: "Tariq Hassan", countryCode: "EG", countryName: "Egypt" },
-  { username: "exploit_echo", displayName: "Mei Lin Chen", countryCode: "TW", countryName: "Taiwan" },
-  { username: "chan_dara", displayName: "Chan Dara", countryCode: "KH", countryName: "Cambodia" },
-  { username: "nullstack", displayName: "Grace Okonkwo", countryCode: "NG", countryName: "Nigeria" },
-  { username: "raccoon_dev", displayName: "Lucas Ferreira", countryCode: "BR", countryName: "Brazil" },
-  { username: "s3gfault", displayName: "Hana Yamamoto", countryCode: "JP", countryName: "Japan" },
-  { username: "kernelkate", displayName: "Kate O'Neill", countryCode: "IE", countryName: "Ireland" },
-  { username: "phantombit", displayName: "Omar Haddad", countryCode: "JO", countryName: "Jordan" },
-  { username: "quietfuzz", displayName: "Elin Bakken", countryCode: "NO", countryName: "Norway" },
-  { username: "srey_pich", displayName: "Srey Pich", countryCode: "KH", countryName: "Cambodia" },
-  { username: "overflow_ana", displayName: "Ana Kovač", countryCode: "SI", countryName: "Slovenia" },
-  { username: "tracebackt", displayName: "Marcus Bennett", countryCode: "GB", countryName: "United Kingdom" },
-  { username: "kh4nti", displayName: "Khan Piseth", countryCode: "KH", countryName: "Cambodia" },
-  { username: "saltyhash", displayName: "Priya Menon", countryCode: "IN", countryName: "India" },
-  { username: "wraith_io", displayName: "Nikolai Sorokin", countryCode: "RU", countryName: "Russia" },
-  { username: "cve_hunter", displayName: "Daniel Weiss", countryCode: "DE", countryName: "Germany" },
-  { username: "mirrorbyte", displayName: "Zara Ahmed", countryCode: "AE", countryName: "United Arab Emirates" },
-  { username: "loopback_lu", displayName: "Lu Wei", countryCode: "CN", countryName: "China" },
-  { username: "packetpilot", displayName: "Emma Laurent", countryCode: "FR", countryName: "France" },
-  { username: "silent_sam", displayName: "Samuel Adeyemi", countryCode: "NG", countryName: "Nigeria" },
-  { username: "heapspray", displayName: "Bogdan Ilie", countryCode: "RO", countryName: "Romania" },
-  { username: "thea_scan", displayName: "Thea Nilsen", countryCode: "NO", countryName: "Norway" },
-  { username: "rootkitrio", displayName: "Rio Santoso", countryCode: "ID", countryName: "Indonesia" },
-  { username: "bitflipper", displayName: "Carlos Mendez", countryCode: "MX", countryName: "Mexico" },
-  { username: "sandboxed", displayName: "Aoife Byrne", countryCode: "IE", countryName: "Ireland" },
-  { username: "vuln_vera", displayName: "Vera Lindqvist", countryCode: "SE", countryName: "Sweden" },
-  { username: "keo_sophea", displayName: "Keo Sophea", countryCode: "KH", countryName: "Cambodia" },
-  { username: "hexhunter", displayName: "Youssef Amrani", countryCode: "MA", countryName: "Morocco" },
-  { username: "obsidian_q", displayName: "Quang Trần", countryCode: "VN", countryName: "Vietnam" },
+  { username: "darkp4tch", displayName: "Amara Diallo", country: "sn" },
+  { username: "n1ghtw0lf", displayName: "Ivan Petrov", country: "ru" },
+  { username: "cipherqueen", displayName: "Lin Xiaoyu", country: "cn" },
+  { username: "byte_reaper", displayName: "Diego Alvarez", country: "mx" },
+  { username: "ghostsh3ll", displayName: "Fatima Noor", country: "pk" },
+  { username: "sok_vireak", displayName: "Sok Vireak", country: "kh" },
+  { username: "h4ck_atlas", displayName: "Pavel Novikov", country: "ru" },
+  { username: "seoyeon", displayName: "Seo Yeon Park", country: "kr" },
+  { username: "v3ct0r_x", displayName: "Riya Sharma", country: "in" },
+  { username: "shellsh0ck", displayName: "Tobias Müller", country: "de" },
+  { username: "pixelp0wn", displayName: "Yasmine Cherkaoui", country: "ma" },
+  { username: "deadc0de", displayName: "Arjun Kapoor", country: "in" },
+  { username: "bl4ckm1rror", displayName: "Sofia Andersson", country: "se" },
+  { username: "zeroway", displayName: "Tariq Hassan", country: "eg" },
+  { username: "exploit_echo", displayName: "Mei Lin Chen", country: "tw" },
+  { username: "chan_dara", displayName: "Chan Dara", country: "kh" },
+  { username: "nullstack", displayName: "Grace Okonkwo", country: "ng" },
+  { username: "raccoon_dev", displayName: "Lucas Ferreira", country: "br" },
+  { username: "s3gfault", displayName: "Hana Yamamoto", country: "jp" },
+  { username: "kernelkate", displayName: "Kate O'Neill", country: "ie" },
+  { username: "phantombit", displayName: "Omar Haddad", country: "jo" },
+  { username: "quietfuzz", displayName: "Elin Bakken", country: "no" },
+  { username: "srey_pich", displayName: "Srey Pich", country: "kh" },
+  { username: "overflow_ana", displayName: "Ana Kovač", country: "si" },
+  { username: "tracebackt", displayName: "Marcus Bennett", country: "gb" },
+  { username: "kh4nti", displayName: "Khan Piseth", country: "kh" },
+  { username: "saltyhash", displayName: "Priya Menon", country: "in" },
+  { username: "wraith_io", displayName: "Nikolai Sorokin", country: "ru" },
+  { username: "cve_hunter", displayName: "Daniel Weiss", country: "de" },
+  { username: "mirrorbyte", displayName: "Zara Ahmed", country: "ae" },
+  { username: "loopback_lu", displayName: "Lu Wei", country: "cn" },
+  { username: "packetpilot", displayName: "Emma Laurent", country: "fr" },
+  { username: "silent_sam", displayName: "Samuel Adeyemi", country: "ng" },
+  { username: "heapspray", displayName: "Bogdan Ilie", country: "ro" },
+  { username: "thea_scan", displayName: "Thea Nilsen", country: "no" },
+  { username: "rootkitrio", displayName: "Rio Santoso", country: "id" },
+  { username: "bitflipper", displayName: "Carlos Mendez", country: "mx" },
+  { username: "sandboxed", displayName: "Aoife Byrne", country: "ie" },
+  { username: "vuln_vera", displayName: "Vera Lindqvist", country: "se" },
+  { username: "keo_sophea", displayName: "Keo Sophea", country: "kh" },
+  { username: "hexhunter", displayName: "Youssef Amrani", country: "ma" },
+  { username: "obsidian_q", displayName: "Quang Trần", country: "vn" },
 ];
 
 /** The signed-in researcher, so "your rank" has something to point at. */
@@ -156,8 +156,7 @@ function buildRawEntry(person: Person, index: number, period: LeaderboardPeriod)
     username: person.username,
     displayName: person.displayName,
     avatarInitials: initials(person.displayName),
-    countryCode: person.countryCode,
-    countryName: person.countryName,
+    country: person.country,
     reputation,
     totalReports: period === "all" ? totalReports : null,
     validReports: period === "all" ? validReports : null,
@@ -211,12 +210,13 @@ export function getCountryOptions(
 ): LeaderboardCountryOption[] {
   const counts = new Map<string, LeaderboardCountryOption>();
   for (const entry of BOARDS[period]) {
-    const existing = counts.get(entry.countryCode);
+    const code = entry.country ?? "unknown";
+    const existing = counts.get(code);
     if (existing) existing.count += 1;
     else
-      counts.set(entry.countryCode, {
-        code: entry.countryCode,
-        name: entry.countryName,
+      counts.set(code, {
+        code,
+        name: countryLabel(entry.country) ?? "Unknown",
         count: 1,
       });
   }

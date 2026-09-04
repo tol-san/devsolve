@@ -1,112 +1,70 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import {
-  useGetCountriesQuery,
-  useDetectCountryQuery,
-  type CountryOption,
-} from "@/lib/redux/services/geoApi";
-import { DEFAULT_COUNTRIES } from "@/lib/constants/auth";
+import { useCallback, useEffect, useRef } from "react";
 
-export function useAutoDetectCountry(
-  onDetect?: (countryName: string, countryCode: string) => void
-) {
-  const [countryCode, setCountryCode] = useState<string | null>(null);
-  const [selectedCountryName, setSelectedCountryName] = useState<string>("");
+import { useDetectCountryQuery } from "@/lib/redux/services/geoApi";
+import { isCountryCode } from "@/lib/countries";
+
+/**
+ * A first guess at where someone is, as an ISO alpha-2 code.
+ *
+ * Only ever produces a **code** — the country list itself is static and ships
+ * with the frontend (`@/lib/countries`), so there is nothing to fetch and no
+ * display name to carry around. The name is derived from the code wherever it
+ * is shown.
+ *
+ * This is a convenience, not an answer: it prefills the picker so most people
+ * do not have to open it, and every caller lets the person change it. A guess
+ * that lands on the wrong country is a nuisance; one that cannot be overridden
+ * would be a bug.
+ */
+export function useAutoDetectCountry(onDetect?: (code: string) => void) {
   const hasDetectedRef = useRef(false);
 
-  // Keep a ref to the latest onDetect callback to avoid re-triggering effects on inline functions
+  /* The callback is usually written inline at the call site, so it is read
+     through a ref — depending on it directly would re-run detection on every
+     render of the form. */
   const onDetectRef = useRef(onDetect);
   useEffect(() => {
     onDetectRef.current = onDetect;
   }, [onDetect]);
 
-  // RTK Query hooks
-  const { data: fetchedCountries } = useGetCountriesQuery();
-  const { data: ipGeoData, isLoading: isDetectingIp } = useDetectCountryQuery();
+  const { data: ipGeo, isLoading: isDetecting } = useDetectCountryQuery();
 
-  const countriesList: CountryOption[] =
-    fetchedCountries && fetchedCountries.length > 0
-      ? fetchedCountries
-      : DEFAULT_COUNTRIES;
-
-  const handleSetCountry = useCallback((name: string, code: string) => {
-    setSelectedCountryName(name);
-    setCountryCode(code.toLowerCase());
-    if (onDetectRef.current) {
-      onDetectRef.current(name, code.toLowerCase());
-    }
+  /* Hands the guess to the form and keeps none of it. The hook holds no state
+     of its own: the field it fills is the single source of truth, and a second
+     copy here could only ever disagree with it. */
+  const apply = useCallback((code: string) => {
+    const normalized = code.trim().toLowerCase();
+    if (!isCountryCode(normalized)) return;
+    onDetectRef.current?.(normalized);
   }, []);
 
   useEffect(() => {
     if (hasDetectedRef.current) return;
 
-    if (ipGeoData?.country_name && ipGeoData?.country_code) {
+    /* IP geolocation is the good answer when we have it. */
+    if (ipGeo?.country_code) {
       hasDetectedRef.current = true;
-      handleSetCountry(ipGeoData.country_name, ipGeoData.country_code);
+      apply(ipGeo.country_code);
       return;
     }
 
-    if (!isDetectingIp) {
-      hasDetectedRef.current = true;
-      try {
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        let detectedName = "";
-        let detectedCode = "";
+    if (isDetecting) return;
+    hasDetectedRef.current = true;
 
-        if (timeZone.includes("Phnom_Penh") || timeZone.includes("Bangkok")) {
-          detectedName = "Cambodia";
-          detectedCode = "kh";
-        } else if (timeZone.includes("Ho_Chi_Minh")) {
-          detectedName = "Vietnam";
-          detectedCode = "vn";
-        } else if (timeZone.includes("Singapore")) {
-          detectedName = "Singapore";
-          detectedCode = "sg";
-        } else if (timeZone.includes("Tokyo")) {
-          detectedName = "Japan";
-          detectedCode = "jp";
-        } else if (
-          timeZone.includes("New_York") ||
-          timeZone.includes("Los_Angeles") ||
-          timeZone.includes("Chicago")
-        ) {
-          detectedName = "United States";
-          detectedCode = "us";
-        } else if (timeZone.includes("London")) {
-          detectedName = "United Kingdom";
-          detectedCode = "gb";
-        } else {
-          const userLanguage =
-            typeof navigator !== "undefined" ? navigator.language : "en-US";
-          const cCode = userLanguage.split("-")[1];
-          if (cCode) {
-            detectedCode = cCode.toLowerCase();
-            if (typeof Intl.DisplayNames !== "undefined") {
-              const regionNames = new Intl.DisplayNames(["en"], {
-                type: "region",
-              });
-              detectedName = regionNames.of(cCode) || "";
-            }
-          }
-        }
-
-        if (detectedName || detectedCode) {
-          handleSetCountry(detectedName || "Cambodia", detectedCode || "kh");
-        } else {
-          handleSetCountry("Cambodia", "kh");
-        }
-      } catch {
-        handleSetCountry("Cambodia", "kh");
-      }
+    /* Otherwise the browser's own locale, which carries a region for most
+       people ("en-GB" -> gb). Deliberately not a timezone table: those need a
+       hand-maintained list of cities and get a continent's worth of countries
+       wrong. No guess at all is better than a confidently wrong one, so this
+       gives up rather than defaulting to any particular country. */
+    try {
+      const region = new Intl.Locale(navigator.language).region;
+      if (region) apply(region);
+    } catch {
+      /* Leaves the picker empty for the person to fill in. */
     }
-  }, [ipGeoData, isDetectingIp, handleSetCountry]);
+  }, [ipGeo, isDetecting, apply]);
 
-  return {
-    countriesList,
-    countryCode,
-    selectedCountryName,
-    isDetecting: isDetectingIp,
-    handleSetCountry,
-  };
+  return { isDetecting };
 }

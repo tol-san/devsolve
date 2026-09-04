@@ -791,6 +791,7 @@
       "phonePlaceholder": "+855 12 345 678",
       "country": "ប្រទេស",
       "countryPlaceholder": "ជ្រើសរើសប្រទេសរបស់អ្នក",
+      "countryHint": "អ្នកអាចកំណត់វានៅក្នុងប្រវត្តិរូបរបស់អ្នក បន្ទាប់ពីចុះឈ្មោះ។",
       "passwordPlaceholder": "••••••••",
       "confirmPasswordPlaceholder": "••••••••",
       "submitButton": "បង្កើតគណនី",

@@ -1,9 +1,13 @@
 import { baseApi } from "./baseApi";
 
-export interface CountryOption {
-  name: string;
-  code: string;
-}
+/**
+ * IP geolocation only.
+ *
+ * The country *list* is static and ships with the frontend
+ * (`@/lib/countries`) — there used to be a `/geo/countries` endpoint here that
+ * proxied a CDN to learn that Cambodia is `kh`, which is a network round trip
+ * that can fail before the register form can paint its picker.
+ */
 
 export interface IpGeoResult {
   country_name: string;
@@ -12,13 +16,10 @@ export interface IpGeoResult {
 
 export const geoApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCountries: builder.query<CountryOption[], void>({
-      query: () => "/geo/countries",
-    }),
     detectCountry: builder.query<IpGeoResult | null, void>({
       query: () => "/geo/detect-country",
     }),
   }),
 });
 
-export const { useGetCountriesQuery, useDetectCountryQuery } = geoApi;
+export const { useDetectCountryQuery } = geoApi;

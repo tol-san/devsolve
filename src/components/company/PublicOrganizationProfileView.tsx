@@ -32,6 +32,7 @@ import {
   useGetOrganizationByIdQuery,
   useGetOrganizationProgramsByIdQuery,
 } from "@/lib/redux/services/organizationsApi";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 import type { Program } from "@/lib/types/programs/types";
 
 const defaultCompanyProfile = {
@@ -270,10 +271,11 @@ function CompanyProfileContent() {
                     </span>
                   )}
                   {displayProfile.details.country && (
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin className="size-3.5" />
-                      {displayProfile.details.country}
-                    </span>
+                    <CountryDisplay
+                      value={displayProfile.details.country}
+                      size={12}
+                      className="gap-1"
+                    />
                   )}
                 </div>
               </div>
@@ -741,9 +743,11 @@ function CompanyProfileContent() {
                   <MapPin className="size-4 text-muted-foreground" />
                   Country
                 </span>
-                <span className="font-semibold text-foreground truncate">
-                  {displayProfile.details.country}
-                </span>
+                <CountryDisplay
+                  value={displayProfile.details.country}
+                  size={14}
+                  textClassName="font-semibold text-foreground"
+                />
               </div>
 
               <div className="flex items-center justify-between gap-3">

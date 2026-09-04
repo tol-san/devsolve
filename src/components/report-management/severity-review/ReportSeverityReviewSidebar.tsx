@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 
 type ReportSeverityReviewSidebarProps = {
   detail: ReportManagementDetail;
@@ -167,10 +168,7 @@ export function ReportSeverityReviewSidebar({
           {/* Location & Metadata */}
           <div className="flex flex-col gap-1.5 text-xs text-muted-foreground px-1 min-w-0">
             {location && (
-              <span className="flex items-center gap-1.5 truncate">
-                <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
-                <span className="truncate">{location}</span>
-              </span>
+              <CountryDisplay value={location} size={12} className="min-w-0" />
             )}
             {memberSince && (
               <span className="flex items-center gap-1.5 truncate">

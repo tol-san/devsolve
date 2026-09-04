@@ -1,5 +1,8 @@
 /**
- * Utilities for formatting Hall of Thanks dates and country indicators.
+ * Utilities for formatting Hall of Thanks dates.
+ *
+ * Country rendering lives in `CountryDisplay` — the emoji flag helper that was
+ * here produced regional-indicator pairs, which Windows has no glyphs for.
  */
 
 /**
@@ -72,14 +75,3 @@ export function formatFullDateTime(dateInput: string | Date | null | undefined):
   });
 }
 
-/**
- * Maps 2-letter ISO country code to emoji flag.
- */
-export function countryCodeToFlag(countryCode: string | null | undefined): string | null {
-  if (!countryCode) return null;
-  const code = countryCode.trim().toUpperCase();
-  if (code.length !== 2 || !/^[A-Z]{2}$/.test(code)) return null;
-
-  const codePoints = [...code].map((c) => 127397 + c.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
-}

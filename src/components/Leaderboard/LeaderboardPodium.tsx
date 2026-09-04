@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 import { Crown, Globe } from "lucide-react";
 import {
   LeaderboardEntry,
@@ -13,7 +14,6 @@ import ResearcherAvatar from "./ResearcherAvatar";
 import {
   PERIOD_LABEL_SHORT,
   formatNumber,
-  getCountryFlagCode,
   profileHref,
 } from "./leaderboard-ui";
 
@@ -160,13 +160,6 @@ function PodiumColumn({
   const isChampion = place === 0;
   const delay = BUILD_DELAY[place];
 
-  const flagCode = getCountryFlagCode(entry.countryCode, entry.countryName);
-  const countryDisplayName =
-    entry.countryName && !entry.countryName.includes(",")
-      ? entry.countryName
-      : entry.countryCode && !entry.countryCode.includes(",")
-      ? entry.countryCode
-      : entry.countryName || null;
 
   const avatarRingStyles = {
     0: "ring-4 ring-amber-400 shadow-lg shadow-amber-400/40",
@@ -273,19 +266,18 @@ function PodiumColumn({
             </p>
 
             <div className="mt-1 hidden sm:flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-medium text-muted-foreground">
-              {flagCode ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={`https://flagcdn.com/w40/${flagCode}.png`}
-                  alt={countryDisplayName || "Flag"}
-                  className="h-3 w-4 shrink-0 rounded-2xs object-cover border border-border/50"
+              {entry.country ? (
+                <CountryDisplay
+                  value={entry.country}
+                  size={12}
+                  textClassName="max-w-[95px] sm:max-w-[140px]"
                 />
               ) : (
-                <Globe className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                <>
+                  <Globe className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                  <span className="truncate">Unknown country</span>
+                </>
               )}
-              <span className="truncate max-w-[95px] sm:max-w-[140px]">
-                {countryDisplayName || "Unknown country"}
-              </span>
             </div>
           </motion.div>
         </div>

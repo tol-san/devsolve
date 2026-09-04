@@ -139,40 +139,5 @@ export function isUuid(val?: string | null): boolean {
   return UUID_REGEX.test(val.trim());
 }
 
-export function getCountryFlagCode(countryCode?: string, countryName?: string): string | null {
-  const codeStr = countryCode?.trim().toLowerCase() ?? "";
-  const nameStr = countryName?.trim().toLowerCase() ?? "";
-  const combined = `${codeStr} ${nameStr}`;
-
-  if (!combined.trim()) return null;
-
-  if (codeStr.length === 2 && /^[a-z]{2}$/.test(codeStr)) {
-    return codeStr;
-  }
-
-  if (nameStr.length === 2 && /^[a-z]{2}$/.test(nameStr)) {
-    return nameStr;
-  }
-
-  if (combined.includes("cambodia") || combined.includes("phnom penh")) return "kh";
-  if (combined.includes("united states") || combined.includes("usa") || combined.includes("america")) return "us";
-  if (combined.includes("vietnam") || combined.includes("viet nam")) return "vn";
-  if (combined.includes("thailand")) return "th";
-  if (combined.includes("singapore")) return "sg";
-  if (combined.includes("japan")) return "jp";
-  if (combined.includes("united kingdom") || combined.includes("uk") || combined.includes("england") || combined.includes("britain")) return "gb";
-  if (combined.includes("germany")) return "de";
-  if (combined.includes("france")) return "fr";
-  if (combined.includes("canada")) return "ca";
-  if (combined.includes("australia")) return "au";
-  if (combined.includes("india")) return "in";
-  if (combined.includes("indonesia")) return "id";
-  if (combined.includes("malaysia")) return "my";
-  if (combined.includes("philippines")) return "ph";
-  if (combined.includes("korea")) return "kr";
-  if (combined.includes("china")) return "cn";
-
-  return null;
-}
 
 

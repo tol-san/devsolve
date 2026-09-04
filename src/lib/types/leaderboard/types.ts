@@ -31,8 +31,13 @@ export interface LeaderboardEntry {
   displayName: string;
   avatarUrl?: string;
   avatarInitials: string;
-  countryCode: string;
-  countryName: string;
+  /**
+   * The profile's stored `country` — normally an ISO code, sometimes legacy
+   * free text. Held raw and resolved at render by `CountryDisplay`; this used
+   * to be split into `countryCode`/`countryName`, but both were filled from
+   * this one value, so the "name" was whatever the code was.
+   */
+  country: string | null;
   /** The sort key. Points, never payout amounts. */
   reputation: number;
   totalReports: number | null;

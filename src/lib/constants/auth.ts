@@ -9,26 +9,7 @@ import {
   UserCheck,
   LucideIcon,
 } from "lucide-react";
-import type { CountryOption } from "@/lib/redux/services/geoApi";
 
-export const DEFAULT_COUNTRIES: CountryOption[] = [
-  { name: "Cambodia", code: "kh" },
-  { name: "United States", code: "us" },
-  { name: "United Kingdom", code: "gb" },
-  { name: "Vietnam", code: "vn" },
-  { name: "Thailand", code: "th" },
-  { name: "Singapore", code: "sg" },
-  { name: "Japan", code: "jp" },
-  { name: "Australia", code: "au" },
-  { name: "Canada", code: "ca" },
-  { name: "France", code: "fr" },
-  { name: "Germany", code: "de" },
-  { name: "India", code: "in" },
-  { name: "Indonesia", code: "id" },
-  { name: "Malaysia", code: "my" },
-  { name: "Philippines", code: "ph" },
-  { name: "South Korea", code: "kr" },
-];
 
 export const JOB_TITLES = [
   "CTO / VP Engineering",

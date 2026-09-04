@@ -33,6 +33,7 @@ import { useGetReportsQuery } from "@/lib/redux/services/reportsApi";
 import { useGetMyOrganizationAccessQuery } from "@/lib/redux/services/researcherAccessApi";
 import type { Program } from "@/lib/types/programs/types";
 import { cn } from "@/lib/utils";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 
 /**
  * One company, from the researcher side.
@@ -142,10 +143,7 @@ export function CompanyAccessDetail({
                   <span className="font-medium">{organization.industry}</span>
                 )}
                 {organization?.country && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="size-3.5" />
-                    {organization.country}
-                  </span>
+                  <CountryDisplay value={organization.country} size={12} />
                 )}
                 {organization?.websiteUrl && (
                   <a

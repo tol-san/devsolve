@@ -2,7 +2,6 @@
 
 import {
   User,
-  MapPin,
   Phone,
   Calendar,
   Lock,
@@ -13,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
+import { CountrySelect } from "@/components/shared/CountrySelect";
 import type { EditProfileFormData } from "@/lib/types/profile/types";
 
 interface PersonalDetailsSectionProps {
@@ -87,26 +87,26 @@ export default function PersonalDetailsSection({
             )}
           </div>
 
-          {/* Location / Country */}
+          {/* Country.
+              Was a free-text box placeheld "e.g. San Francisco, USA or
+              Remote", which is why profiles hold values like that and why the
+              read path still has to cope with them. It writes the profile's
+              `country` field, so it is now the same picker as everywhere else
+              and stores an ISO code. A legacy value is left showing until the
+              person picks something, rather than being cleared for them. */}
           <div className="space-y-2">
             <label
               htmlFor="edit-location"
               className="block text-base font-semibold text-foreground"
             >
-              Location / Country
+              Country
             </label>
-            <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
-                <MapPin className="size-4" />
-              </span>
-              <Input
-                id="edit-location"
-                value={values.location ?? ""}
-                onChange={(e) => onChange({ location: e.target.value })}
-                placeholder="e.g. San Francisco, USA or Remote"
-                className={cn(inputClass, "pl-9", fieldError("location") && errorInputClass)}
-              />
-            </div>
+            <CountrySelect
+              id="edit-location"
+              value={values.location}
+              error={Boolean(fieldError("location"))}
+              onChange={(code) => onChange({ location: code })}
+            />
             {fieldError("location") && (
               <p className="text-sm font-medium text-rose-600 dark:text-rose-400">
                 {fieldError("location")}

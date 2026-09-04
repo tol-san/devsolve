@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { AdminUserItem } from "@/lib/redux/services/adminApi";
 import type { ModerationActionType } from "@/lib/types/admin/types";
 import { UserStatusBadge } from "./UserStatusBadge";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -160,8 +161,20 @@ export function getUserColumns({
               <div className="truncate text-sm font-semibold text-foreground">
                 {displayName}
               </div>
-              <div className="truncate text-sm text-muted-foreground">
-                {user.email}
+              <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+                <span className="truncate">{user.email}</span>
+                {/* This list is already searchable by country; it just never
+                    showed one, so a match looked like a bug. */}
+                {user.country && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <CountryDisplay
+                      value={user.country}
+                      size={12}
+                      className="shrink-0"
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>

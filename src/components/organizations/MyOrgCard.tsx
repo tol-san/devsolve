@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { buttonVariants } from "@/components/ui/button";
 import { Building2, Globe, MapPin, Users, Calendar, Edit3, Link2, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 
 /**
  * The organization at a glance. Read-only by design: everything editable,
@@ -130,7 +131,10 @@ export function MyOrgCard({ organization }: MyOrgCardProps) {
               Country
             </div>
             <p className="text-sm font-semibold text-foreground mt-1">
-              {organization.country || "Not specified"}
+              <CountryDisplay
+                value={organization.country}
+                fallback="Not specified"
+              />
             </p>
           </div>
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
+import { CountryDisplay } from "@/components/shared/CountryDisplay";
 import { ChevronLeft, ChevronRight, Crown, Medal, Users, ShieldAlert, Award, CheckCircle2 } from "lucide-react";
 import {
   LeaderboardEntry,
@@ -21,7 +22,6 @@ import {
   MEDALS,
   SEVERITY_STYLES,
   formatNumber,
-  getCountryFlagCode,
   isUuid,
   profileHref,
 } from "./leaderboard-ui";
@@ -92,13 +92,6 @@ function ResearcherCard({
     hasValidReports && entry.totalReports! > 0
       ? Math.round((entry.validReports! / entry.totalReports!) * 100)
       : null;
-  const flagCode = getCountryFlagCode(entry.countryCode, entry.countryName);
-  const countryDisplayName =
-    entry.countryName && !entry.countryName.includes(",")
-      ? entry.countryName
-      : entry.countryCode && !entry.countryCode.includes(",")
-      ? entry.countryCode
-      : entry.countryName || null;
 
   return (
     <motion.div
@@ -151,18 +144,10 @@ function ResearcherCard({
                 </span>
               )}
 
-              {(flagCode || countryDisplayName) && (
-                <span className="inline-flex items-center gap-1 font-medium text-slate-600 dark:text-neutral-400">
+              {entry.country && (
+                <span className="inline-flex min-w-0 items-center gap-1 font-medium text-slate-600 dark:text-neutral-400">
                   {!isUuid(entry.username) && <span>·</span>}
-                  {flagCode ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={`https://flagcdn.com/w40/${flagCode}.png`}
-                      alt={countryDisplayName || "Country flag"}
-                      className="h-3 w-4 shrink-0 rounded-2xs border border-slate-200/80 object-cover shadow-2xs dark:border-neutral-800"
-                    />
-                  ) : null}
-                  {countryDisplayName && <span className="truncate">{countryDisplayName}</span>}
+                  <CountryDisplay value={entry.country} size={12} />
                 </span>
               )}
             </div>

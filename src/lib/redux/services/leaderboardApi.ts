@@ -7,6 +7,7 @@ import {
   LeaderboardStats,
   SeverityLabel,
 } from "@/lib/types/leaderboard/types";
+import { countryLabel, resolveCountry } from "@/lib/countries";
 
 export interface LeaderboardQueryParams {
   period: LeaderboardPeriod;
@@ -87,8 +88,7 @@ function mapProfileToEntry(
     displayName: name,
     avatarUrl: profile.avatarUrl,
     avatarInitials: initials,
-    countryCode: profile.country || "Unknown",
-    countryName: profile.country || "Unknown country",
+    country: profile.country ?? null,
     reputation: profile.reputation ?? 0,
     totalReports: total,
     validReports: valid,
@@ -114,7 +114,9 @@ function filterEntries(
   }: { country: string; severity: SeverityLabel | "all"; queryTerm: string }
 ) {
   return entries.filter((entry) => {
-    if (country !== "all" && entry.countryCode !== country) return false;
+    /* Compared on the resolved code so the filter keeps working against rows
+       that still hold a legacy name. */
+    if (country !== "all" && countryKeyOf(entry.country) !== country) return false;
     if (severity !== "all" && entry.topSeverity !== severity) return false;
     if (
       queryTerm &&
@@ -127,16 +129,28 @@ function filterEntries(
   });
 }
 
+/**
+ * The grouping key for a stored country value: its code where we recognise
+ * one, otherwise the text itself, so unrecognised values still group together
+ * instead of collapsing into a single "Unknown" bucket.
+ */
+function countryKeyOf(value: string | null | undefined): string {
+  const resolved = resolveCountry(value);
+  if (!resolved) return "unknown";
+  return resolved.kind === "code" ? resolved.code : resolved.text.toLowerCase();
+}
+
 function countryOptionsOf(entries: LeaderboardEntry[]): LeaderboardCountryOption[] {
   const counts = new Map<string, LeaderboardCountryOption>();
 
   for (const entry of entries) {
-    const existing = counts.get(entry.countryCode);
+    const key = countryKeyOf(entry.country);
+    const existing = counts.get(key);
     if (existing) existing.count += 1;
     else {
-      counts.set(entry.countryCode, {
-        code: entry.countryCode,
-        name: entry.countryName,
+      counts.set(key, {
+        code: key,
+        name: countryLabel(entry.country) ?? "Unknown",
         count: 1,
       });
     }

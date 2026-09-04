@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CustomSelect } from "@/components/auth/CustomSelect";
-import { CustomCountrySelect } from "@/components/auth/CustomCountrySelect";
+import { CountrySelect } from "@/components/shared/CountrySelect";
 import { useAutoDetectCountry } from "@/hooks/useAutoDetectCountry";
 import { INDUSTRIES, COMPANY_SIZES, REASONS } from "@/lib/constants/auth";
 import { useT } from "@/lib/i18n/I18nProvider";
@@ -56,15 +56,15 @@ export function CompanyStep2Form({
   const country = watch("country");
   const joiningReason = watch("joiningReason");
 
+  /* The ISO code is what gets stored — see `@/lib/countries`. */
   const handleCountryDetect = React.useCallback(
-    (name: string) => {
-      setValue("country", name, { shouldValidate: true });
+    (code: string) => {
+      setValue("country", code, { shouldValidate: true });
     },
     [setValue]
   );
 
-  const { countriesList, countryCode, isDetecting, handleSetCountry } =
-    useAutoDetectCountry(handleCountryDetect);
+  const { isDetecting } = useAutoDetectCountry(handleCountryDetect);
 
   return (
     <motion.form
@@ -216,15 +216,12 @@ export function CompanyStep2Form({
           {t("auth.companyRegister.country")}{" "}
           <span className="text-destructive">*</span>
         </Label>
-        <CustomCountrySelect
-          value={country || ""}
-          countryCode={countryCode}
-          countries={countriesList}
+        <CountrySelect
+          id="country"
+          value={country}
           isDetecting={isDetecting}
-          onSelect={(c) => {
-            setValue("country", c.name, { shouldValidate: true });
-            handleSetCountry(c.name, c.code);
-          }}
+          error={Boolean(errors.country)}
+          onChange={(code) => setValue("country", code, { shouldValidate: true })}
         />
         {errors.country && (
           <p className="text-xs text-destructive mt-1 font-medium">
