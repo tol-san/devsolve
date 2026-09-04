@@ -37,6 +37,7 @@ export interface MyPost {
   canSubmit?: boolean;
   /** For a solution, the problem it answers — needed to delete it cleanly. */
   problemId?: string;
+  isDraft?: boolean;
 }
 
 interface Paged<T> {
@@ -97,6 +98,24 @@ interface MyShowcase {
   createdAt?: string;
 }
 
+interface MyShowcaseDraft {
+  id: string;
+  title?: string;
+  overview?: string;
+  coverImageUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface MySolutionDraft {
+  id: string;
+  problemId?: string;
+  summary?: string;
+  bodyMarkdown?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const PAGE_SIZE = 50;
 
 const PROBLEM_STATE: Record<MyProblem["status"], MyPost["state"]> = {
@@ -118,20 +137,28 @@ export const myCommunityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getMyPosts: builder.query<MyPost[], void>({
       async queryFn(_arg, _api, _extraOptions, fetchWithBQ) {
-        const [problemsResult, solutionsResult, showcasesResult] =
-          await Promise.all([
-            fetchWithBQ(`/problems/mine?size=${PAGE_SIZE}`),
-            fetchWithBQ(`/solutions/mine?pageSize=${PAGE_SIZE}`),
-            fetchWithBQ(`/showcases/mine?pageSize=${PAGE_SIZE}`),
-          ]);
+        const [
+          problemsResult,
+          solutionsResult,
+          showcasesResult,
+          showcaseDraftsResult,
+          solutionDraftsResult,
+        ] = await Promise.all([
+          fetchWithBQ(`/problems/mine?size=${PAGE_SIZE}`),
+          fetchWithBQ(`/solutions/mine?pageSize=${PAGE_SIZE}`),
+          fetchWithBQ(`/showcases/mine?pageSize=${PAGE_SIZE}`),
+          fetchWithBQ(`/showcase-drafts?size=${PAGE_SIZE}`),
+          fetchWithBQ(`/solution-drafts?size=${PAGE_SIZE}`),
+        ]);
 
-        /* One list failing leaves the others usable — the three are separate
-           upstream, and an author with no solutions should still see their
-           showcases if that endpoint happens to be down. */
+        /* One list failing leaves the others usable — the lists are separate
+           upstream, so partial answers still work cleanly. */
         if (
           problemsResult.error &&
           solutionsResult.error &&
-          showcasesResult.error
+          showcasesResult.error &&
+          showcaseDraftsResult.error &&
+          solutionDraftsResult.error
         ) {
           return { error: problemsResult.error };
         }
@@ -163,6 +190,7 @@ export const myCommunityApi = baseApi.injectEndpoints({
             editHref: `/community/${problem.id}/edit`,
             /* Only a draft has somewhere to be submitted to. */
             canSubmit: problem.status === "DRAFT",
+            isDraft: problem.status === "DRAFT",
             views: problem.viewCount ?? 0,
             state: PROBLEM_STATE[problem.status],
           }),
@@ -224,20 +252,61 @@ export const myCommunityApi = baseApi.injectEndpoints({
           }),
         );
 
+        const showcaseDrafts = contentOf<MyShowcaseDraft>(showcaseDraftsResult).map(
+          (draft): MyPost => ({
+            id: draft.id,
+            kind: "Showcase",
+            title: draft.title?.trim() || "Untitled showcase draft",
+            excerpt: excerptOf(draft.overview ?? "", 200),
+            editHref: `/community/create/showcase?draftId=${draft.id}`,
+            createdAt: draft.updatedAt || draft.createdAt || new Date().toISOString(),
+            coverImageUrl: draft.coverImageUrl,
+            state: { label: "Draft", tone: "draft" },
+            isDraft: true,
+          }),
+        );
+
+        const solutionDrafts = contentOf<MySolutionDraft>(solutionDraftsResult).map(
+          (draft): MyPost => {
+            const body = excerptOf(draft.bodyMarkdown ?? "", 200);
+            return {
+              id: draft.id,
+              kind: "Solution",
+              title: draft.summary?.trim() || firstLine(body) || "Untitled solution draft",
+              excerpt: body,
+              editHref: draft.problemId
+                ? `/community/${draft.problemId}/solutions/create?draftId=${draft.id}`
+                : undefined,
+              problemId: draft.problemId,
+              createdAt: draft.updatedAt || draft.createdAt || new Date().toISOString(),
+              state: { label: "Draft", tone: "draft" },
+              isDraft: true,
+            };
+          },
+        );
+
         return {
-          data: [...problems, ...solutions, ...showcases].sort(
+          data: [
+            ...problems,
+            ...solutions,
+            ...showcases,
+            ...showcaseDrafts,
+            ...solutionDrafts,
+          ].sort(
             (a, b) =>
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           ),
         };
       },
       /* One tag per source list, so deleting a post of any kind refreshes this
-         page without the other two being refetched for nothing. */
+         page without the others being refetched for nothing. */
       providesTags: [
         { type: "Showcase", id: "MINE" },
         { type: "Problem", id: "MINE" },
         { type: "Solution", id: "MINE" },
         { type: "Discussion", id: "LIST" },
+        { type: "ShowcaseDraft", id: "MINE" },
+        { type: "SolutionDraft", id: "MINE" },
       ],
     }),
   }),

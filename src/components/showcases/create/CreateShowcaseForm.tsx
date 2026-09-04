@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useWatch, FormProvider, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "motion/react";
-import { AlertCircle, Check, Loader2, Send } from "lucide-react";
+import { AlertCircle, Check, FileText, Loader2, Save, Send } from "lucide-react";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -42,6 +43,8 @@ import {
   type CreateShowcaseFormValues,
   type CreateShowcaseSubmitValues,
 } from "@/lib/validations/showcase";
+import { useServerShowcaseDraft } from "@/components/showcases/hooks/useServerShowcaseDraft";
+import type { SaveShowcaseDraftValues } from "@/lib/validations/showcase-draft";
 import { cn } from "@/lib/utils";
 
 /** Pulls something readable out of an RTK Query error. */
@@ -360,7 +363,66 @@ export function CreateShowcaseForm({
   const coverImageUrl = useWatch({ control, name: "coverImageUrl" }) ?? "";
   const coverImageFile = useWatch({ control, name: "coverImageFile" });
   const categoryId = useWatch({ control, name: "categoryId" }) ?? "";
+  const liveUrl = useWatch({ control, name: "liveUrl" }) ?? "";
+  const repoUrl = useWatch({ control, name: "repoUrl" }) ?? "";
+  const videoUrl = useWatch({ control, name: "videoUrl" }) ?? "";
+  const techStack = useWatch({ control, name: "techStack" }) ?? [];
   const steps = useWatch({ control, name: "steps" }) ?? [];
+
+  const searchParams = useSearchParams();
+  const resumeId = searchParams?.get("draftId") ?? undefined;
+
+  const draftValues: SaveShowcaseDraftValues = React.useMemo(
+    () => ({
+      title: title.trim() || undefined,
+      overview: overview.trim() || undefined,
+      categoryId: categoryId || undefined,
+      coverImageUrl: coverImageUrl || undefined,
+      liveUrl: liveUrl.trim() || undefined,
+      repoUrl: repoUrl.trim() || undefined,
+      videoUrl: videoUrl.trim() || undefined,
+      tags: techStack.length ? techStack : undefined,
+    }),
+    [title, overview, categoryId, coverImageUrl, liveUrl, repoUrl, videoUrl, techStack],
+  );
+
+  const { isDirty } = methods.formState;
+  const {
+    available: availableDraft,
+    savedAt,
+    isSaving: isSavingDraft,
+    take: takeDraft,
+    discard: discardDraft,
+    saveNow: saveDraftNow,
+    clear: clearDraft,
+  } = useServerShowcaseDraft({
+    values: draftValues,
+    enabled: !isEdit,
+    isDirty,
+    resumeId,
+  });
+
+  const resumedFromUrl = useRef(false);
+  useEffect(() => {
+    if (!resumeId || resumedFromUrl.current || isEdit) return;
+    resumedFromUrl.current = true;
+    const draft = takeDraft();
+    if (draft) {
+      reset({
+        title: draft.title ?? "",
+        overview: draft.overview ?? "",
+        categoryId: draft.categoryId ?? "",
+        coverImageUrl: draft.coverImageUrl ?? "",
+        liveUrl: draft.liveUrl ?? "",
+        repoUrl: draft.repoUrl ?? "",
+        videoUrl: draft.videoUrl ?? "",
+        techStack: draft.tags ?? [],
+        resourceLinks: [],
+        steps: [createEmptyStep()],
+      });
+      toast.success("Draft restored from link");
+    }
+  }, [resumeId, isEdit, takeDraft, reset]);
 
   /* A step only counts once it carries both of the fields the schema demands
      — a titled step with an empty body would fail validation at submit.
@@ -553,6 +615,10 @@ export function CreateShowcaseForm({
         }
       }
 
+      if (!isEdit) {
+        await clearDraft();
+      }
+      toast.success(isEdit ? "Showcase updated" : "Showcase published for review");
       router.push(successHref);
     } catch (error) {
       setSubmitError(messageOf(error, stage));
@@ -583,6 +649,63 @@ export function CreateShowcaseForm({
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
           {/* ── Main column ── */}
           <div className="space-y-6 lg:col-span-2">
+            {availableDraft && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-foreground"
+              >
+                <div className="flex items-center gap-2.5">
+                  <FileText className="size-5 text-blue-500 shrink-0" />
+                  <div>
+                    <p className="font-semibold text-foreground">
+                      You have an unfinished showcase draft
+                      {availableDraft.title ? `: "${availableDraft.title}"` : ""}.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Saved {availableDraft.updatedAt ? new Date(availableDraft.updatedAt).toLocaleString() : "recently"}. Would you like to resume where you left off?
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      const draft = takeDraft();
+                      if (draft) {
+                        reset({
+                          title: draft.title ?? "",
+                          overview: draft.overview ?? "",
+                          categoryId: draft.categoryId ?? "",
+                          coverImageUrl: draft.coverImageUrl ?? "",
+                          liveUrl: draft.liveUrl ?? "",
+                          repoUrl: draft.repoUrl ?? "",
+                          videoUrl: draft.videoUrl ?? "",
+                          techStack: draft.tags ?? [],
+                          resourceLinks: [],
+                          steps: [createEmptyStep()],
+                        });
+                        toast.success("Draft restored");
+                      }
+                    }}
+                    className="rounded-xl font-medium"
+                  >
+                    Resume draft
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void discardDraft()}
+                    className="rounded-xl text-muted-foreground hover:text-foreground"
+                  >
+                    Discard
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
             <FormSection
               n="01"
               title="The project"
@@ -861,6 +984,25 @@ export function CreateShowcaseForm({
                 </motion.div>
               )}
 
+              {!isEdit && (
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground pb-2 border-b border-border">
+                  <span>Autosave</span>
+                  <span className="font-medium">
+                    {isSavingDraft ? (
+                      <span className="flex items-center gap-1.5 text-primary">
+                        <Loader2 className="size-3 animate-spin" /> Saving draft…
+                      </span>
+                    ) : savedAt ? (
+                      <span>
+                        Saved at {new Date(savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    ) : (
+                      <span>Ready</span>
+                    )}
+                  </span>
+                </div>
+              )}
+
               <div className="mt-4 space-y-2.5 border-t border-border pt-4">
                 {/* The hero's pill and its brand glow. Never disabled on an
                     incomplete form — the field-level errors are what explain
@@ -887,6 +1029,31 @@ export function CreateShowcaseForm({
                     )}
                   </Button>
                 </motion.div>
+
+                {!isEdit && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSavingDraft || submitting}
+                    onClick={async () => {
+                      const ok = await saveDraftNow();
+                      if (ok) toast.success("Draft saved to server");
+                    }}
+                    className="h-11 w-full rounded-full text-sm font-semibold"
+                  >
+                    {isSavingDraft ? (
+                      <>
+                        <Loader2 data-icon="inline-start" className="size-4 animate-spin" />
+                        Saving draft…
+                      </>
+                    ) : (
+                      <>
+                        <Save data-icon="inline-start" className="size-4" />
+                        Save draft
+                      </>
+                    )}
+                  </Button>
+                )}
 
                 <Button
                   type="button"

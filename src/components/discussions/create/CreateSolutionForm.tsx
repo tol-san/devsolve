@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -11,9 +11,11 @@ import {
   AlertCircle,
   Check,
   Circle,
+  FileText,
   ListChecks,
   LoaderCircle,
   Plus,
+  Save,
   Scale,
   Send,
   Trash2,
@@ -61,6 +63,11 @@ import {
   type SolutionFormInput,
   type SolutionFormValues,
 } from "@/lib/validations/solution";
+import { useServerSolutionDraft } from "@/components/discussions/hooks/useServerSolutionDraft";
+import type {
+  SaveSolutionDraftValues,
+  SolutionDraftResponse,
+} from "@/lib/validations/solution-draft";
 import {
   FileUploadDropzone,
   type AttachedFile,
@@ -169,7 +176,8 @@ export function CreateSolutionForm({
     handleSubmit,
     control,
     setValue,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<SolutionFormInput, unknown, SolutionFormValues>({
     resolver: zodResolver(solutionFormSchema),
     /* In edit mode the existing answer seeds the fields. Rows are copied
@@ -206,6 +214,89 @@ export function CreateSolutionForm({
   const bodyMarkdown = useWatch({ control, name: "bodyMarkdown" }) ?? "";
   const approachType = useWatch({ control, name: "approachType" }) ?? "FIX";
   const tradeoffs = useWatch({ control, name: "tradeoffs" }) ?? "";
+  const watchedSteps = useWatch({ control, name: "verificationSteps" }) ?? [];
+  const watchedTested = useWatch({ control, name: "testedWith" }) ?? [];
+  const watchedResources = useWatch({ control, name: "resources" }) ?? [];
+
+  const draftValues: SaveSolutionDraftValues = React.useMemo(() => {
+    return {
+      summary: summary.trim() || undefined,
+      bodyMarkdown: bodyMarkdown.trim() || undefined,
+      approachType: approachType || undefined,
+      tradeoffs: tradeoffs.trim() || undefined,
+      verificationSteps: watchedSteps
+        .filter((s) => s.instruction?.trim() || s.expectedResult?.trim())
+        .map((s) => ({
+          instruction: s.instruction?.trim() || undefined,
+          expectedResult: s.expectedResult?.trim() || undefined,
+        })),
+      testedWith: watchedTested
+        .filter((t) => t.technology?.trim() || t.version?.trim())
+        .map((t) => ({
+          technology: t.technology?.trim() || undefined,
+          version: t.version?.trim() || undefined,
+        })),
+      resources: watchedResources
+        .filter((r) => r.label?.trim() || r.url?.trim())
+        .map((r) => ({
+          type: r.type,
+          label: r.label?.trim() || undefined,
+          url: r.url?.trim() || undefined,
+        })),
+    };
+  }, [summary, bodyMarkdown, approachType, tradeoffs, watchedSteps, watchedTested, watchedResources]);
+
+  const searchParams = useSearchParams();
+  const resumeId = searchParams?.get("draftId") ?? undefined;
+
+  const {
+    available: availableDraft,
+    savedAt,
+    isSaving: isSavingDraft,
+    take: takeDraft,
+    discard: discardDraft,
+    saveNow: saveDraftNow,
+    clear: clearDraft,
+  } = useServerSolutionDraft({
+    problemId,
+    values: draftValues,
+    enabled: !isEdit,
+    isDirty,
+    resumeId,
+  });
+
+  const applyDraftToForm = (draft: SolutionDraftResponse) => {
+    reset({
+      summary: draft.summary ?? "",
+      bodyMarkdown: draft.bodyMarkdown ?? "",
+      approachType: draft.approachType ?? "FIX",
+      tradeoffs: draft.tradeoffs ?? "",
+      verificationSteps: (draft.verificationSteps ?? []).map((s) => ({
+        instruction: s.instruction ?? "",
+        expectedResult: s.expectedResult ?? "",
+      })),
+      testedWith: (draft.testedWith ?? []).map((t) => ({
+        technology: t.technology ?? "",
+        version: t.version ?? "",
+      })),
+      resources: (draft.resources ?? []).map((r) => ({
+        type: r.type ?? "DOCUMENTATION",
+        label: r.label ?? "",
+        url: r.url ?? "",
+      })),
+    });
+  };
+
+  const resumedFromUrl = useRef(false);
+  useEffect(() => {
+    if (!resumeId || resumedFromUrl.current || isEdit) return;
+    resumedFromUrl.current = true;
+    const draft = takeDraft();
+    if (draft) {
+      applyDraftToForm(draft);
+      toast.success("Draft restored from link");
+    }
+  }, [resumeId, isEdit, takeDraft]);
 
   const onSubmit = async (values: SolutionFormValues) => {
     setSubmitError(null);
@@ -283,6 +374,9 @@ export function CreateSolutionForm({
         }
       }
 
+      if (!isEdit) {
+        await clearDraft();
+      }
       toast.success(isEdit ? "Solution updated" : "Solution posted", {
         description: isEdit
           ? "Your changes have been saved."
@@ -319,6 +413,52 @@ export function CreateSolutionForm({
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
         {/* ── The answer ── */}
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+          {availableDraft && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-foreground"
+            >
+              <div className="flex items-center gap-2.5">
+                <FileText className="size-5 text-blue-500 shrink-0" />
+                <div>
+                  <p className="font-semibold text-foreground">
+                    You have an unfinished solution draft for this problem
+                    {availableDraft.summary ? `: "${availableDraft.summary}"` : ""}.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Saved {availableDraft.updatedAt ? new Date(availableDraft.updatedAt).toLocaleString() : "recently"}. Would you like to resume?
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    const draft = takeDraft();
+                    if (draft) {
+                      applyDraftToForm(draft);
+                      toast.success("Draft restored");
+                    }
+                  }}
+                  className="rounded-xl font-medium"
+                >
+                  Resume draft
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => void discardDraft()}
+                  className="rounded-xl text-muted-foreground hover:text-foreground"
+                >
+                  Discard
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1021,6 +1161,25 @@ export function CreateSolutionForm({
                   </p>
                 )}
 
+                {!isEdit && (
+                  <div className="w-full flex items-center justify-between text-xs text-muted-foreground pb-2 border-b border-border">
+                    <span>Autosave</span>
+                    <span className="font-medium">
+                      {isSavingDraft ? (
+                        <span className="flex items-center gap-1.5 text-primary">
+                          <LoaderCircle className="size-3 animate-spin" /> Saving draft…
+                        </span>
+                      ) : savedAt ? (
+                        <span>
+                          Saved at {new Date(savedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      ) : (
+                        <span>Ready</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+
                 <Button
                   type="submit"
                   size="lg"
@@ -1043,6 +1202,32 @@ export function CreateSolutionForm({
                     </>
                   )}
                 </Button>
+
+                {!isEdit && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    disabled={isSavingDraft || submitting}
+                    onClick={async () => {
+                      const ok = await saveDraftNow();
+                      if (ok) toast.success("Draft saved to server");
+                    }}
+                    className="h-11 w-full cursor-pointer rounded-xl"
+                  >
+                    {isSavingDraft ? (
+                      <>
+                        <LoaderCircle data-icon="inline-start" className="size-4 animate-spin" />
+                        Saving draft…
+                      </>
+                    ) : (
+                      <>
+                        <Save data-icon="inline-start" className="size-4" />
+                        Save draft
+                      </>
+                    )}
+                  </Button>
+                )}
 
                 <Button
                   type="button"

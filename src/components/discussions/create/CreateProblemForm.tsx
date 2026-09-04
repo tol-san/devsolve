@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Controller,
@@ -218,6 +218,7 @@ export function CreateProblemForm({
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   const [preparedDraft, setPreparedDraft] = useState<ProblemResponse | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const [dismissedDraftBanner, setDismissedDraftBanner] = useState(false);
 
   // Fetch caller's problems (including drafts) when creating a problem
@@ -282,7 +283,7 @@ export function CreateProblemForm({
     getValues,
     reset,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<ProblemFormInput, unknown, ProblemFormValues>({
     resolver: zodResolver(createProblemFormSchema),
     mode: "onBlur",
@@ -832,6 +833,7 @@ export function CreateProblemForm({
         }
       }
 
+      setDraftSavedAt(saved.updatedAt ?? new Date().toISOString());
       toast.success("Draft saved successfully.");
     } catch (error) {
       const parsed = parseApiError(error, "The draft could not be saved.");
@@ -841,6 +843,120 @@ export function CreateProblemForm({
       setIsSavingDraft(false);
     }
   };
+
+  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const autoSaving = useRef(false);
+
+  useEffect(() => {
+    if (isEdit || !session?.user || !isDirty) return;
+    const canAutoSave =
+      title.trim().length >= 10 &&
+      Boolean(categoryId) &&
+      Boolean(problemType) &&
+      description.trim().length >= 30;
+
+    if (!canAutoSave) return;
+
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+
+    autoSaveTimer.current = setTimeout(async () => {
+      if (autoSaving.current || submitting) return;
+      autoSaving.current = true;
+      setIsSavingDraft(true);
+      try {
+        const values = getValues();
+        const pendingTag = tagDraft.trim().replace(/^#+/, "");
+        let submittedTags = values.newTagNames ?? [];
+        if (pendingTag && !submittedTags.includes(pendingTag)) {
+          submittedTags = [...submittedTags, pendingTag];
+        }
+
+        const trimmedOrUndefined = (val?: string) => val?.trim() || undefined;
+        const environment = (values.environment ?? [])
+          .filter((entry) => entry.technology.trim())
+          .map((entry) => ({
+            technology: entry.technology.trim(),
+            version: entry.version?.trim() || undefined,
+          }));
+        const steps = (values.reproductionSteps ?? [])
+          .map((step) => step.trim())
+          .filter(Boolean);
+
+        const workingProblem = preparedDraft ?? problem;
+        const updatingExisting = Boolean(workingProblem?.id);
+        const listOrUndefined = <T,>(list: T[]) =>
+          updatingExisting ? list : list.length ? list : undefined;
+
+        const body = {
+          ...values,
+          title: values.title.trim(),
+          description: values.description.trim(),
+          categoryId: values.categoryId,
+          problemType: values.problemType,
+          technologies: listOrUndefined(
+            (values.technologies ?? []).map((technology) => ({
+              name: technology.name.trim(),
+              version: technology.version?.trim() || undefined,
+            })),
+          ),
+          environment: listOrUndefined(environment),
+          reproductionSteps: listOrUndefined(steps),
+          expectedBehavior: trimmedOrUndefined(values.expectedBehavior),
+          actualBehavior: trimmedOrUndefined(values.actualBehavior),
+          attemptsTried: trimmedOrUndefined(values.attemptsTried),
+          errorMessage: trimmedOrUndefined(values.errorMessage),
+          repositoryUrl: trimmedOrUndefined(values.repositoryUrl),
+          newTagNames: listOrUndefined(submittedTags.map((tag) => tag.trim())),
+        };
+
+        let saved: ProblemResponse;
+        if (workingProblem?.id) {
+          saved = await updateProblem({
+            id: workingProblem.id,
+            version: workingProblem.version ?? 0,
+            body,
+          }).unwrap();
+        } else {
+          saved = await createProblemDraft(body).unwrap();
+        }
+        setPreparedDraft(saved);
+        setDraftSavedAt(saved.updatedAt ?? new Date().toISOString());
+      } catch {
+        // Silently ignore background autosave failures
+      } finally {
+        autoSaving.current = false;
+        setIsSavingDraft(false);
+      }
+    }, 1500);
+
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [
+    title,
+    description,
+    categoryId,
+    problemType,
+    severity,
+    sdlcPhase,
+    expectedBehavior,
+    actualBehavior,
+    errorMessage,
+    attemptsTried,
+    technologies,
+    reproductionSteps,
+    tags,
+    tagDraft,
+    isDirty,
+    isEdit,
+    session?.user,
+    preparedDraft,
+    problem,
+    createProblemDraft,
+    updateProblem,
+    getValues,
+    submitting,
+  ]);
 
   return (
     <form
@@ -2221,6 +2337,27 @@ export function CreateProblemForm({
               </CardContent>
 
               <CardFooter className="flex-col gap-2 border-t border-border/70 pt-4">
+                {!isEdit && (
+                  <div className="w-full flex items-center justify-between text-xs text-muted-foreground pb-2 border-b border-border/70">
+                    <span>Autosave</span>
+                    <span className="font-medium">
+                      {isSavingDraft ? (
+                        <span className="flex items-center gap-1.5 text-primary">
+                          <LoaderCircle className="size-3 animate-spin" /> Saving draft…
+                        </span>
+                      ) : draftSavedAt ? (
+                        <span>
+                          Saved at {new Date(draftSavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      ) : preparedDraft ? (
+                        <span>Draft saved</span>
+                      ) : (
+                        <span>Ready</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+
                 <motion.div
                   className="w-full"
                   whileHover={submitting ? undefined : { y: -2 }}

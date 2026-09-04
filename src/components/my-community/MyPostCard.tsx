@@ -34,6 +34,8 @@ import {
 } from "@/lib/redux/services/problemsApi";
 import { useDeleteSolutionMutation } from "@/lib/redux/services/solutionsApi";
 import { useDeleteShowcaseMutation } from "@/lib/redux/services/showcasesApi";
+import { useDeleteShowcaseDraftMutation } from "@/lib/redux/services/showcaseDraftsApi";
+import { useDeleteSolutionDraftMutation } from "@/lib/redux/services/solutionDraftsApi";
 import type { MyPost } from "@/lib/redux/services/myCommunityApi";
 import { cn } from "@/lib/utils";
 
@@ -88,10 +90,19 @@ export function MyPostCard({ post }: { post: MyPost }) {
     useDeleteSolutionMutation();
   const [deleteShowcase, { isLoading: deletingShowcase }] =
     useDeleteShowcaseMutation();
+  const [deleteShowcaseDraft, { isLoading: deletingShowcaseDraft }] =
+    useDeleteShowcaseDraftMutation();
+  const [deleteSolutionDraft, { isLoading: deletingSolutionDraft }] =
+    useDeleteSolutionDraftMutation();
 
   const [submitProblem, { isLoading: submitting }] = useSubmitProblemMutation();
 
-  const deleting = deletingProblem || deletingSolution || deletingShowcase;
+  const deleting =
+    deletingProblem ||
+    deletingSolution ||
+    deletingShowcase ||
+    deletingShowcaseDraft ||
+    deletingSolutionDraft;
 
   const onSubmitForReview = async () => {
     try {
@@ -108,12 +119,22 @@ export function MyPostCard({ post }: { post: MyPost }) {
 
   const onDelete = async () => {
     try {
-      if (post.kind === "Problem") {
-        await deleteProblem(post.id).unwrap();
-      } else if (post.kind === "Solution") {
-        await deleteSolution({ id: post.id, problemId: post.problemId }).unwrap();
+      if (post.isDraft) {
+        if (post.kind === "Showcase") {
+          await deleteShowcaseDraft(post.id).unwrap();
+        } else if (post.kind === "Solution") {
+          await deleteSolutionDraft(post.id).unwrap();
+        } else {
+          await deleteProblem(post.id).unwrap();
+        }
       } else {
-        await deleteShowcase(post.id).unwrap();
+        if (post.kind === "Problem") {
+          await deleteProblem(post.id).unwrap();
+        } else if (post.kind === "Solution") {
+          await deleteSolution({ id: post.id, problemId: post.problemId }).unwrap();
+        } else {
+          await deleteShowcase(post.id).unwrap();
+        }
       }
 
       toast.success(`${post.kind} deleted.`, { description: post.title });
