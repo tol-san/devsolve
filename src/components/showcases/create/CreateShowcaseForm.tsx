@@ -413,12 +413,14 @@ export function CreateShowcaseForm({
 
   const { data: serverDraft } = useGetShowcaseDraftQuery(resumeId ?? "", {
     skip: !resumeId || isEdit,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
   });
 
-  const restoredDraftId = useRef<string | null>(null);
+  const hasLoadedDraftRef = useRef(false);
   useEffect(() => {
-    if (!serverDraft || restoredDraftId.current === serverDraft.id || isEdit) return;
-    restoredDraftId.current = serverDraft.id;
+    if (hasLoadedDraftRef.current || !serverDraft || isEdit) return;
+    hasLoadedDraftRef.current = true;
     reset({
       title: serverDraft.title ?? "",
       overview: serverDraft.overview ?? "",
@@ -684,6 +686,7 @@ export function CreateShowcaseForm({
                     onClick={() => {
                       const draft = takeDraft();
                       if (draft) {
+                        hasLoadedDraftRef.current = true;
                         reset({
                           title: draft.title ?? "",
                           overview: draft.overview ?? "",

@@ -291,12 +291,14 @@ export function CreateSolutionForm({
 
   const { data: serverDraft } = useGetSolutionDraftQuery(resumeId ?? "", {
     skip: !resumeId || isEdit,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
   });
 
-  const restoredDraftId = useRef<string | null>(null);
+  const hasLoadedDraftRef = useRef(false);
   useEffect(() => {
-    if (!serverDraft || restoredDraftId.current === serverDraft.id || isEdit) return;
-    restoredDraftId.current = serverDraft.id;
+    if (hasLoadedDraftRef.current || !serverDraft || isEdit) return;
+    hasLoadedDraftRef.current = true;
     applyDraftToForm(serverDraft);
     toast.success("Draft restored from link");
   }, [serverDraft, isEdit]);
@@ -441,6 +443,7 @@ export function CreateSolutionForm({
                   onClick={() => {
                     const draft = takeDraft();
                     if (draft) {
+                      hasLoadedDraftRef.current = true;
                       applyDraftToForm(draft);
                       toast.success("Draft restored");
                     }

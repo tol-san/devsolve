@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useCreateProblemDraftMutation,
-  useUpdateProblemMutation,
+  useUpdateProblemDraftMutation,
   type ProblemResponse,
 } from "@/lib/redux/services/problemsApi";
 import type { CreateProblemRequest } from "@/lib/validations/problem";
@@ -33,7 +33,7 @@ export function useServerProblemDraft({
   initialDraft?: ProblemResponse | null;
 }): ServerProblemDraftState {
   const [createDraft] = useCreateProblemDraftMutation();
-  const [updateProblem] = useUpdateProblemMutation();
+  const [updateProblemDraft] = useUpdateProblemDraftMutation();
 
   const [activeDraft, setActiveDraft] = useState<ProblemResponse | null>(
     initialDraft ?? null,
@@ -47,6 +47,8 @@ export function useServerProblemDraft({
   latest.current = values;
   const currentDraft = useRef<ProblemResponse | null>(activeDraft);
   currentDraft.current = activeDraft;
+  const lastSaved = useRef<string>("");
+  const reqSeq = useRef(0);
 
   const hasMinimumRequirements = useCallback((): boolean => {
     const v = latest.current;
@@ -60,17 +62,23 @@ export function useServerProblemDraft({
   const persist = useCallback(async (): Promise<boolean> => {
     if (!enabled || !hasMinimumRequirements()) return false;
 
+    const payload = JSON.stringify(latest.current);
+    if (payload === lastSaved.current) return false;
+
+    const currentSeq = ++reqSeq.current;
     setIsSaving(true);
     setError(null);
 
     try {
       const existing = currentDraft.current;
       if (existing?.id) {
-        const updated = await updateProblem({
+        const updated = await updateProblemDraft({
           id: existing.id,
           version: existing.version ?? 0,
           body: latest.current,
         }).unwrap();
+        if (currentSeq !== reqSeq.current) return false;
+        lastSaved.current = payload;
         setActiveDraft(updated);
         setSavedAt(updated.updatedAt ?? new Date().toISOString());
         return true;
@@ -78,6 +86,8 @@ export function useServerProblemDraft({
         creating.current = true;
         try {
           const created = await createDraft(latest.current).unwrap();
+          if (currentSeq !== reqSeq.current) return false;
+          lastSaved.current = payload;
           setActiveDraft(created);
           setSavedAt(created.updatedAt ?? new Date().toISOString());
           return true;
@@ -87,14 +97,17 @@ export function useServerProblemDraft({
       }
       return false;
     } catch (err) {
+      if (currentSeq !== reqSeq.current) return false;
       setError(
         apiErrorMessage(err, "Could not save your draft. Retrying as you type."),
       );
       return false;
     } finally {
-      setIsSaving(false);
+      if (currentSeq === reqSeq.current) {
+        setIsSaving(false);
+      }
     }
-  }, [createDraft, enabled, hasMinimumRequirements, updateProblem]);
+  }, [createDraft, enabled, hasMinimumRequirements, updateProblemDraft]);
 
   const serialised = JSON.stringify(values);
 

@@ -48,7 +48,7 @@ export const reportDraftsApi = proxyApi.injectEndpoints({
 
     getReportDraft: builder.query<ReportDraftResponse, string>({
       query: (id) => `/report-drafts/${id}`,
-      providesTags: ["ReportDraft"],
+      providesTags: (_result, _error, id) => [{ type: "ReportDraft", id }],
     }),
 
     /** First save: the draft does not exist yet. */

@@ -14,7 +14,7 @@ import type {
 } from "@/lib/validations/showcase-draft";
 import { apiErrorMessage } from "@/lib/api/error-message";
 
-const DEBOUNCE_MS = 1200;
+const DEBOUNCE_MS = 1500;
 
 export interface ServerShowcaseDraftState {
   available: ShowcaseDraftResponse | null;
@@ -48,6 +48,8 @@ export function useServerShowcaseDraft({
 
   const { data: drafts = [] } = useGetShowcaseDraftsQuery(undefined, {
     skip: !enabled,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
   });
 
   const [available, setAvailable] = useState<ShowcaseDraftResponse | null>(null);
@@ -60,6 +62,8 @@ export function useServerShowcaseDraft({
   const offered = useRef(false);
   const latest = useRef(values);
   latest.current = values;
+  const lastSaved = useRef<string>("");
+  const reqSeq = useRef(0);
 
   useEffect(() => {
     if (!enabled || offered.current) return;
@@ -84,6 +88,10 @@ export function useServerShowcaseDraft({
     );
     if (!hasAnyContent && !draftId.current && !resumeId) return false;
 
+    const payload = JSON.stringify(latest.current);
+    if (payload === lastSaved.current) return false;
+
+    const currentSeq = ++reqSeq.current;
     setIsSaving(true);
     setError(null);
     const existing = draftId.current || resumeId || null;
@@ -94,14 +102,18 @@ export function useServerShowcaseDraft({
           id: existing,
           body: latest.current,
         }).unwrap();
+        if (currentSeq !== reqSeq.current) return false;
         draftId.current = existing;
+        lastSaved.current = payload;
         setSavedAt(saved.updatedAt ?? new Date().toISOString());
         return true;
       } else if (!creating.current) {
         creating.current = true;
         try {
           const created = await createDraft(latest.current).unwrap();
+          if (currentSeq !== reqSeq.current) return false;
           draftId.current = created.id;
+          lastSaved.current = payload;
           setSavedAt(created.updatedAt ?? new Date().toISOString());
           return true;
         } finally {
@@ -110,12 +122,15 @@ export function useServerShowcaseDraft({
       }
       return false;
     } catch (err) {
+      if (currentSeq !== reqSeq.current) return false;
       setError(
         apiErrorMessage(err, "Could not save your draft. Retrying as you type."),
       );
       return false;
     } finally {
-      setIsSaving(false);
+      if (currentSeq === reqSeq.current) {
+        setIsSaving(false);
+      }
     }
   }, [createDraft, enabled, resumeId, updateDraft]);
 

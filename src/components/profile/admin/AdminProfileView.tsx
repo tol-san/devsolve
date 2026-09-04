@@ -84,9 +84,7 @@ export default function AdminProfileView() {
   }
 
   const displayName = profile?.fullName || user?.name || "Platform Admin";
-  const email = profile?.email || user?.email || "admin@devsolve.com";
   const avatarUrl = profile?.avatarUrl || user?.image || undefined;
-  const username = profile?.username || "admin";
   const location = profile?.location || "Global Administrator";
 
   /* Edit mode — render ProfileEditPanel */
@@ -205,12 +203,7 @@ export default function AdminProfileView() {
                 <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                   {displayName}
                 </h2>
-
               </div>
-
-              <p className="text-sm font-medium text-muted-foreground">
-                @{username} • {email}
-              </p>
 
               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground pt-1">
                 <Globe className="size-3.5 text-muted-foreground" />

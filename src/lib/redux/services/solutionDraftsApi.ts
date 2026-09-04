@@ -34,7 +34,7 @@ export const solutionDraftsApi = proxyApi.injectEndpoints({
 
     getSolutionDraft: builder.query<SolutionDraftResponse, string>({
       query: (id) => `/solution-drafts/${id}`,
-      providesTags: ["SolutionDraft"],
+      providesTags: (_result, _error, id) => [{ type: "SolutionDraft", id }],
     }),
 
     createSolutionDraft: builder.mutation<
