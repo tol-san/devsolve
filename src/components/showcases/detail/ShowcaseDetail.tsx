@@ -116,6 +116,8 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const [isVoting, setIsVoting] = useState(false);
 
   const upvoteCount = votes?.upvotes ?? 0;
+  const downvoteCount = votes?.downvotes ?? 0;
+  const voteScore = votes?.score ?? upvoteCount - downvoteCount;
   const myVote = votes?.currentUserVote ?? 0;
 
   const vote = async (value: 1 | -1) => {
@@ -229,7 +231,9 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
                 </div>
 
                 <VoteControl
-                  voteCount={upvoteCount}
+                  voteCount={voteScore}
+                  upvotes={upvoteCount}
+                  downvotes={downvoteCount}
                   currentVote={myVote}
                   onVote={vote}
                   isLoading={isVoting}

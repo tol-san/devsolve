@@ -208,6 +208,8 @@ function Loaded({
   const [removeVote, { isLoading: isRemovingVote }] = useRemoveVoteMutation();
   const isVoting = isSettingVote || isRemovingVote;
   const upvoteCount = votes?.upvotes ?? 0;
+  const downvoteCount = votes?.downvotes ?? 0;
+  const voteScore = votes?.score ?? upvoteCount - downvoteCount;
 
   const { data: bookmarkStatus } = useGetBookmarkStatusQuery({
     type: "PROBLEM",
@@ -436,7 +438,9 @@ function Loaded({
                 </h1>
 
                 <VoteControl
-                  voteCount={upvoteCount}
+                  voteCount={voteScore}
+                  upvotes={upvoteCount}
+                  downvotes={downvoteCount}
                   currentVote={votes?.currentUserVote ?? 0}
                   onVote={onVote}
                   isLoading={isVoting}

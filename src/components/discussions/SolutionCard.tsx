@@ -121,7 +121,9 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   } | null>(null);
   const isLong = body.length > COLLAPSE_OVER;
 
-  const upvoteCount = votes?.upvotes ?? 0;
+  const upvoteCount = votes?.upvotes;
+  const downvoteCount = votes?.downvotes;
+  const voteScore = votes?.score ?? solution.voteScore ?? 0;
   const isAccepted = accepted ?? Boolean(solution.isAccepted);
   const author = solution.author;
   const name = authorNameOf(author);
@@ -187,7 +189,9 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         <div className="flex flex-col gap-4 p-5 sm:flex-row sm:gap-6">
           {/* Vote rail — clean vertical column */}
           <VoteControl
-            voteCount={upvoteCount}
+            voteCount={voteScore}
+            upvotes={upvoteCount}
+            downvotes={downvoteCount}
             currentVote={votes?.currentUserVote ?? 0}
             onVote={castVote}
             isLoading={isVoting}

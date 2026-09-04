@@ -95,7 +95,9 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   const currentUserVote = voteSummary
     ? (voteSummary.currentUserVote ?? 0)
     : (post.isUpvoted ? 1 : 0);
-  const upvoteCount = voteSummary?.upvotes ?? 0;
+  const upvoteCount = voteSummary?.upvotes;
+  const downvoteCount = voteSummary?.downvotes;
+  const voteScore = voteSummary?.score ?? post.votes ?? 0;
   const localBookmarked = bookmarkStatus ?? post.isBookmarked ?? false;
 
   const { data: session } = authClient.useSession();
@@ -310,7 +312,9 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
 
             <div className="flex items-center gap-1.5">
               <VoteControl
-                voteCount={upvoteCount}
+                voteCount={voteScore}
+                upvotes={upvoteCount}
+                downvotes={downvoteCount}
                 currentVote={currentUserVote}
                 onVote={handleVote}
                 isLoading={isVoting}
