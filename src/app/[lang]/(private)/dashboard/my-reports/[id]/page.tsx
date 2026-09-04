@@ -289,6 +289,9 @@ export default function ReportDetailPage() {
         /* REJECTED REPORT DETAIL VIEW */
         <RejectedReportView
           report={report}
+          activities={activities}
+          activitiesLoading={activitiesLoading}
+          activitiesError={activitiesError}
           copiedPayload={copiedPayload}
           onCopyPayload={handleCopyPayload}
         />

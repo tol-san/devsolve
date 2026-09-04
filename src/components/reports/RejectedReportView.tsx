@@ -1,59 +1,100 @@
-import React from "react";
+"use client";
+
+import React, { useMemo } from "react";
 import {
-  Share2,
-  Pencil,
   FileText,
   Copy,
   Check,
-  ShieldCheck,
-  ExternalLink,
   Compass,
   ChevronRight,
-  Building2,
+  AlertTriangle,
 } from "lucide-react";
-import { ReportItem } from "@/lib/types/reports/types";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/reports/StatusBadge";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import { MarkdownView } from "@/components/ui/markdown-view";
+import { ReportSidebarPanels } from "@/components/reports/ReportSidebarPanels";
+import { ReportTimeline } from "@/components/reports/ReportTimeline";
+import type { ReportDetail } from "@/lib/types/reports/types";
+import type { ReportActivity } from "@/lib/types/reports/activity";
+import { formatDateTime } from "@/lib/format/datetime";
 
 interface RejectedReportViewProps {
-  report: ReportItem | { title: string; [key: string]: any };
+  report: ReportDetail;
+  activities?: ReportActivity[];
+  activitiesLoading?: boolean;
+  activitiesError?: boolean;
   copiedPayload: boolean;
   onCopyPayload: () => void;
 }
 
+/**
+ * Extracts the rejection activity from the timeline — the STATE_CHANGED entry
+ * whose `toState` is `REJECTED`. There is at most one per report; if none is
+ * found (old reports filed before the activity log shipped) the component
+ * degrades gracefully.
+ */
+function findRejectionActivity(
+  activities: ReportActivity[],
+): ReportActivity | undefined {
+  return activities.find(
+    (a) => a.activityType === "STATE_CHANGED" && a.toState === "REJECTED",
+  );
+}
+
 export function RejectedReportView({
   report,
+  activities = [],
+  activitiesLoading = false,
+  activitiesError = false,
   copiedPayload,
   onCopyPayload,
 }: RejectedReportViewProps) {
+  const rejectionActivity = useMemo(
+    () => findRejectionActivity(activities),
+    [activities],
+  );
+
+  const rejectionActorName =
+    rejectionActivity?.actor?.name ?? report.program ?? "Security Team";
+  const rejectionTimestamp = rejectionActivity?.createdAt
+    ? formatDateTime(rejectionActivity.createdAt)
+    : null;
+  const rejectionDetail = rejectionActivity?.detail ?? null;
+
+  /* The settled severity — what the program or triage assessed, falling back to
+     whatever the reporter claimed. On a rejected report the triage severity is
+     normally the last word, but `settledSeverity` covers a dispute ruling. */
+  const displaySeverity =
+    report.settledSeverity ??
+    report.agreedSeverity ??
+    report.triageSeverity ??
+    report.reportedSeverity ??
+    report.severity;
+
+  const hasDescription =
+    report.description &&
+    report.description !== "No detailed description provided.";
+  const hasImpact =
+    report.impact &&
+    report.impact.trim() !== "" &&
+    report.impact !==
+      "Impact information has not been explicitly provided for this report.";
+
   return (
     <div className="space-y-6">
       {/* Report Title & Status Card */}
       <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-4 sm:p-6 space-y-4 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-            {report.title}
-          </h2>
-
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Button
-              variant="outline"
-              className="rounded-xl border-border bg-card text-foreground font-semibold px-4 py-2 hover:bg-muted text-sm flex items-center gap-2 cursor-pointer shadow-xs"
-            >
-              <Share2 className="w-4 h-4 text-muted-foreground" />
-              <span>Share</span>
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm flex items-center gap-2 cursor-pointer shadow-xs">
-              <Pencil className="w-4 h-4" />
-              <span>Request Review</span>
-            </Button>
-          </div>
-        </div>
+        <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+          {report.title}
+        </h2>
 
         <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border">
           <StatusBadge status="REJECTED" />
-          <SeverityBadge severity="MEDIUM" />
+          {displaySeverity && (
+            <SeverityBadge severity={displaySeverity as any} />
+          )}
         </div>
       </div>
 
@@ -68,62 +109,113 @@ export function RejectedReportView({
             </div>
             <div className="space-y-1">
               <h3 className="text-lg font-bold text-foreground">
-                This report has been marked as Not Applicable
+                This report has been rejected
               </h3>
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed font-normal">
-                After thorough review, the security team has determined that the reported vulnerability does not pose a functional security risk to the production environment or falls outside the current program scope.
+                {rejectionDetail
+                  ? rejectionDetail
+                  : "After review, the security team has determined that the reported vulnerability does not meet the criteria for acceptance under this program."}
               </p>
             </div>
           </div>
 
-          {/* Acme Security Team Response Card */}
-          <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-md bg-[linear-gradient(135deg,#334155,#1e293b)] text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs">
-                  A
+          {/* Rejection Activity Detail — who rejected and when */}
+          {rejectionActivity && (
+            <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-4 shadow-xs">
+              <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-md bg-gradient-to-br from-rose-600 to-rose-800 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs">
+                    {rejectionActorName.slice(0, 1).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-bold text-foreground">
+                    {rejectionActorName}
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-foreground">Acme Security Team</span>
+                {rejectionTimestamp && (
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {rejectionTimestamp}
+                  </span>
+                )}
               </div>
-              <span className="text-xs text-muted-foreground font-medium">2 hours ago</span>
+
+              {rejectionDetail && (
+                <p className="text-sm sm:text-base text-foreground/90 italic leading-relaxed font-normal">
+                  &quot;{rejectionDetail}&quot;
+                </p>
+              )}
             </div>
+          )}
 
-            <p className="text-sm sm:text-base text-foreground/90 italic leading-relaxed font-normal">
-              &quot;Thank you for your report. After investigation, we have determined that this endpoint is behind a legacy firewall that sanitizes all inputs, making this non-exploitable in a production environment. However, we appreciate the effort and thoroughness of your documentation.&quot;
-            </p>
-
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="bg-muted text-muted-foreground text-sm font-semibold px-3.5 py-1 rounded-full border border-border">
-                Non-Exploitable
-              </span>
-              <span className="bg-muted text-muted-foreground text-sm font-semibold px-3.5 py-1 rounded-full border border-border">
-                WAF Protection
-              </span>
+          {/* Description */}
+          {hasDescription && (
+            <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
+              <div className="flex items-center gap-2">
+                <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400 stroke-[2]" />
+                <h2 className="text-2xl font-bold text-foreground">
+                  Description
+                </h2>
+              </div>
+              <div className="prose dark:prose-invert max-w-none text-foreground">
+                <MarkdownView
+                  source={report.description}
+                  className="text-base text-foreground/90 leading-relaxed"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Description & Payload Card */}
-          <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
-            <div className="flex items-center gap-2">
-              <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400 stroke-[2]" />
-              <h2 className="text-2xl font-bold text-foreground">Description</h2>
+          {/* Impact */}
+          {hasImpact && (
+            <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400 stroke-[2]" />
+                <h2 className="text-2xl font-bold text-foreground">Impact</h2>
+              </div>
+              <div className="prose dark:prose-invert max-w-none text-foreground">
+                <MarkdownView
+                  source={report.impact}
+                  className="text-base text-foreground/90 leading-relaxed"
+                />
+              </div>
             </div>
+          )}
 
-            <div className="space-y-1.5">
-              <h3 className="text-sm font-bold text-foreground tracking-wide uppercase">
-                DESCRIPTION
+          {/* Steps to Reproduce */}
+          {report.reproduceSteps.length > 0 && (
+            <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
+              <h3 className="text-lg font-bold text-foreground border-b border-border pb-2">
+                Steps to Reproduce
               </h3>
-              <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-normal">
-                The <code className="bg-muted text-foreground px-1 py-0.5 rounded font-mono text-xs sm:text-sm border border-border">/search</code> endpoint is vulnerable to Reflected Cross-Site Scripting (XSS) via the <code className="bg-muted text-foreground px-1 py-0.5 rounded font-mono text-xs sm:text-sm border border-border">q</code> parameter. An attacker can inject malicious JavaScript that executes in the context of the user&apos;s session.
-              </p>
+              <div className="space-y-2.5 text-base text-foreground/90 leading-relaxed">
+                {report.reproduceSteps.map((step, index) => (
+                  <div key={index} className="flex items-start gap-2.5">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-blue-600/10 text-blue-600 dark:text-blue-400 font-bold text-xs mt-0.5">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <MarkdownView
+                        source={step}
+                        className="text-sm sm:text-base leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
 
-            <div className="space-y-2 pt-2">
-              <h3 className="text-sm font-bold text-foreground tracking-wide uppercase">
-                PAYLOAD
+          {/* Proof of Concept / Payload */}
+          {report.proofOfConcept && (
+            <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
+              <h3 className="text-lg font-bold text-foreground border-b border-border pb-2">
+                Proof of Concept
               </h3>
               <div className="bg-muted/50 border border-border rounded-2xl p-4 font-mono text-sm sm:text-base text-foreground flex items-center justify-between gap-3">
-                <code className="break-all">/search?q=%3Cscript%3Ealert(document.domain)%3C/script%3E</code>
+                <pre className="overflow-x-auto flex-1 min-w-0">
+                  <code className="break-all whitespace-pre-wrap">
+                    {report.proofOfConcept}
+                  </code>
+                </pre>
                 <Button
                   size="icon"
                   variant="ghost"
@@ -131,84 +223,82 @@ export function RejectedReportView({
                   className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg w-8 h-8 shrink-0 cursor-pointer"
                   title="Copy payload"
                 >
-                  {copiedPayload ? <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copiedPayload ? (
+                    <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
             </div>
-          </div>
-        </main>
+          )}
 
-        {/* Right Column: Contextual Sidebar */}
-        <aside className="space-y-6">
-          {/* What's Next Card */}
-          <div className="bg-[#0055d4] text-white rounded-2xl p-6 space-y-4 shadow-md relative overflow-hidden">
+          {/* Suggested Remediation */}
+          {report.remediation && (
+            <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
+              <h3 className="text-lg font-bold text-foreground border-b border-border pb-2">
+                Suggested Remediation
+              </h3>
+              <div className="prose dark:prose-invert max-w-none text-foreground">
+                <MarkdownView
+                  source={report.remediation}
+                  className="text-base text-foreground/90 leading-relaxed"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Timeline */}
+          <ReportTimeline
+            activities={activities}
+            isLoading={activitiesLoading}
+            isError={activitiesError}
+          />
+
+          {/* What's Next Card — links built from the report's own program */}
+          <div className="bg-blue-600 text-white rounded-2xl p-6 space-y-4 shadow-md relative overflow-hidden">
             <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
 
-            <h3 className="text-xl font-bold tracking-tight text-white">What&apos;s Next?</h3>
+            <h3 className="text-xl font-bold tracking-tight text-white">
+              What&apos;s Next?
+            </h3>
             <p className="text-sm sm:text-base text-blue-100 leading-relaxed font-normal">
-              Don&apos;t let this slow you down. Here are some recommended actions to keep your momentum going.
+              Don&apos;t let this slow you down. Review the program policy or
+              explore other programs to keep your momentum going.
             </p>
 
             <div className="space-y-2.5 pt-1">
-              <a
-                href="#"
-                className="flex items-center justify-between p-3.5 rounded-xl bg-white/15 hover:bg-white/20 text-sm sm:text-base font-semibold transition-all border border-white/10 text-white"
-              >
-                <span className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-white" />
-                  <span>Review Acme Policy</span>
-                </span>
-                <ExternalLink className="w-4 h-4 text-white/80" />
-              </a>
+              {report.policyUrl && (
+                <Link
+                  href={report.policyUrl}
+                  className="flex items-center justify-between p-3.5 rounded-xl bg-white/15 hover:bg-white/20 text-sm sm:text-base font-semibold transition-all border border-white/10 text-white"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <FileText className="w-4 h-4 text-white" />
+                    <span>
+                      Review {report.program || "Program"} Policy
+                    </span>
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-white/80" />
+                </Link>
+              )}
 
-              <a
-                href="#"
+              <Link
+                href="/dashboard/programs"
                 className="flex items-center justify-between p-3.5 rounded-xl bg-white/15 hover:bg-white/20 text-sm sm:text-base font-semibold transition-all border border-white/10 text-white"
               >
                 <span className="flex items-center gap-2.5">
                   <Compass className="w-4 h-4 text-white" />
-                  <span>Find Similar Programs</span>
+                  <span>Find Other Programs</span>
                 </span>
                 <ChevronRight className="w-4 h-4 text-white/80" />
-              </a>
+              </Link>
             </div>
           </div>
+        </main>
 
-          {/* Program Details Card */}
-          <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-6 space-y-5 shadow-xs">
-            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-              PROGRAM DETAILS
-            </h3>
-
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                <Building2 className="w-6 h-6" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <strong className="text-base font-bold text-foreground truncate">
-                  Global Enterprise VDP
-                </strong>
-                <a
-                  href="#"
-                  className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline block mt-0.5"
-                >
-                  View Policy
-                </a>
-              </div>
-            </div>
-
-            <div className="border-t border-border pt-4 grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-xs sm:text-sm text-muted-foreground font-medium block">Asset Type</span>
-                <span className="text-sm sm:text-base font-bold text-foreground block mt-0.5">REST API</span>
-              </div>
-              <div>
-                <span className="text-xs sm:text-sm text-muted-foreground font-medium block">Environment</span>
-                <span className="text-sm sm:text-base font-bold text-foreground block mt-0.5">Production</span>
-              </div>
-            </div>
-          </div>
-        </aside>
+        {/* Right Column: Reuse the standard sidebar panels */}
+        <ReportSidebarPanels report={report} />
       </div>
     </div>
   );

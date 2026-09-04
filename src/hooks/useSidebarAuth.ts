@@ -125,12 +125,30 @@ export function useSidebarAuth() {
         localStorage.clear();
         sessionStorage.clear();
       }
+
+      // 5. Expire any residual session/OIDC cookies server-side so the
+      //    middleware does not bounce the user back to /dashboard when
+      //    Keycloak redirects them to the landing page.
+      if (typeof window !== "undefined") {
+        try {
+          await fetch("/api/auth/stale-session?to=/", {
+            method: "GET",
+            credentials: "same-origin",
+            redirect: "manual",
+          });
+        } catch {
+          // Best-effort: if this fails the cookies may already be gone via
+          // step 3, so proceed to the Keycloak logout regardless.
+        }
+      }
     } catch (error) {
       console.error("Error during sign out:", error);
     } finally {
-      // 5. Redirect to Keycloak OIDC end_session endpoint to clear Keycloak SSO session & cookies.
-      //    Use the stale-session handler as post_logout_redirect_uri so any surviving
-      //    better-auth session cookie is killed server-side when Keycloak bounces back.
+      // 6. Redirect to Keycloak OIDC end_session endpoint to clear Keycloak SSO session & cookies.
+      //    Use the origin as post_logout_redirect_uri — Keycloak rejects
+      //    deep paths like `/api/auth/stale-session` unless they are
+      //    explicitly registered in the client's "Valid post logout redirect
+      //    URIs" setting.
       const issuer = process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER;
       const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
 
@@ -138,16 +156,10 @@ export function useSidebarAuth() {
         const cleanIssuer = issuer.replace(/\/+$/, "");
         const logoutUrl = new URL(`${cleanIssuer}/protocol/openid-connect/logout`);
         logoutUrl.searchParams.set("client_id", clientId);
-        // Route the Keycloak post-logout callback through stale-session so that
-        // any residual better-auth cookie is expired by the server before the
-        // final redirect to the landing page.  Without this the middleware reads
-        // the stale cookie and bounces the user back to /dashboard for one render.
-        const postLogoutUri = new URL("/api/auth/stale-session", window.location.origin);
-        postLogoutUri.searchParams.set("to", "/");
-        logoutUrl.searchParams.set("post_logout_redirect_uri", postLogoutUri.toString());
+        logoutUrl.searchParams.set("post_logout_redirect_uri", window.location.origin + "/");
         window.location.href = logoutUrl.toString();
       } else if (typeof window !== "undefined") {
-        window.location.href = "/api/auth/stale-session?to=/";
+        window.location.href = "/";
       }
     }
   };
