@@ -2,19 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
-import { Clock3 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Clock3, FileText, RotateCcw } from "lucide-react";
 
-import { SavedDraftEmptyState } from "@/components/saved-draft/SavedDraftEmptyState";
-import { SavedDraftGrid } from "@/components/saved-draft/SavedDraftGrid";
-import { SavedDraftHeader } from "@/components/saved-draft/SavedDraftHeader";
-import { SavedDraftPagination } from "@/components/saved-draft/SavedDraftPagination";
-import { SavedDraftSearch } from "@/components/saved-draft/SavedDraftSearch";
-import { SavedDraftTabs } from "@/components/saved-draft/SavedDraftTabs";
-import {
-  pageEnterContainer,
-  pageEnterItem,
-} from "@/components/ui/page-enter-motion";
+import { SavedDraftCard } from "@/components/saved-draft/SavedDraftCard";
+import { SavedDraftHeader, type DraftSort } from "@/components/saved-draft/SavedDraftHeader";
+import { Button } from "@/components/ui/button";
 import type { DraftCategory, SavedDraftItem } from "@/components/saved-draft/types";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
@@ -45,27 +38,12 @@ import { describe } from "@/lib/seo/text";
 import { isEditableDraft, isUnderReview } from "@/lib/programs/draft-status";
 import { toast } from "sonner";
 
-const ITEMS_PER_PAGE = 6;
-
-const SEARCH_PLACEHOLDERS: Record<DraftCategory, string> = {
-  all: "Search all saved drafts...",
-  problem: "Search problem drafts...",
-  showcase: "Search showcase drafts...",
-  solution: "Search solution drafts...",
-  program: "Search program drafts...",
-  response: "Search response drafts...",
-  report: "Search report drafts...",
-};
-
 function firstLine(text: string, max = 90): string {
   const opening = text.split(/(?<=[.!?])\s/)[0] ?? text;
   return opening.length > max ? `${opening.slice(0, max).trimEnd()}…` : opening;
 }
 
 function getUpdatedRank(item: SavedDraftItem) {
-  /* A formatted date cannot be ordered, so the instant is used when the item
-     carries one — which is what makes "Recently updated" mean anything on a
-     list mixing program drafts with report drafts. */
   if (item.updatedAtIso) {
     const parsed = toDate(item.updatedAtIso);
     if (parsed) return (Date.now() - parsed.getTime()) / 86_400_000;
@@ -95,8 +73,6 @@ export function SavedDraftPage() {
     (user?.role ? user.role.split(",") : ["USER"])
   ).map((r) => r.trim().toUpperCase());
 
-  /* Company drafts are program drafts, and a member invited to run programs
-     has them too — the realm role would have hidden that. */
   const { hasCompanyAccess: isCompany, can, membership } = useCompanyAccess();
   const isUser = userRoles.includes("USER");
 
@@ -127,13 +103,8 @@ export function SavedDraftPage() {
 
   const [activeTab, setActiveTab] = useState<DraftCategory>(visibleTabs[0] ?? "all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState<"recent" | "oldest" | "title">("recent");
+  const [sortBy, setSortBy] = useState<DraftSort>("recent");
 
-  /* The company's own logo, taken from the membership — `/organizations/me`
-     is an owner endpoint and a member drafting a program has no access to it.
-     Memoised because the draft list is built in a `useMemo` that depends on
-     it, and a fresh object each render would rebuild the whole list. */
   const companyOrg = useMemo(
     () =>
       membership ? { logoUrl: membership.organizationLogoUrl ?? "" } : undefined,
@@ -168,9 +139,7 @@ export function SavedDraftPage() {
       { skip: !isUser, refetchOnMountOrArgChange: true },
     );
 
-  /* The reporter side of the same screen. Report drafts are saved by the
-     submit form as it is typed into, and this is the only place they can be
-     found again from outside that form. */
+  // Fetch report drafts
   const { data: reportDrafts, isLoading: isReportDraftsLoading } =
     useGetReportDraftsQuery(
       {},
@@ -180,8 +149,6 @@ export function SavedDraftPage() {
       },
     );
 
-  /* Read for the program a draft belongs to — its name and its logo. The
-     draft itself stores only `programId`, which names nothing on a card. */
   const { data: programsData } = useGetProgramsQuery(
     { size: 100 },
     { skip: !isUser },
@@ -253,9 +220,6 @@ export function SavedDraftPage() {
         });
     }
 
-    /* One card per saved report draft. A draft may be untitled and almost
-       empty — it is saved from the first keystroke — so every field falls
-       back to something a reader can still act on rather than being hidden. */
     (reportDrafts ?? []).forEach((draft) => {
       const program = draft.programId
         ? programsById.get(draft.programId)
@@ -265,8 +229,6 @@ export function SavedDraftPage() {
       items.push({
         id: draft.id,
         title,
-        /* The write-up is Markdown; `describe` strips it without mangling
-           identifiers like `invalid_grant`. */
         description: describe(
           draft.vulnerabilityInformation,
           "No write-up yet. Pick this up where you left off.",
@@ -283,7 +245,6 @@ export function SavedDraftPage() {
         updatedAtIso: draft.updatedAt,
         tags: [
           program?.name,
-          /* `NONE` is the draft schema saying "undecided", not a severity. */
           draft.reportedSeverity && draft.reportedSeverity !== "NONE"
             ? draft.reportedSeverity
             : null,
@@ -299,7 +260,6 @@ export function SavedDraftPage() {
       });
     });
 
-    /* One card per saved problem draft. */
     (myProblemsData?.content ?? [])
       .filter((p): p is typeof p & { id: string } => p.status === "DRAFT" && Boolean(p.id))
       .forEach((problem) => {
@@ -334,7 +294,6 @@ export function SavedDraftPage() {
         });
       });
 
-    /* One card per saved showcase draft. */
     (showcaseDrafts ?? []).forEach((draft) => {
       const title = draft.title?.trim() || "Untitled showcase draft";
       items.push({
@@ -364,43 +323,42 @@ export function SavedDraftPage() {
       });
     });
 
-    /* One card per saved solution draft. */
     (solutionDrafts ?? []).forEach((draft) => {
       const body = excerptOf(draft.bodyMarkdown ?? "", 160);
       const title =
         draft.summary?.trim() ||
         (draft.bodyMarkdown ? firstLine(draft.bodyMarkdown) : "") ||
         "Untitled solution draft";
-        const techTags = (draft.testedWith ?? [])
-          .map((t) => t.technology)
-          .filter((t): t is string => Boolean(t));
-        const tags = [
-          ...(draft.approachType ? [draft.approachType] : []),
-          ...techTags,
-        ];
+      const techTags = (draft.testedWith ?? [])
+        .map((t) => t.technology)
+        .filter((t): t is string => Boolean(t));
+      const tags = [
+        ...(draft.approachType ? [draft.approachType] : []),
+        ...techTags,
+      ];
 
-        items.push({
-          id: draft.id,
-          problemId: draft.problemId,
-          title,
-          description:
-            body || "No solution write-up yet. Pick this up where you left off.",
-          category: "solution",
-          updatedAt: draft.updatedAt
-            ? new Date(draft.updatedAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })
-            : "Recently",
-          updatedAtIso: draft.updatedAt,
-          tags,
-          initials: title.slice(0, 2).toUpperCase(),
-          logoSrc: "",
-          logoAlt: title,
-          approachType: draft.approachType || undefined,
-        });
+      items.push({
+        id: draft.id,
+        problemId: draft.problemId,
+        title,
+        description:
+          body || "No solution write-up yet. Pick this up where you left off.",
+        category: "solution",
+        updatedAt: draft.updatedAt
+          ? new Date(draft.updatedAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          : "Recently",
+        updatedAtIso: draft.updatedAt,
+        tags,
+        initials: title.slice(0, 2).toUpperCase(),
+        logoSrc: "",
+        logoAlt: title,
+        approachType: draft.approachType || undefined,
       });
+    });
 
     return items;
   }, [
@@ -413,21 +371,11 @@ export function SavedDraftPage() {
     solutionDrafts,
   ]);
 
-  /**
-   * Programs the reviewers are holding.
-   *
-   * They are deliberately absent from the list below, but an absence explains
-   * nothing: saving a draft on a program already under review and then finding
-   * this screen empty reads as a save that failed. Stating the count, and
-   * where those programs actually are, is the difference between a rule and a
-   * bug from where the reader sits.
-   */
   const underReviewCount = useMemo(
     () => (companyProgramsData?.content ?? []).filter(isUnderReview).length,
     [companyProgramsData],
   );
 
-  // Reset activeTab if it is no longer visible
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
       setActiveTab(visibleTabs[0] ?? "all");
@@ -450,6 +398,17 @@ export function SavedDraftPage() {
       report: draftItems.filter((item) => item.category === "report").length,
     };
   }, [draftItems]);
+
+  const isFilterActive =
+    searchTerm.trim() !== "" ||
+    activeTab !== "all" ||
+    sortBy !== "recent";
+
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setActiveTab("all");
+    setSortBy("recent");
+  };
 
   const filteredItems = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -487,21 +446,28 @@ export function SavedDraftPage() {
       });
   }, [activeTab, draftItems, searchTerm, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const groupedDrafts = useMemo(() => {
+    const categoryOrder: { category: SavedDraftItem["category"]; title: string }[] = [
+      { category: "program", title: "Programs" },
+      { category: "problem", title: "Problems" },
+      { category: "solution", title: "Solutions" },
+      { category: "showcase", title: "Showcases" },
+      { category: "report", title: "Reports" },
+      { category: "response", title: "Responses" },
+    ];
 
-  const paginatedItems = filteredItems.slice(
-    (safeCurrentPage - 1) * ITEMS_PER_PAGE,
-    safeCurrentPage * ITEMS_PER_PAGE
-  );
+    return categoryOrder
+      .map(({ category, title }) => ({
+        category,
+        title,
+        items: filteredItems.filter((item) => item.category === category),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [filteredItems]);
 
   const handleDeleteItem = async (itemId: string) => {
-    /* Different kinds of drafts share this list and they live at different
-       endpoints — deleting through the wrong endpoint would 404. */
     const item = draftItems.find((draft) => draft.id === itemId);
 
-    /* A problem, showcase, solution, or report draft is the user's own and always theirs to discard.
-       A program draft belongs to the organization, so it takes DELETE_PROGRAM. */
     if (
       (item?.category === "program" || item?.category === "response") &&
       !can("DELETE_PROGRAM")
@@ -529,46 +495,31 @@ export function SavedDraftPage() {
   };
 
   return (
-    <motion.section
-      initial="hidden"
-      animate="visible"
-      variants={pageEnterContainer}
-      className="mx-auto w-full space-y-5 pb-12"
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="space-y-6 w-full pb-12"
     >
-      <motion.div variants={pageEnterItem}>
-        <SavedDraftHeader totalDrafts={draftItems.length} />
-      </motion.div>
+      {/* HEADER WITH SEARCH & CATEGORY PILLS */}
+      <SavedDraftHeader
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
+        isFilterActive={isFilterActive}
+        onResetFilters={handleResetFilters}
+        counts={counts}
+        totalSavedCount={draftItems.length}
+        visibleCount={filteredItems.length}
+        visibleTabs={visibleTabs}
+      />
 
-      <motion.div variants={pageEnterItem} className="rounded-[24px] bg-card ring-1 ring-foreground/5 dark:ring-foreground/10 p-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)] sm:p-6">
-        <div className="space-y-4">
-          <SavedDraftTabs
-            activeTab={activeTab}
-            counts={counts}
-            onChange={(category) => {
-              setActiveTab(category);
-              setCurrentPage(1);
-            }}
-            visibleTabs={visibleTabs}
-          />
-          <SavedDraftSearch
-            value={searchTerm}
-            onChange={(value) => {
-              setSearchTerm(value);
-              setCurrentPage(1);
-            }}
-            placeholder={SEARCH_PLACEHOLDERS[activeTab]}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            resultCount={filteredItems.length}
-          />
-        </div>
-      </motion.div>
-
+      {/* UNDER REVIEW BANNER */}
       {!isLoading && underReviewCount > 0 ? (
-        <motion.div
-          variants={pageEnterItem}
-          className="flex items-start gap-3 rounded-[20px] bg-card p-4 ring-1 ring-foreground/5 dark:ring-foreground/10 sm:items-center"
-        >
+        <div className="flex items-start gap-3 rounded-2xl bg-card p-4 ring-1 ring-foreground/5 dark:ring-foreground/10 sm:items-center">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
             <Clock3 className="size-4.5" />
           </span>
@@ -584,35 +535,112 @@ export function SavedDraftPage() {
             </Link>{" "}
             to track them.
           </p>
-        </motion.div>
+        </div>
       ) : null}
 
-      {isLoading ? (
-        <motion.div variants={pageEnterItem}>
-          <SavedDraftGrid items={[]} isLoading />
-        </motion.div>
-      ) : paginatedItems.length > 0 ? (
-        <motion.div variants={pageEnterItem} className="space-y-5">
-          <SavedDraftGrid
-            items={paginatedItems}
-            onDelete={handleDeleteItem}
-          />
+      {/* MAIN CONTENT AREA */}
+      <main className="pt-2">
+        {isLoading ? (
+          /* SKELETON LOADING STATE */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="flex h-64 animate-pulse flex-col justify-between rounded-2xl bg-card p-5 ring-1 ring-foreground/5 dark:ring-foreground/10"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="h-5 bg-muted rounded-lg w-24" />
+                    <div className="h-4 bg-muted rounded w-16" />
+                  </div>
+                  <div className="h-6 bg-muted rounded-lg w-3/4" />
+                  <div className="h-4 bg-muted rounded w-full" />
+                  <div className="h-4 bg-muted rounded w-2/3" />
+                </div>
+                <div className="h-9 bg-muted rounded-xl" />
+              </div>
+            ))}
+          </div>
+        ) : filteredItems.length === 0 ? (
+          /* EMPTY STATE */
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center gap-4 rounded-2xl bg-card p-12 text-center shadow-2xs ring-1 ring-foreground/5 dark:ring-foreground/10"
+          >
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+              <FileText className="size-7" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-foreground">
+                No drafts found
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1 max-w-md">
+                {isFilterActive
+                  ? "No saved drafts match your current filter or search criteria. Try clearing filters or changing search keywords."
+                  : "You haven't created any drafts in this section yet. Start creating content and your drafts will be saved here automatically."}
+              </p>
+            </div>
+            {isFilterActive && (
+              <Button
+                onClick={handleResetFilters}
+                variant="outline"
+                className="rounded-xl font-semibold"
+              >
+                <RotateCcw data-icon="inline-start" />
+                Reset Filters
+              </Button>
+            )}
+          </motion.div>
+        ) : activeTab === "all" ? (
+          /* ALL CATEGORIES (GROUPED BY CATEGORY) */
+          <div className="space-y-10">
+            {groupedDrafts.map((group) => (
+              <section key={group.category} className="space-y-4">
+                <div className="flex items-center gap-2.5 border-b border-border/60 pb-3">
+                  <h2 className="text-lg font-bold text-foreground">
+                    {group.title}
+                  </h2>
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950/60 px-2 text-xs font-bold text-blue-600 dark:text-blue-400">
+                    {group.items.length}
+                  </span>
+                </div>
 
-          <SavedDraftPagination
-            currentPage={safeCurrentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </motion.div>
-      ) : (
-        <motion.div variants={pageEnterItem}>
-          <SavedDraftEmptyState
-            activeTab={activeTab}
-            searchTerm={searchTerm}
-            onClear={() => setSearchTerm("")}
-          />
-        </motion.div>
-      )}
-    </motion.section>
+                <motion.div
+                  layout
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                  <AnimatePresence mode="popLayout">
+                    {group.items.map((item) => (
+                      <SavedDraftCard
+                        key={item.id}
+                        item={item}
+                        onDelete={handleDeleteItem}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          /* SPECIFIC CATEGORY GRID */
+          <motion.div
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredItems.map((item) => (
+                <SavedDraftCard
+                  key={item.id}
+                  item={item}
+                  onDelete={handleDeleteItem}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </main>
+    </motion.div>
   );
 }

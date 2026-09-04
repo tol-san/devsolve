@@ -8,7 +8,6 @@ import { BookmarkHeader } from "@/components/bookmarks/BookmarkHeader";
 import { BookmarkCard } from "@/components/bookmarks/BookmarkCard";
 import { Bookmark, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 export default function BookmarksPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<BookmarkCategory>("all");
