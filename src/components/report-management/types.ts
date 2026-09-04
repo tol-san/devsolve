@@ -16,12 +16,11 @@ export type ManagedReport = {
   authorId?: string;
   type: ReportType;
   status: ReportStatus;
-  severity: ReportSeverity;
+  severity: ReportSeverity | null;
   /**
    * What the researcher claimed, and what triage decided — kept apart.
-   * `severity` above is the settled rating, which collapses
-   * `severity ?? triageSeverity ?? reportedSeverity`; it is right for a badge
-   * but cannot answer whether the two sides agree.
+   * `severity` is the agreed rating (null while disputed);
+   * it cannot answer whether the two sides agree.
    */
   reportedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
   triageSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
@@ -31,6 +30,7 @@ export type ManagedReport = {
   submittedAtIso?: string;
   summary: string;
   assets: string[];
+  dispute?: import("@/lib/types/reports/types").DisputeDetail | null;
 };
 
 export type ReportManagementDetail = {
@@ -58,11 +58,11 @@ export type ReportManagementDetail = {
     | "REJECTED"
     | string;
   retestHistory?: import("@/lib/redux/services/reportsApi").RetestSummary[];
-  severity: ReportSeverity;
-  reportedSeverity?: string;
+  severity: ReportSeverity | null;
+  reportedSeverity?: string | null;
   triageSeverity?: string | null;
   agreedSeverity?: string | null;
-  settledSeverity?: string;
+  settledSeverity?: string | null;
   hasSeverityDisagreement?: boolean;
   dispute?: import("@/lib/types/reports/types").DisputeDetail | null;
   /**

@@ -192,7 +192,14 @@ export interface ReportConfirmationItem {
   companyName: string;
   programName?: string;
   avatarColor?: string;
-  severity: "Critical" | "High" | "Medium" | "Low";
+  severity: "Critical" | "High" | "Medium" | "Low" | null;
+  reportedSeverity?: "Critical" | "High" | "Medium" | "Low" | "None" | null;
+  triageSeverity?: "Critical" | "High" | "Medium" | "Low" | "None" | null;
+  disputeId?: string;
+  disputeReason?: string;
+  disputeStatus?: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "DISMISSED" | "AWAITING_REPORTER";
+  disputeResolvedSeverity?: "Critical" | "High" | "Medium" | "Low" | "None" | null;
+  disputeRespondBy?: string | null;
   status: "PENDING" | "CONFIRMED" | "REJECTED" | "ESCALATED";
   submittedAt: string;
   acceptedAt?: string;
@@ -219,12 +226,12 @@ export interface ReportConfirmationItem {
    * constant, which reads as a real score on screen.
    */
   hackerClaimedSeverity?: {
-    tier: "Critical" | "High" | "Medium" | "Low";
+    tier: "Critical" | "High" | "Medium" | "Low" | null;
     cvss?: string;
     typicalReward?: string;
   };
   companyConfirmedSeverity?: {
-    tier: "Critical" | "High" | "Medium" | "Low";
+    tier: "Critical" | "High" | "Medium" | "Low" | null;
     cvss?: string;
     typicalReward?: string;
   };
@@ -253,6 +260,36 @@ export interface ReportConfirmationItem {
     timestamp: string;
     note?: string;
   }[];
+}
+
+export interface DisputeItem {
+  id: string;
+  reportId: string;
+  reportTitle?: string;
+  programId?: string;
+  programName?: string;
+  organizationId?: string;
+  reporterId?: string;
+  reportedSeverity: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  triageSeverity: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  cvssVector?: string;
+  cvssScore?: number;
+  status: "OPEN" | "UNDER_REVIEW" | "RESOLVED" | "DISMISSED" | "AWAITING_REPORTER";
+  raisedBy?: string;
+  reason?: string;
+  resolvedSeverity?: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" | null;
+  resolvedBy?: string;
+  resolutionNotes?: string;
+  createdAt?: string;
+  resolvedAt?: string;
+  respondBy?: string;
+}
+
+export interface ResolveDisputePayload {
+  id: string;
+  status: "RESOLVED" | "DISMISSED" | "UNDER_REVIEW";
+  finalSeverity?: "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  resolutionNotes?: string;
 }
 
 export interface AdminUserSummaryItem {

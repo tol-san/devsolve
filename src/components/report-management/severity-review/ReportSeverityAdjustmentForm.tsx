@@ -122,7 +122,7 @@ export function ReportSeverityAdjustmentForm({
   const router = useRouter();
   const fileInputId = useId();
 
-  const initialSev = normalizeSeverity(detail?.severity);
+  const initialSev = normalizeSeverity(detail?.severity || detail?.triageSeverity || detail?.reportedSeverity || undefined);
 
   // Form State
   const [selectedSeverity, setSelectedSeverity] = useState<SeverityOption>(initialSev);

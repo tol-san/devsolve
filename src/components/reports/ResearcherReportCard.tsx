@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/reports/StatusBadge";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { cn } from "@/lib/utils";
 
 interface ResearcherReportCardProps {
@@ -91,7 +92,15 @@ export function ResearcherReportCard({
 
         {/* Severity & Status Row */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <SeverityBadge severity={report.severity} />
+          {report.severity ? (
+            <SeverityBadge severity={report.severity} />
+          ) : (
+            <DisputedSeverityPair
+              reportedSeverity={report.reportedSeverity}
+              triageSeverity={report.triageSeverity}
+              size="sm"
+            />
+          )}
           <StatusBadge status={report.status} />
           {report.type && (
             <Badge

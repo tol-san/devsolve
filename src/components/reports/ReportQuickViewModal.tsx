@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import StatusBadge from "@/components/reports/StatusBadge";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { MarkdownView } from "@/components/ui/markdown-view";
 import { WeaknessDisplay } from "@/components/reports/WeaknessDisplay";
 import { cn } from "@/lib/utils";
@@ -98,8 +99,8 @@ export function ReportQuickViewModal({
   };
 
   // Severity Accent Theme
-  const getSeverityAccent = (sev: string) => {
-    switch (sev.toUpperCase()) {
+  const getSeverityAccent = (sev: string | null | undefined) => {
+    switch ((sev || "MEDIUM").toUpperCase()) {
       case "CRITICAL":
         return {
           gradient: "from-rose-500 via-red-500 to-amber-500",
@@ -200,16 +201,17 @@ export function ReportQuickViewModal({
                   )}
                 </button>
 
-                <SeverityBadge
-                  severity={
-                    (reportDetail?.settledSeverity ||
-                      report.settledSeverity ||
-                      reportDetail?.agreedSeverity ||
-                      reportDetail?.triageSeverity ||
-                      reportDetail?.reportedSeverity ||
-                      report.severity) as any
-                  }
-                />
+                {reportDetail?.severity || report.severity ? (
+                  <SeverityBadge
+                    severity={(reportDetail?.severity || report.severity) as any}
+                  />
+                ) : (
+                  <DisputedSeverityPair
+                    reportedSeverity={reportDetail?.reportedSeverity || report.reportedSeverity}
+                    triageSeverity={reportDetail?.triageSeverity || report.triageSeverity}
+                    size="sm"
+                  />
+                )}
                 <StatusBadge status={report.status} />
 
                 {(reportDetail?.dispute || report.dispute) && (

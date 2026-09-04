@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, Eye, ShieldAlert, CircleAlert, CheckCircle2, ShieldCheck, Clock, RotateCcw, X } from "lucide-react";
 
 import type { ManagedReport } from "@/components/report-management/types";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { reportListGridClass } from "@/components/report-management/report-list-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,8 +77,18 @@ function getWorkflowStatusBadge(report: ManagedReport) {
   );
 }
 
-function getSeverityBadge(severity: ManagedReport["severity"]) {
-  switch (severity) {
+function getSeverityBadge(report: ManagedReport) {
+  if (!report.severity) {
+    return (
+      <DisputedSeverityPair
+        reportedSeverity={report.reportedSeverity}
+        triageSeverity={report.triageSeverity}
+        cvssScore={report.cvssScore ? String(report.cvssScore) : undefined}
+        size="sm"
+      />
+    );
+  }
+  switch (report.severity) {
     case "Critical":
       return (
         <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-red-600 text-white shadow-2xs">
@@ -219,7 +230,7 @@ export function ManagedReportCard({
           </div>
 
           <div className="flex items-center justify-center">
-            {getSeverityBadge(report.severity)}
+            {getSeverityBadge(report)}
           </div>
         </div>
 
@@ -268,7 +279,7 @@ export function ManagedReportCard({
                   {report.type}
                 </Badge>
                 {getWorkflowStatusBadge(report)}
-                {getSeverityBadge(report.severity)}
+                {getSeverityBadge(report)}
               </div>
             </div>
           </div>

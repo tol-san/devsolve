@@ -110,7 +110,7 @@ export default function Page() {
       return matchesQueue && matchesSeverity;
     });
 
-    const severityRank: Record<ReviewSeverity, number> = {
+    const severityRank: Record<string, number> = {
       Critical: 0,
       High: 1,
       Medium: 2,
@@ -119,8 +119,10 @@ export default function Page() {
 
     return [...filtered].sort((a, b) => {
       if (sortBy === "priority") {
+        const rankA = a.severity ? severityRank[a.severity] ?? 4 : 4;
+        const rankB = b.severity ? severityRank[b.severity] ?? 4 : 4;
         return (
-          severityRank[a.severity] - severityRank[b.severity] ||
+          rankA - rankB ||
           submittedAtValue(b.submittedAtIso) - submittedAtValue(a.submittedAtIso)
         );
       }

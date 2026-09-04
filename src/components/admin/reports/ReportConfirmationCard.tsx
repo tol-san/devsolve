@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { ReportConfirmationItem } from "@/lib/types/admin/types";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -94,9 +95,17 @@ export function ReportConfirmationCard({
                 >
                   {report.title}
                 </Link>
-                <Badge className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${getSeverityBadge(report.severity)}`}>
-                  {report.severity}
-                </Badge>
+                {report.severity ? (
+                  <Badge className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${getSeverityBadge(report.severity)}`}>
+                    {report.severity}
+                  </Badge>
+                ) : (
+                  <DisputedSeverityPair
+                    reportedSeverity={report.reportedSeverity || report.hackerClaimedSeverity?.tier}
+                    triageSeverity={report.triageSeverity || report.companyConfirmedSeverity?.tier}
+                    size="sm"
+                  />
+                )}
                 <Badge variant="outline" className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(report.status)}`}>
                   {report.status}
                 </Badge>

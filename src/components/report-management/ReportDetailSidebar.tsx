@@ -734,7 +734,7 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
         onOpenChange={setShowResolveDialog}
         reportId={String(detail.id)}
         reportTitle={detail.title}
-        severity={detail.severity}
+        severity={detail.severity || "Medium"}
         submitterName={displayName}
         onSuccess={onRefresh}
       />
@@ -746,7 +746,7 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
         reportId={String(detail.id)}
         reportTitle={detail.title}
         submitterName={displayName}
-        severity={detail.severity}
+        severity={detail.severity || "Medium"}
         defaultEndpoint={detail.affectedUrl || detail.assets?.[0] || ""}
         reportState={rawStatus}
         onSuccess={onRefresh}

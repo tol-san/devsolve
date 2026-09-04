@@ -40,7 +40,8 @@ export default function ReportConfirmationPage() {
   const filteredReports = reports.filter((rep) => {
     const matchesStatus = statusFilter === "ALL" || rep.status === statusFilter;
     const matchesSeverity =
-      severityFilter === "ALL" || rep.severity.toUpperCase() === severityFilter;
+      severityFilter === "ALL" ||
+      (rep.severity ? rep.severity.toUpperCase() === severityFilter : false);
 
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch =

@@ -148,18 +148,19 @@ function extractReports(
 }
 
 function toManagedSeverity(report: ReportApiResponse): ManagedReport["severity"] {
-  const value =
-    report.severity ?? report.triageSeverity ?? report.reportedSeverity;
+  if (!report.severity) return null;
 
-  switch (value) {
+  switch (report.severity) {
     case "CRITICAL":
       return "Critical";
     case "HIGH":
       return "High";
     case "MEDIUM":
       return "Medium";
-    default:
+    case "LOW":
       return "Low";
+    default:
+      return null;
   }
 }
 
@@ -349,6 +350,7 @@ function toManagedReport(
     submittedAtIso: report.submittedAt ?? report.createdAt ?? report.updatedAt,
     summary: toSummary(report),
     assets: toAssets(report, program),
+    dispute: (report as any).dispute ?? null,
   };
 }
 
