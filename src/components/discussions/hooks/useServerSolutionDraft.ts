@@ -28,9 +28,6 @@ export interface ServerSolutionDraftState {
   draftId: string | null;
 }
 
-/**
- * Autosaves a problem's solution draft to the server and offers back anything unfinished.
- */
 export function useServerSolutionDraft({
   problemId,
   values,

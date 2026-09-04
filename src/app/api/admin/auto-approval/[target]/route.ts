@@ -17,12 +17,6 @@ const patchAutoApprovalSchema = z.object({
   enabled: z.boolean(),
 });
 
-/**
- * PATCH /api/admin/auto-approval/{target} — update the auto-approval switch for a kind.
- *
- * `{target}` must be strictly "PROBLEM" or "SHOWCASE" (uppercase, case-sensitive).
- * Lowercase returns 400 upstream, so we do not normalize it.
- */
 export async function PATCH(request: NextRequest, context: Context) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

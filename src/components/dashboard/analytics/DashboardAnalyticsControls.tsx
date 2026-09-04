@@ -45,7 +45,6 @@ export function DashboardAnalyticsControls({
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-3 rounded-2xl border border-border/80 bg-card/80 p-4 sm:p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10">
-      {/* Time range picker */}
       <div className="w-full sm:w-52">
         <Select
           value={timeRange}
@@ -70,7 +69,6 @@ export function DashboardAnalyticsControls({
         </Select>
       </div>
 
-      {/* Program picker */}
       <div className="w-full sm:w-64">
         <Select
           value={programId ?? "ALL"}

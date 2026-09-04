@@ -97,10 +97,8 @@ export default function AdminTagsPage() {
         </div>
       </header>
 
-      {/* Stat Cards */}
       <TagStatCards tags={tags} isLoading={isLoading} />
 
-      {/* Filter Bar */}
       {!isError && (
         <FilterBar>
           <FilterRow>
@@ -179,7 +177,6 @@ export default function AdminTagsPage() {
         </FilterBar>
       )}
 
-      {/* Main Table */}
       <main className="flex flex-col gap-3">
         {isError ? (
           <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">

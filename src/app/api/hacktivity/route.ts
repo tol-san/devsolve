@@ -7,14 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/hacktivity — proxy for /api/v1/hacktivity, the public disclosure
- * stream behind `/hacktivity`.
- *
- * A token is not required: the page is public. Signed-in callers still send
- * theirs, since the upstream personalises what it will show them.
- */
-
 const ALLOWED_QUERY = [
   "q",
   "severity",
@@ -26,7 +18,6 @@ const ALLOWED_QUERY = [
   "sort",
 ] as const;
 
-/** Both are multi-select on the page, and the upstream reads them as lists. */
 const REPEATABLE = ["severity", "eventType"] as const;
 
 export async function GET(request: NextRequest) {

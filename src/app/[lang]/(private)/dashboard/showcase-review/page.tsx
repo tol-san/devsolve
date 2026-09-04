@@ -19,7 +19,6 @@ export default function ShowcaseReviewPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedShowcaseId, setSelectedShowcaseId] = useState<string | null>(null);
 
-  // Fetch showcase submission queue
   const { data: pageData, isLoading } = useGetShowcaseReviewQueueQuery({
     reviewStatus: statusFilter === "ALL" ? undefined : statusFilter,
     pageSize: 100,
@@ -27,7 +26,6 @@ export default function ShowcaseReviewPage() {
 
   const rawItems = pageData?.content ?? [];
 
-  // Filter queue items client-side by search query
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return rawItems;
     const query = searchQuery.toLowerCase();
@@ -52,7 +50,6 @@ export default function ShowcaseReviewPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* 1. Standard Page Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -83,10 +80,8 @@ export default function ShowcaseReviewPage() {
         </div>
       </header>
 
-      {/* 2. Metrics Stat Cards */}
       <ShowcaseStatCards items={rawItems} isLoading={isLoading} />
 
-      {/* 3. Search & Status Filter Toolbar */}
       <ShowcaseFiltersBar
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
@@ -95,14 +90,12 @@ export default function ShowcaseReviewPage() {
         onReset={handleReset}
       />
 
-      {/* 4. Submissions Data Table */}
       <ShowcaseDataTable
         items={filteredItems}
         isLoading={isLoading}
         onReview={(id) => setSelectedShowcaseId(id)}
       />
 
-      {/* 5. Review & Decision Modal */}
       <ShowcaseReviewModal
         showcaseId={selectedShowcaseId}
         isOpen={Boolean(selectedShowcaseId)}

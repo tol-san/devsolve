@@ -42,21 +42,6 @@ import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 import { CommentComposer } from "./CommentComposer";
 import { CommentItem, ShowMoreReplies } from "./CommentItem";
 
-/**
- * The comment thread for one piece of content.
- *
- * Reads `/comments/thread`, which returns each top-level comment with its
- * first few replies already attached — the flat `/comments` collection needs a
- * request per parent to draw the same view. The remaining replies under any
- * one comment are fetched on demand.
- *
- * Any comment can be replied to, including a reply, and `parentCommentId`
- * records the one actually answered. The drawing is deliberately flatter than
- * the data: every descendant of a top-level comment sits at one indent and
- * names who it answers, because indenting per level runs out of width after
- * two or three on a phone.
- */
-
 const PAGE_SIZE = 20;
 const REPLY_LIMIT = 3;
 
@@ -78,7 +63,6 @@ export function CommentsSection({
   const [sort, setSort] = useState<CommentSort>("NEWEST");
   const [pageNumber, setPageNumber] = useState(0);
   const [draft, setDraft] = useState("");
-  /** Parents whose full reply list the reader has asked for. */
   const [expanded, setExpanded] = useState<string[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
@@ -96,8 +80,6 @@ export function CommentsSection({
     return () => window.removeEventListener("hashchange", syncFocusedComment);
   }, []);
 
-  /* Posting is attributed to a session, so a signed-out reader is offered the
-     way in rather than a box that only fails once they have typed into it. */
   const { user, isPending: isSessionPending } = useSidebarAuth();
   const { isLoggingIn, handleLogin } = useKeycloakLogin();
   const canPost = Boolean(user);
@@ -181,22 +163,15 @@ export function CommentsSection({
     try {
       await createComment({ ...target, content }).unwrap();
       setDraft("");
-      /* A new top-level comment is at the front only under NEWEST; for the
-         other orders the reader is told where it went rather than left
-         hunting for it. */
       if (sort !== "NEWEST") toast.success("Comment posted.");
     } catch (error) {
       report(error, "Your comment could not be posted.");
     }
   };
 
-  /** `parentCommentId` is the comment being answered, at whatever depth. */
   const reply = async (parentCommentId: string, content: string) => {
     try {
       await createComment({ ...target, content, parentCommentId }).unwrap();
-      /* Expand in case the new reply lands past the few the thread endpoint
-         seeds. Harmless when the id belongs to a nested reply rather than a
-         thread root — those refetch on the invalidated tag regardless. */
       setExpanded((prev) =>
         prev.includes(parentCommentId) ? prev : [...prev, parentCommentId],
       );
@@ -266,8 +241,6 @@ export function CommentsSection({
         )}
       </header>
 
-      {/* Composer first: the reason most people open a thread is to add to it,
-          and burying the box under a page of comments hides it. */}
       {isSessionPending ? (
         <div className="h-24 animate-pulse rounded-2xl bg-muted" />
       ) : canPost ? (
@@ -484,20 +457,6 @@ export function CommentsSection({
   );
 }
 
-/**
- * Everything answering one top-level comment, drawn in a single column.
- *
- * A reply targets the comment it actually answers — `parentCommentId` is that
- * comment's id, not the thread opener's — so the tree in the database matches
- * what the reader clicked. Rendering does not follow that shape: nesting a
- * level per depth walks off the right edge of a phone after two or three, so
- * every descendant sits at the same indent and says who it is addressed to
- * instead.
- *
- * Depth is handled by recursion through `Descendants`, which keeps the hook
- * count fixed per component — a loop over a variable number of parents could
- * not call `useGetCommentsQuery` for each.
- */
 function Replies({
   parent,
   seeded,
@@ -548,7 +507,6 @@ function Replies({
           onEdit={(content) => onEdit(reply.id, content)}
           onDelete={() => onDelete(reply.id)}
         >
-          {/* Answers to this reply, lifted into the same column. */}
           {(reply.replyCount ?? 0) > 0 && (
             <Descendants
               parent={reply}
@@ -574,10 +532,6 @@ function Replies({
   );
 }
 
-/**
- * Replies to a reply. Rendered flat beside their siblings, each labelled with
- * the author it answers, and recursing for anything below them.
- */
 function Descendants({
   parent,
   busyId,

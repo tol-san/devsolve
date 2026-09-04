@@ -7,29 +7,12 @@ import { Bug, Lightbulb, MessagesSquare, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ACCENT, PRIMARY } from "./SectionBackdrop";
 
-/* ════════════════════════════════════════════════════════════════════
-   PILLAR ORBIT
-
-   The hero's headline claims four disciplines on one platform, so the
-   artwork states the same thing rather than decorating around it: the mark
-   at the centre, the four pillars anchored to it, and a pulse running each
-   spoke to say the connection is live rather than diagrammatic.
-
-   Colour carries the argument. The two pillars where work *arrives* — a
-   bounty programme, a problem someone is stuck on — are the brand primary.
-   The two where it *resolves* — a solution that worked, a showcase on your
-   profile — are the accent. Read clockwise from the top left, the diagram is
-   the platform's own arc from finding to proof.
-   ════════════════════════════════════════════════════════════════════ */
-
 type Pillar = {
   label: string;
   caption: string;
   href: string;
   icon: LucideIcon;
-  /** Degrees, 0 = east, measured clockwise because y runs down. */
   angle: number;
-  /** True for the arriving side of the platform, false for the resolving. */
   inbound: boolean;
 };
 
@@ -40,10 +23,8 @@ const PILLARS: Pillar[] = [
   { label: "Solutions", caption: "Answers that shipped", href: "/community", icon: Lightbulb, angle: 38, inbound: false },
 ];
 
-/* One square viewBox; the parent decides the rendered size. */
 const BOX = 400;
 const MID = BOX / 2;
-/** Where the spokes stop — short of the chips, so lines never run under them. */
 const SPOKE = 118;
 const RINGS = [58, 96, 134, 170];
 
@@ -94,8 +75,6 @@ export function PillarOrbit({ className = "" }: { className?: string }) {
                 strokeWidth="1"
                 vectorEffect="non-scaling-stroke"
               />
-              {/* The pulse runs outward on the arriving spokes and inward on
-                  the resolving ones, so the two halves read as a cycle. */}
               {!reduce && (
                 <motion.circle
                   r="3"

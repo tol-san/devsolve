@@ -165,14 +165,12 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
       transition={{ duration: 0.2 }}
       className="group relative flex flex-col justify-between gap-4 rounded-2xl bg-card p-5 shadow-2xs ring-1 ring-foreground/5 transition-all duration-200 hover:shadow-md hover:ring-foreground/10 dark:ring-foreground/10 dark:hover:ring-foreground/20"
     >
-      {/* Stretched clickable overlay linking to details */}
       <Link
         href={item.url || "/community"}
         className="absolute inset-0 z-0 rounded-2xl focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
         aria-label={`View details for ${item.title}`}
       />
 
-      {/* CARD TOP BAR */}
       <div className="relative z-10 flex items-center justify-between gap-2 pointer-events-none">
         <div className="flex items-center gap-2">
           {getCategoryBadge()}
@@ -203,7 +201,6 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
         </div>
       </div>
 
-      {/* CARD BODY */}
       <div className="relative z-10 space-y-2 flex-1 pointer-events-none">
         <h3 className="text-base font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
           {item.title}
@@ -213,7 +210,6 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
         </p>
       </div>
 
-      {/* CATEGORY SPECIFIC METADATA */}
       <div className="relative z-10 pt-1 pointer-events-none">
         {(item.authorName || item.readTime || item.likesCount !== undefined) && (
           <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/50 p-2.5 rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10">
@@ -231,7 +227,6 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
         )}
       </div>
 
-      {/* TAGS CHIPS */}
       <div className="relative z-10 flex flex-wrap items-center gap-1.5 pt-1 pointer-events-none">
         {item.tags.slice(0, 3).map((tag, idx) => (
           <span

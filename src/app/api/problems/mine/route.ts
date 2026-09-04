@@ -8,14 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/problems/mine — the caller's own problems, drafts and
- * pending-approval ones included, which the public portfolio endpoint hides.
- *
- * A static segment beats the sibling `[problemId]` route in the App Router, so
- * "mine" is never read as a problem id.
- */
-
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

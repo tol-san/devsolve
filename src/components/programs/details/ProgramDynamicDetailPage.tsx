@@ -54,7 +54,6 @@ export default function ProgramDetailPage({
     { id: "asset-2", assetType: "API" as const, identifier: "api.example.com/v2", description: "REST API endpoints", isInScope: true, maxSeverity: "HIGH" as const },
   ];
 
-  // Fallback program generator if mock program or non-UUID route is hit
   const program: ProgramDetail | null = fetchedProgram || (
     programId && !isFetching ? ({
       id: programId,
@@ -89,7 +88,6 @@ export default function ProgramDetailPage({
   const searchParams = useSearchParams();
   const fromSavedDraft = searchParams.get("from") === "saved-draft";
 
-  // Determine the base path and back label
   const isDashboard = pathname.startsWith("/dashboard/programs");
   const backHref = fromSavedDraft
     ? "/dashboard/saved-draft"
@@ -159,7 +157,6 @@ export default function ProgramDetailPage({
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="space-y-8 w-full pb-16"
         >
-          {/* TOP ACTION BAR: BACK BUTTON & BOOKMARK BUTTON */}
           {showBack && (
             <div className="flex items-center justify-between">
               <Link
@@ -172,18 +169,14 @@ export default function ProgramDetailPage({
             </div>
           )}
 
-          {/* Hero / Header Section */}
           <ProgramDetailHero program={program} />
 
-          {/* Program Navigation Tabs Bar */}
           <ProgramDetailTabNav
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
 
-          {/* Main Grid Section (2 Columns: Main Content + Sidebar) */}
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Left Column: Tab Content */}
             <section className="lg:col-span-2 space-y-8">
               <AnimatePresence mode="wait">
                 {activeTab === "overview" && (
@@ -208,7 +201,6 @@ export default function ProgramDetailPage({
               </AnimatePresence>
             </section>
 
-            {/* Right Column: Sidebar Widgets */}
             <ProgramDetailSidebar program={program} />
           </main>
         </motion.div>

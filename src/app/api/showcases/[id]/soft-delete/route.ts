@@ -9,12 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * PATCH /api/showcases/{id}/soft-delete — takes a showcase off the index
- * without destroying it. `/restore` is the way back; the hard delete is
- * `DELETE /api/showcases/{id}`.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, context: Context) {

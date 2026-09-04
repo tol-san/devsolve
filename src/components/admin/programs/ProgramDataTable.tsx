@@ -37,14 +37,6 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 
-/**
- * The program table, sharing the users table's chrome and pagination contract.
- *
- * Paging is the server's whenever `pageIndex` and `pageCount` are given — the
- * admin endpoint pages upstream, so letting the table slice rows locally as
- * well would page within a page.
- */
-
 interface ProgramDataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -112,7 +104,6 @@ export function ProgramDataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Mobile Card View (visible on screens < md) */}
       <div className="grid grid-cols-1 gap-3 md:hidden">
         {table.getRowModel().rows?.length ? (
           table.getRowModel().rows.map((row) => {
@@ -131,12 +122,10 @@ export function ProgramDataTable<TData, TValue>({
                 key={row.id}
                 className="flex flex-col gap-3 rounded-2xl bg-card ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 shadow-xs"
               >
-                {/* Header: Name + Handle */}
                 <div className="flex items-start justify-between gap-2 border-b border-border/60 pb-3">
                   {nameCell && flexRender(nameCell.column.columnDef.cell, nameCell.getContext())}
                 </div>
 
-                {/* Status Badges */}
                 <div className="flex flex-wrap items-center gap-2">
                   {typeCell && flexRender(typeCell.column.columnDef.cell, typeCell.getContext())}
                   {visCell && flexRender(visCell.column.columnDef.cell, visCell.getContext())}
@@ -144,13 +133,11 @@ export function ProgramDataTable<TData, TValue>({
                   {reviewCell && flexRender(reviewCell.column.columnDef.cell, reviewCell.getContext())}
                 </div>
 
-                {/* Meta Information */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
                   {orgCell && flexRender(orgCell.column.columnDef.cell, orgCell.getContext())}
                   {dateCell && flexRender(dateCell.column.columnDef.cell, dateCell.getContext())}
                 </div>
 
-                {/* Actions */}
                 {actionsCell && (
                   <div className="pt-2 border-t border-border/60 flex justify-end">
                     {flexRender(actionsCell.column.columnDef.cell, actionsCell.getContext())}
@@ -176,7 +163,6 @@ export function ProgramDataTable<TData, TValue>({
         )}
       </div>
 
-      {/* Desktop Table View (visible on screens >= md) */}
       <div className="hidden md:block overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
         <div className="w-full overflow-x-auto">
           <Table>
@@ -244,7 +230,6 @@ export function ProgramDataTable<TData, TValue>({
         </div>
       </div>
 
-      {/* Pagination Footer */}
       {data.length > 0 && (
         <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-border bg-card px-4 py-3 sm:flex-row">
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-start">

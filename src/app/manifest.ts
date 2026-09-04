@@ -1,13 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/seo/site";
 
-/**
- * The web app manifest, served at `/manifest.webmanifest`.
- *
- * Mostly this is what an installed or bookmarked shortcut looks like on a
- * phone home screen; search engines also read `name` and `description` as a
- * secondary signal of what the site calls itself.
- */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: `${SITE_NAME} — ${SITE_TAGLINE}`,

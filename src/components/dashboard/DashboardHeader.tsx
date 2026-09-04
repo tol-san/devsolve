@@ -26,7 +26,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const t = useT();
   const isCompany = audience === "COMPANY";
 
-  // Time of day greeting for user
   const hour = new Date().getHours();
   const timeGreeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";

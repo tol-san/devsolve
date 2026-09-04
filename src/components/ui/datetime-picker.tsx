@@ -14,7 +14,7 @@ import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight } from "luci
 import { cn } from "@/lib/utils";
 
 interface DateTimePickerProps {
-  value?: string; // YYYY-MM-DDTHH:mm
+  value?: string; 
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
@@ -134,7 +134,6 @@ export function DateTimePicker({
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Positioner align="start" sideOffset={6} className="isolate z-50 outline-none">
           <PopoverPrimitive.Popup className="w-80 rounded-2xl bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95">
-            {/* Month / Year Nav */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
                 {monthNames[month]} {year}
@@ -149,7 +148,6 @@ export function DateTimePicker({
               </div>
             </div>
 
-            {/* Days Grid */}
             <div>
               <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                 {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
@@ -186,14 +184,12 @@ export function DateTimePicker({
               </div>
             </div>
 
-            {/* Time Picker Controls */}
             <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
               <div className="flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300">
                 <Clock className="size-3.5 text-slate-400" />
                 Time
               </div>
               <div className="flex items-center gap-1.5">
-                {/* Hours Select */}
                 <Select
                   value={String(hours)}
                   onValueChange={(val) => handleTimeChange(Number(val), minutes)}
@@ -212,7 +208,6 @@ export function DateTimePicker({
 
                 <span className="text-xs font-bold text-slate-400">:</span>
 
-                {/* Minutes Select */}
                 <Select
                   value={String(minutes)}
                   onValueChange={(val) => handleTimeChange(hours, Number(val))}

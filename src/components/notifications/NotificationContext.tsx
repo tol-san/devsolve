@@ -19,7 +19,6 @@ export const NotificationProvider: React.FC<{
 }> = ({ children, enableStream = true }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Mount real-time SSE listener
   useNotificationStream(enableStream);
 
   const openNotification = () => setIsOpen(true);

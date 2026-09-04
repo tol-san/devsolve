@@ -39,7 +39,6 @@ export default function AdminUsersPage() {
     actionType: ModerationActionType;
   } | null>(null);
 
-  // Debounce search query to prevent excessive network calls
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery.trim());
@@ -48,12 +47,10 @@ export default function AdminUsersPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Overall dataset query for stat cards and tab counts
   const { data: overallResponse, refetch: refetchOverall } = useGetAdminUsersQuery({
     pageSize: 100,
   });
 
-  // Filtered dataset query for table data
   const {
     data: response,
     isLoading,
@@ -87,7 +84,6 @@ export default function AdminUsersPage() {
     return "USER";
   }
 
-  /* ── Map overall items for Stat Cards ──────────────────────────────────── */
   const overallUsers: AdminUserItem[] = useMemo(() => {
     if (!overallResponse?.content) return [];
     return overallResponse.content.map((item) => ({
@@ -106,7 +102,6 @@ export default function AdminUsersPage() {
     }));
   }, [overallResponse]);
 
-  /* ── Map table items with role filtering & client-side sort ────────────── */
   const users: AdminUserItem[] = useMemo(() => {
     if (!response?.content) return [];
     let list: AdminUserItem[] = response.content.map((item) => ({
@@ -124,12 +119,10 @@ export default function AdminUsersPage() {
       avatarUrl: item.avatarUrl,
     }));
 
-    // Filter by role
     if (roleFilter !== "ALL") {
       list = list.filter((u) => u.role === roleFilter);
     }
 
-    // Client-side fallback text search refinement
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
       list = list.filter(
@@ -141,7 +134,6 @@ export default function AdminUsersPage() {
       );
     }
 
-    // Apply sorting
     list.sort((a, b) => {
       switch (sortOption) {
         case "OLDEST":
@@ -163,7 +155,6 @@ export default function AdminUsersPage() {
     return list;
   }, [response, roleFilter, debouncedSearch, sortOption]);
 
-  /* ── Counts (always derived from overallResponse if available) ────────── */
   const statusCounts = useMemo(() => {
     const items = overallResponse?.content || response?.content || [];
     const total = overallResponse?.totalElements ?? response?.totalElements ?? 0;
@@ -176,7 +167,6 @@ export default function AdminUsersPage() {
     };
   }, [overallResponse, response]);
 
-  /* ── Handlers ────────────────────────────────────────────────────── */
   const handleStatusFilterChange = useCallback((status: StatusFilter) => {
     setStatusFilter(status);
     setPageIndex(0);
@@ -249,7 +239,6 @@ export default function AdminUsersPage() {
   const totalPages = response?.totalPages ?? 1;
   const totalElements = response?.totalElements ?? users.length;
 
-  /* ── Render ──────────────────────────────────────────────────────── */
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -257,7 +246,6 @@ export default function AdminUsersPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* PAGE HEADER */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
@@ -281,7 +269,6 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
-        {/* Suspended alert badge */}
         {suspendedCount > 0 && (
           <Badge
             variant="outline"
@@ -295,7 +282,6 @@ export default function AdminUsersPage() {
         )}
       </header>
 
-      {/* STAT CARDS */}
       {!isLoading && (
         <UserStatCards
           users={overallUsers.length > 0 ? overallUsers : users}
@@ -313,7 +299,6 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* FILTER BAR */}
       <UserFiltersBar
         statusFilter={statusFilter}
         onStatusFilterChange={handleStatusFilterChange}
@@ -327,7 +312,6 @@ export default function AdminUsersPage() {
         onResetAll={handleResetAll}
       />
 
-      {/* DATA TABLE */}
       <main className="flex flex-col gap-3">
         {isLoading || isFetching ? (
           <div className="space-y-3 animate-pulse">
@@ -351,7 +335,6 @@ export default function AdminUsersPage() {
         )}
       </main>
 
-      {/* Moderation Action Dialog for Selected User */}
       <ModerationActionDialog
         target={
           moderateTarget

@@ -15,13 +15,6 @@ const unreachable = () =>
     { status: 502 },
   );
 
-/**
- * `GET /api/admin/weaknesses` — the whole catalogue, retired entries included.
- *
- * The public `/api/weaknesses` hides anything inactive because the report form
- * must not offer it. An admin needs to see exactly what an admin can edit, so
- * this one passes `activeOnly` straight through and defaults it off.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();
@@ -42,7 +35,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/** `POST /api/admin/weaknesses` — add an entry to the catalogue. */
 export async function POST(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();
@@ -57,8 +49,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  /* Validated here as well as in the dialog: the route is reachable without
-     the form, and the upstream's limits are worth enforcing before the hop. */
   const parsed = weaknessCreateSchema.safeParse(payload);
   if (!parsed.success) {
     return NextResponse.json(

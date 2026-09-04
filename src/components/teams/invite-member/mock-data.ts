@@ -105,21 +105,10 @@ export const INVITE_PERMISSION_OPTIONS: InvitePermissionOption[] = [
   },
 ];
 
-/**
- * The most a rank may hold, as opposed to what it starts with.
- *
- * `DEFAULT_PERMISSIONS_BY_ROLE` is the set a member is given; this is the set
- * they may be *tuned* to. The two differ because the point of per-member
- * permissions is adjusting someone within their rank — a Member who also
- * awards rewards is still a Member.
- *
- * Directly mirrors backend GET /api/v1/organizations/roles allowedPermissions.
- */
 export const MAX_PERMISSIONS_BY_ROLE: Record<
   OrganizationInvitationRole,
   OrganizationInvitationPermission[]
 > = {
-  /* Full permissions across all organization features. */
   MANAGER: [
     "VIEW_PROGRAMS",
     "CREATE_PROGRAM",
@@ -133,8 +122,6 @@ export const MAX_PERMISSIONS_BY_ROLE: Record<
     "MANAGE_RESEARCHERS",
     "MANAGE_MEMBERS",
   ],
-  /* Does the work: writes programs and moves reports along. Stops short of
-     deleting a program, opening or closing one, deciding who may report, or managing members. */
   MEMBER: [
     "VIEW_PROGRAMS",
     "CREATE_PROGRAM",
@@ -144,7 +131,6 @@ export const MAX_PERMISSIONS_BY_ROLE: Record<
     "MANAGE_DISCLOSURE",
     "AWARD_REWARDS",
   ],
-  /* Reads, and nothing else — the whole meaning of the rank. */
   VIEWER: ["VIEW_PROGRAMS", "VIEW_REPORTS"],
 };
 

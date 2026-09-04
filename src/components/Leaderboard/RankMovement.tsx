@@ -5,11 +5,8 @@ import { rankDelta } from "./leaderboard-ui";
 
 type Tone = "light" | "dark";
 
-/* Ink per surface — the dark pinned bar needs lighter marks to stay legible. */
 const INK: Record<Tone, { up: string; down: string; flat: string; fresh: string }> = {
   light: {
-    // 700-weight ink so the marks still clear 4.5:1 on the podium's tinted
-    // pedestals, not just on white.
     up: "text-emerald-700",
     down: "text-rose-700",
     flat: "text-muted-foreground",
@@ -23,10 +20,6 @@ const INK: Record<Tone, { up: string; down: string; flat: string; fresh: string 
   },
 };
 
-/**
- * Movement against the previous comparable window. Direction is carried by an
- * arrow and a sign as well as colour, so it survives a greyscale print.
- */
 export default function RankMovement({
   rank,
   previousRank,

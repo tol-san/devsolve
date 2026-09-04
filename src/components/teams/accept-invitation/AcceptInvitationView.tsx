@@ -55,18 +55,6 @@ function permissionTitle(value: OrganizationInvitationPermission): string {
   );
 }
 
-/**
- * The page an invitation email lands on.
- *
- * Accepting needs a bearer token, so it cannot be a one-click link straight
- * from the email — the invitee has to be signed in first. It is a public route
- * rather than a `/dashboard` one for exactly that reason: the dashboard
- * middleware bounces anonymous visitors to the home page, which would throw
- * the token away before they ever got the chance to sign in.
- *
- * `RequireAuth` carries the current path through the login round trip, so the
- * token survives it.
- */
 export function AcceptInvitationView({ token }: { token: string }) {
   const pathname = usePathname();
 
@@ -88,25 +76,11 @@ export function AcceptInvitationView({ token }: { token: string }) {
   );
 }
 
-/**
- * Accepts on arrival, once.
- *
- * There is nothing to decide on this screen — following the link *is* the
- * decision — so it is spent rather than presented as a form. What the invitee
- * needs is the outcome, and for the outcomes that are their fault, a way out.
- */
 function AcceptFlow({ token }: { token: string }) {
   const [acceptInvitation, { isLoading, isSuccess, data, error, reset }] =
     useAcceptOrganizationInvitationMutation();
 
-  /* Fired once. React re-invokes an effect on mount under strict mode, and the
-     upstream answers the second POST with 409 — an accept that worked would
-     otherwise report itself as already used. Refs survive the double invoke,
-     which a piece of state would not. */
   const fired = useRef(false);
-  /* State, not a ref: it is read while rendering to decide which card to
-     show, and a ref read during render is a value React never promised to
-     have refreshed by then. */
   const [acceptedHere, setAcceptedHere] = useState(false);
 
   useEffect(() => {
@@ -129,8 +103,6 @@ function AcceptFlow({ token }: { token: string }) {
       .catch(() => {});
   };
 
-  /* A conflict that lands after this page has already accepted is this page
-     seeing its own work, not a spent link. */
   const status = apiErrorStatus(error);
   if (isSuccess || (status === 409 && acceptedHere)) {
     return <AcceptedCard member={data} />;
@@ -141,7 +113,6 @@ function AcceptFlow({ token }: { token: string }) {
   return <AcceptingCard isLoading={isLoading} />;
 }
 
-/** While the POST is in flight. */
 function AcceptingCard({ isLoading }: { isLoading: boolean }) {
   const { data: session } = authClient.useSession();
 
@@ -185,15 +156,6 @@ function AcceptingCard({ isLoading }: { isLoading: boolean }) {
   );
 }
 
-/**
- * What went wrong, keyed on the status rather than the wording.
- *
- * The five failures are genuinely different situations with different ways
- * out — the link is not yours, is unknown, is spent, or has aged out — and a
- * single "something went wrong" would leave the invitee with nothing to do.
- * The upstream's own sentence is shown underneath when it adds anything, but
- * the status is what decides the heading and the button.
- */
 function FailedCard({
   error,
   onRetry,
@@ -263,8 +225,6 @@ function FailedCard({
         {copy.body}
       </p>
 
-      {/* Kept when it says something the heading does not — the upstream names
-          the organization on some of these. */}
       {upstream && upstream !== copy.body ? (
         <p className="mt-4 rounded-xl bg-muted/60 p-4 text-sm leading-relaxed text-muted-foreground">
           {upstream}
@@ -287,8 +247,6 @@ function FailedCard({
             Log in again
           </Button>
         ) : status === 403 ? (
-          /* Signing out lands them back on the home page signed out; the
-             invitation link is theirs to reopen with the right account. */
           <Button
             type="button"
             onClick={() => void handleSignOut()}
@@ -298,8 +256,6 @@ function FailedCard({
             Sign out and switch account
           </Button>
         ) : status === null || status >= 500 ? (
-          /* A network failure or a service that fell over — the only failures
-             here that trying again can fix. */
           <Button
             type="button"
             onClick={onRetry}
@@ -324,15 +280,10 @@ function FailedCard({
   );
 }
 
-/** What the invitee actually got, read back from the accept response. */
 function AcceptedCard({ member }: { member?: OrganizationInvitationMember }) {
   const lp = useLocalePath();
   const permissions = member?.permissions ?? [];
 
-  /* The accept response carries the member, not the organization — so the
-     name comes from the membership the accept has just created. Accepting
-     invalidates the memberships tag, so this is the freshly written row rather
-     than a stale one. */
   const { membership } = useCompanyAccess();
   const organizationName = membership?.organizationName?.trim();
 
@@ -391,9 +342,6 @@ function AcceptedCard({ member }: { member?: OrganizationInvitationMember }) {
       </dl>
 
       <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
-        {/* Their own view of the workspace. `/dashboard/team-management` is
-            the owner's roster and is gated to a company account, so it is the
-            one screen a brand new member cannot open. */}
         <Link
           href={lp("/dashboard/my-team")}
           className={cn(

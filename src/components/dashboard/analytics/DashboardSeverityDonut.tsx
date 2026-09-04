@@ -60,7 +60,6 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
             {item.count} ({item.percentage.toFixed(1)}%)
           </span>
         </div>
-        {/* Rule 6: Tooltip wording: 'avg. paid bounty', not 'avg. bounty per report' */}
         <div className="flex justify-between text-amber-600 dark:text-amber-400 font-semibold">
           <span>avg. paid bounty:</span>
           <span className="tabular-nums font-bold">
@@ -78,8 +77,6 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
 export function DashboardSeverityDonut({
   distribution,
 }: DashboardSeverityDonutProps) {
-  // Rule 2: All five severity bands are always present, with count: 0 when empty.
-  // Never drop zero bands from the breakdown.
   const chartData = SEVERITY_CONFIG.map(({ key, name, color }) => {
     const item = distribution[key];
     return {
@@ -88,7 +85,6 @@ export function DashboardSeverityDonut({
       percentage: item.percentage,
       avgBounty: item.avgBounty,
       color,
-      // For Recharts Pie, use count directly, fallback to a tiny slice if all are 0
       chartValue: item.count > 0 ? item.count : 0,
     };
   });
@@ -128,7 +124,6 @@ export function DashboardSeverityDonut({
           </PieChart>
         </ResponsiveContainer>
 
-        {/* Center Total Counter */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-3xl sm:text-4xl font-extrabold tabular-nums text-foreground">
             {totalCount}
@@ -139,7 +134,6 @@ export function DashboardSeverityDonut({
         </div>
       </div>
 
-      {/* Legend & Breakdown (Rule 2: Never drop zero bands) */}
       <div className="space-y-2 pt-2 border-t border-border/60">
         {chartData.map((band) => (
           <div

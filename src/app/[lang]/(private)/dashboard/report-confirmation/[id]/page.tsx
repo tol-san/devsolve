@@ -2,7 +2,6 @@
 
 export const dynamic = "force-dynamic";
 
-/** Tier colours for the verdict dots, so the two sides read apart at a glance. */
 const SEVERITY_DOT: Record<string, string> = {
   Critical: "bg-red-500",
   High: "bg-orange-500",
@@ -63,17 +62,9 @@ export default function ReportConfirmationDetailPage() {
   const [updateConfirm] = useUpdateConfirmReportMutation();
   const [resolveDispute] = useResolveAdminDisputeMutation();
 
-  /* Null until the reviewer picks one. The displayed severity is derived from
-     this and the report below, so it starts as whatever triage actually
-     recorded instead of a constant — and no effect is needed to sync it when
-     the report loads. */
   const [severityOverride, setSeverityOverride] = useState<
     "Critical" | "High" | "Medium" | "Low" | null
   >(null);
-  /* Null until edited, same as the severity above. An effect used to copy the
-     report into all of these on load, which is what pinned the severity to the
-     settled rating; each is derived from the report below instead, so what is
-     on screen is the report's own value until someone changes it. */
   const [rewardOverride, setRewardOverride] = useState<string | null>(null);
   const [noteOverride, setNoteOverride] = useState<string | null>(null);
   const [copiedPayload, setCopiedPayload] = useState(false);
@@ -127,10 +118,6 @@ export default function ReportConfirmationDetailPage() {
     );
   }
 
-  /* Both sides fall back to the settled rating only when their own is absent.
-     The CVSS line is shown when there is a real score and omitted otherwise —
-     the old fallback printed "CVSS 7.0 - 8.9" on every report, which reads as
-     a measurement rather than as the placeholder it was. */
   const claimedCvss = report.cvssScore ? `CVSS ${report.cvssScore}` : undefined;
   type SeverityBox = {
     tier: "Critical" | "High" | "Medium" | "Low" | "None" | null;
@@ -146,21 +133,17 @@ export default function ReportConfirmationDetailPage() {
     cvss: claimedCvss,
   };
 
-  /* What triage recorded, until the reviewer changes it on this screen. */
   const selectedSeverity: "Critical" | "High" | "Medium" | "Low" =
     severityOverride ??
     (companySev.tier && companySev.tier !== "None" ? companySev.tier : null) ??
     (hackerSev.tier && hackerSev.tier !== "None" ? hackerSev.tier : null) ??
     (report.severity && (report.severity as string) !== "None" ? report.severity : null) ??
     "Medium";
-  /* Compared as displayed, so the badge cannot contradict the two boxes under
-     it while the reviewer is editing. */
   const severitiesAgree = hackerSev.tier === selectedSeverity;
 
   const rewardAmount =
     rewardOverride ?? report.rewardAmount ?? report.rewardEstimate ?? "";
   const adminNote = noteOverride ?? report.triageNotes ?? "";
-  /* Read-only on this screen — nothing here edits it, so it needs no state. */
   const companyReasoning = report.companyReasoning ?? "";
 
   const handleCopyPayload = () => {
@@ -211,7 +194,6 @@ export default function ReportConfirmationDetailPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* 1. PAGE BREADCRUMB HEADER */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -240,7 +222,6 @@ export default function ReportConfirmationDetailPage() {
         </Badge>
       </header>
 
-      {/* 2. HERO CARD HEADER */}
       <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-5 shadow-2xs">
         <div className="flex items-start gap-4">
           <div
@@ -277,7 +258,6 @@ export default function ReportConfirmationDetailPage() {
           </div>
         </div>
 
-        {/* Metadata Details Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border text-sm">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
@@ -314,11 +294,8 @@ export default function ReportConfirmationDetailPage() {
         </div>
       </Card>
 
-      {/* 3. ASYMMETRIC 2-COLUMN GRID (Main Content Left 2/3, Sidebar Right 1/3) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* LEFT COLUMN: MAIN CONTENT & TABS */}
         <div className="lg:col-span-2 space-y-6">
-          {/* SEVERITY VERDICT CARD */}
           <Card
             className={cn(
               "rounded-2xl border p-6 space-y-5 shadow-2xs",
@@ -339,8 +316,6 @@ export default function ReportConfirmationDetailPage() {
                 Severity Verdict Matrix
               </span>
 
-              {/* The tick used to show either way, so an override was styled as
-                  agreement — the one thing this card must not do. */}
               <Badge
                 className={cn(
                   "rounded-full px-3 py-1 text-xs font-bold flex items-center gap-1.5 shadow-2xs",
@@ -358,16 +333,12 @@ export default function ReportConfirmationDetailPage() {
               </Badge>
             </div>
 
-            {/* Researcher's claim vs the company's verdict, side by side. */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 rounded-xl bg-card/70 border border-border space-y-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Researcher claimed
                 </span>
                 <div className="flex items-center gap-2">
-                  {/* Coloured by tier. A fixed orange dot made Critical and Low
-                      look alike, which is the opposite of what this card is
-                      for. */}
                   <span
                     className={cn(
                       "w-2.5 h-2.5 rounded-full",
@@ -378,9 +349,6 @@ export default function ReportConfirmationDetailPage() {
                     {hackerSev.tier}
                   </span>
                 </div>
-                {/* Rendered only when the API gave one — an omitted score
-                    leaves the line out rather than printing a blank or an
-                    invented band. */}
                 {(hackerSev.cvss || hackerSev.typicalReward || report.cvssVector) && (
                   <div className="text-xs text-muted-foreground space-y-0.5">
                     {hackerSev.cvss && <div>{hackerSev.cvss}</div>}
@@ -410,8 +378,6 @@ export default function ReportConfirmationDetailPage() {
                   <span className="text-lg font-extrabold text-foreground">
                     {selectedSeverity}
                   </span>
-                  {/* Says so when this is the reviewer's unsaved pick rather
-                      than what triage recorded. */}
                   {severityOverride !== null &&
                     severityOverride !== companySev.tier && (
                       <span className="rounded-md border border-border bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
@@ -430,7 +396,6 @@ export default function ReportConfirmationDetailPage() {
               </div>
             </div>
 
-            {/* Confirmed Reward Banner Footer */}
             <div className="pt-3 border-t border-border/70 flex items-center justify-between gap-3">
               <span className="text-sm font-medium text-muted-foreground">
                 Reward based on confirmed severity
@@ -440,8 +405,6 @@ export default function ReportConfirmationDetailPage() {
                   {rewardAmount}
                 </span>
               ) : (
-                /* The default was a hardcoded "$1,800" that no report had
-                   agreed to pay. Empty says so. */
                 <span className="text-sm font-semibold text-muted-foreground">
                   Not set
                 </span>
@@ -449,7 +412,6 @@ export default function ReportConfirmationDetailPage() {
             </div>
           </Card>
 
-          {/* RESEARCHER'S DISPUTE ARGUMENT CARD */}
           {report.disputeReason && (
             <Card className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-6 space-y-3 shadow-2xs">
               <div className="flex items-center justify-between">
@@ -469,16 +431,11 @@ export default function ReportConfirmationDetailPage() {
             </Card>
           )}
 
-          {/* COMPANY'S REASONING CARD */}
           <Card className="rounded-2xl border border-border bg-card p-6 space-y-3 shadow-2xs">
             <div className="flex items-center gap-2 text-sm font-bold text-foreground">
               <Lock className="w-4 h-4 text-muted-foreground" />
               <span>{report.companyName}&apos;s Reasoning</span>
             </div>
-            {/* Only what they actually wrote. The fallback here used to invent
-                a justification ("well-documented, clean PoC") and attribute it
-                to the company by name — a quote nobody said, on the record an
-                appeal would be argued from. */}
             <p
               className={cn(
                 "text-sm leading-relaxed font-normal",
@@ -492,7 +449,6 @@ export default function ReportConfirmationDetailPage() {
             </p>
           </Card>
 
-          {/* ELEVATED TAB NAVIGATION BAR WITH ANIMATED UNDERLINE */}
           <div className="bg-card rounded-xl border border-border p-1.5 shadow-2xs">
             <div className="flex items-center gap-1 overflow-x-auto">
               {tabs.map((tab) => {
@@ -526,7 +482,6 @@ export default function ReportConfirmationDetailPage() {
             </div>
           </div>
 
-          {/* DYNAMIC TAB CONTENT WITH ANIMATE PRESENCE */}
           <AnimatePresence mode="wait">
             {activeTab === "overview" && (
               <motion.div
@@ -538,7 +493,6 @@ export default function ReportConfirmationDetailPage() {
                 className="space-y-6"
               >
                 <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-2xs">
-                  {/* Vulnerability Description */}
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                       <FileText className="w-4.5 h-4.5 text-blue-600" />
@@ -549,7 +503,6 @@ export default function ReportConfirmationDetailPage() {
                     </p>
                   </div>
 
-                  {/* Security Impact */}
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                       <Flame className="w-4.5 h-4.5 text-rose-500" />
@@ -560,7 +513,6 @@ export default function ReportConfirmationDetailPage() {
                     </p>
                   </div>
 
-                  {/* Target Scope & CWE Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-1">
                       <span className="text-xs font-semibold text-muted-foreground">Target Scope URL</span>
@@ -605,7 +557,6 @@ export default function ReportConfirmationDetailPage() {
                 className="space-y-6"
               >
                 <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-2xs">
-                  {/* Steps to Reproduce */}
                   <div className="space-y-3">
                     <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                       <ShieldCheck className="w-4.5 h-4.5 text-blue-600" />
@@ -625,7 +576,6 @@ export default function ReportConfirmationDetailPage() {
                     )}
                   </div>
 
-                  {/* PoC Payload Snippet */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <h3 className="text-base font-bold text-foreground">
@@ -662,7 +612,6 @@ export default function ReportConfirmationDetailPage() {
                     )}
                   </div>
 
-                  {/* Attachments */}
                   <div className="space-y-3">
                     <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                       <Paperclip className="w-4.5 h-4.5 text-muted-foreground" />
@@ -804,7 +753,6 @@ export default function ReportConfirmationDetailPage() {
           </AnimatePresence>
         </div>
 
-        {/* RIGHT COLUMN: TRIAGE ACTION CONTROLS SIDEBAR */}
         <aside className="space-y-6 sticky top-6">
           <Card className="rounded-2xl border border-border bg-card p-6 space-y-5 shadow-2xs">
             <div className="flex items-center gap-2 text-base font-bold text-foreground border-b border-border pb-3">
@@ -812,7 +760,6 @@ export default function ReportConfirmationDetailPage() {
               <span>Triage Audit Decision</span>
             </div>
 
-            {/* Confirmed Severity Selector */}
             <div className="space-y-2">
               <Label className="text-sm font-bold text-foreground">
                 Confirmed Severity Tier
@@ -842,7 +789,6 @@ export default function ReportConfirmationDetailPage() {
               </div>
             </div>
 
-            {/* Confirmed Bounty Amount */}
             <div className="space-y-2">
               <Label className="text-sm font-bold text-foreground">
                 Confirmed Bounty Amount
@@ -855,7 +801,6 @@ export default function ReportConfirmationDetailPage() {
               />
             </div>
 
-            {/* Admin Note / Rationale */}
             <div className="space-y-2">
               <Label className="text-sm font-bold text-foreground">
                 Triager Rationale Note
@@ -869,7 +814,6 @@ export default function ReportConfirmationDetailPage() {
               />
             </div>
 
-            {/* Action Buttons */}
             <div className="space-y-2.5 pt-2 border-t border-border">
               <Button
                 disabled={isSubmitting}

@@ -13,9 +13,6 @@ import {
 type ApiTier = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE";
 type DisplayTier = NonNullable<ReportConfirmationItem["severity"]>;
 
-/**
- * A row of `GET /reports/management`, as far as this screen reads it.
- */
 type ManagementRow = {
   id: string;
   reportId?: string;
@@ -41,7 +38,6 @@ type ManagementRow = {
   } | null;
 };
 
-/** The API's constant as it reads on screen. */
 function toTier(value: ApiTier | string | null | undefined): DisplayTier | null {
   if (!value) return null;
   const upper = value.toUpperCase();
@@ -59,11 +55,6 @@ function toTier(value: ApiTier | string | null | undefined): DisplayTier | null 
   }
 }
 
-/**
- * The two sides of the severity rating, kept apart.
- *
- * Never falls back to settled rating to mask disagreements.
- */
 function toSeverityPair(
   raw: Pick<
     ManagementRow,
@@ -147,7 +138,6 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
       async queryFn(id, _api, _extraOptions, fetchWithBQ) {
         const foundMock = mockReportConfirmationsStore.find((r) => r.id === id);
 
-        // 1. Fetch live report details first for full dispute & severity fidelity
         const reportRes = await fetchWithBQ(`/reports/${id}`);
         if (!reportRes.error && reportRes.data && typeof reportRes.data === "object") {
           const raw = reportRes.data as any;
@@ -228,7 +218,6 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
           return { data: mapped };
         }
 
-        // 2. Fallback to /reports/management list
         const result = await fetchWithBQ("/reports/management");
         if (!result.error && Array.isArray(result.data)) {
           const raw = (result.data as ManagementRow[]).find((r) => r.id === id);
@@ -303,13 +292,8 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
           REJECTED: "REJECTED",
           ESCALATED: "TRIAGING",
         };
-        /* "Info" uppercases to a value `ReportSeverity` does not contain,
-           which the backend reports as an unreadable body rather than as a
-           bad severity. Undefined when the label names nothing: the call then
-           carries no severity instead of an invented one. */
         const triageSeverity = toApiSeverity(severity) ?? undefined;
 
-        // 1. Call real triage endpoint: POST /reports/${id}/triage
         const triageResult = await fetchWithBQ({
           url: `/reports/${id}/triage`,
           method: "POST",
@@ -329,7 +313,6 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
           console.warn("Triage API error:", triageResult.error);
         }
 
-        // 2. Call real rewards endpoint: POST /reports/${id}/rewards
         if (rewardAmount || rewardEstimate || status === "CONFIRMED") {
           const numericAmount = parseFloat(
             (rewardAmount || rewardEstimate || "").replace(/[^0-9.]/g, "")
@@ -351,7 +334,6 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
           }
         }
 
-        // 3. Update local mock store so UI stays consistent
         updateMockReportConfirmationsStore((prev) =>
           prev.map((r) => {
             if (r.id !== id) return r;

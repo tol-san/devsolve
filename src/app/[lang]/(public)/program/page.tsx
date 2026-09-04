@@ -6,8 +6,6 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { NO_INDEX } from "@/lib/seo/metadata";
 
-/* A retired route kept only so old links land somewhere explaining itself.
-   The live equivalent is `/programs`, which is what should be indexed. */
 export const metadata: Metadata = {
   title: "Program",
   robots: NO_INDEX,

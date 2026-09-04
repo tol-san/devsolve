@@ -1,10 +1,6 @@
 import { type NextRequest } from "next/server";
 import { BACKEND_API_URL, bearerTokenFor, unauthorized } from "@/lib/api/proxy";
 
-/**
- * GET /api/notifications/stream — Real-time SSE stream.
- * Proxies GET /api/v1/notifications/stream with text/event-stream headers.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

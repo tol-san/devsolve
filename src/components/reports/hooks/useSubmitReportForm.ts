@@ -28,8 +28,6 @@ import type {
   SaveReportDraftValues,
 } from "@/lib/validations/report-draft";
 
-/* The draft columns are typed `uuid`; sending the empty string the form
-   holds before anything is chosen would be a 400. */
 const isUuid = (value?: string): value is string =>
   !!value &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
@@ -48,9 +46,6 @@ export function useSubmitReportForm() {
   const searchParams = useSearchParams();
   const requestedProgramId = searchParams.get("programId") || "";
 
-  /* `?id=` opens one specific saved draft — the link on a card in the
-     saved-drafts list. The draft names its own program, so the form does not
-     need `programId` alongside it. */
   const resumeDraftId = searchParams.get("id") || "";
   const { data: linkedDraft } = useGetReportDraftQuery(resumeDraftId, {
     skip: !isUuid(resumeDraftId),
@@ -66,22 +61,8 @@ export function useSubmitReportForm() {
   const [externalLinks, setExternalLinks] = useState<string[]>([""]);
   const [linkErrors, setLinkErrors] = useState<Record<number, string>>({});
   const [referenceLinksError, setReferenceLinksError] = useState<string | null>(null);
-  /* One empty row to write in. These used to be four sentences describing an
-     invented IDOR against an invoice endpoint, which submitted as the
-     reporter's own reproduction steps whenever they were not cleared out by
-     hand — the examples belong in placeholders, not in the payload. */
   const [reproduceStepsList, setReproduceStepsList] = useState<string[]>([""]);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  /* The upstream's own words when it refuses a submission for want of
-     approval, tagged with the state it was describing.
-
-     Kept apart from `submitError` because it is not a mistake in the report —
-     nothing in the form can be corrected to fix it — and because it names the
-     company and the next step, which is more than anything written here could
-     say. The program and the access status travel with it so a refusal that no
-     longer describes anything is simply not read: pick another program, send
-     the request it asked for, get approved, and it falls away on the next
-     render rather than needing an effect to clear it. */
   const [accessRefusal, setAccessRefusal] = useState<{
     programId: string;
     status: ResearcherAccessStatus | null;
@@ -111,17 +92,10 @@ export function useSubmitReportForm() {
 
   const form = useForm<SubmitReportFormValues>({
     resolver: zodResolver(submitReportSchema),
-    /* Empty by design. Every text field here used to arrive filled with a
-       worked example — a target URL, a CWE, a CVSS vector and score, an
-       expected and actual result — and anything the reporter did not overwrite
-       was submitted as their own finding. A triager had no way to tell the
-       leftovers from the report. */
     defaultValues: {
       programId: preselectedProgramId,
       assetId: "",
       targetAsset: "",
-      /* Blank on purpose: whatever is here is written into the report body
-         verbatim, so a default becomes a statement the reporter never made. */
       environment: "PRODUCTION",
       discoveredAt: "",
       title: "",
@@ -151,14 +125,6 @@ export function useSubmitReportForm() {
 
   const { setValue, reset, trigger, getValues } = form;
 
-  /* What the draft endpoint models, built from what is on screen.
-
-     The API stores the same fifteen fields a report has, so the composed
-     Markdown the submit step builds is NOT what is saved — the raw values are,
-     which is the only way a restore can put them back in the boxes they came
-     from. Fields the draft schema has no column for (HTTP method, vulnerable
-     parameter, expected/actual result, the checklist) do not survive a round
-     trip; see the note in the review. */
   const watched = useWatch({ control: form.control });
   const draftBody = useMemo<SaveReportDraftValues>(() => {
     const score = Number(watched.cvssScore);
@@ -178,8 +144,6 @@ export function useSubmitReportForm() {
         ? new Date(watched.discoveredAt).toISOString()
         : undefined,
       referenceLinks: links.length ? links.slice(0, 10) : undefined,
-      /* Only what a reporter may claim reaches the draft; an undecided one
-         sends nothing rather than NONE, which `reportedSeverity` refuses. */
       reportedSeverity: watched.severity || undefined,
       cvssVector: watched.cvssVector || undefined,
       cvssScore: Number.isFinite(score) && watched.cvssScore ? score : undefined,
@@ -191,9 +155,6 @@ export function useSubmitReportForm() {
         watched.weaknessMode === "custom" && watched.suggestedWeakness && watched.suggestedWeakness.trim()
           ? watched.suggestedWeakness.trim().slice(0, 255)
           : null,
-      /* The draft is a whole-document replace, not a patch: a field left out
-         is cleared on save, so the asset the reporter picked has to travel
-         with every write or it is lost on the next blur. */
       assetId: watched.assetId || undefined,
     };
   }, [watched, externalLinks, reproduceStepsList]);
@@ -203,14 +164,9 @@ export function useSubmitReportForm() {
     values: draftBody,
     isDirty: form.formState.isDirty,
     enabled: !isSubmitting && !successModalData.isOpen,
-    /* Saves go back into the draft the link named, rather than forking a
-       second copy of the same report. */
     resumeId: isUuid(resumeDraftId) ? resumeDraftId : undefined,
   });
 
-  /* Puts a stored draft back on screen. The inverse of the mapping above —
-     replacing rather than merging, since the arrays are positional and
-     interleaving them would produce steps in an order nobody wrote. */
   const applyDraft = (stored: ReportDraftResponse) => {
     setValue("title", stored.title ?? "");
     setValue("summaryPoC", stored.vulnerabilityInformation ?? "");
@@ -229,7 +185,6 @@ export function useSubmitReportForm() {
     setValue("cvssVector", stored.cvssVector ?? "");
     setValue("cvssScore", stored.cvssScore != null ? String(stored.cvssScore) : "");
 
-    // Restore weakness mode & values
     if (stored.weaknessId) {
       setValue("weaknessMode", "catalog");
       setValue("weaknessId", stored.weaknessId);
@@ -252,7 +207,6 @@ export function useSubmitReportForm() {
     );
   };
 
-  /** Accepting the banner: the draft found for this program. */
   const restoreDraft = () => {
     const stored = draft.take();
     if (stored) {
@@ -261,9 +215,6 @@ export function useSubmitReportForm() {
     }
   };
 
-  /* Arriving from a saved-drafts card. Applied once, when the draft lands —
-     the form is empty at that point, so there is nothing of the reporter to
-     overwrite, and re-applying on every render would fight their typing. */
   const applied = useRef<string | null>(null);
   useEffect(() => {
     if (!linkedDraft || applied.current) return;
@@ -284,15 +235,6 @@ export function useSubmitReportForm() {
       programs[0] ||
       null;
 
-  /* Asked up front rather than discovered on the way out.
-
-     Reporting is gated on the *company* approving the researcher, so a
-     submission from someone uncleared is refused with a 403 no matter how
-     complete the report is. Asking before the form is filled in is the
-     difference between a warning and a wasted afternoon — and since approval
-     is per organization, the answer holds for every program that company
-     runs. Drafts are untouched by it: writing and saving never needed
-     approval, and the notice says so. */
   const accessProgramId = selectedProgram?.id || selectedProgramId || "";
   const {
     data: reportingAccess,
@@ -301,9 +243,6 @@ export function useSubmitReportForm() {
     skip: !isUuid(accessProgramId),
   });
 
-  /* Undefined while the pre-check is loading or unavailable — treated as
-     allowed, because blocking on a check that never answered would stop a
-     reporter who is in fact approved. The upstream still has the final say. */
   const canSubmitReport = reportingAccess?.canSubmitReports !== false;
 
   const accessStatus = reportingAccess?.status ?? null;
@@ -314,7 +253,6 @@ export function useSubmitReportForm() {
       ? accessRefusal.message
       : null;
 
-  // Synchronize preselected program ID when programs arrive asynchronously.
   useEffect(() => {
     if (preselectedProgramId) {
       setValue("programId", preselectedProgramId);
@@ -325,14 +263,6 @@ export function useSubmitReportForm() {
     }
   }, [preselectedProgramId, programs, setValue, selectedProgramId]);
 
-  /* The affected URL is typed, not guessed. This used to be filled in from the
-     program's first in-scope asset with `/v1/endpoint` appended — an address
-     that generally does not exist — and it landed in `targetEndpoint`, the
-     field a triager uses to find the vulnerability. The program's scope is
-     already listed above the input, which is the part that was actually
-     useful. */
-
-  // Handle Step Navigation & Validation
   const validateCurrentStep = async (): Promise<boolean> => {
     let fieldsToValidate: (keyof SubmitReportFormValues)[] = [];
 
@@ -341,9 +271,6 @@ export function useSubmitReportForm() {
         "programId",
         "targetAsset",
         "title",
-        /* `category` is deliberately absent: the weakness catalogue is a
-           closed vocabulary and "I'm not sure" is a valid answer, so the
-           step cannot require one. */
         "severity",
       ];
     } else if (currentStep === 2) {
@@ -375,7 +302,6 @@ export function useSubmitReportForm() {
     }
   };
 
-  // External Links Dynamic List
   const handleAddExternalLink = () => {
     setExternalLinks((prev) => [...prev, ""]);
   };
@@ -405,7 +331,6 @@ export function useSubmitReportForm() {
     setReferenceLinksError(null);
   };
 
-  // Steps to Reproduce Dynamic List
   const handleAddReproduceStep = () => {
     setReproduceStepsList((prev) => [...prev, ""]);
   };
@@ -439,16 +364,7 @@ export function useSubmitReportForm() {
     setAttachedFiles((prev) => prev.filter((f) => f.id !== fileId));
   };
 
-  /* Explicit save, for a reporter who wants to be told it is safe rather
-     than trust that it was. Autosave has usually written it already, so this
-     mostly acknowledges — but it also flushes immediately instead of waiting
-     out the debounce. */
   const handleSaveDraft = async () => {
-    /* Awaited, because the button used to say "Draft Saved!" the instant it
-       was pressed — before the write had been attempted, let alone accepted.
-       A refused save then looked exactly like a successful one, which is the
-       worst thing a save button can do. The failure is left to `DraftStatus`,
-       which renders the reason the upstream gave. */
     const saved = await draft.saveNow();
     if (!saved) {
       toast.error(draft.error || "Please select a program before saving a draft.");
@@ -485,11 +401,6 @@ export function useSubmitReportForm() {
     const programName = selectedProg
       ? selectedProg.organizationName
       : "CloudVault Security Program";
-    /* What the reporter picked. This used to be `inScopeAssets[0].id` — the
-       program's first asset regardless of where the finding actually was — so
-       every report was filed against whichever asset happened to sort first.
-       That is stored data a triager acts on, and each asset carries its own
-       `maxSeverity`, so a wrong one can cap the severity of a real finding. */
     const assetId = values.assetId || undefined;
 
     try {
@@ -543,8 +454,6 @@ export function useSubmitReportForm() {
           }
         }
 
-        /* Submitted: the draft has served its purpose, and leaving it would
-           offer the reporter their own filed report back as unfinished work. */
         void draft.clear();
         setSuccessModalData({
           isOpen: true,
@@ -560,7 +469,6 @@ export function useSubmitReportForm() {
 
       const status = apiErrorStatus(err);
 
-      /* 403 is the company refusing the reporter, not the report. */
       if (status === 403) {
         setAccessRefusal({
           programId: values.programId,
@@ -573,7 +481,6 @@ export function useSubmitReportForm() {
         return;
       }
 
-      /* 400: Weakness mutual exclusivity error: "Choose a weakness from the catalog or name your own, not both" */
       if (status === 400) {
         const msg = apiErrorMessage(err, "");
         if (
@@ -594,7 +501,6 @@ export function useSubmitReportForm() {
         }
       }
 
-      /* 422: VirusTotal URL scanning refusal */
       if (status === 422) {
         const scanDetails = extractScanErrorDetails(err);
         const errData = (err as any)?.data;
@@ -622,7 +528,6 @@ export function useSubmitReportForm() {
 
         let handled = false;
 
-        // 1. Check if targetAsset matches
         if (
           rejectedUrl &&
           values.targetAsset &&
@@ -647,7 +552,6 @@ export function useSubmitReportForm() {
           handled = true;
         }
 
-        // 2. Check if any external reference links match
         const matchingLinkIdx = externalLinks.findIndex(
           (l) => rejectedUrl && l.trim().toLowerCase() === rejectedUrl.trim().toLowerCase()
         );
@@ -673,7 +577,6 @@ export function useSubmitReportForm() {
         }
 
         if (!handled) {
-          // If the backend didn't specify which link, surface on reference links & target endpoint
           if (externalLinks.some((l) => l.trim().length > 0)) {
             setReferenceLinksError(
               `VirusTotal rejected a submitted URL: ${scanReason} Please verify your reference links and target asset.`

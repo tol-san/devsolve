@@ -82,7 +82,6 @@ export const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({ stats })
               "group relative overflow-hidden rounded-2xl border border-border/80 bg-card/80 p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10 transition-all duration-200 hover:shadow-md hover:border-border",
             )}
           >
-            {/* Top-right subtle radial glow */}
             <div
               className={cn(
                 "pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-gradient-to-br opacity-60 blur-xl transition-opacity group-hover:opacity-100",

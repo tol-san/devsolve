@@ -16,8 +16,6 @@ export type SavedDraftItem = {
   category: DraftCategory;
   tags: string[];
   updatedAt: string;
-  /** The raw instant behind `updatedAt`, which is a formatted date and cannot
-      be ordered. Absent only on an item built without one. */
   updatedAtIso?: string;
   initials: string;
   logoSrc: string;

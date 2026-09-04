@@ -23,7 +23,6 @@ export function CustomSelect<T extends string>({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -42,7 +41,6 @@ export function CustomSelect<T extends string>({
         {label}
       </label>
 
-      {/* Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -60,7 +58,6 @@ export function CustomSelect<T extends string>({
         />
       </button>
 
-      {/* Styled Popup Menu */}
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 py-1.5 bg-white border border-slate-100 rounded-2xl shadow-xl shadow-slate-200/60 animate-in fade-in-50 zoom-in-95 duration-100">
           {options.map((option) => {

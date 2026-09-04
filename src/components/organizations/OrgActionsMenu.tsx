@@ -121,7 +121,6 @@ export function OrgActionsMenu({ status }: OrgActionsMenuProps) {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Modal */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent className="sm:max-w-md bg-card border-border">
           <DialogHeader>

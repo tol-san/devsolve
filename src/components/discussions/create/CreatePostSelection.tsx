@@ -13,19 +13,10 @@ import {
 } from "@/components/landing/SectionBackdrop";
 import { cn } from "@/lib/utils";
 
-/* ═══════════════════════════════════════════════════════════════════════
-   ILLUSTRATIONS
-   Inline SVG in the landing page's idiom — flat fills, panels lifted off
-   the surface by a coloured pill, traces with solder pads. Decorative, so
-   they are hidden from assistive tech, and every loop is gated behind
-   reduced motion.
-   ═══════════════════════════════════════════════════════════════════════ */
-
 const SHIP_RED = "#ff5b4f";
 const PANEL_STROKE = "#E2E8F0";
 const ROW = "#F1F5F9";
 
-/** A report on the bench with a bug caught in the crosshairs. */
 function ProblemArt({ reduce }: { reduce: boolean | null }) {
   return (
     <svg
@@ -34,7 +25,6 @@ function ProblemArt({ reduce }: { reduce: boolean | null }) {
       fill="none"
       aria-hidden="true"
     >
-      {/* the report itself */}
       <rect
         x="14"
         y="30"
@@ -46,7 +36,6 @@ function ProblemArt({ reduce }: { reduce: boolean | null }) {
       />
       <rect x="28" y="46" width="50" height="7" rx="3.5" fill="#CBD5E1" />
 
-      {/* body rows, one of them flagged */}
       <rect x="28" y="66" width="104" height="6" rx="3" fill={ROW} />
       <rect
         x="28"
@@ -61,8 +50,6 @@ function ProblemArt({ reduce }: { reduce: boolean | null }) {
       <rect x="28" y="98" width="96" height="6" rx="3" fill={ROW} />
       <rect x="28" y="114" width="62" height="6" rx="3" fill={ROW} />
 
-      {/* severity pill, lifted off the panel the way the hero lifts its
-          action pills */}
       <g>
         <rect
           x="92"
@@ -89,7 +76,6 @@ function ProblemArt({ reduce }: { reduce: boolean | null }) {
         </text>
       </g>
 
-      {/* trace running from the report to the scope */}
       <path
         d="M 146 88 H 158 L 168 98 H 178"
         stroke={PRIMARY}
@@ -114,7 +100,6 @@ function ProblemArt({ reduce }: { reduce: boolean | null }) {
         />
       ))}
 
-      {/* the scope */}
       <g transform="translate(206 92)">
         {!reduce && (
           <motion.circle
@@ -139,7 +124,6 @@ function ProblemArt({ reduce }: { reduce: boolean | null }) {
           />
         ))}
 
-        {/* crosshair ticks */}
         {[
           [0, -40, 0, -30],
           [0, 30, 0, 40],
@@ -159,7 +143,6 @@ function ProblemArt({ reduce }: { reduce: boolean | null }) {
           />
         ))}
 
-        {/* the bug, twitching in place */}
         <motion.g
           animate={reduce ? undefined : { rotate: [-6, 6, -6] }}
           transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
@@ -207,7 +190,6 @@ function ProblemArt({ reduce }: { reduce: boolean | null }) {
   );
 }
 
-/** A published project: stacked panels, a growth chart, a launch trail. */
 function ShowcaseArt({ reduce }: { reduce: boolean | null }) {
   const bars = [22, 34, 30, 48, 62];
 
@@ -218,7 +200,6 @@ function ShowcaseArt({ reduce }: { reduce: boolean | null }) {
       fill="none"
       aria-hidden="true"
     >
-      {/* the stack underneath — depth without a gradient */}
       <rect
         x="42"
         y="46"
@@ -240,7 +221,6 @@ function ShowcaseArt({ reduce }: { reduce: boolean | null }) {
         opacity="0.8"
       />
 
-      {/* the front panel */}
       <rect
         x="24"
         y="32"
@@ -253,7 +233,6 @@ function ShowcaseArt({ reduce }: { reduce: boolean | null }) {
       <rect x="38" y="46" width="44" height="7" rx="3.5" fill="#CBD5E1" />
       <rect x="88" y="46" width="24" height="7" rx="3.5" fill={ROW} />
 
-      {/* contribution chart, growing on mount */}
       <g transform="translate(38 104)">
         {bars.map((h, i) => (
           <motion.rect
@@ -283,7 +262,6 @@ function ShowcaseArt({ reduce }: { reduce: boolean | null }) {
         />
       </g>
 
-      {/* published pill, lifted off the panel */}
       <g>
         <rect
           x="104"
@@ -310,8 +288,6 @@ function ShowcaseArt({ reduce }: { reduce: boolean | null }) {
         </text>
       </g>
 
-      {/* the launch trail — a flowing dash rather than a drawn `pathLength`,
-          which motion implements via strokeDasharray and would fight this */}
       <motion.path
         d="M 168 118 C 196 112 214 92 224 58"
         stroke={ACCENT}
@@ -341,7 +317,6 @@ function ShowcaseArt({ reduce }: { reduce: boolean | null }) {
         />
       </motion.g>
 
-      {/* sparks along the trail */}
       {!reduce &&
         [
           { cx: 196, cy: 106, d: 0 },
@@ -368,22 +343,12 @@ function ShowcaseArt({ reduce }: { reduce: boolean | null }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   THE FORMATS
-   Neither of these is a "discussion" — one is a bug report, the other a
-   project write-up — so the surrounding copy stays format-agnostic and the
-   cards do the describing. One entry per route that exists under
-   `basePath`; adding a third here means adding the page alongside it.
-   ═══════════════════════════════════════════════════════════════════════ */
-
 type Format = {
   slug: string;
   n: string;
   title: string;
   body: string;
-  /** What the author is expected to bring — sets expectations before the form. */
   brings: string[];
-  /** Heading on the sign-in prompt an anonymous visitor gets on this card. */
   promptTitle: string;
   icon: LucideIcon;
   accent: string;
@@ -418,15 +383,9 @@ const FORMATS: Format[] = [
 interface CreatePostSelectionProps {
   basePath?: string;
   backHref?: string;
-  /** Where the close button goes back to — the dashboard isn't "community". */
   backLabel?: string;
   title?: string;
   description?: string;
-  /**
-   * Merged over the full-bleed shell. The default fills the viewport; a host
-   * with its own chrome (the dashboard's sticky header) overrides the height
-   * here rather than having it hardcoded.
-   */
   className?: string;
 }
 
@@ -456,7 +415,6 @@ export function CreatePostSelection({
       </Link>
 
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col justify-center px-6 py-16 sm:px-10">
-        {/* ── Masthead ── */}
         <motion.header
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -485,7 +443,6 @@ export function CreatePostSelection({
           </p>
         </motion.header>
 
-        {/* ── Format cards ── */}
         <div className="mt-10 grid grid-cols-1 gap-5 sm:mt-12 sm:grid-cols-2">
           {FORMATS.map((format, i) => {
             const Icon = format.icon;
@@ -507,16 +464,11 @@ export function CreatePostSelection({
                 <AuthGatedLink
                   href={`${basePath}/${format.slug}`}
                   promptTitle={format.promptTitle}
-                  /* One custom property drives every accented state below, so
-                     a card's colour lives in exactly one place. Not `--accent`:
-                     that name is shadcn's theme token, and shadowing it here
-                     would repaint any `bg-accent` descendant. */
                   style={
                     { "--format-accent": format.accent } as React.CSSProperties
                   }
                   className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs transition-[border-color,box-shadow] duration-200 hover:border-(--format-accent)/45 hover:shadow-[0_18px_38px_-22px_var(--format-accent)] dark:border-neutral-800 dark:bg-neutral-900 sm:p-6"
                 >
-                  {/* art well */}
                   <div className="relative overflow-hidden rounded-xl border border-slate-200/70 bg-[#F8FAFC] dark:border-neutral-800 dark:bg-neutral-950/40">
                     <div className="aspect-26/15 w-full transition-transform duration-300 ease-out group-hover:scale-[1.03]">
                       <Art reduce={reduce} />
@@ -559,8 +511,6 @@ export function CreatePostSelection({
                     ))}
                   </ul>
 
-                  {/* Pushed to the bottom so both cards align regardless of
-                      how much copy each one carries. */}
                   <span className="mt-auto flex items-center gap-1.5 pt-5 text-sm font-semibold text-slate-400 transition-colors duration-200 group-hover:text-(--format-accent)">
                     Start writing
                     <ArrowUpRight className="size-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -571,7 +521,6 @@ export function CreatePostSelection({
           })}
         </div>
 
-        {/* ── Footer hint ── */}
         <div className="mt-10 flex items-center justify-between gap-4 border-t border-slate-200 pt-5 dark:border-neutral-800">
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
             Saved as a draft until published

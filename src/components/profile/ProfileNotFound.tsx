@@ -7,27 +7,10 @@ import { ArrowLeft, RotateCcw, Trophy, UserX, Unplug } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/**
- * What a profile route shows when there is no profile behind it.
- *
- * The two reasons are kept apart because the reader can act on one of them.
- * "No such profile" is final — the id in the URL matches nobody, and the way
- * out is to go somewhere else. "Could not load" is a connection or server
- * failure that a retry may well fix, so it offers one.
- *
- * Neither invents a person. This screen replaced a stand-in profile carrying
- * mock reputation, badges and severity statistics, which read exactly like a
- * real member's page.
- */
-
 interface ProfileNotFoundProps {
-  /** The id or name from the URL — shown so the reader knows what was looked up. */
   identifier?: string;
-  /** True when the backend answered "no such profile" rather than failing. */
   notFound: boolean;
-  /** Retry, offered only for failures that might not repeat. */
   onRetry?: () => void;
-  /** Keeps the links inside the dashboard when that is where the reader is. */
   scope?: "public" | "dashboard";
 }
 
@@ -76,7 +59,6 @@ export default function ProfileNotFound({
         ) : null}
 
         <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center">
-          {/* A retry is only honest where retrying could change the answer. */}
           {!notFound && onRetry ? (
             <Button
               type="button"

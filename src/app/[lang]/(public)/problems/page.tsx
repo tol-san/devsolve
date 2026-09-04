@@ -6,9 +6,6 @@ import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { getInitialDiscussions } from "@/lib/seo/content";
 
-/* Title, description and schema name come from the same catalogue the feed
-   renders from, so a Khmer URL is described in Khmer everywhere a crawler or a
-   share card looks — not only in the body copy. */
 export async function generateMetadata({
   params,
 }: {

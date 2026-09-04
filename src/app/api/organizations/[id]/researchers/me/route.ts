@@ -8,16 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * `GET /api/organizations/{id}/researchers/me` — the caller's own record with
- * one company.
- *
- * The upstream answers 404 when the researcher has never approached this
- * company. That is not a failure — it is the commonest state there is, and the
- * one the "Request access" button exists for — so it is flattened to `null`
- * here rather than passed on as an error the caller would have to special-case
- * at every call site.
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

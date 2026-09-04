@@ -12,16 +12,6 @@ import {
 } from "@/lib/api/proxy";
 import { showcaseStepCreateSchema } from "@/lib/validations/showcase";
 
-/**
- * GET/POST /api/showcase-steps/{showcaseId} — proxy for the backend's
- * /api/v1/showcase-steps/{showcaseId}.
- *
- * The build guide is the public half of a showcase, so reading the steps needs
- * no session. Writing one does, and the upstream takes a single step per call:
- * `stepNumber` carries the order, which the create form derives from list
- * position rather than asking the author to type.
- */
-
 type Context = { params: Promise<{ showcaseId: string }> };
 
 const badId = () => badRequest("Showcase id must be a UUID");

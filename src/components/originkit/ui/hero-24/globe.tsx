@@ -191,11 +191,6 @@ interface GlobeProps {
     style?: CSSProperties;
 }
 
-/* Defaults live at module scope so they keep one identity across renders.
-   As inline literals they were rebuilt on every render, and since the main
-   effect lists `dots` and `markerConfig` in its dependencies, that re-ran the
-   whole build — refetching and reprocessing 1,420 land features in a loop,
-   with the canvas hidden for most of each cycle. */
 const DEFAULT_DOTS = { color: "#ffffff", size: 5, density: 8, allDots: false };
 const DEFAULT_MARKER_CONFIG = { markers: [], color: "#00f7ff", size: 40 };
 
@@ -498,10 +493,6 @@ export default function Globe({
                         const commands = pathString.match(/[ML][^MLZ]*/g) || [];
                         if (commands.length === 0) return;
 
-                        /* GeometryCollection is the one member of the union
-                           with no `coordinates`, and this map never contains
-                           one — narrowing it out is what lets the rest read
-                           the rings without an `any`. */
                         const geometry = feature.geometry;
                         if (!geometry || geometry.type === "GeometryCollection") return;
 

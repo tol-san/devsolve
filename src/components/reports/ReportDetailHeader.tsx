@@ -36,7 +36,6 @@ export function ReportDetailHeader({
 
   return (
     <div className="space-y-4">
-      {/* Top Bar */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">

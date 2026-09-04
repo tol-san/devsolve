@@ -11,8 +11,6 @@ import type {
 } from "@/lib/types/dicussion/types";
 import { useT } from "@/lib/i18n/I18nProvider";
 
-/* The feed stores the API's own category vocabulary, so a chip needs the same
-   value-to-key mapping the tabs use. */
 const CATEGORY_KEYS: Record<string, string> = {
   All: "all",
   Problems: "problems",

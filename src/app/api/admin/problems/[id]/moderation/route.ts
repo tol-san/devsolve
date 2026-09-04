@@ -12,14 +12,6 @@ import {
 } from "@/lib/api/proxy";
 import { problemModerationSchema } from "@/lib/validations/problem";
 
-/**
- * PATCH /api/admin/problems/{id}/moderation — the moderation decision.
- *
- * The upstream enum covers every state a problem can hold, including ones a
- * reviewer has no business setting by hand. Only the two decisions this screen
- * offers are let through; the rest belong to the problem's own lifecycle.
- */
-
 const DECISIONS = ["PUBLISHED", "REJECTED"] as const;
 
 type Context = { params: Promise<{ id: string }> };

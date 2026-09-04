@@ -19,8 +19,6 @@ const ICONS: Record<LeaderboardHighlightKind, LucideIcon> = {
   climb: TrendingUp,
 };
 
-/* Kept inside the brand set — blue, slate, emerald, plus rose where severity
-   already means rose elsewhere on the page. No stray hues. */
 const TONES: Record<LeaderboardHighlightKind, string> = {
   reports: "bg-blue-50 text-blue-700",
   valid: "bg-blue-50 text-blue-700",
@@ -29,7 +27,6 @@ const TONES: Record<LeaderboardHighlightKind, string> = {
   climb: "bg-muted text-foreground",
 };
 
-/** The four "most X" cards — context the raw ranking alone doesn't give. */
 export default function LeaderboardHighlights({
   highlights,
 }: {

@@ -3,7 +3,6 @@ import { ProgramDetail, SeverityLevel } from "@/lib/types/programs/types";
 import { DollarSign, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Severity color badge styling mapping
 const severityBadgeStyles: Record<SeverityLevel, string> = {
   CRITICAL: "bg-red-600 dark:bg-red-700 text-white shadow-xs",
   HIGH: "bg-orange-500 dark:bg-orange-600 text-white shadow-xs",
@@ -12,7 +11,6 @@ const severityBadgeStyles: Record<SeverityLevel, string> = {
   NONE: "bg-slate-400 dark:bg-slate-600 text-white shadow-xs",
 };
 
-// Example descriptions corresponding to bug bounty standard categories
 const severityDescriptions: Record<SeverityLevel, string> = {
   CRITICAL: "Remote Code Execution (RCE), Authentication Bypass, Full Database Leak",
   HIGH: "Stored XSS, Account Takeover, Privilege Escalation, Broken Access Control",
@@ -26,7 +24,6 @@ export function ProgramBountyMatrixTab({ program }: { program: ProgramDetail }) 
 
   return (
     <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-5 sm:p-8 space-y-6 shadow-xs">
-      {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 dark:text-emerald-400" />
@@ -39,7 +36,6 @@ export function ProgramBountyMatrixTab({ program }: { program: ProgramDetail }) 
         </p>
       </div>
 
-      {/* Rewards List Stack */}
       {rewards.length === 0 ? (
         program?.offersBounties && (program?.minimumBounty || program?.maximumBounty) ? (
           <div className="ring-1 ring-foreground/5 dark:ring-foreground/10 rounded-2xl p-4 sm:p-5 bg-muted/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -78,7 +74,6 @@ export function ProgramBountyMatrixTab({ program }: { program: ProgramDetail }) 
                 key={reward.id || `${severityKey}-${idx}`}
                 className="ring-1 ring-foreground/5 dark:ring-foreground/10 rounded-2xl p-4 sm:p-5 bg-muted/20 hover:bg-muted/40 transition-colors flex flex-col gap-3"
               >
-                {/* Header row inside card: Badge + Points + Amount */}
                 <div className="flex flex-wrap items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span
@@ -102,7 +97,6 @@ export function ProgramBountyMatrixTab({ program }: { program: ProgramDetail }) 
                   </p>
                 </div>
 
-                {/* Description text */}
                 {description && (
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground leading-relaxed">
                     {description}

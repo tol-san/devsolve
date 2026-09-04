@@ -112,7 +112,6 @@ export function ReportManagementSidebar({
     ? formatBountyAmount(openRetest?.bountyReward)
     : null;
 
-  // Submitter Profile lookup
   const profileIdentifier =
     report.reporterUsername ||
     report.reporterId ||
@@ -179,7 +178,6 @@ export function ReportManagementSidebar({
 
   return (
     <aside className="space-y-6">
-      {/* 1. Triage Actions & Workflow Controls */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -191,7 +189,6 @@ export function ReportManagementSidebar({
           </span>
         </div>
 
-        {/* Retest In Progress Banner */}
         {isWaitingForRetest && openRetest && (
           <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-3 space-y-2">
             <div className="flex items-center gap-1.5 text-cyan-800 dark:text-cyan-200 text-xs font-bold">
@@ -212,7 +209,6 @@ export function ReportManagementSidebar({
           </div>
         )}
 
-        {/* Reopened from Failed Retest Alert */}
         {isReopenedFromFailedRetest && (
           <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 space-y-1 text-xs">
             <div className="flex items-center gap-1.5 text-rose-800 dark:text-rose-200 font-bold">
@@ -225,9 +221,7 @@ export function ReportManagementSidebar({
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="space-y-2.5 pt-1">
-          {/* Proceed to Severity Review */}
           <Link
             href={`/dashboard/report-management/${detail.id}/severity-review`}
             className="block"
@@ -240,13 +234,6 @@ export function ReportManagementSidebar({
             </Button>
           </Link>
 
-          {/* Only on a resolved report. The API allows a retest from
-              `RESOLVED` and nowhere else — it answers "Only a resolved report
-              can be sent for retest, and this one is <state>" otherwise — so
-              on a new or confirmed report this was an enabled button that
-              could only ever produce a 409. It is hidden rather than
-              disabled: before resolution a retest is not a step that is
-              temporarily unavailable, it is not part of the workflow yet. */}
           {canRequestRetest && isResolved && (
             <Button
               variant="outline"
@@ -258,7 +245,6 @@ export function ReportManagementSidebar({
             </Button>
           )}
 
-          {/* Resolve & Award Bounty Button */}
           {!isResolved && !isRejected && (
             <Button
               onClick={() => setShowResolveDialog(true)}
@@ -269,7 +255,6 @@ export function ReportManagementSidebar({
             </Button>
           )}
 
-          {/* Hall of Thanks Induction: If resolved, allow thanking; if not, show locked state */}
           {isResolved ? (
             <div className="space-y-2 pt-2 border-t border-border">
               <div className="flex items-center justify-between text-xs">
@@ -317,7 +302,6 @@ export function ReportManagementSidebar({
         </div>
       </div>
 
-      {/* 2. Severity & CVSS Assessment */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
@@ -351,7 +335,6 @@ export function ReportManagementSidebar({
           )}
         </div>
 
-        {/* Severity Disagreement Alert */}
         {(report.hasSeverityDisagreement ||
           (report.agreedSeverity === null &&
             report.triageSeverity != null &&
@@ -402,7 +385,6 @@ export function ReportManagementSidebar({
         </div>
       </div>
 
-      {/* 3. Bounty & Reward Allocation */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-3">
         <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
           Bounty &amp; Award Status
@@ -450,7 +432,6 @@ export function ReportManagementSidebar({
         </div>
       </div>
 
-      {/* 4. Finding & Scope Panel */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
         <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
           Finding &amp; Scope Details
@@ -503,7 +484,6 @@ export function ReportManagementSidebar({
         </div>
       </div>
 
-      {/* 5. Submitter / Researcher Profile Panel */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -562,7 +542,6 @@ export function ReportManagementSidebar({
         </div>
       </div>
 
-      {/* Dialogs */}
       <ResolveReportDialog
         isOpen={showResolveDialog}
         onOpenChange={setShowResolveDialog}

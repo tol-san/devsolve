@@ -1,4 +1,3 @@
-// Delivered by Originkit · stack: nextjs · styling: tailwind
 "use client";
 
 "use client";
@@ -14,10 +13,6 @@ import {
 
 import { useIsHydrated } from "@/hooks/use-is-hydrated";
 
-/** Sizing has to happen before the first paint, otherwise the frame shows at
- *  1× for a frame or two and then snaps to its real scale. React can't do that
- *  during SSR, so this runs inline right after the markup — the browser applies
- *  it while still parsing, and the effect below only keeps it in sync. */
 const inlineScale = (id: string, frameWidth: number) =>
   `(function(){var o=document.getElementById(${JSON.stringify(id)});if(!o)return;` +
   `var i=o.firstElementChild;if(!i)return;var w=o.clientWidth;if(!w)return;` +
@@ -28,14 +23,6 @@ const inlineScale = (id: string, frameWidth: number) =>
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-/** Renders a fixed-width design frame and scales it to the available width.
- *
- *  CSS can't express this on its own — `zoom` and `transform: scale()` both
- *  need a unitless number, and calc() can't divide a vw by a px — so the
- *  factor is measured. Everything inside stays at its exact Figma pixel
- *  value; only the frame is scaled, so line breaks and proportions can't
- *  drift the way per-property clamps let them.
- */
 export const ScaleFrame = ({
   frameWidth,
   className,
@@ -47,7 +34,6 @@ export const ScaleFrame = ({
 }) => {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  /** devicePixelRatio as it was before the user zoomed anything */
   const baseDprRef = useRef<number | null>(null);
   const id = useId();
   const [measured, setMeasured] = useState(false);
@@ -62,13 +48,6 @@ export const ScaleFrame = ({
       const width = outer.clientWidth;
       if (!width) return;
 
-      // Ctrl +/− works by shrinking the CSS viewport, which is the same signal
-      // this component scales from — so without compensation the frame scales
-      // down by exactly the amount you zoomed in and nothing appears to change.
-      // devicePixelRatio moves with zoom by the same factor, so measuring it
-      // against its value on mount recovers the zoom level and cancels the
-      // cancellation. Baseline is captured once: a page loaded at 150% starts
-      // fit-to-width as before, and zooming from there behaves normally.
       if (baseDprRef.current === null) {
         baseDprRef.current = window.devicePixelRatio || 1;
       }
@@ -76,15 +55,9 @@ export const ScaleFrame = ({
 
       const scale = (width / frameWidth) * zoom;
       inner.style.transform = `scale(${scale})`;
-      // published so a child can opt out of the scaling (see the tablet header
-      // in sec3, which counter-scales to keep its native height)
       inner.style.setProperty("--frame-scale", String(scale));
       outer.style.height = `${inner.offsetHeight * scale}px`;
 
-      // Zoomed in, the frame is now wider than its container — the sections clip
-      // overflow, so without this the extra would simply be cropped off with no
-      // way to reach it. Zoomed out it is narrower, so centre it rather than
-      // leaving the gap on one side. Both are no-ops at 100%.
       const scaledWidth = frameWidth * scale;
       outer.style.overflowX = scaledWidth > width + 1 ? "auto" : "";
       inner.style.marginLeft =
@@ -98,9 +71,6 @@ export const ScaleFrame = ({
     observer.observe(inner);
     measure();
 
-    // Zoom usually changes the viewport width too, so the observer covers it —
-    // but not when the frame's box is pinned by something else, so watch the
-    // pixel ratio directly as well.
     const dprWatch = window.matchMedia(
       `(resolution: ${window.devicePixelRatio || 1}dppx)`,
     );
@@ -114,8 +84,6 @@ export const ScaleFrame = ({
 
   return (
     <>
-      {/* the inline script below writes height/transform before hydration, so
-          the server markup deliberately differs from the client's */}
       <div ref={outerRef} id={id} className={className} suppressHydrationWarning>
         <div
           ref={innerRef}
@@ -131,11 +99,6 @@ export const ScaleFrame = ({
           {children}
         </div>
       </div>
-      {/* Only for the HTML the server sent, where the browser paints long
-          before React is loaded. A frame that mounts after hydration is sized
-          by the layout effect above, which already runs before its first
-          paint — and React never executes a script it creates on the client,
-          it warns about it. */}
       {!measured && !hydrated && (
         <script dangerouslySetInnerHTML={{ __html: inlineScale(id, frameWidth) }} />
       )}

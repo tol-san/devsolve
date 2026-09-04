@@ -2,12 +2,6 @@
 
 import { motion } from "motion/react";
 
-/**
- * Loading skeleton matching the upgraded profile layout:
- * - Top hero cover & avatar bar
- * - 5 Stats cards row
- * - Two-column body (left about/network sidebar + right tabbed area)
- */
 export default function ProfileSkeleton() {
   return (
     <motion.div
@@ -16,7 +10,6 @@ export default function ProfileSkeleton() {
       transition={{ duration: 0.2 }}
       className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6 pb-16"
     >
-      {/* ── Hero Banner Skeleton ─────────────────────────────────── */}
       <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
         <div className="h-36 sm:h-48 w-full bg-muted animate-pulse" />
         <div className="px-5 pb-6 sm:px-8">
@@ -36,7 +29,6 @@ export default function ProfileSkeleton() {
         </div>
       </div>
 
-      {/* ── Stats Cards Skeleton ─────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-5">
         {[...Array(5)].map((_, i) => (
           <div
@@ -52,9 +44,7 @@ export default function ProfileSkeleton() {
         ))}
       </div>
 
-      {/* ── Two-Column Body Skeleton ─────────────────────────────── */}
       <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row lg:items-start">
-        {/* Left Sidebar Skeleton */}
         <div className="w-full shrink-0 space-y-5 lg:w-80">
           <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
             <div className="h-4 w-28 rounded bg-muted animate-pulse" />
@@ -76,7 +66,6 @@ export default function ProfileSkeleton() {
           </div>
         </div>
 
-        {/* Right Content Skeleton */}
         <div className="min-w-0 flex-1 space-y-6">
           <div className="flex gap-6 border-b border-border pb-3">
             {[...Array(4)].map((_, i) => (

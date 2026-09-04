@@ -56,7 +56,6 @@ export function CompanyStep2Form({
   const country = watch("country");
   const joiningReason = watch("joiningReason");
 
-  /* The ISO code is what gets stored — see `@/lib/countries`. */
   const handleCountryDetect = React.useCallback(
     (code: string) => {
       setValue("country", code, { shouldValidate: true });
@@ -76,7 +75,6 @@ export function CompanyStep2Form({
       onSubmit={handleSubmit(onSubmit)}
       className="space-y-4 w-full"
     >
-      {/* Header */}
       <div className="mb-6 text-center sm:text-left">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-foreground">
           {t("auth.companyRegister.step2Title")}
@@ -86,7 +84,6 @@ export function CompanyStep2Form({
         </p>
       </div>
 
-      {/* Company Name */}
       <div>
         <Label
           htmlFor="companyName"
@@ -119,7 +116,6 @@ export function CompanyStep2Form({
         )}
       </div>
 
-      {/* Company Website */}
       <div>
         <Label
           htmlFor="companyWebsite"
@@ -152,9 +148,7 @@ export function CompanyStep2Form({
         )}
       </div>
 
-      {/* Industry & Company Size */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Industry */}
         <div>
           <Label
             htmlFor="industry"
@@ -180,7 +174,6 @@ export function CompanyStep2Form({
           )}
         </div>
 
-        {/* Company Size */}
         <div>
           <Label
             htmlFor="companySize"
@@ -207,7 +200,6 @@ export function CompanyStep2Form({
         </div>
       </div>
 
-      {/* Country */}
       <div>
         <Label
           htmlFor="country"
@@ -230,7 +222,6 @@ export function CompanyStep2Form({
         )}
       </div>
 
-      {/* Primary Goal / Reason for Joining */}
       <div>
         <Label
           htmlFor="joiningReason"
@@ -256,7 +247,6 @@ export function CompanyStep2Form({
         )}
       </div>
 
-      {/* Terms Agreement Step 2 */}
       <div className="pt-2">
         <label className="flex items-start gap-2.5 cursor-pointer select-none">
           <input
@@ -275,7 +265,6 @@ export function CompanyStep2Form({
         )}
       </div>
 
-      {/* API Error Banner */}
       {apiError && (
         <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs sm:text-sm text-destructive font-medium shadow-xs">
           <AlertCircle className="size-5 shrink-0 mt-0.5" />
@@ -283,7 +272,6 @@ export function CompanyStep2Form({
         </div>
       )}
 
-      {/* Action Buttons: Back & Submit */}
       <div className="flex items-center gap-3 pt-2">
         <Button
           type="button"

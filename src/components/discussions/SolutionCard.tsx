@@ -187,7 +187,6 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         )}
 
         <div className="flex flex-col gap-4 p-5 sm:flex-row sm:gap-6">
-          {/* Vote rail — clean vertical column */}
           <VoteControl
             voteCount={voteScore}
             upvotes={upvoteCount}
@@ -202,7 +201,6 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
           />
 
           <div className="min-w-0 flex-1 space-y-4">
-            {/* ── Who, and what kind of answer ── */}
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 {author?.avatarUrl ? (
@@ -301,14 +299,12 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
               </div>
             </div>
 
-            {/* ── The one-liner ── */}
             {solution.summary && (
               <h3 className="text-base sm:text-lg font-bold tracking-tight text-foreground">
                 {solution.summary}
               </h3>
             )}
 
-            {/* ── The answer itself ── */}
             {body ? (
               <div className="relative text-foreground leading-relaxed">
                 <div
@@ -350,7 +346,6 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
               </p>
             )}
 
-            {/* ── How to check it worked ── */}
             {verificationSteps.length > 0 && (
               <Panel
                 icon={<ListChecks aria-hidden="true" className="size-4 text-primary" />}
@@ -379,7 +374,6 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
               </Panel>
             )}
 
-            {/* ── What it was proven against ── */}
             {testedWith.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -397,7 +391,6 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
               </div>
             )}
 
-            {/* ── What it costs ── */}
             {solution.tradeoffs && (
               <Panel
                 icon={<Scale aria-hidden="true" className="size-4 text-primary" />}
@@ -409,7 +402,6 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
               </Panel>
             )}
 
-            {/* ── Links and files ── */}
             {(resources.length > 0 || attachments.length > 0) && (
               <div className="flex flex-wrap gap-2 border-t border-border/60 pt-3.5">
                 {resources.map((resource, i) => (

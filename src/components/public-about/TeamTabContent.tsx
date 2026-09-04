@@ -16,13 +16,11 @@ export function TeamTabContent() {
 
   useGSAP(
     () => {
-      // 1. Initial set for smooth clean render
       gsap.set(".team-intro-block", { opacity: 0, x: -30 });
       gsap.set(".team-group-label", { opacity: 0, scale: 0.94, y: 15 });
       gsap.set(".mentor-card-wrapper", { opacity: 0, y: 45, scale: 0.92 });
       gsap.set(".dev-card-wrapper", { opacity: 0, y: 55, scale: 0.92 });
 
-      // 2. Coordinated Master Timeline
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
       tl.to(".team-intro-block", {
@@ -70,9 +68,7 @@ export function TeamTabContent() {
 
   return (
     <div ref={containerRef} className="w-full">
-      {/* ─── Top Section: Title & Mentors in Unified 3-Column Grid ─── */}
       <div className="grid grid-cols-1 items-start justify-items-center gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-3">
-        {/* Column 1: Editorial Heading Block */}
         <div className="team-intro-block flex h-full w-full max-w-85 sm:max-w-90 lg:max-w-95 flex-col py-2 sm:py-4">
           <div>
             <h2
@@ -85,7 +81,6 @@ export function TeamTabContent() {
           </div>
         </div>
 
-        {/* Column 2 & 3: 2 Mentors */}
         {SUPERVISORS.map((mentor) => (
           <div
             key={mentor.name}
@@ -96,7 +91,6 @@ export function TeamTabContent() {
         ))}
       </div>
 
-      {/* ─── Bottom Section: Developers Grid ─── */}
       <div className="mt-20">
         <GroupLabel label="Developers" count={STUDENT_DEVELOPERS.length} />
 

@@ -19,13 +19,6 @@ import {
 } from "@/lib/researchers/access";
 import type { ResearcherAccessRecord } from "@/lib/validations/researcher-access";
 
-/**
- * Every company the researcher has approached, in whatever state it is in.
- *
- * A row is a company, not a program: one approval covers everything that
- * company runs, so listing programs here would repeat the same verdict as
- * many times as they have programs.
- */
 export function MyAccessList({
   records,
   hasFilter,
@@ -71,8 +64,6 @@ export function MyAccessList({
       <ul className="grid grid-cols-1 gap-3">
         {records.map((record, index) => {
           const actionLabel = requestActionLabel(record.status);
-          /* They came to you. Only worth saying while the approval stands —
-             on a rejected or revoked record the state is the news. */
           const invited = wasInvited(record) && record.status === "APPROVED";
           const showNote =
             record.status === "REJECTED" || record.status === "REVOKED";
@@ -93,9 +84,6 @@ export function MyAccessList({
                     name={record.organizationName}
                   />
                   <div className="min-w-0 space-y-1">
-                    {/* Stretched over the card, so the whole row opens the
-                        company rather than one word of it. The action beside
-                        it is lifted back above the overlay. */}
                     <Link
                       href={lp(`/dashboard/my-access/${record.organizationId}`)}
                       className="flex min-w-0 items-center gap-1 text-base font-bold tracking-tight text-foreground outline-none transition-colors group-hover:text-blue-600 after:absolute after:inset-0 after:rounded-2xl dark:group-hover:text-blue-400"

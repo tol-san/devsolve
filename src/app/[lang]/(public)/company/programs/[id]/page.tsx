@@ -10,13 +10,6 @@ interface PageProps {
   params: Promise<{ lang: string; id: string }>;
 }
 
-/**
- * The same program detail as `/programs/{id}`, reached from an organization's
- * page. Since both URLs render identical content, the canonical here points at
- * `/programs/{id}` — that consolidates the two into one result rather than
- * letting them compete, and is why this route carries no structured data of
- * its own.
- */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang, id } = await params;
   const canonicalPath = `/programs/${id}`;

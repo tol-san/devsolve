@@ -80,7 +80,6 @@ export function DashboardTargetedAssetsTable({
                     {asset.assetTarget}
                   </TableCell>
                   <TableCell className="py-3.5 px-4">
-                    {/* Rule 5: Map enum token to display text */}
                     <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-muted border border-border text-muted-foreground">
                       {TARGETED_ASSET_TYPE_LABELS[asset.assetType] || asset.assetType}
                     </span>

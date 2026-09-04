@@ -37,25 +37,12 @@ import {
 import { excerptOf } from "@/lib/markdown-excerpt";
 import type { ShowcaseReviewStatus } from "@/lib/validations/showcase";
 
-/**
- * The showcase approval queue — `GET /api/v1/admin/showcases`.
- *
- * A published showcase sits at `PENDING` and stays off the public index until
- * it is approved here, so this is the gate between an author pressing Publish
- * and anyone seeing the result. Editing an approved showcase queues a
- * `REVISION` rather than changing what is live, and lands here too.
- *
- * Built as a panel rather than a page so it can live as a tab inside the
- * moderation screen, next to the flag queue.
- */
-
 const STATUS_TABS: { value: ShowcaseReviewStatus; label: string }[] = [
   { value: "PENDING", label: "Pending" },
   { value: "APPROVED", label: "Approved" },
   { value: "REJECTED", label: "Changes requested" },
 ];
 
-/** Where a submission is opened in full. */
 export const reviewDetailHref = (showcaseId: string) =>
   `/dashboard/content-moderation/showcases/${showcaseId}`;
 
@@ -83,7 +70,6 @@ export function ShowcaseReviewQueue() {
 
   return (
     <div className="space-y-4">
-      {/* Status tabs */}
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1 rounded-xl bg-muted p-1">
           {STATUS_TABS.map((tab) => (
@@ -449,7 +435,6 @@ function QueueSkeleton() {
   );
 }
 
-/** Pulls something readable out of an RTK Query error. */
 function messageOf(error: unknown, fallback: string): string {
   if (typeof error === "object" && error !== null && "data" in error) {
     const data = (error as { data?: unknown }).data;

@@ -50,7 +50,6 @@ import { cn } from "@/lib/utils";
 interface DiscussionCardProps {
   post: DiscussionPost;
   index?: number;
-  /** An answer the reader posted here that is not public yet, if any. */
   myAnswer?: MySolutionStatus;
 }
 
@@ -103,8 +102,6 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   const { data: session } = authClient.useSession();
   const { handleLogin } = useKeycloakLogin();
 
-  /* The mutations take where the card is moving to, not a toggle, so the
-     optimistic state and the request can never disagree about direction. */
   const handleVote = async (value: 1 | -1) => {
     if (!session?.user) {
       void handleLogin(
@@ -168,8 +165,6 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
         aria-labelledby={titleId}
         className="group relative gap-0 overflow-hidden rounded-2xl bg-card py-0 shadow-xs ring-1 ring-foreground/5 transition-shadow duration-200 hover:shadow-sm hover:ring-foreground/10 focus-within:ring-2 focus-within:ring-primary/40"
       >
-        {/* A showcase is a real record with its own page; a problem is still
-            served by the mock detail route under /community. */}
         <Link
           href={lp(
             isShowcase ? `/showcases/${post.id}` : `/community/${post.id}`,
@@ -207,8 +202,6 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
               </Badge>
             )}
 
-            {/* The reader's own answer, held for review or turned away. It is
-            {/* The reader's own answer, if turned away and needing revision. */}
             {myAnswer && myAnswer.review === "REJECTED" && (
               <Link
                 href={MY_COMMUNITY_HREF}
@@ -239,7 +232,6 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
         <CardContent className="pointer-events-none relative flex flex-col gap-4 px-5 py-4 sm:px-6">
           {isShowcase && post.thumbnailUrl && (
             <div className="relative w-full max-h-[360px] overflow-hidden rounded-xl bg-slate-950/80 dark:bg-neutral-950/90 border border-slate-200/80 dark:border-neutral-800 flex items-center justify-center">
-              {/* Ambient Blurred Background Fill (prevents cropping or letterboxing) */}
               <Image
                 src={post.thumbnailUrl}
                 alt=""

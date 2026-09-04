@@ -12,19 +12,12 @@ interface WeaknessDisplayProps {
   badgeClassName?: string;
 }
 
-/**
- * Standard renderer for vulnerability weakness classification:
- * - weakness -> "CWE-284 · Improper Access Control"
- * - suggestedWeakness -> "{name}" + "suggested by reporter" chip
- * - both null -> "Not classified yet"
- */
 export function WeaknessDisplay({
   weakness,
   suggestedWeakness,
   className,
   badgeClassName,
 }: WeaknessDisplayProps) {
-  // 1. Reporter Suggested Weakness takes priority if provided
   if (suggestedWeakness && suggestedWeakness.trim().length > 0) {
     return (
       <span className={cn("inline-flex flex-wrap items-center gap-2", className)}>
@@ -44,7 +37,6 @@ export function WeaknessDisplay({
     );
   }
 
-  // 2. Catalog Weakness
   if (weakness) {
     let displayText = "";
     if (typeof weakness === "string") {
@@ -69,7 +61,6 @@ export function WeaknessDisplay({
     }
   }
 
-  // 3. Unclassified
   return (
     <span className={cn("text-muted-foreground italic font-normal text-sm", className)}>
       Not classified yet

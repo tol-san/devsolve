@@ -12,17 +12,6 @@ import {
   validationFailed,
 } from "@/lib/api/proxy";
 
-/**
- * POST /api/reports/{id}/severity/reject — the reporter refuses triage's
- * rating, which escalates the dispute to an administrator.
- *
- * The reason is required and is the whole point: an administrator is about to
- * rule between two ratings, and a blank refusal gives them nothing. Checked
- * here so the reporter sees it while their words are still on screen, rather
- * than as a 400 after the fact.
- *
- * Reporter-only; anyone else gets the upstream's deliberate 404.
- */
 const rejectSchema = z.object({
   reason: z.string().trim().min(1).max(5000),
 });

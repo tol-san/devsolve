@@ -9,18 +9,10 @@ import { useAuthGate } from "@/hooks/useAuthGate";
 interface AuthGatedLinkProps
   extends Omit<React.ComponentProps<typeof Link>, "href"> {
   href: string;
-  /** Copy for the sign-in prompt, when the default is too generic. */
   promptTitle?: string;
   promptDescription?: string;
 }
 
-/**
- * A `Link` that only navigates for signed-in visitors. Anyone else gets the
- * sign-in prompt, and lands on `href` once they come back from Keycloak.
- *
- * Drop-in for the create-post entry points: same markup, same styling hooks,
- * so the button reads identically whether or not there is a session.
- */
 export function AuthGatedLink({
   href,
   promptTitle,

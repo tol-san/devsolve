@@ -24,9 +24,6 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
   const { handleLogin, isLoggingIn } = useKeycloakLogin();
 
   const handleSubmitReport = () => {
-    /* Locale-prefixed: this is the return leg of "Change program" on the
-       report form, and a bare path would bounce a Khmer reporter through a
-       redirect back into English. */
     const targetUrl = lp(`/dashboard/submit-report?programId=${program.id}`);
     if (session?.user) {
       router.push(targetUrl);
@@ -35,11 +32,8 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
     }
   };
 
-// this is the right bar card in the program detail
-
   return (
     <aside className="space-y-6">
-      {/* Widget 1: Program Timeline */}
       <section className="bg-card p-4 sm:p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-4">
         <h3 className="text-base font-bold text-foreground flex items-center gap-2">
           <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -48,13 +42,8 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
         <dl className="space-y-3 text-sm">
           <div className="flex justify-between items-center">
             <dt className="text-muted-foreground font-medium">Start Date</dt>
-            {/* <dd className="font-semibold text-slate-800">{program.createdAt || "June 1, 2025"}</dd> */}
             <span className="text-foreground">{program.createdAt?.split('T')[0]}</span>
           </div>
-          {/* <div className="flex justify-between items-center">
-            <dt className="text-slate-500 font-medium">End Date</dt>
-            <dd className="font-semibold text-slate-800">{ "Aug 31, 2025"}</dd>
-          </div> */}
           <div className="flex justify-between items-center">
             <dt className="text-muted-foreground font-medium">Status</dt>
             <dd className="font-medium text-muted-foreground flex items-center gap-1 text-xs">
@@ -65,7 +54,6 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
         </dl>
       </section>
 
-      {/* Widget 2: Quick Stats */}
       <section className="bg-card p-4 sm:p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-4">
         <h3 className="text-base font-bold text-foreground flex items-center gap-2">
           <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -93,11 +81,6 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
         </dl>
       </section>
 
-      {/* Widget 3: CTA Card — researchers only, and only once the program is
-          live. This sidebar is also what the owner previews from Saved drafts,
-          where inviting someone to start testing against an unpublished
-          program, and deep-linking a report form at it, has nothing behind
-          it. */}
       {isPublished(program) && (
         <section className="bg-gradient-to-br from-blue-900 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-md space-y-4 relative overflow-hidden">
           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-600/20 rounded-full blur-2xl" />

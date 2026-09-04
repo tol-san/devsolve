@@ -2,17 +2,10 @@
 import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth/auth-client";
 
-/**
- * Identity providers configured on the `devsolve` realm. Passed to Keycloak as
- * `kc_idp_hint`, which makes it skip its own login form and hand straight off
- * to that provider.
- */
 export type IdpHint = "google" | "github";
 
 export function useKeycloakLogin() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  // Which provider a redirect is in flight for, so a caller rendering several
-  // buttons can spin only the one that was pressed.
   const [pendingIdpHint, setPendingIdpHint] = useState<IdpHint | null>(null);
 
   useEffect(() => {
@@ -28,12 +21,6 @@ export function useKeycloakLogin() {
     };
   }, []);
 
-  /**
-   * `idpHint` is the only difference between "log in" and "sign up with
-   * Google/GitHub". In OIDC both are the same authorization request, so there
-   * is no second flow to write: Keycloak decides on its own whether the
-   * account is new, and the callback is the one already in use.
-   */
   const handleLogin = async (
     callbackURL: string = "/",
     idpHint?: IdpHint,
@@ -66,9 +53,6 @@ export function useKeycloakLogin() {
       }
 
       if (result?.data?.url) {
-        // The URL better-auth hands back already carries state, nonce and the
-        // PKCE challenge. The hint is appended to it rather than threaded
-        // through the plugin, so none of that has to be reproduced here.
         const authorizeUrl = new URL(result.data.url, window.location.origin);
         if (idpHint) {
           authorizeUrl.searchParams.set("kc_idp_hint", idpHint);

@@ -26,7 +26,6 @@ export default function FollowersList({ total, items, baseProfilePath }: Followe
 
   return (
     <div className="space-y-6">
-      {/* Header with Title, Count, & Search */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-2.5">
@@ -51,7 +50,6 @@ export default function FollowersList({ total, items, baseProfilePath }: Followe
         />
       </div>
 
-      {/* Followers Items Grid */}
       <div className="space-y-3">
         {filteredItems.length > 0 ? (
           filteredItems.map((item) => (

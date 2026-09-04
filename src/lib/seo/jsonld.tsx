@@ -8,29 +8,10 @@ import { isoDateTime } from "./dates";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, absoluteUrl } from "./site";
 import { humanizeEnum, plainText, truncate } from "./text";
 
-/**
- * Structured data — the machine-readable half of a page.
- *
- * Meta tags tell a crawler how to *display* a link; this tells it what the
- * page *is*. It is what lets a problem and its accepted solution appear as a
- * Q&A result with the answer attached, rather than as a title and a snippet.
- *
- * Every builder describes only what is actually on the page: Google treats
- * structured data that overstates the visible content as a violation, and the
- * penalty lands on the whole site rather than the one page.
- */
-
 export type JsonLdNode = Record<string, unknown>;
 
-/** Body text carried into structured data, capped so the HTML stays small. */
 const TEXT_LIMIT = 4000;
 
-/**
- * Renders one or more schema.org graphs into the document.
- *
- * `<` is escaped in the serialized JSON: a problem titled `</script>` would
- * otherwise close the tag early and inject the rest of the payload as markup.
- */
 export function JsonLd({ data }: { data: JsonLdNode | JsonLdNode[] }) {
   const nodes = Array.isArray(data) ? data : [data];
 
@@ -63,7 +44,6 @@ function personNode(
   };
 }
 
-/** The publisher every content page points back to. */
 export function organizationSchema(): JsonLdNode {
   return {
     "@context": "https://schema.org",
@@ -76,20 +56,12 @@ export function organizationSchema(): JsonLdNode {
       "@type": "ImageObject",
       url: absoluteUrl("/devsolve-logo.png"),
     },
-    /** Links Google's Knowledge Graph to the DevSolve brand entity across
-     *  the web. Each URL should be a verified, publicly visible profile.
-     *  Add LinkedIn, X, Product Hunt, etc. here as the accounts are created. */
     sameAs: [
       "https://github.com/ITE-GEN03-BASIC-COURSE/devsolve-frontend",
     ],
   };
 }
 
-/**
- * The site itself. No `SearchAction` is declared: the feed filters in the
- * browser without putting the query in the URL, so there is no address a
- * search engine could send a query to.
- */
 export function websiteSchema(): JsonLdNode {
   return {
     "@context": "https://schema.org",
@@ -103,7 +75,6 @@ export function websiteSchema(): JsonLdNode {
   };
 }
 
-/** The trail shown above a page, as search results render it under the title. */
 export function breadcrumbSchema(
   trail: { name: string; path: string }[],
 ): JsonLdNode {
@@ -128,8 +99,6 @@ function answerNode(
   return {
     "@type": "Answer",
     text: truncate(body, TEXT_LIMIT),
-    /* SolutionCard renders `id="solution-{id}"`, so the fragment lands on the
-       answer rather than the top of the page. */
     url: `${absoluteUrl(problemPath)}#solution-${solution.id}`,
     upvoteCount: solution.voteScore ?? 0,
     ...(isoDateTime(solution.createdAt)
@@ -141,14 +110,6 @@ function answerNode(
   };
 }
 
-/**
- * A problem and the solutions posted against it, as a Q&A page.
- *
- * `QAPage` is the schema for a page where one question has many competing
- * answers and one may be marked correct — which is exactly what
- * `/community/{id}` is. The accepted answers become `acceptedAnswer` and the
- * rest `suggestedAnswer`, the same distinction the page draws visually.
- */
 export function problemSchema(
   problem: ProblemResponse,
   solutions: SolutionResponse[],
@@ -172,8 +133,6 @@ export function problemSchema(
     "@type": "Question",
     name: problem.title ?? "Untitled problem",
     text: truncate(plainText(problem.description), TEXT_LIMIT),
-    /* The count the page shows, not the number of answers embedded below —
-       only the first page of solutions is fetched for metadata. */
     answerCount: problem.solutionCount ?? solutions.length,
     upvoteCount: problem.voteScore ?? 0,
     ...(published ? { datePublished: published, dateCreated: published } : {}),
@@ -219,7 +178,6 @@ export function problemSchema(
   };
 }
 
-/** A showcase: someone's project, written up as an article about their work. */
 export function showcaseSchema(
   showcase: ShowcaseResponse,
   path: string,
@@ -257,11 +215,6 @@ export function showcaseSchema(
   };
 }
 
-/**
- * A bug bounty program. Modelled as an `Offer` from the running organization
- * rather than a job posting — participation is open and paid per finding, not
- * an application for a role.
- */
 export function programSchema(program: Program, path: string): JsonLdNode {
   const organizationName = program.organization?.name ?? program.organizationName;
 
@@ -312,7 +265,6 @@ export function programSchema(program: Program, path: string): JsonLdNode {
   };
 }
 
-/** A member's public profile. */
 export function profileSchema(
   profile: PublicProfile,
   path: string,
@@ -340,7 +292,6 @@ export function profileSchema(
   };
 }
 
-/** A listing page — the feed, the showcase index, the program marketplace. */
 export function collectionSchema(input: {
   name: string;
   description: string;

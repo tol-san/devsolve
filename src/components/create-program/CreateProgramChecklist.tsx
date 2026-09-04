@@ -8,7 +8,6 @@ interface CreateProgramChecklistProps {
   steps: StepItem[];
   activeTab: number;
   setActiveTab: (step: number) => void;
-  /** What still stands between this program and a submission. */
   missingForSubmit: { step: number; label: string }[];
 }
 
@@ -26,10 +25,6 @@ export function CreateProgramChecklist({
 
       <div className="space-y-3">
         {steps.map((s) => {
-          /* Completeness, not history. Ticking a step because the author had
-             walked past it called a program ready that the upstream would
-             refuse, and told someone resuming a draft on step 1 that finished
-             steps were still pending. */
           const gaps = missingForSubmit.filter((item) => item.step === s.id);
           const isDone = gaps.length === 0;
           const isCurrent = activeTab === s.id;

@@ -39,8 +39,6 @@ export default function AdminWeaknessesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [session, setSession] = useState(0);
 
-  /* Searching is an upstream query, so it follows the typing rather than
-     firing a request per keystroke. */
   const [debounced, setDebounced] = useState("");
   useEffect(() => {
     const timer = setTimeout(() => setDebounced(search), 250);
@@ -53,8 +51,6 @@ export default function AdminWeaknessesPage() {
     page,
   });
 
-  /* A narrowed result set is shorter than the one being paged through, so
-     staying on page 4 of the old one would land on nothing. */
   useEffect(() => {
     setPage(0);
   }, [debounced, activeOnly]);

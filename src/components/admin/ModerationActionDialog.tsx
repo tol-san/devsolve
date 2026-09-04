@@ -363,7 +363,6 @@ function ModerationActionForm({
         </div>
       </DialogHeader>
 
-      {/* Content/Entity Item Summary */}
       {targetTitle && (
         <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-1">
           <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
@@ -378,9 +377,7 @@ function ModerationActionForm({
         </div>
       )}
 
-      {/* Moderation Form */}
       <form noValidate onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="space-y-4">
-        {/* Action Select */}
         <div className="space-y-2">
           <Label className="text-xs font-bold text-foreground">
             Select Action Type
@@ -449,7 +446,6 @@ function ModerationActionForm({
           />
         </div>
 
-        {/* Reason Input */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="moderation-reason" className="text-xs font-bold text-foreground">
@@ -460,7 +456,6 @@ function ModerationActionForm({
             </span>
           </div>
 
-          {/* Quick reason suggestions */}
           {availableReasonPresets.length > 0 && (
             <div className="space-y-1.5 pb-1">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
@@ -502,7 +497,6 @@ function ModerationActionForm({
           )}
         </div>
 
-        {/* Required Expiration Date (ONLY for SUSPEND) */}
         {action === "SUSPEND" && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">

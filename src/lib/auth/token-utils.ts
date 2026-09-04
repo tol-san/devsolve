@@ -1,6 +1,3 @@
-/**
- * Safely parses JWT raw token string to extract realm roles.
- */
 export function extractRealmRolesFromToken(rawToken: string): string[] {
   if (!rawToken || typeof rawToken !== "string") return [];
 

@@ -192,7 +192,6 @@ export function ShowcaseReviewModal({
             </TabsTrigger>
           </TabsList>
 
-          {/* TAB 1: SUBMISSION DETAIL */}
           <TabsContent value="detail" className="space-y-4 pt-3">
             {isLoadingDetail ? (
               <div className="space-y-3 animate-pulse py-6">
@@ -201,7 +200,6 @@ export function ShowcaseReviewModal({
               </div>
             ) : detail ? (
               <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
-                {/* Cover Image */}
                 {detail.coverImageUrl && (
                   <div
                     onClick={() =>
@@ -226,7 +224,6 @@ export function ShowcaseReviewModal({
                   </div>
                 )}
 
-                {/* Overview */}
                 <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Overview
@@ -236,7 +233,6 @@ export function ShowcaseReviewModal({
                   </p>
                 </div>
 
-                {/* Links (Live, Repo, Video) */}
                 <div className="flex flex-wrap items-center gap-2">
                   {detail.liveUrl && (
                     <a
@@ -270,7 +266,6 @@ export function ShowcaseReviewModal({
                   )}
                 </div>
 
-                {/* Steps Section */}
                 {detail.steps && detail.steps.length > 0 && (
                   <div className="space-y-3 pt-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -304,7 +299,6 @@ export function ShowcaseReviewModal({
                   </div>
                 )}
 
-                {/* Existing Rejection Reason */}
                 {detail.rejectionReason && (
                   <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 space-y-1">
                     <div className="flex items-center gap-1.5 text-rose-700 dark:text-rose-300 font-bold text-xs">
@@ -324,7 +318,6 @@ export function ShowcaseReviewModal({
             )}
           </TabsContent>
 
-          {/* TAB 2: REVIEW HISTORY */}
           <TabsContent value="history" className="pt-3">
             {isLoadingHistory ? (
               <div className="space-y-2 animate-pulse py-4">
@@ -379,7 +372,6 @@ export function ShowcaseReviewModal({
           </TabsContent>
         </Tabs>
 
-        {/* Rejection Form Input */}
         {isRejecting && (
           <form onSubmit={handleReject} className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
             <div className="space-y-1">
@@ -417,7 +409,6 @@ export function ShowcaseReviewModal({
           </form>
         )}
 
-        {/* Footer Actions */}
         {!isRejecting && (
           <DialogFooter className="flex flex-col sm:flex-row sm:justify-between items-center gap-2 pt-4 border-t border-slate-200/80 dark:border-slate-800">
             <Button

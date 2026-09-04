@@ -7,13 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * `POST /api/recognitions` — awards a recognition to a researcher.
- *
- * Requirements:
- * - The report must be RESOLVED first.
- * - Platform assigns reputation: LOW 5 · MEDIUM 15 · HIGH 40 · CRITICAL 100.
- */
 export async function POST(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

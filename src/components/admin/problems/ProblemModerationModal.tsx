@@ -68,7 +68,6 @@ export const ProblemModerationModal: React.FC<ProblemModerationModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        {/* METADATA GRID */}
         <div className="space-y-4 my-2 text-xs">
           <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
@@ -89,7 +88,6 @@ export const ProblemModerationModal: React.FC<ProblemModerationModalProps> = ({
             </div>
           </div>
 
-          {/* TECHNOLOGIES & TAGS */}
           {((selectedProblem.technologies && selectedProblem.technologies.length > 0) ||
             (selectedProblem.tags && selectedProblem.tags.length > 0)) && (
             <div className="space-y-2">
@@ -123,7 +121,6 @@ export const ProblemModerationModal: React.FC<ProblemModerationModalProps> = ({
             </div>
           )}
 
-          {/* DESCRIPTION */}
           <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
               Problem Description

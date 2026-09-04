@@ -11,14 +11,6 @@ import {
 } from "@/lib/api/proxy";
 import { showcaseCreateSchema } from "@/lib/validations/showcase";
 
-/**
- * GET/POST /api/showcases — proxy for the backend's /api/v1/showcases.
- *
- * The index is public: a visitor browsing showcases has no session, so the
- * listing relays without a token and passes one along when there is one.
- * Publishing is not — `POST` is attributed to whoever the token identifies.
- */
-
 const LIST_PARAMS = [
   "query",
   "categoryId",

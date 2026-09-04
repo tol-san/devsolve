@@ -10,12 +10,6 @@ import {
 } from "@/lib/api/proxy";
 import { categoryPatchSchema } from "@/lib/validations/category";
 
-/**
- * GET/PATCH/DELETE /api/categories/{id} — proxy for the backend's
- * /api/v1/categories/{id}. The id is a UUID upstream, so a malformed one is
- * rejected here rather than spent on a round trip.
- */
-
 const idSchema = z.uuid("Category id must be a UUID");
 
 type Context = { params: Promise<{ id: string }> };

@@ -2,17 +2,6 @@ import * as z from "zod";
 import { isCleanText, profanityMessage } from "@/lib/moderation/profanity";
 import { isReadableText, readabilityMessage } from "@/lib/moderation/readability";
 
-/**
- * The weakness taxonomy a reporter picks from, grouped the way a triager
- * thinks about them.
- *
- * Deliberately long. `category` reaches the API as prose inside the report's
- * Classification block — nothing validates it against this list — so the list
- * is a vocabulary, not a constraint. A short one does not make reports
- * cleaner, it just pushes everything that does not fit into "Other", which is
- * the one answer a triager cannot act on. The field pairs this with free
- * entry, so a weakness nobody anticipated is still named precisely.
- */
 export const VULNERABILITY_CATEGORY_GROUPS = [
   {
     label: "Injection",
@@ -132,20 +121,12 @@ export const VULNERABILITY_CATEGORY_GROUPS = [
   },
 ] as const;
 
-/** The same vocabulary flattened, for anything that just needs the values. */
 export const VULNERABILITY_CATEGORIES = VULNERABILITY_CATEGORY_GROUPS.flatMap(
   (group) => group.options,
 ) as readonly string[];
 
 export const HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"] as const;
 
-/**
- * The values `CreateReportRequest.environment` accepts, paired with what a
- * reader should see. The form used to offer three title-cased labels of its
- * own and send them verbatim, which the backend could not match against this
- * enum — so the field is stored in the API's own vocabulary and only
- * translated for display.
- */
 export const ENVIRONMENTS = [
   { value: "PRODUCTION", label: "Production" },
   { value: "STAGING", label: "Staging" },
@@ -162,24 +143,12 @@ export const ENVIRONMENT_VALUES = [
   "LOCAL",
 ] as const;
 
-/** The label for a stored value, for screens that display the choice back. */
 export function environmentLabel(value?: string): string {
   return ENVIRONMENTS.find((env) => env.value === value)?.label ?? value ?? "—";
 }
 
 export type ReportSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO";
 
-/**
- * The severity a CVSS score sits in, using the v3.1 qualitative bands.
- *
- * The backend enforces this pairing and refuses a report whose two halves
- * disagree ("A CVSS score of 8.6 is rated HIGH, which does not match the
- * reported severity LOW"). The rule is spelled out here so the form can keep
- * the pair consistent as it is filled in, rather than discovering the conflict
- * from a 400 after the reader presses submit.
- *
- * `INFO` is this form's name for a 0.0 score; it is sent as the API's `NONE`.
- */
 export function severityForCvss(score: number): ReportSeverity {
   if (score >= 9) return "CRITICAL";
   if (score >= 7) return "HIGH";
@@ -188,16 +157,8 @@ export function severityForCvss(score: number): ReportSeverity {
   return "INFO";
 }
 
-/** The four a reporter may claim. `reportedSeverity` upstream has no NONE. */
 export type ClaimableSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
-/**
- * The band a CVSS score falls in, as a severity someone may actually report.
- *
- * Null at exactly 0.0, which no band covers: 0.1-3.9 is LOW and below that
- * there is nothing to claim. Callers leave the severity alone rather than
- * writing a value the API would refuse.
- */
 export function claimableSeverityForCvss(score: number): ClaimableSeverity | null {
   if (score >= 9) return "CRITICAL";
   if (score >= 7) return "HIGH";
@@ -206,7 +167,6 @@ export function claimableSeverityForCvss(score: number): ClaimableSeverity | nul
   return null;
 }
 
-/** The score as a number, or null when the field is empty or unparseable. */
 export function parseCvssScore(value?: string): number | null {
   const trimmed = value?.trim();
   if (!trimmed) return null;
@@ -222,9 +182,6 @@ export const SEVERITY_LABELS: Record<ReportSeverity, string> = {
   INFO: "Info",
 };
 
-/* Ceilings copied from CreateReportRequest. They are enforced here so an
-   over-long write-up is caught while the reader still has it on screen,
-   rather than coming back as a 400 after they press submit. */
 const MAX_TITLE = 255;
 const MAX_LONG_TEXT = 20_000;
 const MAX_REMEDIATION = 10_000;
@@ -233,19 +190,13 @@ const MAX_LINKS = 10;
 const MAX_LINK_LENGTH = 500;
 
 export const submitReportSchema = z.object({
-  // Step 1: Target & Scope
   programId: z.string().min(1, "Please select a target program."),
-  /* Which in-scope asset the finding is on. Optional: a reporter who cannot
-     tell should send nothing rather than have one picked for them. */
   assetId: z.string().optional(),
   targetAsset: z
     .string()
     .min(2, "Target asset or endpoint URL is required.")
     .max(MAX_TARGET, `Endpoint cannot exceed ${MAX_TARGET} characters.`),
   environment: z.enum(ENVIRONMENT_VALUES),
-  /* A plain `YYYY-MM-DD` from a date input. Optional, because a researcher
-     does not always remember the day — but never in the future, which is the
-     one value that is certainly a typo. */
   discoveredAt: z
     .string()
     .optional()
@@ -254,36 +205,21 @@ export const submitReportSchema = z.object({
       "The discovery date cannot be in the future.",
     ),
 
-  // Step 2: Vulnerability Classification
   title: z
     .string()
     .min(10, "Title must be at least 10 characters long.")
     .max(MAX_TITLE, `Title cannot exceed ${MAX_TITLE} characters.`)
     .refine(isCleanText, profanityMessage("Title"))
     .refine(isReadableText, readabilityMessage("Title")),
-  /* Optional, because the weakness catalogue is a closed vocabulary curated
-     by admins and "I am not sure" is a legitimate answer — triage classifies
-     what the reporter could not. The API requires only title, write-up and
-     severity, so demanding a class here would have been the form inventing a
-     rule the platform does not have. */
   category: z.string().optional(),
-  /** The catalogue id behind `category`. Both are unset together. */
   weaknessId: z.string().optional(),
-  /** Reporter-named weakness if catalog does not cover it (exclusive with weaknessId). */
   suggestedWeakness: z
     .string()
     .max(255, "Suggested weakness cannot exceed 255 characters.")
     .optional(),
-  /** UI mode selection for weakness picker: catalog, unsure, or custom. */
   weaknessMode: z.enum(["catalog", "unsure", "custom"]).optional(),
-  /* What the reporter claims. `reportedSeverity` upstream has no NONE, and
-     "INFO" was translated into exactly that on the way out — a value the API
-     refuses. LOW is the floor for a claim. */
   severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]),
   cweIdentifier: z.string().optional(),
-  /* Text rather than a number because the input is free-form; the range is the
-     one the API accepts, and an unparseable score is rejected here rather than
-     silently dropped on the way out. */
   cvssScore: z
     .string()
     .optional()
@@ -294,15 +230,11 @@ export const submitReportSchema = z.object({
     }, "CVSS score must be a number between 0 and 10."),
   cvssVector: z.string().max(255, "CVSS vector cannot exceed 255 characters.").optional(),
 
-  // Step 3: Report Details
   summaryPoC: z
     .string()
     .min(20, "Please provide a description/summary (at least 20 characters).")
     .refine(isCleanText, profanityMessage("The summary"))
     .refine(isReadableText, readabilityMessage("The summary")),
-  /* `stepsToReproduce` is capped at 20 000 upstream, and these lines are
-     composed into it — so the ceiling belongs on the total, not on any one
-     step. Caught here while the reporter still has the text on screen. */
   reproduceStepsList: z
     .array(z.string())
     .refine(
@@ -315,7 +247,6 @@ export const submitReportSchema = z.object({
     .max(MAX_REMEDIATION, `Remediation cannot exceed ${MAX_REMEDIATION} characters.`)
     .optional(),
 
-  // Step 4: Proof of Concept
   pocPayload: z
     .string()
     .max(MAX_LONG_TEXT, `Proof of concept cannot exceed ${MAX_LONG_TEXT} characters.`)
@@ -326,7 +257,6 @@ export const submitReportSchema = z.object({
     .array(z.string().max(MAX_LINK_LENGTH, `Each link cannot exceed ${MAX_LINK_LENGTH} characters.`))
     .max(MAX_LINKS, `You can add up to ${MAX_LINKS} reference links.`),
 
-  // Step 5: Submission Checklist
   checklistInScope: z.boolean(),
   checklistNotDuplicate: z.boolean(),
   checklistReproducible: z.boolean(),
@@ -338,7 +268,6 @@ export const submitReportSchema = z.object({
      in normal use — but a value restored from a draft, or a score edited after
      the severity was chosen, must not reach the API as a 400. */
   .superRefine((values, ctx) => {
-    // Enforce mutual exclusivity of weaknessId and suggestedWeakness
     if (
       values.weaknessId &&
       values.suggestedWeakness &&

@@ -9,12 +9,6 @@ import { Building2, Globe, MapPin, Users, Calendar, Edit3, Link2, ExternalLink }
 import { cn } from "@/lib/utils";
 import { CountryDisplay } from "@/components/shared/CountryDisplay";
 
-/**
- * The organization at a glance. Read-only by design: everything editable,
- * logo included, lives behind the Edit details link so there is one place
- * changes are made rather than two.
- */
-
 interface MyOrgCardProps {
   organization: Organization;
 }
@@ -26,7 +20,6 @@ export function MyOrgCard({ organization }: MyOrgCardProps) {
 
   return (
     <Card className="border-border bg-card shadow-sm overflow-hidden">
-      {/* Cover Banner */}
       <div className="relative h-28 sm:h-36 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
         {coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -75,9 +68,6 @@ export function MyOrgCard({ organization }: MyOrgCardProps) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mb-0.5">
-            {/* Its own page rather than a dialog — the form is nine fields
-                deep, and a modal loses everything typed into it to a stray
-                click outside. */}
             <Link
               href="/dashboard/organizations/edit"
               className={cn(

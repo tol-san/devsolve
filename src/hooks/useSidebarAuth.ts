@@ -8,7 +8,6 @@ import { baseApi } from "@/lib/redux/services/baseApi";
 import { proxyApi } from "@/lib/redux/services/proxyApi";
 import { useRouter } from "next/navigation";
 
-/** Extension of the better-auth session user that includes the role field injected by Keycloak */
 interface SessionUserWithRole {
   name?: string | null;
   email?: string | null;
@@ -33,9 +32,6 @@ export function useSidebarAuth() {
   const displayName = profile?.fullName || user?.name || user?.email || "User";
   const [tokenRoles, setTokenRoles] = useState<string[]>([]);
   const [tokenRolesResolved, setTokenRolesResolved] = useState(false);
-  // Tracks whether the Keycloak JWT is genuinely available (not just that
-  // the better-auth session cookie exists). Used by the rest of the app to
-  // decide whether it is safe to fire authenticated requests.
   const [tokenReady, setTokenReady] = useState(false);
 
   useEffect(() => {
@@ -43,22 +39,11 @@ export function useSidebarAuth() {
 
     let cancelled = false;
 
-    // Use the shared getAccessToken() from access-token.ts so that the
-    // singleton token cache is warm by the time areRolesResolved flips to
-    // true. Previously, calling authClient.getAccessToken() directly left the
-    // cache cold, causing RTK Query's prepareHeaders to race the token fetch
-    // on first load — resulting in a 401 "Not authenticated" error on every
-    // fresh page visit.
     getAccessToken()
       .then((rawToken) => {
         if (cancelled) return;
 
         if (!rawToken) {
-          // A session cookie exists but the Keycloak refresh token has
-          // expired (or was revoked). The cookie is now stale: clear it
-          // server-side and send the user back to the login page so they
-          // can get a fresh Keycloak token instead of seeing 401 errors
-          // on every API call.
           router.replace("/api/auth/stale-session?to=/");
           return;
         }
@@ -109,26 +94,18 @@ export function useSidebarAuth() {
 
   const handleSignOut = async () => {
     try {
-      // 1. Clear cached access token in memory (also poisons any in-flight fetch).
       clearAccessToken();
 
-      // 2. Dispatch RTK Query resetApiState to wipe cached user data from Redux.
       dispatch(baseApi.util.resetApiState());
       dispatch(proxyApi.util.resetApiState());
 
-      // 3. Clear better-auth session & cookies on the client domain.
-      //    Await this so the Set-Cookie response is received before we navigate.
       await authClient.signOut();
 
-      // 4. Clear client storage.
       if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
       }
 
-      // 5. Expire any residual session/OIDC cookies server-side so the
-      //    middleware does not bounce the user back to /dashboard when
-      //    Keycloak redirects them to the landing page.
       if (typeof window !== "undefined") {
         try {
           await fetch("/api/auth/stale-session?to=/", {
@@ -144,11 +121,6 @@ export function useSidebarAuth() {
     } catch (error) {
       console.error("Error during sign out:", error);
     } finally {
-      // 6. Redirect to Keycloak OIDC end_session endpoint to clear Keycloak SSO session & cookies.
-      //    Use the origin as post_logout_redirect_uri — Keycloak rejects
-      //    deep paths like `/api/auth/stale-session` unless they are
-      //    explicitly registered in the client's "Valid post logout redirect
-      //    URIs" setting.
       const issuer = process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER;
       const clientId = process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID;
 

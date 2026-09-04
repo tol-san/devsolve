@@ -87,7 +87,6 @@ export default function MediaBrandingSection({
         </div>
       </div>
 
-      {/* Integrated Visual Canvas (Cover Banner + Overlapping Avatar) */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -99,7 +98,6 @@ export default function MediaBrandingSection({
             : "border-border bg-muted/30"
         )}
       >
-        {/* Cover Banner Area */}
         <div className="relative h-36 sm:h-52 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
           {coverUrl ? (
             <>
@@ -127,7 +125,6 @@ export default function MediaBrandingSection({
             </div>
           )}
 
-          {/* Cover Action Floating Bar (Top Right) */}
           <div className="absolute top-3 right-3 flex items-center gap-2">
             <input
               ref={coverInputRef}
@@ -181,13 +178,10 @@ export default function MediaBrandingSection({
           )}
         </div>
 
-        {/* Overlapping Avatar Area & Quick Action Details */}
         <div className="relative px-4 sm:px-6 pb-5 sm:pb-6 pt-2 bg-card">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
             
-            {/* Avatar Circle + Quick Info */}
             <div className="flex items-end gap-3 sm:gap-5">
-              {/* Avatar Circle - ONLY THIS has negative top margin */}
               <div className="group/avatar relative size-20 sm:size-28 shrink-0 rounded-full border-4 border-card bg-muted shadow-xl overflow-hidden ring-2 ring-primary/20 -mt-10 sm:-mt-16 z-10">
                 {avatarUrl ? (
                   <Image
@@ -203,7 +197,6 @@ export default function MediaBrandingSection({
                   </div>
                 )}
 
-                {/* Hover Camera Overlay */}
                 <button
                   type="button"
                   onClick={() => avatarInputRef.current?.click()}
@@ -224,12 +217,10 @@ export default function MediaBrandingSection({
                 )}
               </div>
 
-              {/* Avatar Controls */}
               <div className="space-y-1 pb-0.5">
                 <h3 className="text-sm sm:text-base font-bold text-foreground">
                   Profile Avatar
                 </h3>
-                {/* Unnecessary recommendation subtext hidden on mobile size */}
                 <p className="hidden sm:block text-xs text-muted-foreground">
                   Square photo recommended (min 200×200px) · Max 2MB
                 </p>
@@ -276,7 +267,6 @@ export default function MediaBrandingSection({
         </div>
       </div>
 
-      {/* Error Callouts */}
       {(avatarError || coverError) && (
         <div className="space-y-2">
           {avatarError && (

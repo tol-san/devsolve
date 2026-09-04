@@ -26,14 +26,6 @@ function when(iso?: string) {
   });
 }
 
-/**
- * Offers back an unfinished report for this program.
- *
- * Offered, never applied on its own. Silently repopulating the form is how
- * somebody submits last week's half-written draft without registering that is
- * what they are doing — and the reporter may have come back deliberately to
- * start again.
- */
 export function ResumeDraftBanner({
   draft,
   onResume,
@@ -96,7 +88,6 @@ export function ResumeDraftBanner({
   );
 }
 
-/** "Saving…" / "Draft saved", shown next to the step controls. */
 export function DraftStatus({
   isSaving,
   savedAt,

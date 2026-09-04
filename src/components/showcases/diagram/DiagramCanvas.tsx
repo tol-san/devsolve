@@ -105,7 +105,6 @@ export function DiagramCanvas({
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<DiagramCategory>("all");
 
-  // Sync state changes to parent if callback provided
   useEffect(() => {
     onStateChange?.(nodes, edges);
   }, [nodes, edges, onStateChange]);
@@ -272,7 +271,6 @@ export function DiagramCanvas({
     );
   };
 
-  // ── ERD Column Management ──
   const updateColumn = (colId: string, patch: Partial<ErdColumn>) => {
     if (!selectedNodeId) return;
     setNodes((nds) =>
@@ -323,7 +321,6 @@ export function DiagramCanvas({
     );
   };
 
-  // ── UML Member Management ──
   const addUmlMember = (kind: "attributes" | "methods") => {
     if (!selectedNodeId) return;
     const newMember: UmlMember = {
@@ -439,9 +436,7 @@ export function DiagramCanvas({
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-background">
-      {/* ── Top Multi-Paradigm Category Tabs & Toolbar ── */}
       <div className="flex flex-col gap-2 border-b border-border bg-card/95 px-4 py-2.5 backdrop-blur-xs">
-        {/* Category Tabs & Template Selector Row */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1">
             <span className="mr-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -473,7 +468,6 @@ export function DiagramCanvas({
             ))}
           </div>
 
-          {/* Template & Reset Actions */}
           <div className="flex items-center gap-2">
             <div className="w-56">
               <Select onValueChange={applyTemplate}>
@@ -555,13 +549,11 @@ export function DiagramCanvas({
           </div>
         </div>
 
-        {/* Dynamic Nodes Palette */}
         <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
           <span className="mr-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             Add Element:
           </span>
 
-          {/* Conceptual & DDD Buttons */}
           {(activeCategory === "all" || activeCategory === "concept") && (
             <>
               <Button
@@ -587,7 +579,6 @@ export function DiagramCanvas({
             </>
           )}
 
-          {/* Flowchart Buttons */}
           {(activeCategory === "all" || activeCategory === "flowchart") && (
             <>
               <Button
@@ -643,7 +634,6 @@ export function DiagramCanvas({
             </>
           )}
 
-          {/* ERD Table Button */}
           {(activeCategory === "all" || activeCategory === "erd") && (
             <Button
               type="button"
@@ -657,7 +647,6 @@ export function DiagramCanvas({
             </Button>
           )}
 
-          {/* UML Class Button */}
           {(activeCategory === "all" || activeCategory === "uml") && (
             <Button
               type="button"
@@ -671,7 +660,6 @@ export function DiagramCanvas({
             </Button>
           )}
 
-          {/* Architecture Buttons */}
           {(activeCategory === "all" || activeCategory === "architecture") && (
             <>
               <Button
@@ -729,7 +717,6 @@ export function DiagramCanvas({
         </div>
       </div>
 
-      {/* ── Main Canvas Viewport ── */}
       <div className="relative flex-1 w-full h-full min-h-0" id="react-flow-diagram-viewport">
         <ReactFlow
           nodes={nodes}
@@ -780,7 +767,6 @@ export function DiagramCanvas({
           />
         </ReactFlow>
 
-        {/* ── Empty State Watermark & Quick Actions ── */}
         {nodes.length === 0 && (
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
             <div className="pointer-events-auto flex max-w-xl flex-col items-center gap-3.5 rounded-3xl border border-border/80 bg-card/90 p-6 shadow-xl backdrop-blur-md animate-in fade-in-0 zoom-in-95 duration-200">
@@ -796,7 +782,6 @@ export function DiagramCanvas({
                 </p>
               </div>
 
-              {/* Quick Template Presets */}
               <div className="w-full pt-2 space-y-2">
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   <Button
@@ -850,9 +835,6 @@ export function DiagramCanvas({
           </div>
         )}
 
-        {/* ── Floating Inspector Panels ── */}
-
-        {/* 1. ERD Table Inspector */}
         {selectedNode && selectedNode.type === "tableNode" && (
           <div className="absolute right-4 top-4 z-20 w-84 max-h-[calc(100%-2rem)] overflow-y-auto rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-md animate-in fade-in-0 slide-in-from-right-4 duration-200 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-border">
@@ -923,7 +905,6 @@ export function DiagramCanvas({
               </div>
             </div>
 
-            {/* Columns Manager */}
             <div className="space-y-2 pt-2 border-t border-border">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
@@ -1044,7 +1025,6 @@ export function DiagramCanvas({
           </div>
         )}
 
-        {/* 2. UML Class Inspector */}
         {selectedNode && selectedNode.type === "classNode" && (
           <div className="absolute right-4 top-4 z-20 w-84 max-h-[calc(100%-2rem)] overflow-y-auto rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-md animate-in fade-in-0 slide-in-from-right-4 duration-200 space-y-4 font-mono">
             <div className="flex items-center justify-between pb-2 border-b border-border">
@@ -1095,7 +1075,6 @@ export function DiagramCanvas({
               </div>
             </div>
 
-            {/* Attributes Section */}
             <div className="space-y-2 pt-2 border-t border-border">
               <div className="flex items-center justify-between font-sans">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
@@ -1161,7 +1140,6 @@ export function DiagramCanvas({
               </div>
             </div>
 
-            {/* Methods Section */}
             <div className="space-y-2 pt-2 border-t border-border">
               <div className="flex items-center justify-between font-sans">
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
@@ -1229,7 +1207,6 @@ export function DiagramCanvas({
           </div>
         )}
 
-        {/* 3. General Concept / Flowchart / Architecture Node Inspector */}
         {selectedNode &&
           selectedNode.type !== "tableNode" &&
           selectedNode.type !== "classNode" && (
@@ -1275,7 +1252,6 @@ export function DiagramCanvas({
                   />
                 </div>
 
-                {/* Actor field for ActionNode */}
                 {selectedNode.type === "actionNode" && (
                   <div className="space-y-1">
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase">
@@ -1290,7 +1266,6 @@ export function DiagramCanvas({
                   </div>
                 )}
 
-                {/* Trigger type for EventNode */}
                 {selectedNode.type === "eventNode" && (
                   <div className="space-y-1">
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase">
@@ -1305,7 +1280,6 @@ export function DiagramCanvas({
                   </div>
                 )}
 
-                {/* Boundary Group Style */}
                 {selectedNode.type === "groupNode" && (
                   <div className="space-y-1">
                     <label className="text-[11px] font-semibold text-muted-foreground uppercase">
@@ -1340,7 +1314,6 @@ export function DiagramCanvas({
                   </div>
                 )}
 
-                {/* Badge Tag */}
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-muted-foreground uppercase">
                     Badge / Classification Tag
@@ -1356,7 +1329,6 @@ export function DiagramCanvas({
             </div>
           )}
 
-        {/* 4. Floating Edge / Relationship Inspector */}
         {selectedEdge && (
           <div className="absolute right-4 top-4 z-20 w-80 rounded-2xl border border-border bg-card/95 p-4 shadow-xl backdrop-blur-md animate-in fade-in-0 slide-in-from-right-4 duration-200 space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-border">
@@ -1386,7 +1358,6 @@ export function DiagramCanvas({
                 placeholder="e.g. is a, depends on, 1 : N"
               />
 
-              {/* Categorized Cardinality & Relation Presets */}
               <div className="space-y-1.5 pt-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
                   Quick Presets:

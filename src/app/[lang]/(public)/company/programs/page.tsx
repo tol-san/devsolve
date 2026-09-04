@@ -114,7 +114,6 @@ function CompanyProgramsCatalogContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6 pb-16"
     >
-      {/* Back to Profile Button */}
       <div className="flex items-center justify-between">
         <Link
           href={backHref}
@@ -125,7 +124,6 @@ function CompanyProgramsCatalogContent() {
         </Link>
       </div>
 
-      {/* Header Banner */}
       <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-sm">
         <div className="absolute -top-24 -right-24 size-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
@@ -192,9 +190,7 @@ function CompanyProgramsCatalogContent() {
         </div>
       </div>
 
-      {/* Search & Filter Controls */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        {/* Filter Pills */}
         <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/60 p-1.5">
           <button
             type="button"
@@ -231,7 +227,6 @@ function CompanyProgramsCatalogContent() {
           </button>
         </div>
 
-        {/* Search Input */}
         <div className="relative flex-1 sm:max-w-md">
           <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -244,7 +239,6 @@ function CompanyProgramsCatalogContent() {
         </div>
       </div>
 
-      {/* Programs Cards Grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (

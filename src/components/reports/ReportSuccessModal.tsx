@@ -52,7 +52,6 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onReset()}>
       <DialogContent showCloseButton className="sm:max-w-md p-6 sm:p-7 rounded-2xl gap-6">
-        {/* Success Checkmark Icon & Clean Header */}
         <DialogHeader className="text-center sm:text-center flex flex-col items-center gap-3">
           <div className="size-14 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-2xs">
             <CheckCircle2 className="size-8 stroke-[2]" />
@@ -69,9 +68,7 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
           </div>
         </DialogHeader>
 
-        {/* Clean Info Summary Card */}
         <div className="bg-muted/40 rounded-xl p-4 border border-border/80 text-left space-y-3">
-          {/* Report ID */}
           <div className="grid grid-cols-3 gap-2 items-center">
             <span className="text-xs font-semibold text-muted-foreground">
               Report ID
@@ -95,7 +92,6 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
             </div>
           </div>
 
-          {/* Program */}
           <div className="grid grid-cols-3 gap-2 items-center pt-2 border-t border-border/60">
             <span className="text-xs font-semibold text-muted-foreground">
               Program
@@ -105,7 +101,6 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
             </span>
           </div>
 
-          {/* Title */}
           <div className="grid grid-cols-3 gap-2 items-start pt-2 border-t border-border/60">
             <span className="text-xs font-semibold text-muted-foreground pt-0.5">
               Title
@@ -115,7 +110,6 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
             </span>
           </div>
 
-          {/* Submitted At */}
           <div className="grid grid-cols-3 gap-2 items-center pt-2 border-t border-border/60">
             <span className="text-xs font-semibold text-muted-foreground">
               Submitted At
@@ -136,7 +130,6 @@ export const ReportSuccessModal: React.FC<ReportSuccessModalProps> = ({
           </div>
         )}
 
-        {/* Dialog Actions */}
         <DialogFooter className="flex flex-col sm:flex-row items-center gap-3 pt-1">
           <Button
             type="button"

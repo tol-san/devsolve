@@ -6,11 +6,6 @@ import type {
 } from "@/lib/validations/solution-draft";
 import type { SolutionResponse } from "./solutionsApi";
 
-/**
- * Server-side solution drafts.
- *
- * A draft belongs to a problem, so lookup on mount is scoped to that problemId.
- */
 export const solutionDraftsApi = proxyApi.injectEndpoints({
   endpoints: (builder) => ({
     getSolutionDrafts: builder.query<

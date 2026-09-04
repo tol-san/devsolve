@@ -34,7 +34,6 @@ export default function ReportSeverityReviewPage() {
   } = useGetReportByIdQuery(reportId, { skip: !reportId });
   const [outcome, setOutcome] = useState<"approved" | "rejected" | null>(null);
 
-  /* The backend's own state, not the collapsed UI status. */
   const isResolved =
     (apiReport?.rawStatus || apiReport?.status || "").toUpperCase() ===
     "RESOLVED";
@@ -102,11 +101,6 @@ export default function ReportSeverityReviewPage() {
         }
       >
         <div className="min-w-0 w-full">
-          {/* A resolved report has nothing left to triage: it cannot be
-              approved again, and its reputation was priced and paid at
-              resolution, so editing the severity here would move a label away
-              from what was actually awarded. It becomes the record its label
-              already promised. */}
           {isResolved ? (
             <ResolvedReviewLog detail={detail} />
           ) : (
@@ -125,5 +119,4 @@ export default function ReportSeverityReviewPage() {
     </motion.div>
   );
 }
-
 

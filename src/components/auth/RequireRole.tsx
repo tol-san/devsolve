@@ -12,23 +12,6 @@ import type { OrganizationInvitationPermission } from "@/lib/redux/services/orga
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
-/**
- * Keeps a dashboard screen to the roles it was built for.
- *
- * The sidebar already filters itself by role, but that only governs the links
- * it draws — a pasted URL, a bookmark or a browser going back walks straight
- * past it. This applies the same decision to the page, so a screen meant for
- * one kind of account is never rendered for another.
- *
- * It is a courtesy, not a security boundary: the backend authorizes every
- * request on its own and would refuse the data regardless. What this prevents
- * is a company landing on a researcher screen, watching it fire requests it
- * has no business making, and reading an error where an explanation belongs.
- *
- * Wrap the *content*, not the body of the page itself — the guard has to sit
- * above the component whose hooks would otherwise run, or the queries fire
- * before the role is ever looked at.
- */
 export function RequireRole({
   roles,
   orPermission,
@@ -37,19 +20,10 @@ export function RequireRole({
   action,
   children,
 }: {
-  /** Any one of these is enough. Compared case-insensitively. */
   roles: string[];
-  /**
-   * An organization permission that admits the account regardless of role.
-   *
-   * For screens a company invites people into: a member who was granted the
-   * permission holds a researcher account, so a role check alone would shut
-   * out exactly the person the invitation was for.
-   */
   orPermission?: OrganizationInvitationPermission;
   title: string;
   description: string;
-  /** Where this account should have gone instead. */
   action?: { href: string; label: string };
   children: React.ReactNode;
 }) {
@@ -59,10 +33,6 @@ export function RequireRole({
 
   const holdsPermission = Boolean(orPermission && can(orPermission));
 
-  /* Roles arrive with the session, or from the access token a beat later, and
-     the roster a beat after that. Deciding before they land would show the
-     refusal to the very people the screen is for, and then swap it out under
-     them. */
   if (!areRolesResolved || (orPermission && isMembershipLoading)) {
     return (
       <div
@@ -76,8 +46,6 @@ export function RequireRole({
     );
   }
 
-  /* The same reading the sidebar takes, so a link it draws always leads
-     somewhere that renders. */
   const held = (
     user?.roles ?? (user?.role ? user.role.split(",") : ["USER"])
   ).map((role) => role.trim().toUpperCase());

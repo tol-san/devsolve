@@ -70,7 +70,6 @@ export default function SocialLinksSection({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* GitHub */}
         <div className="space-y-2 rounded-xl border border-border bg-muted/20 p-4 transition-colors hover:border-border/80">
           <div className="flex items-center justify-between">
             <label
@@ -105,7 +104,6 @@ export default function SocialLinksSection({
           </div>
         </div>
 
-        {/* X / Twitter */}
         <div className="space-y-2 rounded-xl border border-border bg-muted/20 p-4 transition-colors hover:border-border/80">
           <div className="flex items-center justify-between">
             <label
@@ -140,7 +138,6 @@ export default function SocialLinksSection({
           </div>
         </div>
 
-        {/* LinkedIn */}
         <div className="space-y-2 rounded-xl border border-border bg-muted/20 p-4 transition-colors hover:border-border/80">
           <div className="flex items-center justify-between">
             <label
@@ -175,7 +172,6 @@ export default function SocialLinksSection({
           </div>
         </div>
 
-        {/* Personal Website */}
         <div className="space-y-2 rounded-xl border border-border bg-muted/20 p-4 transition-colors hover:border-border/80">
           <div className="flex items-center justify-between">
             <label

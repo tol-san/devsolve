@@ -13,24 +13,10 @@ import {
   provisionUserProfile,
 } from "@/lib/server/keycloak-admin";
 
-/**
- * POST /api/auth/register — proxy for the backend's POST /api/v1/auth/register.
- *
- * Registration runs server-side rather than straight from the browser so the
- * backend origin (and any future service credentials) never reach the client.
- *
- * If the upstream backend's connection to Keycloak is unreachable or fails (e.g. 502 Bad Gateway
- * "The identity provider could not be reached or refused the request"), this route falls back
- * gracefully to creating the user directly in Keycloak and provisioning their profile record in
- * the database so user registration remains 100% operational.
- */
-
-// Backend base URL already carries the `/api/v1` prefix (see .env.example).
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
 async function executeDirectRegistrationFallback(data: RegisterRequestBody) {
   try {
-    // 1. Pre-check conflict in database
     const conflict = await checkUserConflict(data.username, data.email);
     if (conflict) {
       return NextResponse.json(
@@ -39,10 +25,8 @@ async function executeDirectRegistrationFallback(data: RegisterRequestBody) {
       );
     }
 
-    // 2. Obtain Keycloak Admin OAuth2 Token
     const adminToken = await getKeycloakAdminToken();
 
-    // 3. Create Keycloak user
     const userId = await createKeycloakUser(adminToken, {
       email: data.email,
       firstName: data.firstName,
@@ -50,10 +34,8 @@ async function executeDirectRegistrationFallback(data: RegisterRequestBody) {
       password: data.password,
     });
 
-    // 4. Assign Realm Role (USER, COMPANY, or ADMIN)
     await assignRealmRole(adminToken, userId, data.accountType || "USER");
 
-    // 5. Provision record in user_profiles table
     await provisionUserProfile({
       userId,
       username: data.username,
@@ -116,11 +98,9 @@ export async function POST(request: NextRequest) {
       cache: "no-store",
     });
   } catch {
-    // Network-level failure — fallback to direct Keycloak and DB provisioning
     return executeDirectRegistrationFallback(parsed.data);
   }
 
-  // The spec advertises `*/*`, so the body may not be JSON on error paths.
   const raw = await upstream.text();
   let body: unknown = null;
   if (raw) {
@@ -132,7 +112,6 @@ export async function POST(request: NextRequest) {
   }
 
   if (!upstream.ok) {
-    // If upstream failed specifically because its identity provider connection is broken (502 Bad Gateway)
     if (upstream.status === 502) {
       return executeDirectRegistrationFallback(parsed.data);
     }

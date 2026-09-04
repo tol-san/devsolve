@@ -31,7 +31,6 @@ function displayUrl(value: string): string {
   return value.replace(/^https?:\/\//i, "").replace(/\/$/, "");
 }
 
-/** Where "edit" goes: the profile form, opened directly. */
 function editProfileHref(username?: string) {
   return username
     ? `/dashboard/profile/${encodeURIComponent(username)}?edit=1`
@@ -78,7 +77,6 @@ export default function ProfileSidebar({
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-5"
     >
-      {/* ── About / Bio Card ────────────────────────────────────── */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs">
         <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
           <Quote className="size-3.5 text-primary" />
@@ -107,7 +105,6 @@ export default function ProfileSidebar({
           </p>
         )}
 
-        {/* ── Community Network Stats ───────────────────────────── */}
         <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4">
           <Link
             href={`${profileBasePath}/followers`}
@@ -137,7 +134,6 @@ export default function ProfileSidebar({
         </div>
       </div>
 
-      {/* ── Contact & Web Presence Card ─────────────────────────── */}
       <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs">
         <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Online Presence & Details
@@ -194,7 +190,6 @@ export default function ProfileSidebar({
         </div>
       </div>
 
-      {/* ── Security Trust Metrics (if stats provided) ───────────── */}
       {stats && (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs">
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">

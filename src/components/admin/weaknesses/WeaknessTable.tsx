@@ -56,8 +56,6 @@ export function WeaknessTable({
       toast.success(`Removed ${pendingDelete.name ?? "the weakness"}.`);
       setPendingDelete(null);
     } catch (error) {
-      /* Most likely a report already cites it. The upstream decides, and its
-         reason is more useful than anything guessed here. */
       toast.error(
         errorMessage(error, "The weakness could not be deleted."),
       );

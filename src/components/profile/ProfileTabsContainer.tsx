@@ -17,7 +17,6 @@ interface ProfileTabsContainerProps {
   severity: SeverityStats;
   badges: ProfileBadge[];
   username: string;
-  /** The profile's real user id — the portfolio endpoints are keyed by id. */
   userId: string;
 }
 
@@ -42,9 +41,6 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
     [pathname, router, searchParams]
   );
 
-  // skip: RTK Query only fetches when skip is false, so each query only fires once its tab is active
-  /* Keyed on the profile's id, not the handle: `/user-profiles/{id}/hacktivity`
-     is the only endpoint that answers for somebody other than the viewer. */
   const {
     data: hacktivity,
     isLoading: hacktivityLoading,

@@ -32,7 +32,6 @@ export default function FollowingList({
 
   return (
     <div className="space-y-6">
-      {/* Header & Filter Controls */}
       <div className="flex flex-col gap-3 border-b border-border pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>

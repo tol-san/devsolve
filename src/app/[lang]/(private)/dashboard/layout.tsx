@@ -16,7 +16,6 @@ import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 import { NO_INDEX } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
-  // The root template adds `· DevSolve` on top of whatever this produces.
   title: { default: "Dashboard", template: "%s · Dashboard" },
   robots: NO_INDEX,
 };

@@ -30,7 +30,6 @@ import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 import type { SearchType } from "@/lib/types/search/types";
 
-/** Long enough that a fast typist fires one request, not eight. */
 const DEBOUNCE_MS = 250;
 
 type SearchDropdownProps = {
@@ -97,7 +96,6 @@ export function SearchDropdown({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /* The field updates instantly, the query trails it. */
   useEffect(() => {
     const trimmed = input.trim();
     if (trimmed === term) return;
@@ -119,7 +117,6 @@ export function SearchDropdown({
   const groups = data?.groups ?? [];
   const isEmpty = hasTerm && !isFetching && !error && groups.length === 0;
 
-  // Flattened hits for arrow navigation
   const allHits = groups.flatMap((g) => g.hits);
 
   const goToResults = () => {
@@ -139,7 +136,6 @@ export function SearchDropdown({
       return;
     }
 
-    // Keyboard navigation when query is empty: navigate through discovery links
     if (!hasTerm) {
       if (event.key === "ArrowDown") {
         event.preventDefault();
@@ -158,8 +154,7 @@ export function SearchDropdown({
       return;
     }
 
-    // Keyboard navigation when search hits are present
-    const maxIndex = allHits.length; // 0 to allHits.length - 1 are hits, allHits.length is "See all results"
+    const maxIndex = allHits.length; 
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -183,7 +178,6 @@ export function SearchDropdown({
 
   return (
     <div ref={containerRef} className={cn("flex flex-col w-full select-none", className)}>
-      {/* 1. Seamless Command Input Bar (Clean monochrome aesthetic) */}
       <div className="flex items-center px-4 py-3.5 border-b border-border/70 bg-muted/10">
         <Search className="size-4.5 text-muted-foreground shrink-0 mr-3 pointer-events-none" />
         <input
@@ -227,12 +221,10 @@ export function SearchDropdown({
         )}
       </div>
 
-      {/* 2. Results Body / Discovery Panel */}
       <div
         id={listboxId}
         className="max-h-[60vh] overflow-y-auto p-3 space-y-4 scrollbar-thin divide-y divide-border/40"
       >
-        {/* Initial Empty Input State: Discover Links */}
         {!hasTerm && (
           <div className="space-y-1.5 pt-1 pb-1">
             <span className="flex items-center gap-1.5 px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -276,7 +268,6 @@ export function SearchDropdown({
           </div>
         )}
 
-        {/* Unavailable or error states */}
         {hasTerm && unavailable && (
           <div className="py-12 text-center text-sm text-muted-foreground space-y-1">
             <p className="font-semibold text-foreground">Search service temporarily offline</p>
@@ -291,7 +282,6 @@ export function SearchDropdown({
           </div>
         )}
 
-        {/* Empty matching result */}
         {isEmpty && (
           <div className="py-12 text-center text-sm text-muted-foreground space-y-2">
             <div className="flex size-12 items-center justify-center rounded-2xl bg-muted/70 text-muted-foreground mx-auto border border-border">
@@ -306,7 +296,6 @@ export function SearchDropdown({
           </div>
         )}
 
-        {/* Populated Search Groups */}
         {hasTerm &&
           groups.map((group) => {
             const GroupIcon = GROUP_HEADER_ICONS[group.type] || User;
@@ -358,7 +347,6 @@ export function SearchDropdown({
             );
           })}
 
-        {/* Bottom "See all results" CTA */}
         {hasTerm && groups.length > 0 && (
           <div className="pt-3">
             <button
@@ -388,7 +376,6 @@ export function SearchDropdown({
         )}
       </div>
 
-      {/* 3. Integrated Command Palette Footer */}
       <div className="flex items-center justify-between px-4 py-2.5 border-t border-border/60 bg-muted/20 text-xs text-muted-foreground select-none">
         <div className="flex items-center gap-2 min-w-0">
           {hasTerm && data?.totalHits !== undefined ? (

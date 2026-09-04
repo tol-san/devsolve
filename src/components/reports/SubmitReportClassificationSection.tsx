@@ -27,10 +27,6 @@ interface SubmitReportClassificationSectionProps {
   watch: UseFormWatch<SubmitReportFormValues>;
 }
 
-/* `reportedSeverity` accepts LOW, MEDIUM, HIGH and CRITICAL — never NONE, and
-   "Info" mapped to exactly that. Offering it produced a submission the API
-   refuses, so the claim a reporter can make stops at Low. Triage can still
-   settle a finding at NONE; that is its call, not the reporter's. */
 const SEVERITY_OPTIONS = [
   { id: "CRITICAL", label: "Critical", scoreRange: "9.0–10.0", color: "red" },
   { id: "HIGH", label: "High", scoreRange: "7.0–8.9", color: "orange" },
@@ -80,10 +76,6 @@ export function SubmitReportClassificationSection({
   const selectedSeverity = watch("severity") || "CRITICAL";
   const selectedCategory = watch("category");
 
-  /* Auto-suggest the CWE and CVSS for the chosen category — and the severity
-     that score implies. Setting the score alone is what produced reports
-     claiming, say, LOW severity with an 8.6 attached: the backend rates that
-     score HIGH and rejects the pair outright. */
   useEffect(() => {
     if (selectedCategory && CWE_MAP[selectedCategory]) {
       const info = CWE_MAP[selectedCategory];
@@ -99,15 +91,10 @@ export function SubmitReportClassificationSection({
     }
   }, [selectedCategory, setValue]);
 
-  /* The score is the authority on severity, so editing it moves the severity
-     with it. The two cannot be set independently without one of them being
-     wrong, and the backend refuses the combination rather than picking. */
   const handleScoreChange = (value: string) => {
     setValue("cvssScore", value, { shouldValidate: true, shouldDirty: true });
 
     const score = parseCvssScore(value);
-    /* Null at 0.0, which is not a claimable band — the severity is left as
-       the reporter set it rather than moved to a value the API refuses. */
     const banded = score !== null ? claimableSeverityForCvss(score) : null;
     if (banded) {
       setValue("severity", banded, { shouldValidate: true });
@@ -118,7 +105,6 @@ export function SubmitReportClassificationSection({
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Section Header */}
       <div className="flex items-center gap-3 pb-2">
         <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
           <Shield className="w-5 h-5" />
@@ -133,9 +119,7 @@ export function SubmitReportClassificationSection({
         </div>
       </div>
 
-      {/* Inputs Container */}
       <div className="space-y-5">
-        {/* Report Title */}
         <div className="space-y-1.5">
           <label htmlFor="title" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Report Title <span className="text-red-500">*</span>
@@ -154,7 +138,6 @@ export function SubmitReportClassificationSection({
           )}
         </div>
 
-        {/* Vulnerability Type / Category */}
         <div className="space-y-1.5">
           <label htmlFor="category" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Vulnerability Type <span className="text-red-500">*</span>
@@ -191,7 +174,6 @@ export function SubmitReportClassificationSection({
           )}
         </div>
 
-        {/* Severity Selector */}
         <div className="space-y-3">
           <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Severity <span className="text-red-500">*</span>
@@ -226,7 +208,6 @@ export function SubmitReportClassificationSection({
             })}
           </div>
 
-          {/* Detailed Severity Breakdown Box */}
           <div className="p-4 rounded-xl bg-red-50/80 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 space-y-1.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -248,7 +229,6 @@ export function SubmitReportClassificationSection({
           </div>
         </div>
 
-        {/* CWE & CVSS Score Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -298,7 +278,6 @@ export function SubmitReportClassificationSection({
           </div>
         </div>
 
-        {/* CVSS Vector String */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label htmlFor="cvssVector" className="text-sm font-semibold text-slate-900 dark:text-slate-100">

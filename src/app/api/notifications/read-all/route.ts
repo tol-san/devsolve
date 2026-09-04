@@ -7,10 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * PATCH /api/notifications/read-all — Mark all notifications as read.
- * Proxies PATCH /api/v1/notifications/read-all
- */
 export async function PATCH(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

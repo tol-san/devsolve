@@ -24,7 +24,6 @@ export function VirusTotalUrlScanner({
 
   const { scanUrl, currentResult, isScanning, isConfigured } = useVirusTotalScan();
 
-  // If VirusTotal is not configured on this environment, degrade silently
   if (!isConfigured) {
     return null;
   }

@@ -13,19 +13,6 @@ type ReportEarningsProps = {
   className?: string;
 };
 
-/**
- * What a resolved finding earned its reporter.
- *
- * Two payments from two payers, shown side by side and never added up:
- * reputation comes from the platform and is priced by severity, the bounty
- * comes from the organization and is its own decision. Summing them would
- * invent a single "total earned" figure that no part of the system holds.
- *
- * Rendered only once reputation has actually been awarded. A report resolved
- * before reputation became automatic carries no award — those were not
- * backfilled — and showing a zero there would claim the researcher earned
- * nothing when the truth is that nothing was recorded.
- */
 export function ReportEarnings({ report, className }: ReportEarningsProps) {
   if (!hasReputationAward(report)) return null;
 
@@ -36,9 +23,6 @@ export function ReportEarnings({ report, className }: ReportEarningsProps) {
     (sum, reward) => sum + reward.amount,
     0,
   );
-  /* A program that pays no money has no empty money slot: there is nothing
-     missing, so nothing is shown as missing. When the program could not be
-     read (`null`) the slot still appears if a bounty was actually paid. */
   const showBounty = report.programOffersBounties !== false || bountyTotal > 0;
 
   return (
@@ -69,7 +53,6 @@ export function ReportEarnings({ report, className }: ReportEarningsProps) {
           showBounty ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1",
         )}
       >
-        {/* The platform's half */}
         <div className="rounded-xl border border-blue-500/25 bg-blue-500/5 p-4">
           <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
             <Sparkles className="size-4 shrink-0" />
@@ -93,7 +76,6 @@ export function ReportEarnings({ report, className }: ReportEarningsProps) {
           </p>
         </div>
 
-        {/* The organization's half */}
         {showBounty && (
           <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4">
             <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">

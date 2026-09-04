@@ -60,8 +60,6 @@ export interface CountryFilterOption {
   code?: string;
 }
 
-/* `value` is what the API is queried with and never changes; `key` is the
-   dotted catalogue path the visible label is resolved from. */
 const ASSET_OPTIONS: Array<{
   value: ProgramAssetFilter;
   key: string;

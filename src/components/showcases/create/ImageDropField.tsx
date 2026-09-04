@@ -18,38 +18,22 @@ import { validateImageFile } from "@/lib/validations/showcase";
 import { cn } from "@/lib/utils";
 
 interface ImageDropFieldProps {
-  /** A URL already hosted upstream, or one the author pasted. */
   value?: string;
   onChange: (url: string) => void;
-  /** A chosen file waiting to be uploaded, held in form state. */
   file?: File | null;
   onFileChange: (file: File | null) => void;
-  /** True while the parent is putting this file to its upload route. */
   uploading?: boolean;
-  /** Tailwind aspect class — the cover is locked to 16:9. */
   aspectClassName?: string;
   label: string;
   hint?: string;
   error?: string;
-  /** Denser variant used inside a build step. */
   compact?: boolean;
-  /** Whether to allow opening the React Flow diagram visual builder */
   allowDraw?: boolean;
   onOpenDraw?: () => void;
 }
 
 type Mode = "upload" | "link" | "draw";
 
-/**
- * Drag-and-drop image field, with pasting a URL as the alternative.
- *
- * Every upload route the backend publishes is scoped to a row that has to
- * exist first — `PUT /showcases/{id}/cover-image`, `PUT
- * /showcase-steps/{showcaseId}/{stepId}/image`. So a chosen file is not sent
- * here: it is handed to the form, previewed locally, and uploaded by the
- * publish sequence once the showcase (or step) it belongs to has been created.
- * A pasted URL needs no upload at all and travels in the create body.
- */
 export function ImageDropField({
   value,
   onChange,
@@ -71,9 +55,6 @@ export function ImageDropField({
   const [linkDraft, setLinkDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /* An object URL is a document-lifetime handle: without the revoke, every
-     image the author trials stays resident. The live one is mirrored in a ref
-     so it can be released when it is replaced and again on unmount. */
   const previewRef = useRef<string | null>(null);
 
   const showPreview = useCallback((next: string | null) => {
@@ -89,7 +70,6 @@ export function ImageDropField({
     [],
   );
 
-  /* Automatically create & sync object URL when file prop changes (e.g. from DiagramBuilderModal) */
   useEffect(() => {
     if (file) {
       const url = URL.createObjectURL(file);
@@ -113,7 +93,6 @@ export function ImageDropField({
       setLocalError(null);
       showPreview(URL.createObjectURL(candidate));
       onFileChange(candidate);
-      // A file replaces whatever URL was there, so the two can't disagree.
       if (value) onChange("");
     },
     [onChange, onFileChange, showPreview, value],
@@ -146,8 +125,6 @@ export function ImageDropField({
     onChange("");
   };
 
-  /* The preview only counts while the form still holds the file it was made
-     from — a reset upstream clears the field rather than leaving a dead blob. */
   const shown = value || (file ? preview : null);
   const message = error ?? localError;
   const modeOptions: Mode[] = allowDraw
@@ -215,7 +192,6 @@ export function ImageDropField({
               onError={() => setLocalError("That image could not be loaded")}
             />
 
-            {/* Visual indicator badge */}
             <div className="absolute left-2.5 top-2.5 flex items-center gap-1 rounded-md bg-background/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-foreground backdrop-blur-xs border border-border shadow-xs">
               {allowDraw ? (
                 <>
@@ -377,7 +353,6 @@ export function ImageDropField({
               onChange={(event) => {
                 const chosen = event.target.files?.[0];
                 if (chosen) accept(chosen);
-                // Let the same file be re-picked after clearing it.
                 event.target.value = "";
               }}
             />
@@ -385,8 +360,6 @@ export function ImageDropField({
         )}
       </AnimatePresence>
 
-      {/* Says plainly that the bytes have not left the browser yet — the
-          upload route needs the row this image hangs off to exist first. */}
       {file && !uploading && (
         <p className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
           <Clock className="size-3.5 shrink-0" />

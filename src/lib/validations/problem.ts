@@ -2,7 +2,6 @@ import * as z from "zod";
 import { isCleanText, profanityMessage } from "@/lib/moderation/profanity";
 import { isReadableText, readabilityMessage } from "@/lib/moderation/readability";
 
-/** Values accepted by `CreateProblemRequest.sdlcPhase`. */
 export const SDLC_PHASES = [
   "PLANNING",
   "REQUIREMENTS_ANALYSIS",
@@ -15,7 +14,6 @@ export const SDLC_PHASES = [
 
 export type SdlcPhase = (typeof SDLC_PHASES)[number];
 
-/** How each phase is written for a reader, wherever one is shown. */
 export const SDLC_LABELS: Record<SdlcPhase, string> = {
   PLANNING: "Planning",
   REQUIREMENTS_ANALYSIS: "Requirements analysis",
@@ -26,7 +24,6 @@ export const SDLC_LABELS: Record<SdlcPhase, string> = {
   MAINTENANCE: "Maintenance",
 };
 
-/** Values accepted by `CreateProblemRequest.problemType`. */
 export const PROBLEM_TYPES = [
   "BUG",
   "HOW_TO",
@@ -49,7 +46,6 @@ export const PROBLEM_TYPE_LABELS: Record<ProblemType, string> = {
   GENERAL: "General",
 };
 
-/** What each type is for, so the picker does not need a guess. */
 export const PROBLEM_TYPE_DESCRIPTIONS: Record<ProblemType, string> = {
   BUG: "Something behaves wrongly and you can show it.",
   HOW_TO: "You know the goal, not the route to it.",
@@ -60,7 +56,6 @@ export const PROBLEM_TYPE_DESCRIPTIONS: Record<ProblemType, string> = {
   GENERAL: "Anything the other six do not cover.",
 };
 
-/** Values accepted by `CreateProblemRequest.severity`. */
 export const PROBLEM_SEVERITIES = [
   "LOW",
   "MEDIUM",
@@ -77,7 +72,6 @@ export const SEVERITY_LABELS: Record<ProblemSeverity, string> = {
   CRITICAL: "Critical",
 };
 
-/** Values of the backend `ProblemStatus` enum. */
 export const PROBLEM_STATUSES = [
   "DRAFT",
   "PENDING_APPROVAL",
@@ -89,25 +83,16 @@ export const PROBLEM_STATUSES = [
 
 export type ProblemStatus = (typeof PROBLEM_STATUSES)[number];
 
-/**
- * Mirrors `ProblemModerationRequest`. The whole body is the status a moderator
- * moves the problem to — `PUBLISHED` to approve, `REJECTED` to turn away.
- *
- * Unlike a showcase decision there is no reason field upstream, so nothing a
- * reviewer types here could reach the author.
- */
 export const problemModerationSchema = z.object({
   status: z.enum(PROBLEM_STATUSES, {
     message: `status must be one of ${PROBLEM_STATUSES.join(", ")}`,
   }),
 });
 
-/** Validated body sent to `PATCH /api/v1/admin/problems/{id}/moderation`. */
 export type ProblemModerationRequest = z.output<
   typeof problemModerationSchema
 >;
 
-/** Mirrors `ProblemTechnologyRequest`. Only `name` is required upstream. */
 export const problemTechnologySchema = z.object({
   name: z
     .string()
@@ -122,7 +107,6 @@ export type ProblemTechnologyRequest = z.output<
   typeof problemTechnologySchema
 >;
 
-/** Mirrors `ProblemEnvironmentRequest`. Only `technology` is required upstream. */
 export const problemEnvironmentSchema = z.object({
   technology: z
     .string()
@@ -140,11 +124,6 @@ export type ProblemEnvironmentRequest = z.output<
 const uniqueStrings = (values: string[]) =>
   new Set(values).size === values.length;
 
-/**
- * Mirrors the backend `CreateProblemRequest` wire contract. `categoryId`,
- * `description`, `problemType` and `title` are the four the backend requires;
- * the rest of the detail fields are optional and left to the writer.
- */
 export const problemCreateObjectSchema = z.object({
   categoryId: z.uuid("Category id must be a UUID"),
   title: z
@@ -210,8 +189,6 @@ export const problemCreateObjectSchema = z.object({
     .max(10, "Up to 10 tag ids are allowed")
     .refine(uniqueStrings, { message: "Tag ids must be unique" })
     .optional(),
-  /* Upstream calls these `newTagNames` — free-text tags that do not exist yet.
-     The old `tags` name was silently dropped by the backend. */
   newTagNames: z
     .array(z.string().max(50, "Each tag must not exceed 50 characters"))
     .max(10, "Up to 10 tags are allowed")
@@ -248,22 +225,12 @@ export const problemCreateSchema = problemCreateObjectSchema.superRefine(
   },
 );
 
-/** Raw values accepted by the wire schema. */
 export type CreateProblemInput = z.input<typeof problemCreateSchema>;
 
-/**
- * `ProblemUpdateRequest` — every field optional, matching the PATCH contract.
- *
- * The field rules are the create rules, so a title still cannot be shortened
- * below ten characters; what changes is that omitting a field is allowed and
- * means "leave it alone".
- */
 export const problemUpdateSchema = problemCreateObjectSchema.partial();
 
-/** Validated body sent to `PATCH /api/v1/problems/{id}`. */
 export type ProblemUpdateRequest = z.output<typeof problemUpdateSchema>;
 
-/** Validated request body sent to `POST /api/v1/problems`. */
 export type CreateProblemRequest = z.output<typeof problemCreateSchema>;
 
 const problemTechnologyFormSchema = z.object({
@@ -279,11 +246,6 @@ const problemTechnologyFormSchema = z.object({
     .optional(),
 });
 
-/**
- * Form-level rules can be stricter than the wire contract, except where the
- * form has to be looser: a repeatable field is empty for as long as it takes
- * to fill in, so blank rows pass here and the submit handler drops them.
- */
 export const createProblemFormSchema = problemCreateObjectSchema
   .extend({
     title: z

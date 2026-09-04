@@ -13,8 +13,6 @@ export const ProgramOverviewTab: React.FC<ProgramOverviewTabProps> = ({
   program,
 }) => {
 
-// this is the Overview tab
-
   return (
     <motion.div
       key="overview"
@@ -24,7 +22,6 @@ export const ProgramOverviewTab: React.FC<ProgramOverviewTabProps> = ({
       transition={{ duration: 0.2 }}
       className="bg-card rounded-2xl p-6 sm:p-8 ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-8"
     >
-      {/* About the Program */}
       <div className="space-y-3">
         <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
           About the Program
@@ -39,7 +36,6 @@ export const ProgramOverviewTab: React.FC<ProgramOverviewTabProps> = ({
 
       <hr className="border-border" />
 
-      {/* Proof of Concept Requirements */}
       {(() => {
         const pocData = program?.proofOfConceptRequirements;
         let pocDescription = "Each report must include the following to be considered valid:";

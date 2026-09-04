@@ -4,63 +4,24 @@ import React, { useId, useMemo, useRef, useSyncExternalStore } from "react";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { useTheme } from "next-themes";
 
-/* ─── Brand palette (design.md) ────────────────────────────────────── */
 export const PRIMARY = "#2563EB";
 export const SECONDARY = "#1E293B";
 export const ACCENT = "#10B981";
 
-/** Near-white counterpart to SECONDARY, for headings on a dark surface.
-    neutral-50, matching the `--foreground` the rest of the app resolves to
-    in dark — the dark surfaces here are the neutral scale, not the slate
-    one, so the ink on them is neutral too. */
 export const INK_DARK = "#FAFAFA";
 
-/* ─── Dark surfaces ──────────────────────────────────────────────────────
-   The dark theme runs on the neutral scale, the same one `--background`,
-   `--card` and `--muted` resolve to elsewhere in the app (the programs
-   browser is the reference). Cool slate greys are a light-mode concern
-   only; on a near-black field they read as a blue cast.
-
-     page   neutral-950  #0A0A0A   = --background   oklch(0.145 0 0)
-     card   neutral-900  #171717   = --card         oklch(0.205 0 0)
-     muted  neutral-800  #262626   = --muted        oklch(0.269 0 0)
-     hair   white / 10%            = --border       oklch(1 0 0 / 10%)
-     ink    neutral-50   #FAFAFA   = --foreground   oklch(0.985 0 0)   */
 export const SURFACE_DARK = "#0A0A0A";
 
-/* ─── Theme-dependent values ─────────────────────────────────────────────
-   These sections paint through inline `style` and SVG presentation
-   attributes, which no `dark:` variant can reach. Resolving them in JS is
-   what used to break hydration: next-themes' blocking script sets the class
-   before React runs, so the client's *first* render already knows the theme
-   while the server render never did — the two disagreed on every one of
-   these values.
-
-   So they are custom properties instead (defined in globals.css). The
-   rendered string is identical on both sides, the browser resolves it, and
-   there is no post-mount repaint either.
-   ──────────────────────────────────────────────────────────────────── */
-
-/** Heading ink for the current theme. */
 export function useInk() {
   return "var(--ds-ink)";
 }
 
-/** Page surface — for rings that punch a mark out of the background. */
 export const SURFACE = "var(--ds-surface)";
 
-/* A store that reports `false` to the server and `true` to the client, which
-   is how you ask React "has this hydrated yet?" without a setState in an
-   effect. The subscribe callback is module-level so it stays referentially
-   stable and never resubscribes. */
 const neverChanges = () => () => {};
 const onClient = () => true;
 const onServer = () => false;
 
-/* Phones pay for this backdrop differently to laptops: it is `fixed inset-0`
-   behind every route, so its cost is paid on every page, and a mid-range
-   handset is compositing it on a fraction of the GPU. Below this width the
-   layer keeps its character on a smaller budget. */
 const COMPACT_QUERY = "(max-width: 640px)";
 
 function subscribeToCompact(onStoreChange: () => void) {
@@ -73,32 +34,16 @@ function getCompact() {
   return window.matchMedia(COMPACT_QUERY).matches;
 }
 
-/**
- * Whether this is a small viewport.
- *
- * `onServer` is the server snapshot, so the hydrating render matches the HTML
- * and React swaps in the real value immediately afterwards — the same trick
- * `useIsDark` uses, and the reason this cannot be a bare `matchMedia` read.
- */
 function useCompactViewport() {
   return useSyncExternalStore(subscribeToCompact, getCompact, onServer);
 }
 
-/**
- * Whether the dark theme is active.
- *
- * Only for values that genuinely cannot be a custom property — GSAP tweens
- * colours numerically and cannot interpolate a `var()`. Gated on hydration
- * so the server render and the first client render agree; callers get
- * `false` for one frame, then the real value.
- */
 export function useIsDark() {
   const { resolvedTheme } = useTheme();
   const hydrated = useSyncExternalStore(neverChanges, onClient, onServer);
   return hydrated && resolvedTheme === "dark";
 }
 
-/* Deterministic PRNG so server and client render identical positions. */
 function mulberry32(seed: number) {
   let a = seed;
   return () => {
@@ -113,21 +58,11 @@ function mulberry32(seed: number) {
 type Tone = "light" | "dark";
 
 export type SectionBackdropProps = {
-  /**
-   * Surface the backdrop sits on — drives grid and particle contrast.
-   * Left off, it follows the active theme. Pass it only to pin a section
-   * that is dark in both themes (the CTA banner).
-   */
   tone?: Tone;
-  /** Seeds the deterministic particle and cell layout. Vary per section. */
   seed?: number;
-  /** Rising motes. */
   particles?: boolean;
-  /** Sweeping scan beams. */
   beams?: boolean;
-  /** Drifting colour fields. */
   aurora?: boolean;
-  /** Grid cells that light up and fade. */
   cells?: boolean;
   gridSize?: number;
   className?: string;
@@ -136,7 +71,6 @@ export type SectionBackdropProps = {
 const CELL_COUNT = 10;
 const PARTICLE_COUNT = 14;
 
-/* Static now that the colours are tokens — GPU-accelerated through CSS keyframes. */
 const BLOBS = [
   {
     color: "var(--ds-blob-a)",
@@ -155,11 +89,6 @@ const BLOBS = [
   },
 ];
 
-/**
- * The animated layer shared by every landing section — grid paper, drifting
- * aurora, pulsing cells, scan beams and rising motes. GPU composited for
- * high performance and 60fps rendering without main-thread blocking.
- */
 export function SectionBackdrop({
   tone,
   seed = 1,
@@ -177,9 +106,6 @@ export function SectionBackdrop({
   const containerRef = useRef<HTMLDivElement>(null);
   const inView = useInView(containerRef, { margin: "200px 0px" });
 
-  /* Counts, not just sizes: each cell and mote is its own compositor layer
-     running an independent keyframe loop, so halving them halves the work
-     regardless of how small the viewport has made each one. */
   const cellSpecs = useMemo(() => {
     const rand = mulberry32(seed * 977 + 7);
     return Array.from({ length: compact ? 4 : CELL_COUNT }, () => ({
@@ -206,29 +132,20 @@ export function SectionBackdrop({
   return (
     <div
       ref={containerRef}
-      /* `tone` pins this layer to one palette regardless of theme. A class,
-         not a JS branch, so it costs nothing at hydration. */
       className={`pointer-events-none absolute inset-0 overflow-hidden ${
         tone ? `ds-tone-${tone}` : ""
       } ${className}`}
       aria-hidden
     >
-      {/* Drifting colour fields — pure CSS keyframes on the compositor thread */}
       {aurora &&
         BLOBS.map((blob, i) => (
           <div
             key={i}
-            /* A Gaussian blur costs roughly its radius against the area it
-               covers, and these are the largest moving things on the page —
-               110px over a drifting blob is the single most expensive item in
-               this layer on a phone. The narrower radius is proportionate on a
-               narrow viewport, so it reads the same. */
             className={`absolute rounded-full blur-[48px] sm:blur-[110px] ${blob.className} ${blob.animClass}`}
             style={{ backgroundColor: blob.color }}
           />
         ))}
 
-      {/* Grid paper + cells that light up */}
       <svg className="absolute inset-0 h-full w-full">
         <defs>
           <pattern
@@ -258,8 +175,6 @@ export function SectionBackdrop({
               height={gridSize - 2}
               fill={cell.color}
               initial={{ opacity: 0 }}
-              /* Peaks at 1 because the tint level is carried by the token's
-                 alpha; the theme cannot reach a numeric keyframe. */
               animate={reduce ? undefined : { opacity: [0, 1, 0] }}
               transition={{
                 duration: cell.duration,
@@ -272,7 +187,6 @@ export function SectionBackdrop({
           ))}
       </svg>
 
-      {/* Scan beams — GPU composited transform keyframes, avoiding layout reflows */}
       {beams && (
         <>
           <div
@@ -290,7 +204,6 @@ export function SectionBackdrop({
         </>
       )}
 
-      {/* Rising motes */}
       {particles &&
         !reduce &&
         inView &&
@@ -307,7 +220,6 @@ export function SectionBackdrop({
             animate={{
               y: ["0%", "-1600%"],
               x: [0, p.drift, 0],
-              /* As with the cells: brightness is the token's alpha. */
               opacity: [0, 1, 1, 0],
             }}
             transition={{

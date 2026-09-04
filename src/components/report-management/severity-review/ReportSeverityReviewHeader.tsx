@@ -88,7 +88,6 @@ export function ReportSeverityReviewHeader({
 
       <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
         <CardContent className="grid gap-3 sm:gap-4 p-4 sm:p-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 min-w-0">
-          {/* Tile 1: Target Asset & Scope */}
           <div className="rounded-2xl border border-border bg-muted/50 p-3.5 sm:p-4 min-w-0">
             <div className="flex items-center gap-3 min-w-0">
               <div className="flex size-10 items-center justify-center rounded-xl bg-card text-foreground ring-1 ring-border shrink-0">
@@ -108,7 +107,6 @@ export function ReportSeverityReviewHeader({
             </div>
           </div>
 
-          {/* Tile 2: Current Submitted Severity */}
           <div className="rounded-2xl border border-border bg-muted/50 p-3.5 sm:p-4 min-w-0">
             <div className="flex items-center gap-3 min-w-0">
               <div className="flex size-10 items-center justify-center rounded-xl bg-card text-foreground ring-1 ring-border shrink-0">
@@ -125,7 +123,6 @@ export function ReportSeverityReviewHeader({
             </div>
           </div>
 
-          {/* Tile 3: Bounty Reward Range */}
           <div className="rounded-2xl border border-border bg-muted/50 p-3.5 sm:p-4 min-w-0 col-span-1 sm:col-span-2 md:col-span-1">
             <div className="flex flex-col gap-0.5 min-w-0">
               <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">

@@ -79,7 +79,6 @@ export function TopResearchers() {
         </Link>
       </div>
 
-      {/* Period tabs */}
       <div
         role="group"
         aria-label="Ranking period"
@@ -108,7 +107,6 @@ export function TopResearchers() {
         })}
       </div>
 
-      {/* Researchers list */}
       <div className="mt-3.5 space-y-2">
         {isLoading ? (
           [0, 1, 2, 3].map((index) => (

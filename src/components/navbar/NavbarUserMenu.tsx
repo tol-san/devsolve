@@ -67,7 +67,6 @@ export interface NavbarIdentity {
 }
 
 interface NavbarUserMenuProps {
-  /** Sign-in handler, used only while signed out. */
   onLogin: () => void;
   isLoggingIn: boolean;
   user?: SidebarUser;
@@ -76,10 +75,6 @@ interface NavbarUserMenuProps {
   onSignOut: () => void;
 }
 
-/**
- * Renders a distinct trust badge with clear status-specific iconography and color palettes.
- * Verified companies display a prominent emerald green badge with a checkmark.
- */
 function StatusBadge({ status }: { status?: string }) {
   if (!status) return null;
 
@@ -137,9 +132,6 @@ function StatusBadge({ status }: { status?: string }) {
   );
 }
 
-/**
- * Compact, Sleek SaaS Account / Organization Menu
- */
 export function NavbarUserMenu({
   onLogin,
   isLoggingIn,
@@ -181,7 +173,6 @@ export function NavbarUserMenu({
     router.refresh();
   };
 
-  // Prevent background scrolling when mobile bottom sheet is open
   useEffect(() => {
     if (mobileSheetOpen) {
       const prevOverflow = document.body.style.overflow;
@@ -192,7 +183,6 @@ export function NavbarUserMenu({
     }
   }, [mobileSheetOpen]);
 
-  // Handle Escape key for mobile bottom sheet
   useEffect(() => {
     if (!mobileSheetOpen) return;
 
@@ -215,7 +205,6 @@ export function NavbarUserMenu({
     );
   }
 
-  // Signed out state
   if (!user) {
     return (
       <div className="flex items-center gap-2">
@@ -271,13 +260,9 @@ export function NavbarUserMenu({
     </Avatar>
   );
 
-  // -------------------------------------------------------------
-  // Mobile (<480px) Bottom Sheet Variant
-  // -------------------------------------------------------------
   if (isMobile) {
     return (
       <>
-        {/* Pill Trigger: [ (Avatar) ▾ ] */}
         <button
           type="button"
           onClick={() => setMobileSheetOpen(true)}
@@ -362,7 +347,6 @@ export function NavbarUserMenu({
 
                 <div className="my-1.5 h-px bg-border/80" />
 
-                {/* Primary Menu Items */}
                 <div className="flex flex-col gap-0.5 py-1">
                   <Link
                     href={identity.profileHref}
@@ -407,7 +391,6 @@ export function NavbarUserMenu({
 
                 <div className="my-1.5 h-px bg-border/80" />
 
-                {/* Preferences: Theme & Language */}
                 <div className="flex flex-col gap-0.5 py-1">
                   <button
                     type="button"
@@ -447,7 +430,6 @@ export function NavbarUserMenu({
 
                 <div className="my-2 h-px bg-border/80" />
 
-                {/* Destructive Action */}
                 <button
                   type="button"
                   onClick={() => {
@@ -467,12 +449,8 @@ export function NavbarUserMenu({
     );
   }
 
-  // -------------------------------------------------------------
-  // Desktop & Tablet (>=480px) Compact Floating Dropdown
-  // -------------------------------------------------------------
   return (
     <DropdownMenu>
-      {/* Pill Trigger: [ (Avatar) ▾ ] */}
       <DropdownMenuTrigger
         render={
           <button
@@ -493,7 +471,6 @@ export function NavbarUserMenu({
         sideOffset={6}
         className="w-[235px] sm:w-[245px] rounded-2xl border border-border/80 bg-card/95 p-1.5 shadow-xl shadow-slate-900/10 dark:shadow-black/40 ring-1 ring-foreground/5 dark:ring-foreground/10 backdrop-blur-xl"
       >
-        {/* Header: Org/User Info & Compact Trust Badge */}
         <div className="flex items-start gap-2.5 rounded-xl bg-muted/40 p-2.5">
           <Avatar className="size-8.5 shrink-0 rounded-full shadow-xs">
             {identity.image && (
@@ -527,7 +504,6 @@ export function NavbarUserMenu({
 
         <DropdownMenuSeparator className="my-1 bg-border/60" />
 
-        {/* Primary Menu Items (compact 36px touch heights) */}
         <DropdownMenuGroup className="flex flex-col gap-0.5">
           <DropdownMenuItem
             render={<Link href={identity.profileHref} />}
@@ -569,9 +545,7 @@ export function NavbarUserMenu({
 
         <DropdownMenuSeparator className="my-1 bg-border/60" />
 
-        {/* Preferences Section: Theme & Language */}
         <DropdownMenuGroup className="flex flex-col gap-0.5">
-          {/* Dark Mode Row */}
           <DropdownMenuItem
             onClick={toggleTheme}
             className="group/item relative flex min-h-[36px] cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground transition-all duration-150 hover:bg-muted/80 hover:text-foreground focus:bg-muted/80 focus:text-foreground active:scale-[0.99]"
@@ -599,7 +573,6 @@ export function NavbarUserMenu({
             </span>
           </DropdownMenuItem>
 
-          {/* Language Toggle Row - direct one-click auto toggle */}
           <DropdownMenuItem
             onClick={() => handleLanguageSelect(locale === "en" ? "km" : "en")}
             className="group/item relative flex min-h-[36px] cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground transition-all duration-150 hover:bg-muted/80 hover:text-foreground focus:bg-muted/80 focus:text-foreground active:scale-[0.99]"
@@ -619,7 +592,6 @@ export function NavbarUserMenu({
 
         <DropdownMenuSeparator className="my-1 bg-border/60" />
 
-        {/* Destructive Action */}
         <DropdownMenuGroup>
           <DropdownMenuItem
             onClick={onSignOut}

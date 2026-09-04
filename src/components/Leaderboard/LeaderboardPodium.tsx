@@ -17,21 +17,17 @@ import {
   profileHref,
 } from "./leaderboard-ui";
 
-/* Left-to-right reading order: 2nd (index 1), 1st (index 0), 3rd (index 2) */
 const COLUMNS = [1, 0, 2];
 
-/* Pedestal card heights: taller height & wider layout to eliminate empty padding */
 const RISER_HEIGHTS = [
   "h-[250px] sm:h-[335px]", // 1st Place (Center - tallest)
   "h-[210px] sm:h-[285px]", // 2nd Place (Left)
   "h-[210px] sm:h-[285px]", // 3rd Place (Right)
 ];
 
-/* Equal avatar sizes across 1st, 2nd, and 3rd place */
 const AVATAR_SIZES = [68, 68, 68];
 const BUILD_DELAY = [0.34, 0.06, 0.2];
 
-/** Points tick up once on mount */
 function CountUp({
   target,
   duration = 900,
@@ -120,7 +116,6 @@ function LaurelWreathIcon({ rank }: { rank: number }) {
         className={`w-14 h-9 sm:w-16 sm:h-10 ${colors}`}
         fill="currentColor"
       >
-        {/* Left Laurel Branch */}
         <g>
           <path d="M 24,44 C 18,36 17,20 28,8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
           <path d="M 25,12 C 20,10 16,13 18,18 C 22,17 24,14 25,12 Z" />
@@ -129,7 +124,6 @@ function LaurelWreathIcon({ rank }: { rank: number }) {
           <path d="M 23,39 C 17,41 16,46 20,47 C 22,45 23,42 23,39 Z" />
         </g>
 
-        {/* Right Laurel Branch */}
         <g>
           <path d="M 56,44 C 62,36 63,20 52,8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
           <path d="M 55,12 C 60,10 64,13 62,18 C 58,17 56,14 55,12 Z" />
@@ -139,7 +133,6 @@ function LaurelWreathIcon({ rank }: { rank: number }) {
         </g>
       </svg>
 
-      {/* Rank Number in Center */}
       <span className={`absolute text-base sm:text-lg font-black tracking-tight ${colors}`}>
         {rank}
       </span>
@@ -159,7 +152,6 @@ function PodiumColumn({
   const reduce = useReducedMotion();
   const isChampion = place === 0;
   const delay = BUILD_DELAY[place];
-
 
   const avatarRingStyles = {
     0: "ring-4 ring-amber-400 shadow-lg shadow-amber-400/40",
@@ -187,7 +179,6 @@ function PodiumColumn({
 
   const rankBadgeText = place === 0 ? "1ST" : place === 1 ? "2ND" : "3RD";
 
-  /* Content padding positioning rank badges cleanly inside pedestal fill */
   const contentPadding = {
     0: "pt-4 pb-3.5",
     1: "pt-9 sm:pt-11 pb-3",
@@ -210,9 +201,7 @@ function PodiumColumn({
         )} reputation points. Open profile.`}
         className="flex w-full min-w-0 flex-col items-center outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
       >
-        {/* ── TOP SECTION: Laurel, Avatar, Name & Location ── */}
         <div className="flex w-full min-w-0 flex-col items-center transition-transform duration-200 ease-out group-hover:-translate-y-1 pb-3 px-1 sm:px-2">
-          {/* Laurel Wreath Badge */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -221,7 +210,6 @@ function PodiumColumn({
             <LaurelWreathIcon rank={entry.rank} />
           </motion.div>
 
-          {/* Avatar with Ring */}
           <motion.div
             initial={{ opacity: 0, y: -8, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -245,7 +233,6 @@ function PodiumColumn({
               />
             </span>
 
-            {/* Rank crown badge pinned on bottom edge of champion avatar */}
             {isChampion && (
               <span className="absolute -bottom-1.5 left-1/2 flex h-5 sm:h-6 -translate-x-1/2 items-center gap-0.5 rounded-full bg-amber-400 px-2 text-[11px] sm:text-xs font-black text-amber-950 shadow-md border border-amber-300">
                 <Crown className="size-3 fill-amber-950 text-amber-950" aria-hidden />
@@ -254,7 +241,6 @@ function PodiumColumn({
             )}
           </motion.div>
 
-          {/* User Name & Location */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -282,9 +268,7 @@ function PodiumColumn({
           </motion.div>
         </div>
 
-        {/* ── BOTTOM CONNECTED RISER PEDESTAL CARD ── */}
         <div className={`relative w-full ${RISER_HEIGHTS[place]}`}>
-          {/* 2nd Place Single SVG Background (Top line at y=20 for a close, tight gap below profile) */}
           {place === 1 && (
             <svg
               viewBox="0 0 100 200"
@@ -305,7 +289,6 @@ function PodiumColumn({
             </svg>
           )}
 
-          {/* 3rd Place Single SVG Background (Top line at y=20 for a close, tight gap below profile) */}
           {place === 2 && (
             <svg
               viewBox="0 0 100 200"
@@ -326,7 +309,6 @@ function PodiumColumn({
             </svg>
           )}
 
-          {/* 1st Place Card Container (Soft desaturated eye-friendly gold gradient) */}
           {place === 0 && (
             <motion.div
               initial={{ scaleY: reduce ? 1 : 0 }}
@@ -335,7 +317,6 @@ function PodiumColumn({
               className="absolute inset-0 w-full h-full bg-gradient-to-b from-[#FBBF24] via-[#F59E0B] to-[#D97706] opacity-65 text-white rounded-t-[2.2rem] sm:rounded-t-[2.8rem] shadow-xl shadow-amber-500/15 z-10 overflow-hidden"
               style={{ transformOrigin: "bottom" }}
             >
-              {/* Gloss shine effect on champion card */}
               {!reduce && (
                 <motion.span
                   className="absolute inset-y-0 -left-1/3 w-1/3 bg-[linear-gradient(100deg,transparent,rgba(255,255,255,0.45),transparent)]"
@@ -352,14 +333,11 @@ function PodiumColumn({
             </motion.div>
           )}
 
-          {/* Foreground Card Content */}
           <div className={`relative z-20 flex h-full flex-col items-center justify-between ${contentPadding} px-1.5 sm:px-3 text-center`}>
-            {/* Top Rank Badge Pill */}
             <span className={badgePillStyles}>
               {rankBadgeText}
             </span>
 
-            {/* Central Points Display */}
             <div className="my-auto py-0.5">
               <p className="flex items-baseline justify-center gap-1">
                 <span className={pointsTextStyles}>
@@ -371,10 +349,8 @@ function PodiumColumn({
               </p>
             </div>
 
-            {/* Bottom Metrics Box (Soft white glass backdrop for all 3 pedestals with white text) */}
             <div className="w-[94%] sm:w-[90%] max-w-[220px] rounded-2xl py-1 sm:py-2 px-1 backdrop-blur-xs bg-white/20 shadow-2xs text-white">
               <div className="grid grid-cols-3 divide-x divide-white/25 text-center">
-                {/* Valid */}
                 <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
                   <span className="text-xs sm:text-base font-black leading-tight text-white drop-shadow-xs">
                     {formatNumber(entry.validReports ?? 0)}
@@ -384,7 +360,6 @@ function PodiumColumn({
                   </span>
                 </div>
 
-                {/* Critical */}
                 <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
                   <span className="text-xs sm:text-base font-black leading-tight text-white drop-shadow-xs">
                     {formatNumber(entry.criticalReports)}
@@ -394,7 +369,6 @@ function PodiumColumn({
                   </span>
                 </div>
 
-                {/* Recognitions all-time; findings inside a window */}
                 <div className="flex flex-col items-center justify-center px-0.5 sm:px-1">
                   <span className="text-xs sm:text-base font-black leading-tight text-white drop-shadow-xs">
                     {formatNumber(entry.recognitionCount)}
@@ -445,10 +419,8 @@ export default function LeaderboardPodium({
       </div>
 
       <div className="relative overflow-hidden rounded-3xl bg-card border border-border/50 p-2 pb-0 pt-5 sm:p-4 sm:pb-0 sm:pt-6 shadow-sm">
-        {/* Floating Confetti Accents */}
         <FloatingConfetti />
 
-        {/* Background watermark */}
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-3 hidden select-none text-center text-[5.5rem] font-black leading-none tracking-[-0.06em] text-foreground/4 sm:block"
@@ -456,7 +428,6 @@ export default function LeaderboardPodium({
           DevSolve
         </span>
 
-        {/* 3 Columns Flex expanding across max-w-6xl to fill outer container completely */}
         <div className="relative flex items-end justify-center w-full max-w-6xl mx-auto gap-0 pt-2">
           {COLUMNS.map((place) => (
             <PodiumColumn

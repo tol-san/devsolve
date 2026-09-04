@@ -160,7 +160,6 @@ function CompanyProfileContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6 pb-16"
     >
-      {/* ── Top Navigation Bar ──────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <Link
           href="/programs"
@@ -171,9 +170,7 @@ function CompanyProfileContent() {
         </Link>
       </div>
 
-      {/* ── 1. Hero Cover & Profile Banner ──────────────────────────── */}
       <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-        {/* Cover Banner */}
         <div className="relative h-36 sm:h-56 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
           {coverUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -191,10 +188,8 @@ function CompanyProfileContent() {
           )}
         </div>
 
-        {/* Profile Identity Bar */}
         <div className="px-5 pb-6 sm:px-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            {/* Left: Logo & Identity Info */}
             <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6 -mt-16 sm:-mt-20">
               <div className="relative size-28 sm:size-36 shrink-0 rounded-3xl border-4 border-card bg-card shadow-md overflow-hidden ring-2 ring-primary/20 flex items-center justify-center">
                 {logoUrl ? (
@@ -247,7 +242,6 @@ function CompanyProfileContent() {
               </div>
             </div>
 
-            {/* Right: Actions Hub */}
             <div className="flex flex-wrap items-center gap-2.5 pt-2 sm:pt-0">
               {websiteUrl && (
                 <a
@@ -286,9 +280,7 @@ function CompanyProfileContent() {
         </div>
       </div>
 
-      {/* ── 2. Performance & Activity Metrics Strip (Real API Data) ─── */}
       <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
-        {/* Metric 1: Active Programs */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-blue-500/30">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -308,7 +300,6 @@ function CompanyProfileContent() {
           </div>
         </div>
 
-        {/* Metric 2: Resolved Reports */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-emerald-500/30">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -328,7 +319,6 @@ function CompanyProfileContent() {
           </div>
         </div>
 
-        {/* Metric 3: Total Disbursed */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-emerald-500/30">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -348,7 +338,6 @@ function CompanyProfileContent() {
           </div>
         </div>
 
-        {/* Metric 4: Top Bounty Award */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:border-purple-500/30">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -369,7 +358,6 @@ function CompanyProfileContent() {
         </div>
       </div>
 
-      {/* ── 3. Tabbed Navigation Rail ───────────────────────────────── */}
       <div className="border-b border-border">
         <nav className="flex gap-4 sm:gap-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
@@ -417,14 +405,10 @@ function CompanyProfileContent() {
         </nav>
       </div>
 
-      {/* ── 4. Main Content Two-Column Grid ─────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:gap-8 items-start">
-        {/* Left Section (2 Columns) */}
         <div className="space-y-6 lg:col-span-2">
-          {/* TAB 1: PROGRAMS */}
           {activeTab === "programs" && (
             <div className="space-y-5">
-              {/* Filter and Search Controls */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-1 rounded-xl border border-border bg-muted/60 p-1">
                   <button
@@ -474,7 +458,6 @@ function CompanyProfileContent() {
                 </div>
               </div>
 
-              {/* Program Items */}
               {filteredPrograms.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center space-y-2">
                   <p className="text-sm font-bold text-foreground">
@@ -556,7 +539,6 @@ function CompanyProfileContent() {
             </div>
           )}
 
-          {/* TAB 2: ABOUT */}
           {activeTab === "about" && (
             <div className="space-y-5">
               <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-3">
@@ -574,7 +556,6 @@ function CompanyProfileContent() {
                 )}
               </div>
 
-              {/* Organization Metadata Highlights */}
               <div className="rounded-2xl border border-border bg-card p-6 shadow-2xs space-y-4">
                 <h3 className="text-base font-bold text-foreground">
                   Overview & Credentials
@@ -622,9 +603,7 @@ function CompanyProfileContent() {
           )}
         </div>
 
-        {/* Right Sidebar (1 Column) */}
         <div className="space-y-6">
-          {/* Quick Submit Card */}
           <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 shadow-2xs space-y-3">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
               <Zap className="size-4" />
@@ -642,7 +621,6 @@ function CompanyProfileContent() {
             </Link>
           </div>
 
-          {/* Company Details Meta List */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-2xs space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border pb-3">
               Company Overview
@@ -719,7 +697,6 @@ function CompanyProfileContent() {
             </div>
           </div>
 
-          {/* Security Verification Card */}
           {isVerified && (
             <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 shadow-2xs space-y-2.5">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">

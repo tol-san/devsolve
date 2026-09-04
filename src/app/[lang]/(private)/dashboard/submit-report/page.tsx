@@ -69,8 +69,6 @@ function SubmitReportContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 sm:space-y-8 w-full pb-12 font-sans"
     >
-      {/* Offered before the form, because resuming after typing would mean
-          throwing away whichever of the two the reporter did not pick. */}
       {draft.available ? (
         <ResumeDraftBanner
           draft={draft.available}
@@ -79,7 +77,6 @@ function SubmitReportContent() {
         />
       ) : null}
 
-      {/* Back Navigation & Page Header */}
       <div className="space-y-4">
         <nav aria-label="Back Navigation">
           <Link
@@ -105,12 +102,8 @@ function SubmitReportContent() {
         </div>
       </div>
 
-      {/* Main 2-Column Responsive Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
-        {/* Left Column (2/3 width - Step Content Area) */}
         <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-          {/* Above the steps, not inside one: a reporter who is not cleared
-              should read that before writing the report, not after. */}
           <ReportingAccessNotice
             access={reportingAccess}
             isLoading={isAccessLoading}
@@ -127,7 +120,6 @@ function SubmitReportContent() {
                 transition={{ duration: 0.25, ease: "easeInOut" }}
                 className="bg-card rounded-2xl border border-border p-4 sm:p-6 md:p-8 shadow-xs"
               >
-                {/* STEP 1: TARGET & CLASSIFICATION */}
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <SubmitReportStep1Basics
@@ -140,7 +132,6 @@ function SubmitReportContent() {
                       selectedProgram={selectedProgram}
                     />
 
-                    {/* Step 1 Footer Navigation */}
                     <div className="pt-4 border-t border-border flex justify-end">
                       <button
                         type="button"
@@ -153,7 +144,6 @@ function SubmitReportContent() {
                   </div>
                 )}
 
-                {/* STEP 2: POC WRITE-UP & SUBMIT */}
                 {currentStep === 2 && (
                   <SubmitReportStep2Poc
                     register={register}
@@ -190,30 +180,24 @@ function SubmitReportContent() {
           </form>
         </div>
 
-        {/* Right Column (1/3 width - Sticky Sidebar) */}
         <div className="space-y-6 lg:sticky lg:top-8">
-          {/* 1. Progress Step Tracker */}
           <SubmitReportProgressNav
             currentStep={currentStep}
             completedSteps={completedSteps}
             onSelectStep={goToStep}
           />
 
-          {/* 2. Program Details Card */}
           <SubmitReportProgramCard program={selectedProgram} />
 
-          {/* 3. Dynamic Severity Breakdown Card */}
           <SubmitReportSeverityCard
             severity={selectedSeverity as "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO"}
             program={selectedProgram}
           />
 
-          {/* 4. Quick Tips Card */}
           <SubmitReportQuickTips />
         </div>
       </div>
 
-      {/* Success Modal */}
       <ReportSuccessModal
         isOpen={successModalData.isOpen}
         reportId={successModalData.reportId}

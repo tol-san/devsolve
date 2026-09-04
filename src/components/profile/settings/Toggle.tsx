@@ -4,7 +4,6 @@ interface ToggleProps {
   label?: string;
 }
 
-// TODO: swap for components/ui/switch.tsx if/when you add a shadcn Switch primitive to the repo.
 export default function Toggle({ checked, onChange, label }: ToggleProps) {
   return (
     <button

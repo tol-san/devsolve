@@ -157,7 +157,6 @@ export function ReportConfirmationDetailDrawer({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Tab Navigation */}
         <div className="flex items-center gap-1 border-b border-border pb-2">
           <button
             onClick={() => setActiveTab("overview")}
@@ -201,10 +200,8 @@ export function ReportConfirmationDetailDrawer({
           </button>
         </div>
 
-        {/* Tab 1: Overview & Scope */}
         {activeTab === "overview" && (
           <div className="space-y-5 pt-2">
-            {/* Target Asset & Scores */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-3.5 rounded-2xl bg-muted/40 border border-border space-y-1">
                 <span className="text-xs font-semibold text-muted-foreground">Target Asset / Scope</span>
@@ -236,7 +233,6 @@ export function ReportConfirmationDetailDrawer({
               </div>
             </div>
 
-            {/* CWE */}
             {report.cwe && (
               <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-start gap-3">
                 <ShieldCheck className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
@@ -247,7 +243,6 @@ export function ReportConfirmationDetailDrawer({
               </div>
             )}
 
-            {/* Researcher Dispute Argument */}
             {report.disputeReason && (
               <div className="p-4 rounded-2xl border border-rose-500/30 bg-rose-500/5 space-y-2">
                 <div className="flex items-center justify-between">
@@ -267,7 +262,6 @@ export function ReportConfirmationDetailDrawer({
               </div>
             )}
 
-            {/* Description */}
             <div className="space-y-2">
               <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" />
@@ -278,7 +272,6 @@ export function ReportConfirmationDetailDrawer({
               </p>
             </div>
 
-            {/* Impact */}
             <div className="space-y-2">
               <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Flame className="w-4 h-4 text-rose-500" />
@@ -291,10 +284,8 @@ export function ReportConfirmationDetailDrawer({
           </div>
         )}
 
-        {/* Tab 2: PoC & Attachments */}
         {activeTab === "poc" && (
           <div className="space-y-5 pt-2">
-            {/* Steps to reproduce */}
             <div className="space-y-2">
               <h4 className="text-sm font-bold text-foreground">
                 Steps to Reproduce
@@ -312,7 +303,6 @@ export function ReportConfirmationDetailDrawer({
               )}
             </div>
 
-            {/* PoC Payload code block */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-foreground">
@@ -349,7 +339,6 @@ export function ReportConfirmationDetailDrawer({
               )}
             </div>
 
-            {/* Attachments */}
             <div className="space-y-2">
               <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Paperclip className="w-4 h-4 text-muted-foreground" />
@@ -379,10 +368,8 @@ export function ReportConfirmationDetailDrawer({
           </div>
         )}
 
-        {/* Tab 3: Triage Audit Action */}
         {activeTab === "triage" && (
           <div className="space-y-5 pt-2">
-            {/* Severity Override */}
             <div className="space-y-2">
               <Label className="text-sm font-bold text-foreground">
                 Confirmed Severity Tier Override
@@ -412,7 +399,6 @@ export function ReportConfirmationDetailDrawer({
               </div>
             </div>
 
-            {/* Reward Estimate Input */}
             <div className="space-y-2">
               <Label className="text-sm font-bold text-foreground">
                 Suggested Bounty Payout Range
@@ -428,7 +414,6 @@ export function ReportConfirmationDetailDrawer({
               </div>
             </div>
 
-            {/* Triager Notes */}
             <div className="space-y-2">
               <Label className="text-sm font-bold text-foreground">
                 Triager Internal Notes & Justification
@@ -442,7 +427,6 @@ export function ReportConfirmationDetailDrawer({
               />
             </div>
 
-            {/* Action Buttons */}
             <div className="pt-3 border-t border-border flex flex-col sm:flex-row gap-3 justify-end">
               <Button
                 variant="destructive"
@@ -474,7 +458,6 @@ export function ReportConfirmationDetailDrawer({
           </div>
         )}
 
-        {/* Tab 4: Activity History Timeline */}
         {activeTab === "timeline" && (
           <div className="space-y-4 pt-2">
             <h4 className="text-sm font-bold text-foreground">

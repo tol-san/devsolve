@@ -119,9 +119,6 @@ export function BookmarkHeader({
             placeholder="Search titles and descriptions..."
           />
 
-          {/* Sorting was behind a "Sort options" button that opened a panel
-              below the bar to hold this one control. One select, inline, is
-              the whole feature. */}
           <FilterControls>
             <FilterSelect
               icon={ArrowDownUp}

@@ -17,13 +17,6 @@ import {
   type CommentableType,
 } from "@/lib/validations/engagement";
 
-/**
- * GET/POST /api/comments — proxy for the backend's /api/v1/comments.
- *
- * Reading a thread is public, the way the content it hangs off is. Writing one
- * is attributed to the session, so it needs a token.
- */
-
 export async function GET(request: NextRequest) {
   const search = request.nextUrl.searchParams;
   const type = (search.get("commentableType") ?? "").toUpperCase() as

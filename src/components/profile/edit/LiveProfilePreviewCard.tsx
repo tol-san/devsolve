@@ -50,7 +50,6 @@ export default function LiveProfilePreviewCard({
 
   return (
     <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-md transition-all">
-      {/* Header Bar */}
       <div className="flex items-center justify-between border-b border-border/80 bg-muted/40 px-5 py-3">
         <div className="flex items-center gap-2">
           <span className="relative flex size-2.5">
@@ -73,7 +72,6 @@ export default function LiveProfilePreviewCard({
         </div>
       </div>
 
-      {/* Hero Banner Section */}
       <div className={cn("relative w-full overflow-hidden transition-all duration-300", isCompact ? "h-24 sm:h-28" : "h-32 sm:h-40")}>
         {values.coverUrl ? (
           <>
@@ -95,10 +93,8 @@ export default function LiveProfilePreviewCard({
         )}
       </div>
 
-      {/* Identity & Bio Info */}
       <div className="px-5 pb-6 sm:px-6">
         <div className="flex flex-col gap-4">
-          {/* Avatar and Primary Names */}
           <div className="flex items-start gap-3.5 sm:gap-4">
             <div className="relative -mt-10 sm:-mt-12 size-20 sm:size-24 shrink-0 rounded-full border-4 border-card bg-muted shadow-md overflow-hidden ring-2 ring-primary/20 z-10">
               {values.avatarUrl ? (
@@ -131,7 +127,6 @@ export default function LiveProfilePreviewCard({
             </div>
           </div>
 
-          {/* Quick Meta Badges */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
             {location ? (
               <span className="inline-flex items-center gap-1 rounded-lg border border-border/80 bg-muted/50 px-2.5 py-1 text-xs font-medium text-foreground">
@@ -160,7 +155,6 @@ export default function LiveProfilePreviewCard({
             </span>
           </div>
 
-          {/* Bio Preview */}
           {!isCompact && (
             <div className="rounded-xl border border-border/70 bg-muted/25 p-3.5">
               {bio ? (
@@ -175,7 +169,6 @@ export default function LiveProfilePreviewCard({
             </div>
           )}
 
-          {/* Social Links Row */}
           {hasSocial && (
             <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/70">
               {social?.github && (

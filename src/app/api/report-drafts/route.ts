@@ -8,12 +8,6 @@ import {
 } from "@/lib/api/proxy";
 import { enrichDraftsWithWeakness } from "@/lib/server/db";
 
-/**
- * `GET /api/report-drafts` — the caller's saved report drafts.
- *
- * Filtered by `programId` when the report form wants to know whether the
- * reporter already has something unfinished for the program they just opened.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

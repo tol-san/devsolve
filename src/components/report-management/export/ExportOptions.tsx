@@ -191,7 +191,6 @@ export function ExportOptions() {
         </div>
       </section>
 
-      {/* Configuration Modal */}
       <AnimatePresence>
         {selectedTemplate && (
           <motion.div
@@ -209,7 +208,6 @@ export function ExportOptions() {
               className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
               <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50">
                 <div className="flex items-center gap-3">
                   <div className="flex size-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -231,7 +229,6 @@ export function ExportOptions() {
                 </Button>
               </div>
 
-              {/* Body Content */}
               <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-5">
                 <div className="space-y-4 md:col-span-3">
                   <div className="grid grid-cols-2 gap-3">
@@ -313,7 +310,6 @@ export function ExportOptions() {
                   </div>
                 </div>
 
-                {/* Sidebar Summary */}
                 <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 md:col-span-2">
                   <div className="space-y-3">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">

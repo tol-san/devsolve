@@ -1,10 +1,5 @@
 import * as z from "zod";
 
-// ============================================================================
-// UI Form Validation Schemas & Types
-// ============================================================================
-
-/** User Registration Form Schema (Client UI) */
 export const userRegisterSchema = z
   .object({
     username: z
@@ -35,7 +30,6 @@ export const userRegisterSchema = z
 
 export type UserRegisterFormValues = z.infer<typeof userRegisterSchema>;
 
-/** Reusable validation for telephone numbers matching backend normalization rules. */
 export const phoneValidation = z
   .string()
   .min(1, "Phone number is required")
@@ -56,10 +50,8 @@ export const phoneValidation = z
     },
   );
 
-/** Company Registration Form Schema (Client UI) */
 export const companyRegisterSchema = z
   .object({
-    // Step 1 fields
     fullName: z.string().min(2, "Full name is required"),
     jobTitle: z.string().min(1, "Please select a job title"),
     phone: phoneValidation,
@@ -70,7 +62,6 @@ export const companyRegisterSchema = z
       message: "You must agree to the Terms of Service",
     }),
 
-    // Step 2 fields
     companyName: z.string().min(2, "Company name is required"),
     companyWebsite: z.string().url("Please enter a valid website URL (e.g. https://readme.org)"),
     industry: z.string().min(1, "Please select an industry"),
@@ -88,11 +79,6 @@ export const companyRegisterSchema = z
 
 export type CompanyRegisterFormValues = z.infer<typeof companyRegisterSchema>;
 
-// ============================================================================
-// Server API Request Payload Validation Schemas & Types
-// ============================================================================
-
-/** User registration request schema (POST /api/v1/auth/register). */
 export const registerRequestSchema = z
   .object({
     username: z
@@ -134,7 +120,6 @@ export const registerRequestSchema = z
 
 export type RegisterRequestBody = z.infer<typeof registerRequestSchema>;
 
-/** User registration response shape. */
 export interface RegisterResponseBody {
   userId: string;
   username: string;
@@ -145,7 +130,6 @@ export interface RegisterResponseBody {
   accountType: "USER" | "COMPANY" | "ADMIN";
 }
 
-/** Company registration request schema (POST /api/v1/organizations/register). */
 export const registerCompanyRequestSchema = z
   .object({
     fullName: z.string().min(2, "Full name must be at least 2 characters"),

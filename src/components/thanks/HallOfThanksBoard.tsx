@@ -125,12 +125,10 @@ export function HallOfThanksBoard({
     );
   }
 
-  // Aggregate stats across current page
   const totalRecognitionsOnPage = entries.reduce((acc, curr) => acc + (curr.recognitions || 0), 0);
 
   return (
     <div className={cn("space-y-6 w-full", className)}>
-      {/* 1. Header & Summary Banner */}
       <BoardHeader
         title={title}
         subtitle={
@@ -143,7 +141,6 @@ export function HallOfThanksBoard({
         totalRecognitions={totalRecognitionsOnPage}
       />
 
-      {/* 2. Top Summary Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <div className="rounded-2xl border border-border bg-card p-4 shadow-2xs flex items-center gap-3.5">
           <div className="flex size-11 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/20 shrink-0">
@@ -189,7 +186,6 @@ export function HallOfThanksBoard({
         </div>
       </div>
 
-      {/* 3. Ranked List View */}
       <Card className="rounded-2xl border border-border bg-card shadow-2xs overflow-hidden relative">
         {isFetching && (
           <div className="absolute inset-0 bg-card/40 backdrop-blur-[1px] z-10 flex items-center justify-center transition-opacity">
@@ -197,7 +193,6 @@ export function HallOfThanksBoard({
           </div>
         )}
 
-        {/* Desktop Table Header */}
         <div className="hidden md:grid grid-cols-[80px_1fr_160px_220px_140px] items-center gap-4 px-6 py-3.5 border-b border-border bg-muted/30 text-xs font-bold uppercase tracking-wider text-muted-foreground">
           <span>Rank</span>
           <span>Researcher</span>
@@ -206,7 +201,6 @@ export function HallOfThanksBoard({
           <span className="text-right">Last Thanked</span>
         </div>
 
-        {/* Ranked Items */}
         <div className="divide-y divide-border">
           {entries.map((entry) => (
             <ThanksRowItem key={entry.id || `${entry.rank}-${entry.username}`} entry={entry} />
@@ -214,7 +208,6 @@ export function HallOfThanksBoard({
         </div>
       </Card>
 
-      {/* 4. Pagination Controls */}
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
           <p className="text-xs sm:text-sm text-muted-foreground">
@@ -321,18 +314,15 @@ function ThanksRowItem({ entry }: { entry: ThanksEntry }) {
       transition={{ duration: 0.2 }}
       className="flex flex-col md:grid md:grid-cols-[80px_1fr_160px_220px_140px] md:items-center gap-3 md:gap-4 p-4 sm:p-5 hover:bg-muted/30 transition-colors"
     >
-      {/* 1. Rank */}
       <div className="flex items-center justify-between md:justify-start">
         <ThanksRankBadge rank={entry.rank} />
 
-        {/* Mobile-only recognitions headline badge */}
         <div className="md:hidden flex items-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/5 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-400">
           <Award className="size-3.5" />
           <span>{entry.recognitions} {entry.recognitions === 1 ? "recognition" : "recognitions"}</span>
         </div>
       </div>
 
-      {/* 2. Researcher Profile & Country */}
       <div className="flex items-center gap-3 min-w-0">
         <Link href={profileHref} className="shrink-0 group">
           {entry.avatarUrl ? (
@@ -358,9 +348,6 @@ function ThanksRowItem({ entry }: { entry: ThanksEntry }) {
               {displayName}
             </Link>
 
-            {/* An image flag, not the emoji this used to render: Windows has
-                no glyphs for regional-indicator pairs, so it showed as the
-                bare letters "KH" for most of our users. */}
             <CountryDisplay value={entry.country} flagOnly className="shrink-0" />
           </div>
 
@@ -371,7 +358,6 @@ function ThanksRowItem({ entry }: { entry: ThanksEntry }) {
             @{entry.username}
           </Link>
 
-          {/* Program summary chips */}
           {Array.isArray(entry.programs) && entry.programs.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
               {entry.programs.map((prog) => {
@@ -405,7 +391,6 @@ function ThanksRowItem({ entry }: { entry: ThanksEntry }) {
         </div>
       </div>
 
-      {/* 3. Recognitions Count (Desktop) */}
       <div className="hidden md:flex flex-col items-center justify-center">
         <div className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1 shadow-2xs">
           <Award className="size-4 text-amber-500 shrink-0" />
@@ -418,12 +403,10 @@ function ThanksRowItem({ entry }: { entry: ThanksEntry }) {
         </div>
       </div>
 
-      {/* 4. Severity Breakdown */}
       <div className="min-w-0">
         <ThanksSeverityChips bySeverity={entry.bySeverity} />
       </div>
 
-      {/* 5. Last Thanked At */}
       <div className="flex items-center justify-between md:justify-end gap-1.5 text-xs text-muted-foreground pt-1 md:pt-0 border-t border-border/40 md:border-t-0">
         <span className="md:hidden text-[11px] uppercase tracking-wider font-semibold">
           Last Thanked

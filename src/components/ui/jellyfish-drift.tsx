@@ -12,17 +12,12 @@ const SANS = "'Inter', 'Helvetica Neue', Arial, system-ui, sans-serif";
 const DISPLAY = "'Inter', 'Helvetica Neue', 'Arial Black', sans-serif";
 const INK = "#1a1a22";
 
-/* Inline film-grain (feTurbulence) overlay */
 const GRAIN =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
 
-/* Big background phrases */
 const PHRASES = ["SOLUTIONS", "BOUNTIES", "CHALLENGES", "COMMUNITY", "EXPERTISE"];
 
-/* Technical labels stacked down each side edge */
 const TICK_LABELS = ["CODE", "BOUNTY", "SOLUTIONS", "COMMUNITY"];
-
-/* ═══════════════════════ Procedural 3D Jellyfish ═══════════════════════ */
 
 function useTime() {
   const t = useRef({ value: 0 });
@@ -384,8 +379,6 @@ function SideRuler({ side }: { side: "left" | "right" }) {
   );
 }
 
-/* ════════════════════ Main Jellyfish Drift Component ════════════════════ */
-
 export default function JellyfishDrift() {
   return (
     <section
@@ -402,7 +395,6 @@ export default function JellyfishDrift() {
     >
       <style>{JELLY_CSS}</style>
 
-      {/* ── 3D Lightswind Animated Wave ──────────────────────────────────── */}
       <AnimatedWave
         colorFrom="#4f46e5"
         colorTo="#8b5cf6"
@@ -416,7 +408,6 @@ export default function JellyfishDrift() {
         opacity={0.35}
       />
 
-      {/* ── Top-Left Header & Relocated Navigation Buttons ────────────────── */}
       <header
         style={{
           position: "absolute",
@@ -430,7 +421,6 @@ export default function JellyfishDrift() {
           maxWidth: "52vw",
         }}
       >
-        {/* Enlarged Prominent Subtitle / Header */}
         <h1
           style={{
             fontFamily: DISPLAY,
@@ -446,7 +436,6 @@ export default function JellyfishDrift() {
           DEVSOLVE - SOFTWARE DEVELOPMENT & BOUNTIES
         </h1>
 
-        {/* Hero Section Description */}
         <p
           style={{
             fontFamily: SANS,
@@ -461,7 +450,6 @@ export default function JellyfishDrift() {
           DevSolve is the best place to find technical solutions for your company, engage in reward-based bounty programs, tackle technical challenges, join community discussions, and showcase your expertise.
         </p>
 
-        {/* Relocated Navigation Buttons directly underneath header */}
         <div
           style={{
             display: "flex",
@@ -488,20 +476,16 @@ export default function JellyfishDrift() {
         </div>
       </header>
 
-      {/* ── Middle-Center Layout: Looping Words Next to 3D Jellyfish ── */}
       <div className="absolute inset-0 z-20 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 px-6 md:px-16">
-        {/* Left: Looping Words aligned middle-center */}
         <div className="flex items-center justify-center md:justify-end w-full md:w-1/2">
           <LoopingWords words={PHRASES} className="w-full max-w-xl" />
         </div>
 
-        {/* Right: 3D Jellyfish Canvas */}
         <div className="relative w-full md:w-1/2 h-[55vh] md:h-[72vh] flex items-center justify-center md:justify-start pointer-events-none">
           <Jellyfish3D loop={25} />
         </div>
       </div>
 
-      {/* ── Floating ambient bubbles ─────────────────────────────────────── */}
       {[
         { left: "18%", size: "0.9vh", delay: "0s", dur: "13s" },
         { left: "68%", size: "1.4vh", delay: "4s", dur: "16s" },
@@ -527,11 +511,9 @@ export default function JellyfishDrift() {
         />
       ))}
 
-      {/* ── Side rulers ────────────────────────────────────────────────────── */}
       <SideRuler side="left" />
       <SideRuler side="right" />
 
-      {/* ── Rotating bottom caption ────────────────────────────────────────── */}
       <div
         style={{
           position: "absolute",
@@ -571,7 +553,6 @@ export default function JellyfishDrift() {
         ))}
       </div>
 
-      {/* ── Corner control accents ─────────────────────────────────────────── */}
       <div
         aria-hidden
         style={{
@@ -591,7 +572,6 @@ export default function JellyfishDrift() {
           letterSpacing: "0.15em",
         }}
       >
-        {/* <span style={{ width: "1vh", height: "1vh", borderRadius: "50%", background: "#bdb3e6" }} /> */}
       </div>
       <div
         aria-hidden
@@ -613,7 +593,6 @@ export default function JellyfishDrift() {
         &#9654;
       </div>
 
-      {/* ── Micro-graphics ─────────────────────────────────────────────────── */}
       {[
         { left: "12%", top: "35%", size: 6, dur: "17s", delay: "0s" },
         { left: "86%", top: "62%", size: 5, dur: "21s", delay: "-6s" },
@@ -635,7 +614,6 @@ export default function JellyfishDrift() {
         />
       ))}
 
-      {/* ── Film grain overlay ────────────────────────────────────────────── */}
       <div
         aria-hidden
         style={{
@@ -653,7 +631,6 @@ export default function JellyfishDrift() {
   );
 }
 
-/* Keyframes for updated animations */
 const JELLY_CSS = `
 @keyframes jelly-mark{
   0%,100%{transform:translate(0,0)}

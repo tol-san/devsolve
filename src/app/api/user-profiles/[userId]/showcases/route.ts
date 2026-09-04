@@ -9,12 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/user-profiles/{userId}/showcases — the showcases on someone's
- * public portfolio. Public, like the profile it hangs off, so no session is
- * required; one is forwarded when present.
- */
-
 type Context = { params: Promise<{ userId: string }> };
 
 export async function GET(request: NextRequest, context: Context) {

@@ -24,7 +24,6 @@ export function SubmitReportDetailsSection({
         </h2>
       </div>
 
-      {/* Title */}
       <div className="space-y-2">
         <Label htmlFor="title" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Report Title <span className="text-red-500">*</span>
@@ -40,7 +39,6 @@ export function SubmitReportDetailsSection({
         )}
       </div>
 
-      {/* PoC Description with Template Toolbar */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <Label htmlFor="summaryPoC" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -63,7 +61,6 @@ export function SubmitReportDetailsSection({
         )}
       </div>
 
-      {/* Optional Impact & Remediation */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
         <div className="space-y-2">
           <Label htmlFor="impact" className="text-sm font-semibold text-slate-900 dark:text-slate-100">

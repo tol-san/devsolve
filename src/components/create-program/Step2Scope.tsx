@@ -40,7 +40,6 @@ export function Step2Scope({
         Scope Definition
       </h2>
 
-      {/* IN-SCOPE TARGETS */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-bold">
@@ -139,7 +138,6 @@ export function Step2Scope({
 
       <hr className="border-border" />
 
-      {/* OUT-OF-SCOPE TARGETS */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs font-bold">

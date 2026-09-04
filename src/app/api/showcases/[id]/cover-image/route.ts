@@ -11,16 +11,6 @@ import {
 } from "@/lib/api/proxy";
 import { validateImageFile } from "@/lib/validations/showcase";
 
-/**
- * PUT/DELETE /api/showcases/{id}/cover-image — proxy for the backend's
- * /api/v1/showcases/{id}/cover-image.
- *
- * The upstream takes `multipart/form-data` with a single `file` part and
- * answers with the whole showcase, cover URL included. Because the route is
- * scoped to an existing showcase, the create form holds the chosen file until
- * the showcase itself has been created.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 const badId = () => badRequest("Showcase id must be a UUID");

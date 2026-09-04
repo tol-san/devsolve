@@ -12,11 +12,6 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        // `rounded-2xl` + `shadow-xs` per design.md: 16px surface corners, and
-        // shadow-as-border — the ring is the edge, the shadow only lifts it off
-        // the canvas. The old `rounded-4xl`/`shadow-md` defaults were already
-        // being overridden at most call sites, which is why the few screens
-        // that took them read heavier than the rest of the app.
         "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl bg-card py-(--card-spacing) text-sm text-card-foreground shadow-xs ring-1 ring-foreground/5 [--card-spacing:--spacing(6)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] dark:ring-foreground/10 *:[img:first-child]:rounded-t-2xl *:[img:last-child]:rounded-b-2xl",
         className
       )}

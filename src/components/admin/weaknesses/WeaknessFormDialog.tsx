@@ -41,8 +41,6 @@ export function WeaknessFormDialog({
   open,
   onOpenChange,
   weakness,
-  /* Bumped by the opener so each open remounts the body with fresh defaults,
-     which keeps the reset out of an effect. */
   session,
 }: {
   open: boolean;
@@ -86,15 +84,11 @@ function WeaknessForm({
       name: weakness?.name ?? "",
       cweId: weakness?.cweId ?? "",
       description: weakness?.description ?? "",
-      /* A new entry is usable straight away; that is the only reason to add
-         one. */
       isActive: weakness?.isActive ?? true,
     },
   });
 
   const onSubmit = async (values: WeaknessCreateValues) => {
-    /* Empty strings are how the form says "not set". Sent as-is they would
-       overwrite a stored value with blank, so they are dropped. */
     const body = {
       name: values.name,
       cweId: values.cweId?.trim() ? values.cweId.trim().toUpperCase() : undefined,

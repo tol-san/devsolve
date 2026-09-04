@@ -147,20 +147,10 @@ function getErrorMessage(error: unknown): string {
     apiError.data?.details ??
     "";
 
-  /**
-   * A team invitation only reaches someone who already has a DevSolve
-   * account — the upstream links an existing user rather than creating one,
-   * and answers 404 when there is nobody behind the address. That is the most
-   * common way this fails and the one the inviter can actually act on, so it
-   * is spelled out rather than folded into a generic failure.
-   */
   if (apiError.status === 404) {
     return "No DevSolve account uses that email address. They need to register first, then you can invite them.";
   }
 
-  /* Three different situations upstream — already a member, an invitation
-     still outstanding, or an organization not approved yet — and the upstream
-     is the only one that knows which. Its sentence is kept whole. */
   if (apiError.status === 409) {
     return (
       rawMessage.trim() ||
@@ -191,10 +181,6 @@ export function InviteMemberForm() {
     { isLoading },
   ] = useInviteOrganizationMemberMutation();
 
-  /* What the 201 came back with. The token is the whole reason this screen
-     stops at a confirmation instead of navigating away: it exists nowhere else
-     the inviter can reach, and an email that never arrives would otherwise
-     leave the invitation unreachable by anyone. */
   const [sent, setSent] = useState<{
     email: string;
     token?: string;
@@ -373,7 +359,6 @@ export function InviteMemberForm() {
 
           <CardContent className="px-6 py-7 sm:px-7">
             <FieldGroup className="gap-6">
-              {/* Email */}
               <Field
                 data-invalid={Boolean(errors.email)}
               >
@@ -422,7 +407,6 @@ export function InviteMemberForm() {
         </Card>
 
         <div className="order-2 space-y-4 xl:sticky xl:top-24 xl:col-start-2 xl:row-span-2">
-          {/* Role selection */}
           <Card className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10">
             <CardHeader className="border-b border-border px-5 py-5">
               <CardTitle className="text-lg font-semibold text-foreground">
@@ -467,7 +451,6 @@ export function InviteMemberForm() {
               </CardContent>
             </Card>
 
-          {/* Summary */}
           <Card className="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10">
             <CardHeader className="border-b border-border px-5 py-5">
               <div className="flex items-center gap-3">
@@ -1038,16 +1021,6 @@ function Step({
   );
 }
 
-/**
- * What happens after a successful invite.
- *
- * The screen used to bounce straight to team management on a 201, which threw
- * away the one copy of the invitation token anybody would ever see. The email
- * the backend sends is not something this app can confirm arrived — it depends
- * on the recipient's own `INVITATION` email preference and on mail config well
- * outside it — so the link is put in the inviter's hands as well. Belt and
- * braces, and it costs one screen.
- */
 function InvitationSent({
   sent,
   onInviteAnother,
@@ -1058,8 +1031,6 @@ function InvitationSent({
   const lp = useLocalePath();
   const [copied, setCopied] = useState(false);
 
-  /* Built from `NEXT_PUBLIC_SITE_URL`, the same origin canonical URLs use, so
-     it is a link that works from any machine — not the inviter's `localhost`. */
   const link = sent.token
     ? absoluteUrl(lp(`/invitations/${sent.token}`))
     : null;

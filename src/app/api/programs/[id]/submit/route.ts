@@ -11,7 +11,6 @@ import {
 
 type Context = { params: Promise<{ id: string }> };
 
-/** Send a company-owned draft to the admin review queue. */
 export async function PATCH(request: NextRequest, context: Context) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

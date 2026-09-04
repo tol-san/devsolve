@@ -12,14 +12,6 @@ import {
 } from "@/lib/api/proxy";
 import { showcaseReviewStatusSchema } from "@/lib/validations/showcase";
 
-/**
- * PATCH /api/admin/showcases/{id}/review-status — the review decision.
- *
- * `rejectionReason` is what the author is shown, so a rejection without one
- * leaves them with nothing to act on. The upstream does not insist, so this
- * does.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, context: Context) {

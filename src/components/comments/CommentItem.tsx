@@ -36,7 +36,6 @@ import { cn } from "@/lib/utils";
 import { CommentComposer } from "./CommentComposer";
 import { ReportCommentDialog } from "./ReportCommentDialog";
 
-/** Initials for the avatar fallback. */
 function initialsOf(name: string) {
   return (
     name
@@ -49,11 +48,6 @@ function initialsOf(name: string) {
   );
 }
 
-/**
- * "4m ago" up to a week, then a date. The backend sends a local date-time with
- * no zone, so a bare `new Date()` would read it as local and land hours off —
- * the `Z` is appended when it is missing.
- */
 export function timeAgo(value?: string): string {
   if (!value) return "";
   const date = new Date(/[Zz]|[+-]\d{2}:\d{2}$/.test(value) ? value : `${value}Z`);
@@ -86,20 +80,12 @@ export function CommentItem({
 }: {
   comment: CommentResponse;
   isReply?: boolean;
-  /**
-   * Author of the comment this one answers, when that is not the one starting
-   * the thread. Replies are drawn in a single column rather than stepped in
-   * per level, so without this line a reply to a reply would look like it was
-   * addressed to the thread's opener.
-   */
   replyingTo?: string;
-  /** Whether anyone is signed in — reporting needs an account. */
   isSignedIn?: boolean;
   onReply?: (content: string) => Promise<void>;
   onEdit: (content: string) => Promise<void>;
   onDelete: () => Promise<void>;
   isBusy?: boolean;
-  /** Answers to this comment. */
   children?: React.ReactNode;
 }) {
   const [mode, setMode] = useState<"idle" | "replying" | "editing">("idle");
@@ -111,9 +97,6 @@ export function CommentItem({
   const { handleLogin } = useKeycloakLogin();
   const lp = useLocalePath();
 
-  /* Both the avatar and the name open the commenter's public profile, which
-     takes a user id rather than a name. A comment whose author id did not
-     survive the API still renders — just not as a link. */
   const profileHref = comment.authorId
     ? lp(`/profile/${comment.authorId}`)
     : null;
@@ -158,9 +141,6 @@ export function CommentItem({
     setMode("replying");
   };
 
-  /* The menu holds what you can do *to* a comment: revise your own, or report
-     someone else's. Replying is not one of those — it is the ordinary thing a
-     reader does, so it stays a button under the comment. */
   const isOwn = comment.canEdit || comment.canDelete;
   const canReport = isSignedIn === true && !isOwn;
   const hasActions = Boolean(comment.canEdit || comment.canDelete || canReport);
@@ -180,8 +160,6 @@ export function CommentItem({
     }
   };
 
-  /* A withdrawn comment keeps its slot so the replies under it still have a
-     parent to hang from, but nothing of what it said survives. */
   if (comment.removed) {
     return (
       <div
@@ -223,8 +201,6 @@ export function CommentItem({
       )}
 
       <div className="min-w-0 flex-1">
-        {/* The comment body sits in its own bubble so replies read as a
-            conversation rather than a wall of paragraphs. */}
         <div className="group/comment rounded-2xl bg-muted/50 px-4 py-3">
           <div className="mb-1 flex items-start justify-between gap-2">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -262,8 +238,6 @@ export function CommentItem({
               )}
             </div>
 
-            {/* Edit and Delete on your own comment; Report on anyone else's.
-                Never both — the two sets are mutually exclusive. */}
             {hasActions && mode !== "editing" && (
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -342,9 +316,6 @@ export function CommentItem({
           )}
         </div>
 
-
-        {/* Directly under the comment it answers, where a reader looks for it
-            and one click away rather than two. */}
         {onReply && mode === "idle" && (
           <button
             type="button"
@@ -414,7 +385,6 @@ export function CommentItem({
   );
 }
 
-/** "Show 4 more replies" under a thread whose page cut them off. */
 export function ShowMoreReplies({
   remaining,
   isLoading,

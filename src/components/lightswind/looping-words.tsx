@@ -25,7 +25,6 @@ export function LoopingWords({ words, className }: LoopingWordsProps) {
     <div className={cn("flex items-center justify-center", className)}>
       <div className="relative inline-flex items-center justify-center px-8 py-4 text-[7vw] sm:text-[5vw] md:text-[3.8vw] leading-none font-black uppercase whitespace-nowrap">
         
-        {/* Animated Word - Perfectly Centered */}
         <AnimatePresence mode="wait">
           <motion.span
             key={currentWord}
@@ -39,20 +38,14 @@ export function LoopingWords({ words, className }: LoopingWordsProps) {
           </motion.span>
         </AnimatePresence>
 
-        {/* Tech Accent Corner Brackets */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Top Left */}
           <div className="absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 border-indigo-600" />
-          {/* Top Right */}
           <div className="absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 border-indigo-600" />
-          {/* Bottom Left */}
           <div className="absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 border-indigo-600" />
-          {/* Bottom Right */}
           <div className="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-indigo-600" />
         </div>
       </div>
     </div>
   );
 }
-
 

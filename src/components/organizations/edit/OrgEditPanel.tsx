@@ -39,19 +39,6 @@ import {
 import { parseApiError, type ParsedApiError } from "@/lib/api/errors";
 import { cn } from "@/lib/utils";
 
-/**
- * Editing the organization's details, as a page rather than the dialog this
- * used to be — the same shape as the profile editor, and for the same reason:
- * nine fields and a description box do not belong in a modal you can lose by
- * clicking beside it.
- *
- * Country is the shared picker, storing the ISO code exactly as the register
- * flow does. What it does not do is auto-detect: the hook the register form
- * uses fills the field from the visitor's IP, which on an edit screen would
- * quietly replace a saved country with wherever the person happens to be
- * sitting.
- */
-
 const BACK_HREF = "/dashboard/organizations";
 
 const INDUSTRIES: { value: OrganizationIndustry; label: string }[] = [
@@ -175,16 +162,8 @@ export default function OrgEditPanel({
   const patch = (next: Partial<FormState>) =>
     setForm((prev) => ({ ...prev, ...next }));
 
-  /* Field names go over the wire unchanged, so a server-side complaint about
-     `websiteUrl` lands on the websiteUrl input without a mapping table. */
   const fieldError = (key: keyof FormState) => saveError?.fieldErrors[key];
 
-  /**
-   * Uploading writes the logo straight through its own endpoint, so the form's
-   * copy of `logoUrl` has to be brought along. Leaving it on the value the
-   * page loaded with would mean the next save PATCHes the old URL back and
-   * quietly undoes the upload.
-   */
   const handleLogoPick = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -310,7 +289,6 @@ export default function OrgEditPanel({
         )}
       </AnimatePresence>
 
-      {/* Visual Canvas: Cover Banner & Actions */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
         <div className="relative h-44 sm:h-60 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
           {form.coverUrl ? (
@@ -334,7 +312,6 @@ export default function OrgEditPanel({
             </div>
           )}
 
-          {/* Floating Actions on Cover */}
           <div className="absolute top-3 right-3 flex items-center gap-2">
             <label
               htmlFor="organization-cover-upload"
@@ -490,9 +467,6 @@ export default function OrgEditPanel({
               htmlFor="org-country"
               error={fieldError("country")}
             >
-              {/* Stores the ISO code. The picker still renders a legacy name
-                  saved here before that, so opening this page on an old
-                  organization does not read as an empty field. */}
               <CountrySelect
                 id="org-country"
                 value={form.country}
@@ -523,9 +497,6 @@ export default function OrgEditPanel({
           </Field>
         </div>
 
-        {/* Logo — the one place it can be changed, so the upload, the removal
-            and the URL field sit together rather than across two screens.
-            Upload and remove take effect on their own, without Save. */}
         <div className="space-y-3 md:sticky md:top-6">
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-6 shadow-xs">
             <h2 className="w-full text-base font-bold text-foreground">

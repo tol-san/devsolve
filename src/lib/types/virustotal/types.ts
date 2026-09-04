@@ -1,6 +1,3 @@
-/**
- * VirusTotal API models mirroring the DevSolve backend contract (`/api/v1/virus-total/*`).
- */
 
 export type VirusTotalStatus = "queued" | "in-progress" | "completed";
 
@@ -19,7 +16,6 @@ export interface VirusTotalStats {
   typeUnsupported?: number;
 }
 
-/** Success response for file submit, URL submit, and analysis poll. */
 export interface VirusTotalAnalysisResponse {
   analysisId: string;
   status: VirusTotalStatus;
@@ -33,7 +29,6 @@ export interface VirusTotalErrorDetails {
   stats?: VirusTotalStats;
 }
 
-/** Error response envelope across all failure scenarios. */
 export interface VirusTotalErrorResponse {
   message: string;
   code: number;

@@ -18,8 +18,6 @@ import type {
 import { useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
-/* `value` is the API vocabulary the query is built from; `key` is the
-   catalogue branch the visible label comes from. */
 const CATEGORIES: { value: DiscussionCategory; key: string }[] = [
   { value: "All", key: "all" },
   { value: "Problems", key: "problems" },

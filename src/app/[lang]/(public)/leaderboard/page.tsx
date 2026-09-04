@@ -6,8 +6,6 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
 
-/* The site name comes from the root layout's title template, so it is not
-   repeated here — spelling it out produced `Leaderboard · DevSolve · DevSolve`. */
 export async function generateMetadata({
   params,
 }: {
@@ -37,9 +35,6 @@ export default async function LeaderboardPage({
 
   return (
     <div className="min-h-dvh text-foreground selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-500/30 dark:selection:text-blue-50">
-      {/* CollectionPage schema: marks this as a ranked list of community
-          members so search engines can understand its purpose and link from
-          it to the individual profile pages linked within. */}
       <JsonLd
         data={collectionSchema({
           name: copy.schemaName,
@@ -48,8 +43,6 @@ export default async function LeaderboardPage({
         })}
       />
 
-      {/* Header band, not a fold — people come here for the ranking, so the
-          podium should already be on screen. */}
       <section className="relative overflow-hidden border-b border-border">
         <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-8 lg:px-8">
           <div className="min-w-0">

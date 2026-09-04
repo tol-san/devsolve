@@ -14,16 +14,6 @@ import {
   useGetSolutionByIdQuery,
 } from "@/lib/redux/services/solutionsApi";
 
-/**
- * Revising an answer, on the create form in edit mode.
- *
- * Only its author may edit one, and there is no `canEdit` flag on a solution
- * the way there is on a problem, so authorship is compared here. The proxy
- * still refuses anyone else — this only saves the wasted typing.
- *
- * Saving sends the answer back through review, which the form says plainly on
- * submit: an edited answer is not the one that was approved.
- */
 export function SolutionEditScreen({ solutionId }: { solutionId: string }) {
   const ink = useInk();
 
@@ -34,16 +24,11 @@ export function SolutionEditScreen({ solutionId }: { solutionId: string }) {
     error,
   } = useGetSolutionByIdQuery(solutionId, { skip: !solutionId });
 
-  /* The problem this answers, for the breadcrumb and the form's right-hand
-     column. Skipped until the solution names it. */
   const { data: problem } = useGetProblemByIdQuery(solution?.problemId ?? "", {
     skip: !solution?.problemId,
   });
 
   const { data: me } = useGetMyProfileQuery();
-  /* A match from `/solutions/mine` is definitive ownership. The author
-     comparison remains the fallback for a public-detail response. Undefined
-     while the profile loads is not the same as "not yours". */
   const isMine = solution?.viewerOwnsSolution
     ? true
     : me?.id
@@ -145,8 +130,6 @@ export function SolutionEditScreen({ solutionId }: { solutionId: string }) {
                 href={backHref}
               />
             ) : (
-              /* Covers the routes into this page that skip the gated link — a
-                 pasted URL, a bookmark, back/forward. */
               <RequireAuth
                 title="Sign in to edit this solution"
                 description="Editing needs the account that posted it, so changes stay attached to the right author."

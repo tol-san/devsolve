@@ -27,8 +27,6 @@ import {
 
 type Tab = ResearcherAccessStatus | "ALL";
 
-/* Pending first: it is the only tab with work in it, and the queue is what
-   this screen exists for. */
 const TABS: Tab[] = [
   "PENDING",
   ...RESEARCHER_ACCESS_STATUSES.filter((status) => status !== "PENDING"),
@@ -37,13 +35,6 @@ const TABS: Tab[] = [
 
 const TAB_LABEL: Record<Tab, string> = { ...STATUS_LABEL, ALL: "All" };
 
-/**
- * Who may report to the programs this organization runs.
- *
- * Approval is granted once per company and covers every program it runs —
- * there is no per-program list to keep, which is why this screen sits beside
- * team management rather than inside a program.
- */
 export function ResearcherAccessView() {
   const lp = useLocalePath();
 
@@ -52,9 +43,6 @@ export function ResearcherAccessView() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [session, setSession] = useState(0);
 
-  /* The organization id comes from the membership: `/organizations/me` is an
-     owner endpoint, and a manager holding MANAGE_RESEARCHERS works this queue
-     without owning the company. */
   const { membership, isLoading: isOrgLoading } = useCompanyAccess();
   const organizationId = membership?.organizationId ?? "";
 
@@ -64,8 +52,6 @@ export function ResearcherAccessView() {
       { skip: !organizationId },
     );
 
-  /* The one number worth carrying across tabs: how many people are waiting on
-     an answer while you are reading some other tab. */
   const { data: pendingPage } = useGetOrganizationResearchersQuery(
     { organizationId, status: "PENDING", size: 1 },
     { skip: !organizationId },
@@ -201,8 +187,6 @@ export function ResearcherAccessView() {
           value={tab}
           onValueChange={(value) => {
             setTab(value as Tab);
-            /* A narrower tab is shorter than the one being paged through, so
-               page 3 of the old one would land on nothing. */
             setPage(0);
           }}
           className="w-full gap-4"

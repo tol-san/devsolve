@@ -28,21 +28,18 @@ export function ReportStatusTracker({ status = "SUBMITTED" }: ReportStatusTracke
   if (isRejected) {
     return (
       <div className="pt-3 flex flex-wrap items-center gap-2 sm:gap-3 border-t border-border">
-        {/* Step 1: Submitted */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-xs font-bold">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>1. Submitted</span>
         </div>
         <div className="hidden sm:block w-3 h-0.5 bg-border" />
 
-        {/* Step 2: Triaged */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-xs font-bold">
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>2. Triaged</span>
         </div>
         <div className="hidden sm:block w-3 h-0.5 bg-border" />
 
-        {/* Step 3: Rejected */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20 text-xs font-bold">
           <XCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
           <span>3. Rejected & Closed</span>
@@ -53,14 +50,12 @@ export function ReportStatusTracker({ status = "SUBMITTED" }: ReportStatusTracke
 
   return (
     <div className="pt-3 flex flex-wrap items-center gap-2 sm:gap-3 border-t border-border">
-      {/* Step 1: Submitted */}
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 text-xs font-bold">
         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <span>1. Submitted</span>
       </div>
       <div className="hidden sm:block w-3 h-0.5 bg-border" />
 
-      {/* Step 2: Under Triage */}
       <div
         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${
           isTriaged && normalized !== "TRIAGING"
@@ -81,7 +76,6 @@ export function ReportStatusTracker({ status = "SUBMITTED" }: ReportStatusTracke
       </div>
       <div className="hidden sm:block w-3 h-0.5 bg-border" />
 
-      {/* Step 3: Accepted */}
       <div
         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${
           isAccepted
@@ -98,7 +92,6 @@ export function ReportStatusTracker({ status = "SUBMITTED" }: ReportStatusTracke
       </div>
       <div className="hidden sm:block w-3 h-0.5 bg-border" />
 
-      {/* Step 4: Resolved / Retesting */}
       <div
         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${
           isResolved

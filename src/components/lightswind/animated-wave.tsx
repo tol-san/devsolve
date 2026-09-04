@@ -7,37 +7,22 @@ import { cn } from "@/lib/utils";
 
 export interface AnimatedWaveProps {
   className?: string;
-  /** Primary wave color from (CSS hex or RGB) */
   colorFrom?: string;
-  /** Secondary wave color to (CSS hex or RGB) */
   colorTo?: string;
-  /** Wave animation speed factor (default: 0.8) */
   speed?: number;
-  /** Wave amplitude scale (default: 20) */
   amplitude?: number;
-  /** Show wireframe mesh lines (default: true) */
   wireframe?: boolean;
-  /** Show floating particle points (default: true) */
   showParticles?: boolean;
-  /** Size of the particle dots (default: 4) */
   particleSize?: number;
-  /** Grid segments resolution (default: 60) */
   resolution?: number;
-  /** Enable mouse interactive sways and ripples (default: true) */
   mouseInteraction?: boolean;
-  /** Background color override (default: transparent) */
   backgroundColor?: string;
-  /** Wave opacity (default: 0.6) */
   opacity?: number;
-  /** Camera X coordinate (default: 0) */
   cameraX?: number;
-  /** Camera Y coordinate (default: 160) */
   cameraY?: number;
-  /** Camera Z coordinate (default: 250) */
   cameraZ?: number;
 }
 
-// Helper to create circular particle texture
 const createCircleTexture = () => {
   const canvas = document.createElement("canvas");
   canvas.width = 32;
@@ -79,19 +64,15 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
-    // Dimensions based on parent container client size
     let width = container.clientWidth || 800;
     let height = container.clientHeight || 500;
 
-    // 1. Create Scene
     const scene = new THREE.Scene();
 
-    // 2. Create Camera
     const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 3000);
     camera.position.set(cameraX, cameraY, cameraZ);
     camera.lookAt(0, 0, 0);
 
-    // 3. Create WebGL Renderer
     let renderer: THREE.WebGLRenderer;
     try {
       renderer = new THREE.WebGLRenderer({
@@ -109,7 +90,6 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
       return;
     }
 
-    // 4. Lights
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
 
@@ -117,7 +97,6 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
     pointLight.position.set(0, 300, 200);
     scene.add(pointLight);
 
-    // 5. Geometry setup (wide spacing to fully cover background borders)
     const gridSize = resolution;
     const gridSpacing = 45;
 
@@ -140,7 +119,6 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
         positions[index + 1] = 0;
         positions[index + 2] = posZ;
 
-        // Gradient coloring
         const t = x / gridSize;
         const mixedColor = new THREE.Color().lerpColors(cFrom, cTo, t);
         colors[index] = mixedColor.r;
@@ -154,7 +132,6 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
-    // Optional Grid Mesh lines
     let lineSegments: THREE.LineSegments | null = null;
     if (wireframe) {
       const indices: number[] = [];
@@ -181,7 +158,6 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
       scene.add(lineSegments);
     }
 
-    // Glowing Particle Points
     let points: THREE.Points | null = null;
     if (showParticles) {
       const pointsMaterial = new THREE.PointsMaterial({
@@ -198,11 +174,9 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
       scene.add(points);
     }
 
-    // Simplex Noise Generator
     const noise2D = createNoise2D();
     const clock = new THREE.Timer();
 
-    // Mouse Tracking
     const mouse = new THREE.Vector2(0, 0);
     const targetMouse = new THREE.Vector3(0, 0, 0);
     const raycaster = new THREE.Raycaster();
@@ -220,7 +194,6 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
       container.addEventListener("mousemove", onMouseMove);
     }
 
-    // Resize Observer (resizes WebGL relative to parent bounds, NOT full screen)
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width: w, height: h } = entry.contentRect;
@@ -231,21 +204,17 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
     });
     resizeObserver.observe(container);
 
-    // Camera Sway Interpolations
     const targetCamera = new THREE.Vector3(cameraX, cameraY, cameraZ);
 
-    // Animation Loop
     let animationFrameId: number;
     const animate = () => {
       clock.update();
       const time = clock.getElapsed() * speed;
 
-      // Project Mouse to XZ Plane
       if (mouseInteraction) {
         raycaster.setFromCamera(mouse, camera);
         raycaster.ray.intersectPlane(planeXZ, targetMouse);
         
-        // Camera parallax movement
         targetCamera.x = cameraX + mouse.x * 90;
         targetCamera.y = cameraY + mouse.y * 50;
         camera.position.x += (targetCamera.x - camera.position.x) * 0.05;
@@ -253,7 +222,6 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
         camera.lookAt(0, -30, 0);
       }
 
-      // Height displacement
       const posArray = geometry.attributes.position.array as Float32Array;
       let idx = 0;
       for (let x = 0; x < gridSize; x++) {
@@ -261,12 +229,10 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
           const posX = posArray[idx];
           const posZ = posArray[idx + 2];
 
-          // Natural waves (scaled for gridSpacing = 45)
           const n1 = noise2D(posX * 0.0004, posZ * 0.0004 + time) * amplitude;
           const n2 = Math.sin(posX * 0.001 + time * 2) * Math.cos(posZ * 0.001 + time) * (amplitude * 0.4);
           let height = n1 + n2;
 
-          // Mouse distortion ripple
           if (mouseInteraction) {
             const dx = posX - targetMouse.x;
             const dz = posZ - targetMouse.z;
@@ -290,7 +256,6 @@ export const AnimatedWave: React.FC<AnimatedWaveProps> = ({
 
     animate();
 
-    // Cleanup on unmount
     return () => {
       cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();

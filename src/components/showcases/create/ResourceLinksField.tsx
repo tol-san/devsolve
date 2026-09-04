@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { hostOf, type CreateShowcaseFormValues } from "@/lib/validations/showcase";
 
-/** Prompts rather than defaults — the row starts empty. */
 const LABEL_HINTS = [
   "Figma file",
   "API docs",
@@ -16,10 +15,6 @@ const LABEL_HINTS = [
   "Postman collection",
 ];
 
-/**
- * Label + URL pairs for anything that lives elsewhere. Links only, never
- * uploads, which is what keeps this off the moderation surface.
- */
 export function ResourceLinksField() {
   const {
     control,

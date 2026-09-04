@@ -6,10 +6,6 @@ import { CreatePostSelection } from "@/components/discussions/create/CreatePostS
 
 export default function DashboardCreatePostSelectionPage() {
   return (
-    /* The negative margin cancels the dashboard layout's `p-6 md:p-8` so the
-       shell runs edge to edge inside the content column. Height is the
-       viewport less the chrome above it: the mobile sidebar header, or the
-       sticky 4rem header from `lg` up. */
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}

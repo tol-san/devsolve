@@ -65,16 +65,6 @@ import { SecurityIncidentsTable } from "@/components/security-incidents/Security
 import type { ModerationActionType } from "@/lib/types/admin/types";
 import { cn } from "@/lib/utils";
 
-/**
- * Five jobs share this screen, and each is a different question. Flags are
- * raised against content that is already public; a showcase, a problem or a
- * solution is not public until it is approved; the history is a record rather
- * than a queue. They live together because one person does all five, and the
- * tab row carries every backlog at once so none of them is discovered by
- * accident — which is exactly what happened to solutions, whose queue sat on
- * a page nothing linked to.
- */
-
 type TabId = "queue" | "showcases" | "problems" | "solutions" | "security" | "auto-approval" | "history";
 
 const TABS: {
@@ -146,8 +136,6 @@ function ContentManagement() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  /* The tab lives in the URL so a refresh, a bookmark, or the back arrow out
-     of a review detail page all land where the reviewer left off. */
   const activeTab = useMemo<TabId>(() => {
     const param = searchParams.get("tab") as TabId | null;
     return param && TABS.some((tab) => tab.value === param) ? param : "queue";
@@ -165,8 +153,6 @@ function ContentManagement() {
   const { data, isLoading } = useGetContentReportsQuery();
   const [updateAction] = useUpdateContentReportActionMutation();
 
-  /* Each approval queue is asked for a single row: the response is fetched
-     for its total, which is what the tab badge shows. */
   const { data: showcaseQueue } = useGetShowcaseReviewQueueQuery({
     reviewStatus: "PENDING",
     pageSize: 1,
@@ -221,7 +207,6 @@ function ContentManagement() {
     totalPages,
   } = useContentReportFilters(reportsList);
 
-  // Modal State for Moderation Actions
   const [dialogReport, setDialogReport] = useState<ContentReportItem | null>(
     null,
   );
@@ -284,7 +269,6 @@ function ContentManagement() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* ── Header ─────────────────────────────────────────────────── */}
       <header className="space-y-1">
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           <Link
@@ -307,7 +291,6 @@ function ContentManagement() {
         </p>
       </header>
 
-      {/* ── Section switcher ─────────────────────────────────────────── */}
       <nav
         aria-label="Moderation sections"
         className="grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-card p-1.5 sm:flex sm:items-stretch shadow-xs"
@@ -439,7 +422,6 @@ function ContentManagement() {
             />
           </FilterBar>
 
-          {/* ── Reports and the reason breakdown ── */}
           <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
             <div className="space-y-4 lg:col-span-8">
               {isLoading ? (
@@ -614,7 +596,6 @@ function ContentManagement() {
             }}
           />
 
-          {/* Flag Detail Side Drawer */}
           <FlagDetailSheet
             flagId={selectedFlagId}
             isOpen={Boolean(selectedFlagId)}
@@ -639,10 +620,6 @@ function ContentManagement() {
   );
 }
 
-/**
- * The page numbers worth rendering: the ends, the current page and its
- * neighbours, with a gap marker standing in for the rest.
- */
 function pageWindow(current: number, total: number): (number | "gap")[] {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1);
@@ -667,7 +644,6 @@ function pageWindow(current: number, total: number): (number | "gap")[] {
   return items;
 }
 
-/** Matches the page's own shape, so the tab row does not jump in on load. */
 function PageSkeleton() {
   return (
     <div

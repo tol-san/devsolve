@@ -38,11 +38,6 @@ import { SDLC_LABELS } from "@/lib/validations/problem";
 import { authorNameOf } from "@/lib/discussions/format";
 import { cn } from "@/lib/utils";
 
-/**
- * One problem under review — read through `GET /api/v1/problems/{id}`, decided
- * with `PATCH /admin/problems/{id}/moderation`.
- */
-
 const CARD =
   "rounded-2xl border border-border bg-card text-card-foreground shadow-xs";
 
@@ -170,7 +165,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
         </div>
       </header>
 
-      {/* The backend's automated flags */}
       {warnings.length > 0 && (
         <div className="flex flex-wrap items-start gap-2.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
           <AlertTriangle
@@ -189,9 +183,7 @@ export function ProblemReviewDetail({ id }: { id: string }) {
       )}
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-        {/* ── Main Content Area ── */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Overview / Metadata Card */}
           <section className={`${CARD} space-y-3 p-5`}>
             <p className="text-sm text-muted-foreground">
               by{" "}
@@ -219,7 +211,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             </dl>
           </section>
 
-          {/* Repository Link */}
           {problem.repositoryUrl && (
             <section className={`${CARD} flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5`}>
               <div className="flex items-center gap-3 min-w-0">
@@ -245,7 +236,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             </section>
           )}
 
-          {/* Error Message / Stack Trace */}
           {problem.errorMessage && (
             <section className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-5 space-y-2.5">
               <h2 className="flex items-center gap-2 text-sm font-bold text-rose-600 dark:text-rose-400">
@@ -258,7 +248,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             </section>
           )}
 
-          {/* Description */}
           <section className={`${CARD} p-5 sm:p-6 space-y-2`}>
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Description
@@ -272,7 +261,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             )}
           </section>
 
-          {/* Expected vs Actual Behavior */}
           {(problem.expectedBehavior || problem.actualBehavior) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {problem.expectedBehavior && (
@@ -300,7 +288,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             </div>
           )}
 
-          {/* Steps to Reproduce */}
           {reproductionSteps.length > 0 && (
             <section className={`${CARD} p-5 sm:p-6 space-y-3`}>
               <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
@@ -322,7 +309,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             </section>
           )}
 
-          {/* Attempts Tried */}
           {problem.attemptsTried && (
             <section className={`${CARD} p-5 sm:p-6 space-y-2`}>
               <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -334,7 +320,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             </section>
           )}
 
-          {/* Environment Specifications */}
           {environments.length > 0 && (
             <section className={`${CARD} space-y-3 p-5 sm:p-6`}>
               <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
@@ -355,7 +340,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             </section>
           )}
 
-          {/* Stack & Tags */}
           {(technologies.length > 0 || tags.length > 0) && (
             <section className={`${CARD} space-y-4 p-5 sm:p-6`}>
               {technologies.length > 0 && (
@@ -399,7 +383,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
             </section>
           )}
 
-          {/* Attachments */}
           {attachments.length > 0 && (
             <section className={`${CARD} space-y-4 p-5 sm:p-6`}>
               <div className="flex items-center justify-between gap-3">
@@ -509,7 +492,6 @@ export function ProblemReviewDetail({ id }: { id: string }) {
           )}
         </div>
 
-        {/* ── Decision Sidebar ── */}
         <aside className="space-y-5 lg:sticky lg:top-6">
           <section className={`${CARD} space-y-4 p-5`}>
             <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">

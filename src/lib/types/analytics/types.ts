@@ -4,7 +4,6 @@ export type TrendDirection = "up" | "down" | "flat";
 
 export interface KpiMetric {
   value: number;
-  /** Null when timeRange=all or when comparing from zero. Must render as '—' */
   changePercentage: number | null;
   trend: TrendDirection;
 }

@@ -68,7 +68,6 @@ export function Globe({ className, config }: GlobeProps) {
       markerColor: [37 / 255, 99 / 255, 235 / 255],
       glowColor: isDark ? [0.15, 0.3, 0.7] : [0.85, 0.92, 1],
       markers: [
-        // Global tech and security hubs
         { location: [37.7749, -122.4194], size: 0.08 }, // San Francisco
         { location: [40.7128, -74.006], size: 0.08 }, // New York
         { location: [51.5074, -0.1278], size: 0.08 }, // London
@@ -93,7 +92,6 @@ export function Globe({ className, config }: GlobeProps) {
         }
       },
     } as any;
-
 
     const globe = createGlobe(canvasRef.current, defaultConfig);
 

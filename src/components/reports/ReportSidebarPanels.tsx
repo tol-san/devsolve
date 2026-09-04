@@ -14,7 +14,6 @@ interface ReportSidebarPanelsProps {
   report: ReportDetail;
 }
 
-/** One label-and-value line. Absent values say so rather than guessing. */
 function Fact({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="flex items-start justify-between gap-3">
@@ -65,7 +64,6 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
 
   return (
     <aside className="space-y-6">
-      {/* Severity Panel */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
@@ -99,7 +97,6 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
           )}
         </div>
 
-        {/* Severity Disagreement Alert */}
         {(report.hasSeverityDisagreement ||
           (!report.severity &&
             report.triageSeverity != null &&
@@ -154,7 +151,6 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
         </div>
       </div>
 
-      {/* Reward Panel */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-3">
         <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
           Reward
@@ -168,7 +164,6 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
         </div>
       </div>
 
-      {/* Finding Panel */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
         <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
           Finding
@@ -197,7 +192,6 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
         </div>
       </div>
 
-      {/* Program & Organization Profile Panel */}
       <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -215,7 +209,6 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
           )}
         </div>
 
-        {/* Organization Brand Tile */}
         <div className="p-3.5 rounded-xl border border-border bg-muted/40 space-y-3">
           <div className="flex items-center gap-3">
             {orgLogo ? (
@@ -279,7 +272,6 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
           </div>
         </div>
 
-        {/* Report Metadata */}
         <div className="space-y-2 pt-1 border-t border-border text-sm">
           <Fact label="Report ID" value={report.reportId} />
           <Fact

@@ -7,13 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/problems/related — free live trigram similarity search while typing.
- *
- * Anonymous, fast, answers in milliseconds.
- * Query params: q (required), excludeId (optional UUID), limit (default 5, max 20).
- * Queries under 4 characters immediately return [] with Cache-Control: max-age=60, public.
- */
 const RELATED_PARAMS = ["q", "excludeId", "limit"] as const;
 
 export async function GET(request: NextRequest) {

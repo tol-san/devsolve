@@ -11,7 +11,6 @@ const BENEFITS = [
   { key: "recognition", icon: Handshake },
 ] as const;
 
-/** Public, indexable explanation of what DevSolve offers organizations. */
 export function CompanyLanding() {
   const t = useT();
   const lp = useLocalePath();

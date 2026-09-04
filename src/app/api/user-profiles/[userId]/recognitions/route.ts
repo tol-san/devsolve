@@ -13,17 +13,11 @@ type Context = { params: Promise<{ userId: string }> };
 
 const ALLOWED_QUERY = ["page", "size", "sort"] as const;
 
-/**
- * GET /api/user-profiles/{userId}/recognitions
- * Public recognitions awarded to a researcher.
- * Proxies to GET {BACKEND_API_URL}/user-profiles/{userId}/recognitions?page=...&size=...&sort=...
- */
 export async function GET(request: NextRequest, context: Context) {
   const { userId } = await context.params;
   let targetId = asUuid(userId);
 
   if (!targetId && userId) {
-    // If not a direct UUID, resolve handle via /user-profiles/by-username/{userId}
     try {
       const isMe = userId.toLowerCase() === "me";
       const lookupUrl = isMe

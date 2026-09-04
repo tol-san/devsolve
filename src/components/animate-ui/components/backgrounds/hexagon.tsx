@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 type HexagonBackgroundProps = React.ComponentProps<'div'> & {
   hexagonProps?: React.ComponentProps<'div'>;
-  hexagonSize?: number; // value greater than 50
+  hexagonSize?: number; 
   hexagonMargin?: number;
 };
 

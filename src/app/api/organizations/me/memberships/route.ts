@@ -28,18 +28,6 @@ const unreachable = () =>
     { status: 502 }
   );
 
-/**
- * Every organization the caller belongs to — owned or joined.
- *
- * The one call that answers "does this account have a company workspace, and
- * what may it do there". Unlike the rest of `/organizations/me/*`, this is not
- * owner-only: an invited member appears here with `owner: false` and the
- * permissions they were granted, which is exactly the case the realm role can
- * never describe.
- *
- * An empty array is the honest answer for most accounts and is relayed as a
- * `200`, not an error — a researcher with no company is not a failure.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();
@@ -68,9 +56,6 @@ export async function GET(request: NextRequest) {
     }
 
     if (!upstream.ok) {
-      /* 404 here means the upstream has no memberships for this account, not
-         that the route is missing — either way the answer the UI needs is
-         "no company workspace", and an error state would be a lie. */
       if (upstream.status === 404) {
         return NextResponse.json([], { status: 200 });
       }

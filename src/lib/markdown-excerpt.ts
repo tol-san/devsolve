@@ -1,9 +1,3 @@
-/**
- * A showcase overview and its step bodies are markdown. Anywhere one is shown
- * as a one- or two-line summary — a feed card, a review queue row — the syntax
- * has to come off first: a stray `##` or `[label](url)` inside a clamp reads as
- * noise rather than as formatting.
- */
 export function excerptOf(markdown: string, max = 220): string {
   const plain = markdown
     .replace(/```[\s\S]*?```/g, " ")

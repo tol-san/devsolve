@@ -90,8 +90,6 @@ export function DiscussionHeader({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.97 }}
       >
-        {/* Gated: an anonymous visitor gets the sign-in prompt here rather
-            than a form they cannot submit. */}
         <AuthGatedLink
           href={createHref}
           className={cn(

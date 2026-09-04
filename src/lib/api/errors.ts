@@ -1,26 +1,7 @@
-/**
- * Turns whatever an RTK Query mutation rejected with into something worth
- * showing a person.
- *
- * There are four error envelopes in play across this app and the backend:
- *
- *  - the backend's own `{ message, code, status, timestamp, errorDetails }`
- *  - Spring's default `{ timestamp, status, error, path }`, used whenever a
- *    request doesn't reach a controller
- *  - Spring validation's `{ errors: [{ field, defaultMessage }] }`
- *  - our Next route handlers' `{ message, formErrors, fieldErrors }` from Zod
- *  - the production edge's `{ error: { code, message } }`, which replaces the
- *    body entirely and often says only "An error occurred"
- *
- * Plus RTK Query's own transport failures, which carry no body at all.
- */
 
 export interface ParsedApiError {
-  /** Always populated — never an empty string. */
   message: string;
-  /** Per-field messages keyed by the field name the server used. */
   fieldErrors: Record<string, string>;
-  /** HTTP status, when the request actually got a response. */
   status?: number;
 }
 
@@ -45,11 +26,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/** Pulls `{ field: message }` out of the several shapes the backend uses. */
 function extractFieldErrors(body: Record<string, unknown>): Record<string, string> {
   const found: Record<string, string> = {};
 
-  // Our Zod route handlers: { fieldErrors: { phone: ["..."] } }
   if (isRecord(body.fieldErrors)) {
     for (const [field, value] of Object.entries(body.fieldErrors)) {
       const text = Array.isArray(value) ? value[0] : value;
@@ -57,7 +36,6 @@ function extractFieldErrors(body: Record<string, unknown>): Record<string, strin
     }
   }
 
-  // Spring validation: { errors: [{ field, defaultMessage }], violations: [{ property, message }] }
   const springErrors = body.errors ?? body.errorDetails ?? body.violations;
   if (Array.isArray(springErrors)) {
     for (const entry of springErrors) {
@@ -71,7 +49,6 @@ function extractFieldErrors(body: Record<string, unknown>): Record<string, strin
     }
   }
 
-  // The same key sometimes arrives as a flat map instead of a list.
   if (isRecord(springErrors) && !Array.isArray(springErrors)) {
     for (const [field, value] of Object.entries(springErrors)) {
       if (typeof value === "string" && value) found[field] = value;
@@ -81,13 +58,6 @@ function extractFieldErrors(body: Record<string, unknown>): Record<string, strin
   return found;
 }
 
-/**
- * The message out of `{ error: { code, message } }`.
- *
- * Null for the generic placeholder that envelope carries when the edge has
- * nothing specific to say — "An error occurred" tells a person less than the
- * status-based wording it would otherwise displace.
- */
 function nestedErrorMessage(body: Record<string, unknown>): string | null {
   if (!isRecord(body.error)) return null;
   const text = body.error.message;
@@ -107,7 +77,6 @@ export function parseApiError(
 
   const status = error.status;
 
-  // Transport-level failures carry no response body.
   if (status === "FETCH_ERROR") {
     return {
       message:
@@ -129,7 +98,6 @@ export function parseApiError(
     };
   }
 
-  // A plain SerializedError (a throw inside the query function).
   if (typeof status !== "number") {
     return {
       message: typeof error.message === "string" ? error.message : fallback,
@@ -150,8 +118,6 @@ export function parseApiError(
       ...extractFieldErrors(body),
     };
 
-    // `error` is Spring's default-handler wording ("Not Found"), useful only
-    // when nothing better exists.
     const message =
       (typeof body.message === "string" && body.message.trim()
         ? body.message
@@ -159,11 +125,6 @@ export function parseApiError(
       (Array.isArray(body.formErrors) && typeof body.formErrors[0] === "string"
         ? body.formErrors[0]
         : null) ??
-      /* `{ error: { code, message } }` — the envelope the production edge
-         wraps a failed API response in. Read before the status fallback so a
-         real message is not replaced by a generic one, but only when it says
-         something: it sends a literal "An error occurred" for anything it did
-         not recognise, which is worth less than our own wording. */
       nestedErrorMessage(body) ??
       STATUS_FALLBACKS[status] ??
       (typeof body.error === "string" && body.error.trim()

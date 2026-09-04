@@ -66,7 +66,6 @@ export function ProblemDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      {/* Table Container */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xs">
         <Table>
           <TableHeader>
@@ -132,7 +131,6 @@ export function ProblemDataTable<TData, TValue>({
           </TableBody>
         </Table>
 
-        {/* Pagination Footer */}
         {data.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-slate-50/60 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800">
             <div className="flex flex-wrap items-center gap-4">

@@ -17,15 +17,6 @@ import {
 } from "@/lib/redux/services/myCommunityApi";
 import { cn } from "@/lib/utils";
 
-/**
- * My Community — everything the signed-in author has posted, across problems,
- * solutions and showcases.
- *
- * The point of the page is the workflow: a showcase sits off the public index
- * until a reviewer approves it, so without somewhere to see "awaiting review"
- * and the note behind a rejection, publishing looks like the post vanished.
- */
-
 type Filter = "All" | MyPostKind;
 
 const FILTERS: { value: Filter; label: string }[] = [
@@ -56,8 +47,6 @@ export default function MyCommunityPage() {
     [filter, posts],
   );
 
-  /* Worth surfacing up top: these are the ones needing the author to do
-     something, and they are easy to miss in a long list. */
   const needsAttention = posts.filter(
     (post) => post.state.tone === "blocked",
   ).length;
@@ -280,7 +269,6 @@ function ListSkeleton() {
   );
 }
 
-/** Pulls something readable out of an RTK Query error. */
 function messageOf(error: unknown, fallback: string): string {
   if (typeof error === "object" && error !== null && "data" in error) {
     const data = (error as { data?: unknown }).data;

@@ -59,7 +59,6 @@ export function SubmitReportStep1Basics({
 
   return (
     <div className="space-y-8 font-sans">
-      {/* Section Header */}
       <div className="flex items-start sm:items-center gap-3.5 pb-3 border-b border-border">
         <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs mt-0.5 sm:mt-0">
           <Target className="w-5 h-5" />
@@ -74,14 +73,6 @@ export function SubmitReportStep1Basics({
         </div>
       </div>
 
-      {/* Target Security Program
-
-          A report is filed against one program, and which one decides the
-          scope, the reward bands and the triage queue — so it is chosen by
-          browsing the programs, not guessed from a list of names in a
-          dropdown. A name alone cannot tell you whether your finding is in
-          scope. "Change" therefore leads back to the browser, and the chosen
-          programme returns here through its own "Submit report" button. */}
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <label className="text-sm font-semibold text-foreground whitespace-nowrap">
@@ -144,7 +135,6 @@ export function SubmitReportStep1Basics({
         )}
       </div>
 
-      {/* Target Asset URL & Environment */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="sm:col-span-2 space-y-2">
           <label htmlFor="targetAsset" className="text-sm font-semibold text-foreground">
@@ -191,7 +181,6 @@ export function SubmitReportStep1Basics({
         </div>
       </div>
 
-      {/* Discovery date */}
       <div className="space-y-2">
         <label
           htmlFor="discoveredAt"
@@ -222,7 +211,6 @@ export function SubmitReportStep1Basics({
         )}
       </div>
 
-      {/* Vulnerability Title */}
       <div className="space-y-2">
         <label htmlFor="title" className="text-sm font-semibold text-foreground flex flex-wrap items-center justify-between gap-2">
           <span className="whitespace-nowrap">Vulnerability Title <span className="text-red-500">*</span></span>
@@ -239,7 +227,6 @@ export function SubmitReportStep1Basics({
         )}
       </div>
 
-      {/* 3-Option Vulnerability Weakness Classification */}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-foreground flex items-center justify-between">
           <span>
@@ -267,15 +254,6 @@ export function SubmitReportStep1Basics({
         />
       </div>
 
-      {/* Severity — asked once.
-
-          This was two questions that the API cross-checks and rejects when
-          they disagree: a five-way severity picker, plus a CVSS score
-          suggested from the chosen category. A reporter could pick High, take
-          a suggested 9.1, and be refused on submit for a contradiction the
-          form had built for them. `SeverityCvssField` makes the vector the
-          single source: pick a level, or answer the CVSS metrics and let the
-          score and severity fall out of them. */}
       <div className="pt-2">
         <SeverityCvssField
           value={{

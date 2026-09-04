@@ -10,10 +10,6 @@ export { SearchModal } from "@/components/search/SearchModal";
 export { useSearchModal } from "@/components/search/useSearchModal";
 
 export interface NavbarSearchProps {
-  /**
-   * "icon": compact circular button (default, used in navbar and mobile header)
-   * "expanded": full search bar button with shortcut badge (ideal for dashboard desktop header)
-   */
   variant?: "icon" | "expanded";
   className?: string;
   placeholder?: string;
@@ -21,12 +17,6 @@ export interface NavbarSearchProps {
   onOpen?: () => void;
 }
 
-/**
- * Search trigger component.
- *
- * Can render either as a compact circular icon button or a full search input bar button.
- * Clicking opens the global search modal dialog backed by `SearchModal` and `useSearchModal()`.
- */
 export function NavbarSearch({
   variant = "icon",
   className,

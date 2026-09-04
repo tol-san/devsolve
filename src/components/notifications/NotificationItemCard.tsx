@@ -205,7 +205,6 @@ function getNotificationLink(
   title?: string,
   authorUsername?: string | null,
 ): string {
-  // Auto-approval hold notices are author-specific and must always navigate directly to the post
   if (title && AUTO_APPROVAL_HOLD_PATTERN.test(title)) {
     if (type === "SHOWCASE") return `/showcases/${id}`;
     if (type === "PROBLEM") return `/community/${id}`;
@@ -327,7 +326,6 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
   const IconComponent = config.icon;
 
   const handleCardClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    // If user clicked directly on an input, button, or link inside, do not trigger card navigation
     const target = event.target as HTMLElement;
     if (
       target.closest("button") ||
@@ -391,7 +389,6 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
         isSelected && "bg-muted",
       )}
     >
-      {/* Optional Selection Checkbox */}
       {showCheckbox && item.id && (
         <div
           className="shrink-0 pt-1"
@@ -407,14 +404,12 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
         </div>
       )}
 
-      {/* Subtle unread dot */}
       <div className="shrink-0 pt-2 w-2 flex items-center justify-center">
         {isUnread && (
           <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0 ring-2 ring-blue-600/20" />
         )}
       </div>
 
-      {/* Avatar / Icon Container */}
       <div className="shrink-0 mt-0.5">
         {hasAuthor ? (
           <div className="relative">
@@ -457,7 +452,6 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
               </Avatar>
             )}
 
-            {/* Solid, clearly visible icon badge overlay indicating notification type */}
             <div
               className={cn(
                 "absolute -bottom-1 -right-1 size-5 sm:size-5.5 rounded-full flex items-center justify-center shadow-md ring-2 ring-card z-10",
@@ -479,9 +473,7 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
         )}
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 min-w-0 space-y-1">
-        {/* Top Meta: Type Badge & Time */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0 flex-wrap">
             <span
@@ -525,7 +517,6 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
               <span>{formatNotificationTime(item.createdAt)}</span>
             )}
 
-            {/* Quick Mark Read on Hover */}
             {isUnread && item.id && onMarkRead && (
               <button
                 type="button"
@@ -542,7 +533,6 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
           </div>
         </div>
 
-        {/* Title */}
         <h3
           className={cn(
             "text-[15px] sm:text-base leading-snug break-words transition-colors",
@@ -554,7 +544,6 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
           {item.title}
         </h3>
 
-        {/* Formatted Body */}
         {item.content && (
           <div className="space-y-1 pt-0.5">
             <p

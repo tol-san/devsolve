@@ -2,7 +2,6 @@ import * as z from "zod";
 import { isCleanText, profanityMessage } from "@/lib/moderation/profanity";
 import { isReadableText, readabilityMessage } from "@/lib/moderation/readability";
 
-/** Values accepted by `SolutionRequest.approachType`. */
 export const APPROACH_TYPES = [
   "FIX",
   "WORKAROUND",
@@ -12,7 +11,6 @@ export const APPROACH_TYPES = [
 
 export type ApproachType = (typeof APPROACH_TYPES)[number];
 
-/** How each approach is written for a reader, wherever one is shown. */
 export const APPROACH_LABELS: Record<ApproachType, string> = {
   FIX: "Fix",
   WORKAROUND: "Workaround",
@@ -20,7 +18,6 @@ export const APPROACH_LABELS: Record<ApproachType, string> = {
   ALTERNATIVE: "Alternative",
 };
 
-/** What each approach claims, said plainly enough to pick between them. */
 export const APPROACH_DESCRIPTIONS: Record<ApproachType, string> = {
   FIX: "Removes the cause. The problem stops happening.",
   WORKAROUND: "Gets past it without curing it.",
@@ -28,7 +25,6 @@ export const APPROACH_DESCRIPTIONS: Record<ApproachType, string> = {
   ALTERNATIVE: "A different route that avoids the problem.",
 };
 
-/** Values accepted by `SolutionResourceRequest.type`. */
 export const RESOURCE_TYPES = [
   "DOCUMENTATION",
   "REPOSITORY",
@@ -49,14 +45,12 @@ export const RESOURCE_LABELS: Record<ResourceType, string> = {
   ARTICLE: "Article",
 };
 
-/** `https://` only, matching the pattern the backend enforces on every URL. */
 const httpsUrl = (max: number, label: string) =>
   z
     .string()
     .max(max, `${label} must not exceed ${max} characters`)
     .regex(/^https:\/\/\S+$/i, `${label} must start with https://`);
 
-/** Mirrors `VerificationStepRequest`. Both halves are required upstream. */
 export const verificationStepSchema = z.object({
   instruction: z
     .string()
@@ -68,7 +62,6 @@ export const verificationStepSchema = z.object({
 
 export type VerificationStepRequest = z.output<typeof verificationStepSchema>;
 
-/** Mirrors `TestedWithRequest`. Only `technology` is required upstream. */
 export const testedWithSchema = z.object({
   technology: z
     .string()
@@ -81,7 +74,6 @@ export const testedWithSchema = z.object({
 
 export type TestedWithRequest = z.output<typeof testedWithSchema>;
 
-/** Mirrors `SolutionResourceRequest`. All three fields are required upstream. */
 export const solutionResourceSchema = z.object({
   type: z.enum(RESOURCE_TYPES, {
     message: `type must be one of ${RESOURCE_TYPES.join(", ")}`,
@@ -92,11 +84,6 @@ export const solutionResourceSchema = z.object({
 
 export type SolutionResourceRequest = z.output<typeof solutionResourceSchema>;
 
-/**
- * Mirrors the backend `SolutionRequest` wire contract: a one-line summary, the
- * body, and what kind of answer it is are all required, and everything else is
- * supporting evidence.
- */
 export const solutionCreateSchema = z.object({
   summary: z
     .string()
@@ -131,23 +118,12 @@ export const solutionCreateSchema = z.object({
     .optional(),
 });
 
-/** Validated body sent to `POST /api/v1/problems/{problemId}/solutions`. */
 export type CreateSolutionRequest = z.output<typeof solutionCreateSchema>;
 
-/**
- * `SolutionUpdateRequest` — every field optional, matching the PATCH contract.
- * The per-field rules are unchanged; only the requirement to send them goes.
- */
 export const solutionUpdateSchema = solutionCreateSchema.partial();
 
-/** Validated body sent to `PATCH /api/v1/solutions/{id}`. */
 export type UpdateSolutionRequest = z.output<typeof solutionUpdateSchema>;
 
-/**
- * Form-level rules can be stricter than the wire contract. Empty rows are the
- * normal state of a repeatable field mid-edit, so the form permits them and
- * the submit handler drops them rather than the resolver rejecting the form.
- */
 export const solutionFormSchema = solutionCreateSchema.extend({
   summary: z
     .string()
@@ -186,8 +162,6 @@ export const solutionFormSchema = solutionCreateSchema.extend({
       z.object({
         type: z.enum(RESOURCE_TYPES),
         label: z.string().max(150, "A label must not exceed 150 characters"),
-        /* Blank is allowed while the row is being filled in; a row with a
-           label but no URL is caught below, where both halves are visible. */
         url: z
           .union([z.literal(""), httpsUrl(1000, "A resource URL")])
           .optional(),

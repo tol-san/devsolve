@@ -10,10 +10,6 @@ import {
 
 const ALLOWED_PARAMS = ["pageNumber", "pageSize", "unreadOnly"] as const;
 
-/**
- * GET /api/notifications — Paginated inbox.
- * Proxies GET /api/v1/notifications
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

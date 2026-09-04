@@ -12,10 +12,6 @@ type Props = {
   className?: string;
 };
 
-/**
- * Avatar with an initials fallback. The fallback is the default rather than
- * the exception, so the board never renders a broken image well.
- */
 export default function ResearcherAvatar({
   username,
   displayName,

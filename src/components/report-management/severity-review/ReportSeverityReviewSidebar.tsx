@@ -65,10 +65,8 @@ export function ReportSeverityReviewSidebar({
 
   const profileHref = `/profile/${encodeURIComponent(profileIdentifier)}`;
 
-
   return (
     <div className="flex flex-col gap-5 min-w-0">
-      {/* 1. Submitter Snapshot & Intelligence Card */}
       <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
         <CardHeader className="gap-2 p-4 sm:p-6 pb-3">
           <CardTitle className="text-lg sm:text-xl font-bold text-foreground flex items-center justify-between min-w-0">
@@ -138,14 +136,12 @@ export function ReportSeverityReviewSidebar({
             )}
           </div>
 
-          {/* Bio snippet if available */}
           {biography && (
             <p className="text-xs leading-relaxed text-muted-foreground line-clamp-2 px-1">
               {biography}
             </p>
           )}
 
-          {/* Submitter Stats if available */}
           {stats && (
             <div className="grid grid-cols-2 gap-2 rounded-xl border border-border bg-muted/30 p-2.5 text-center min-w-0">
               <div className="space-y-0.5 min-w-0">
@@ -165,7 +161,6 @@ export function ReportSeverityReviewSidebar({
             </div>
           )}
 
-          {/* Location & Metadata */}
           <div className="flex flex-col gap-1.5 text-xs text-muted-foreground px-1 min-w-0">
             {location && (
               <CountryDisplay value={location} size={12} className="min-w-0" />
@@ -191,7 +186,6 @@ export function ReportSeverityReviewSidebar({
         </CardContent>
       </Card>
 
-      {/* 2. Current Submission Snapshot */}
       <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
         <CardHeader className="gap-2 p-4 sm:p-6 pb-2 sm:pb-2">
           <CardTitle className="text-lg sm:text-xl font-bold text-foreground">
@@ -233,8 +227,6 @@ export function ReportSeverityReviewSidebar({
         </CardContent>
       </Card>
 
-
-      {/* 3. Review Checklist */}
       <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs min-w-0 overflow-hidden">
         <CardHeader className="gap-2 p-4 sm:p-6 pb-2 sm:pb-2">
           <CardTitle className="text-lg sm:text-xl font-bold text-foreground">

@@ -16,18 +16,8 @@ import {
   type VoteTargetType,
 } from "@/lib/validations/engagement";
 
-/**
- * PUT/DELETE /api/votes/{type}/{targetId} — proxy for the backend's
- * /api/v1/votes/{type}/{targetId}.
- *
- * `PUT` is idempotent upstream: it sets the caller's vote rather than adding
- * one, so re-sending the same value changes nothing. `DELETE` withdraws it.
- * Both are attributed to the session, so both require one.
- */
-
 type Context = { params: Promise<{ type: string; targetId: string }> };
 
-/** The path pair, or null when either half is malformed. */
 async function resolveTarget(context: Context) {
   const { type, targetId } = await context.params;
   const upper = type.toUpperCase() as VoteTargetType;

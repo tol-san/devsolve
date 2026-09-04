@@ -13,12 +13,6 @@ type Context = { params: Promise<{ id: string }> };
 
 const ALLOWED_QUERY = ["page", "size"] as const;
 
-/**
- * GET /api/organizations/{id}/thanks
- * Public Hall of Thanks across all programs run by an organization.
- * Proxies to GET {BACKEND_API_URL}/organizations/{organizationId}/thanks?page=...&size=...
- * Send NO Authorization header.
- */
 export async function GET(request: NextRequest, context: Context) {
   const { id } = await context.params;
   const organizationId = asUuid(id);

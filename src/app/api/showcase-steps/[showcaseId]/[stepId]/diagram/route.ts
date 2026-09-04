@@ -11,15 +11,6 @@ import {
 } from "@/lib/api/proxy";
 import { validateImageFile } from "@/lib/validations/showcase";
 
-/**
- * PUT/DELETE /api/showcase-steps/{showcaseId}/{stepId}/diagram — the
- * architecture or flow diagram attached to one build step.
- *
- * Same contract as the sibling `/image` route: `multipart/form-data` with a
- * single `file` part, answering with the step and its new `diagramUrl`. Kept
- * separate because the upstream stores the two in different columns.
- */
-
 type Context = { params: Promise<{ showcaseId: string; stepId: string }> };
 
 async function resolveIds(context: Context) {

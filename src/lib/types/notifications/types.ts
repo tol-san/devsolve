@@ -1,7 +1,3 @@
-/**
- * Mirrors `NotificationResponse.notifiableType` upstream. `USER` and `REWARD`
- * are the two the backend added most recently.
- */
 export type NotificationType =
   | "COMMENT"
   | "REPORT"
@@ -19,26 +15,25 @@ export type NotificationType =
   | "SECURITY";
 
 export interface Notification {
-  id: string | null; // UUID — null only on bulk follower SSE push events
+  id: string | null; 
   title: string;
   content: string;
   notifiableType: NotificationType;
-  notifiableId: string; // UUID of related entity
-  /** Actor metadata when notification is associated with a user action */
+  notifiableId: string; 
   authorId?: string | null;
   authorName?: string | null;
   authorUsername?: string | null;
   authorAvatarUrl?: string | null;
   read: boolean;
-  readAt: string | null; // ISO-8601 LocalDateTime, e.g. "2025-08-13T10:30:00"
-  createdAt: string; // ISO-8601 LocalDateTime
+  readAt: string | null; 
+  createdAt: string; 
 }
 
 export interface Page<T> {
   content: T[];
   totalElements: number;
   totalPages: number;
-  number: number; // 0-based page index
+  number: number; 
   size: number;
   numberOfElements: number;
   first: boolean;

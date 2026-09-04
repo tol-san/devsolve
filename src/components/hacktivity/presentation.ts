@@ -1,24 +1,11 @@
 import type { EventType, Severity } from "@/lib/types/hacktivity/types";
 
-/**
- * How the feed says things.
- *
- * Severity, money and the sentence on a card are decided once here so a card,
- * the featured strip and the filter chips cannot drift apart — and so severity
- * always ships with a word beside its colour.
- */
-
 export interface SeverityStyle {
   label: string;
-  /** The chip itself. Critical is solid; the rest are tinted. */
   chip: string;
-  /** The rail down the left of a card. */
   rail: string;
-  /** The chip while it is an active filter. */
   active: string;
-  /** Dot indicator color for filters and summary chips */
   dot: string;
-  /** Subtle border accent for featured and feed cards */
   borderAccent: string;
 }
 
@@ -65,7 +52,6 @@ export const SEVERITY_STYLE: Record<Severity, SeverityStyle> = {
   },
 };
 
-/** Shown when a severity dispute is still open upstream. */
 export const UNRATED_STYLE: SeverityStyle = {
   label: "In review",
   chip: "bg-muted text-muted-foreground ring-1 ring-border",
@@ -82,7 +68,6 @@ export const EVENT_LABEL: Record<EventType, string> = {
   REPORT_DISCLOSED: "Disclosed",
 };
 
-/** The verb between a researcher and the program on a card. */
 export function eventPhrase(eventType?: string): string {
   switch (eventType) {
     case "BOUNTY_AWARDED":
@@ -98,7 +83,6 @@ export function eventPhrase(eventType?: string): string {
   }
 }
 
-/** `$20,500` — cents only when there are any. */
 export function formatMoney(amount: number, currency = "USD"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -108,7 +92,6 @@ export function formatMoney(amount: number, currency = "USD"): string {
   }).format(amount);
 }
 
-/** `$28.4M` for a badge, with {@link formatMoney} behind it on hover. */
 export function formatCompactMoney(amount: number, currency = "USD"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -122,7 +105,6 @@ export function formatCount(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-/** `31 Aug 2026, 12:04 UTC` — the exact time behind a relative one. */
 export function formatUtc(iso?: string): string {
   if (!iso) return "";
   const date = new Date(iso);

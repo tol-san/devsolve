@@ -18,9 +18,6 @@ export async function generateMetadata({
   const path = `/showcases/${id}`;
   const showcase = await getShowcase(id);
 
-  /* Anonymous reads only return approved showcases, so anything else — a
-     draft, a rejected submission, an unreachable backend — lands here and
-     stays out of the index. */
   if (!showcase?.title) {
     return pageMetadata({
       title: "Showcase",
@@ -54,8 +51,6 @@ export default async function PublicShowcaseDetailPage({ params }: PageProps) {
   const showcase = await getShowcase(id);
   const path = `/showcases/${id}`;
 
-  /* The component owns the page shell, the way ProblemDetailPage does under
-     /community/[id]. */
   return (
     <>
       {showcase?.title ? (

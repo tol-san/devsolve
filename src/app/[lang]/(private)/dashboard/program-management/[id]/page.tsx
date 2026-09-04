@@ -90,14 +90,12 @@ function ProgramDetailPageContent({
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
-  // Admin uses /api/admin/programs/${id}
   const {
     data: adminDetail,
     isLoading: isAdminDetailLoading,
     refetch: refetchAdmin,
   } = useGetProgramDetailQuery(id, { skip: !isAdminScope });
 
-  // Public / Company detail
   const {
     data: publicDetail,
     isLoading: isPublicLoading,
@@ -105,7 +103,6 @@ function ProgramDetailPageContent({
     refetch: refetchPublic,
   } = useGetProgramByIdQuery(id);
 
-  // Company scope query fallback if public endpoint skips or returns undefined
   const {
     data: companyDetail,
     isLoading: isCompanyLoading,
@@ -123,16 +120,11 @@ function ProgramDetailPageContent({
 
   const program = adminDetail ?? publicDetail ?? companyDetail;
 
-  /* `isCompanyUser` is false until the memberships land, which skips the company
-     query — so without waiting for access the page concluded "not found" from the
-     public 404 alone, before it had tried the endpoint that would have answered. */
   const isLoading = isAdminScope
     ? isAdminDetailLoading
     : (isAccessLoading || isPublicLoading || isCompanyLoading) && !program;
   const isError = !isLoading && !program;
 
-  /* The company query is the last thing tried, so its status is the one that
-     explains the failure; the public 404 only means "not published". */
   const failure = describeProgramFailure(
     statusOf(companyError) ?? statusOf(publicError),
   );
@@ -350,7 +342,6 @@ function ProgramDetailPageContent({
           transition={{ duration: 0.3, ease: "easeOut" }}
           className="space-y-6 w-full pb-24"
         >
-          {/* TOP ACTION BAR: BACK BUTTON & MANAGEMENT CONTROLS */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <Link
               href={backHref}
@@ -360,7 +351,6 @@ function ProgramDetailPageContent({
               {backLabel}
             </Link>
 
-            {/* STATUS BADGES & CONTROL DROPDOWNS */}
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               {program.state !== "CLOSED" && (
                 <>
@@ -390,7 +380,6 @@ function ProgramDetailPageContent({
                     {program.engagementType === "BOUNTY" ? "Bounty Program" : "VDP Response"}
                   </Badge>
 
-                  {/* Visibility Badge / Interactive Dropdown */}
                   {!isAdminScope ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger
@@ -460,9 +449,6 @@ function ProgramDetailPageContent({
                 </>
               )}
 
-              {/* Publish, pause, resume and close are all one permission —
-                  without it the state is shown by the badge above and there is
-                  nothing here to press. */}
               {!isAdminScope && can("MANAGE_PROGRAM_STATE") && (
                 <div className="ml-0 sm:ml-2">
                   {program.state === "DRAFT" ? (
@@ -603,10 +589,8 @@ function ProgramDetailPageContent({
             </div>
           </div>
 
-          {/* HERO SECTION */}
           <ProgramDetailHero program={program} />
 
-          {/* REJECTION REASON BANNER (IF REJECTED) */}
           {isRejected && program.rejectionReason && (
             <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-2xl p-4 flex items-start gap-3">
               <AlertOctagon className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
@@ -621,15 +605,12 @@ function ProgramDetailPageContent({
             </div>
           )}
 
-          {/* TAB NAVIGATION */}
           <ProgramDetailTabNav
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
 
-          {/* MAIN GRID CONTENT (2 COLUMNS: CONTENT + SIDEBAR) */}
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* LEFT COLUMN: ACTIVE TAB CONTENT */}
             <section className="lg:col-span-2 space-y-8">
               <AnimatePresence mode="wait">
                 {activeTab === "overview" && (
@@ -648,13 +629,11 @@ function ProgramDetailPageContent({
               </AnimatePresence>
             </section>
 
-            {/* RIGHT COLUMN: SIDEBAR */}
             <ProgramDetailSidebar program={program} />
           </main>
         </motion.div>
       </main>
 
-      {/* STICKY BOTTOM ACTION BAR FOR ADMINS & MANAGERS */}
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-4 py-3 shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4 min-w-0">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 min-w-0 flex-1">
@@ -726,7 +705,6 @@ function ProgramDetailPageContent({
         </div>
       </div>
 
-      {/* APPROVE CONFIRMATION ALERT DIALOG */}
       <AlertDialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
         <AlertDialogContent className="max-w-md rounded-2xl bg-card p-6 border border-border shadow-xl">
           <AlertDialogHeader className="space-y-2">
@@ -758,7 +736,6 @@ function ProgramDetailPageContent({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* REJECT DIALOG */}
       <ProgramRejectDialog
         open={rejectDialogOpen}
         programName={program.name}
@@ -782,7 +759,6 @@ function ProgramDetailPageFallback() {
   );
 }
 
-/** The transport status of a failed RTK Query call, when it carries one. */
 function statusOf(error: unknown): number | undefined {
   if (typeof error === "object" && error !== null && "status" in error) {
     const status = (error as { status?: unknown }).status;
@@ -791,15 +767,6 @@ function statusOf(error: unknown): number | undefined {
   return undefined;
 }
 
-/**
- * Why the program would not load, in the reader's terms.
- *
- * All three failures used to read "Program Not Found", which sent people looking
- * for a program that was there all along. The `/organizations/me/*` endpoints
- * take no organization, so they refuse an account that belongs to more than one
- * rather than guess between them, and they refuse a member who was never granted
- * `VIEW_PROGRAMS`. Neither is a missing program.
- */
 function describeProgramFailure(status: number | undefined) {
   if (status === 409) {
     return {

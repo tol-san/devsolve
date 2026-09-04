@@ -43,9 +43,6 @@ import {
 export default function ReportDetailPage() {
   const [showRetestModal, setShowRetestModal] = useState(false);
   const [selectedVerdict, setSelectedVerdict] = useState<"VERIFIED_FIXED" | "STILL_VULNERABLE">("VERIFIED_FIXED");
-  /* Cached and shared with every other screen that asks, so this costs one
-     request per session. `session.user.id` would not do: it is better-auth's
-     id, and `reporterId` is the backend's. */
   const { data: session } = authClient.useSession();
   const { data: me } = useGetProfileByUsernameQuery("me", { skip: !session });
   const {
@@ -63,7 +60,6 @@ export default function ReportDetailPage() {
     handleCopyPayload,
   } = useReportDetail();
 
-  /* Fetched once with the report, as the timeline is unpaged and small. */
   const {
     data: activities = [],
     isLoading: activitiesLoading,
@@ -131,8 +127,6 @@ export default function ReportDetailPage() {
   const rawState = (report as any)?.rawStatus || (report as any)?.state || report?.status;
   const isRetesting = rawState === "RETESTING";
   const retestHistory = report?.retestHistory || [];
-  /* The attempt to answer is the open one, found by `completedAt` — not the
-     newest, which is only the same thing until someone answers it. */
   const openRetest = openRetestAttempt(retestHistory);
   const latestRetest = latestRetestAttempt(retestHistory);
   const retestDue = retestDeadline(openRetest?.dueAt);
@@ -140,10 +134,6 @@ export default function ReportDetailPage() {
   const retestBonus = hasBountyReward(openRetest?.bountyReward)
     ? formatBountyAmount(openRetest?.bountyReward)
     : null;
-  /* Only the reporter may answer — anyone else gets a 404 from the submit
-     endpoint, deliberately. When either id is missing the form is left in
-     place rather than hidden: this is the reporter's own list, and a false
-     negative would lock the one person entitled to answer out of answering. */
   const isReporter =
     !me?.profile.id || !report.reporterId || me.profile.id === report.reporterId;
   const canSubmitVerdict = isRetesting && isReporter;
@@ -164,7 +154,6 @@ export default function ReportDetailPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Header Bar */}
       <ReportDetailHeader
         reportId={report.reportId}
         program={report.program}
@@ -174,7 +163,6 @@ export default function ReportDetailPage() {
         onBack={handleBack}
       />
 
-      {/* The open retest, and the two answers it can be given */}
       {canSubmitVerdict && (
         <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-transparent p-5 sm:p-6 space-y-4 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -201,7 +189,6 @@ export default function ReportDetailPage() {
               </div>
             </div>
 
-            {/* Both verdicts, offered evenly. Neither is an accept step. */}
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 onClick={() => handleOpenRetest("VERIFIED_FIXED")}
@@ -222,7 +209,6 @@ export default function ReportDetailPage() {
             </div>
           </div>
 
-          {/* The deadline, the bonus and the target */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-sm">
             {retestDueLabel && (
               <div
@@ -267,7 +253,6 @@ export default function ReportDetailPage() {
         </div>
       )}
 
-      {/* Reopened from Failed Retest Alert Banner */}
       {isReopenedFromFailedRetest && (
         <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-5 space-y-2 shadow-xs">
           <div className="flex items-center gap-2 text-rose-800 dark:text-rose-200 font-bold text-sm">
@@ -286,7 +271,6 @@ export default function ReportDetailPage() {
       )}
 
       {isRejected ? (
-        /* REJECTED REPORT DETAIL VIEW */
         <RejectedReportView
           report={report}
           activities={activities}
@@ -296,9 +280,7 @@ export default function ReportDetailPage() {
           onCopyPayload={handleCopyPayload}
         />
       ) : (
-        /* STANDARD ACCEPTED/TRIAGING/RESOLVED REPORT DETAIL VIEW */
         <div className="space-y-6">
-          {/* Report Title & Status Stepper Card */}
           <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-4 sm:p-6 space-y-4 shadow-xs">
             <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
               {report.title}
@@ -306,8 +288,6 @@ export default function ReportDetailPage() {
             <ReportStatusTracker status={report.status} />
           </div>
 
-          {/* First: while a severity is unanswered the report is blocked, so
-              the choice outranks everything else on the page. */}
           <SeverityDisputePanel
             reportId={reportId}
             dispute={report.dispute}
@@ -321,18 +301,14 @@ export default function ReportDetailPage() {
             firstRespondedAt={report.firstRespondedAt}
           />
 
-          {/* Only renders once reputation has actually been awarded. */}
           <ReportEarnings report={report} />
 
-          {/* Prominent, not tucked into a tab: this is the record both sides
-              argue from when a severity is disputed. */}
           <ReportTimeline
             activities={activities}
             isLoading={activitiesLoading}
             isError={activitiesError}
           />
 
-          {/* Navigation Tabs */}
           <div className="flex items-center p-1 bg-muted/60 rounded-xl gap-1 border border-border w-full sm:w-auto self-start">
             <button
               onClick={() => setActiveTab("summary")}
@@ -356,7 +332,6 @@ export default function ReportDetailPage() {
             </button>
           </div>
 
-          {/* Tab Content Render */}
           {activeTab === "summary" ? (
             <ReportSummaryTab report={report} />
           ) : (
@@ -365,8 +340,6 @@ export default function ReportDetailPage() {
         </div>
       )}
 
-      {/* The verdict form. The mutation writes the returned report into the
-          cache itself, so there is nothing to refetch on success. */}
       <SubmitRetestModal
         isOpen={showRetestModal}
         onOpenChange={setShowRetestModal}

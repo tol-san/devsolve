@@ -11,17 +11,13 @@ import { countryLabel, resolveCountry } from "@/lib/countries";
 
 export interface LeaderboardQueryParams {
   period: LeaderboardPeriod;
-  /** ISO-2 country code, or "all". */
   country?: string;
-  /** Highest severity landed in the window, or "all". */
   severity?: SeverityLabel | "all";
   search?: string;
 }
 
 export interface LeaderboardQueryResponse {
-  /** Filtered rows. `rank` stays the global rank for the period. */
   entries: LeaderboardEntry[];
-  /** Top three overall — never affected by the filters. */
   podium: LeaderboardEntry[];
   highlights: LeaderboardHighlight[];
   countries: LeaderboardCountryOption[];
@@ -83,7 +79,6 @@ function mapProfileToEntry(
     id: profile.id,
     rank: profile.rank,
     previousRank: null,
-    // The leaderboard endpoint exposes user ids, not profile slugs.
     username: profile.id,
     displayName: name,
     avatarUrl: profile.avatarUrl,
@@ -114,8 +109,6 @@ function filterEntries(
   }: { country: string; severity: SeverityLabel | "all"; queryTerm: string }
 ) {
   return entries.filter((entry) => {
-    /* Compared on the resolved code so the filter keeps working against rows
-       that still hold a legacy name. */
     if (country !== "all" && countryKeyOf(entry.country) !== country) return false;
     if (severity !== "all" && entry.topSeverity !== severity) return false;
     if (
@@ -129,11 +122,6 @@ function filterEntries(
   });
 }
 
-/**
- * The grouping key for a stored country value: its code where we recognise
- * one, otherwise the text itself, so unrecognised values still group together
- * instead of collapsing into a single "Unknown" bucket.
- */
 function countryKeyOf(value: string | null | undefined): string {
   const resolved = resolveCountry(value);
   if (!resolved) return "unknown";
@@ -199,21 +187,10 @@ function highlightsOf(entries: LeaderboardEntry[]): LeaderboardHighlight[] {
   ];
 }
 
-/**
- * The window a ranking is measured over, as the API names it. Distinct from
- * the `LeaderboardPeriod` the full leaderboard screen uses for its own copy.
- */
 export const RANKING_PERIODS = ["DAY", "WEEK", "MONTH", "ALL_TIME"] as const;
 
 export type RankingPeriod = (typeof RANKING_PERIODS)[number];
 
-/**
- * One ranked researcher.
- *
- * On a windowed period the API counts reputation, recognitions and criticals
- * over that window and returns the lifetime totals as null — so those two are
- * nullable here, and a widget renders them as absent rather than as zero.
- */
 export interface TopResearcher {
   rank: number;
   id: string;
@@ -299,7 +276,6 @@ export const leaderboardApi = proxyApi.injectEndpoints({
             },
           };
         } catch {
-          // Return empty result when backend is unreachable
           return {
             data: {
               entries: [],
@@ -314,10 +290,6 @@ export const leaderboardApi = proxyApi.injectEndpoints({
       },
       providesTags: ["Leaderboard"],
     }),
-    /**
-     * The head of the ranking for one window — the sidebar on `/hacktivity`.
-     * Asks for the page it shows rather than the whole board.
-     */
     getTopResearchers: builder.query<
       TopResearcher[],
       { period: RankingPeriod; size?: number }

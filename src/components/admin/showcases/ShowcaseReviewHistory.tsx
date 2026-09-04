@@ -6,14 +6,6 @@ import { History } from "lucide-react";
 import { ReviewStatusBadge } from "@/components/admin/showcases/ShowcaseSubmissionBadges";
 import { useGetShowcaseReviewHistoryQuery } from "@/lib/redux/services/admin/showcaseReviewApi";
 
-/**
- * Past decisions on one showcase —
- * `GET /api/v1/admin/showcases/{id}/review-history`.
- *
- * A resubmission usually answers an earlier note, so what was already asked
- * for belongs beside the decision being made now.
- */
-
 function formatDateTime(iso?: string) {
   if (!iso) return "—";
   const date = new Date(iso);
@@ -41,8 +33,6 @@ export function ShowcaseReviewHistory({
 
   const entries = data?.content ?? [];
 
-  /* Silent when there is nothing to show: an empty panel beside the decision
-     buttons is noise, and a failed read must not imply a clean record. */
   if (isError || (!isLoading && entries.length === 0)) return null;
 
   return (

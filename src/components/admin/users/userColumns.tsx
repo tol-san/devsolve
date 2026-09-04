@@ -163,8 +163,6 @@ export function getUserColumns({
               </div>
               <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                 <span className="truncate">{user.email}</span>
-                {/* This list is already searchable by country; it just never
-                    showed one, so a match looked like a bug. */}
                 {user.country && (
                   <>
                     <span aria-hidden="true">·</span>

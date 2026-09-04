@@ -1,4 +1,3 @@
-/** Structural skeleton mirroring the loaded board — no spinners. */
 export default function LeaderboardSkeleton() {
   return (
     <div className="animate-pulse space-y-8" aria-hidden>

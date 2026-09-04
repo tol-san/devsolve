@@ -23,10 +23,6 @@ function buildIncidentsQueryString(params: GetSecurityIncidentsParams): string {
 
 export const securityIncidentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    /**
-     * Platform Admin — reads all security & malware incidents across the platform.
-     * Requires ADMIN platform role.
-     */
     getAdminSecurityIncidents: builder.query<
       SecurityIncidentsPage,
       GetSecurityIncidentsParams | void
@@ -47,10 +43,6 @@ export const securityIncidentsApi = baseApi.injectEndpoints({
           : [{ type: "SecurityIncident", id: "ADMIN_LIST" }],
     }),
 
-    /**
-     * Company — reads incidents blocked against the organization's bounty programs.
-     * Requires TRIAGE_REPORTS on that organization (or platform ADMIN).
-     */
     getOrgSecurityIncidents: builder.query<
       SecurityIncidentsPage,
       GetSecurityIncidentsParams & { orgId: string }

@@ -4,22 +4,12 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-/**
- * A program carries two independent statuses: where its submission stands with
- * an admin, and where the program itself stands in its own lifecycle. Both
- * read as the users dashboard's badge does — a neutral chip with one coloured
- * dot — so a row's colour comes from meaning rather than from decoration.
- */
-
 interface StatusConfig {
   label: string;
   dotColor: string;
 }
 
 const SUBMISSION_CONFIG: Record<string, StatusConfig> = {
-  // What a program carries before it is ever sent for review. Without an entry
-  // it fell through to the raw enum name below, so every unsubmitted draft in
-  // the list read "NOT_SUBMITTED".
   NOT_SUBMITTED: { label: "Not Submitted", dotColor: "bg-slate-400" },
   PENDING_REVIEW: { label: "Pending Review", dotColor: "bg-amber-500" },
   APPROVED: { label: "Approved", dotColor: "bg-emerald-500" },
@@ -45,7 +35,6 @@ function StatusChip({ config }: { config: StatusConfig }) {
   );
 }
 
-/** Where the submission stands with an admin. */
 export function ProgramReviewBadge({ status }: { status: string }) {
   const config = SUBMISSION_CONFIG[status] ?? {
     label: status,
@@ -54,7 +43,6 @@ export function ProgramReviewBadge({ status }: { status: string }) {
   return <StatusChip config={config} />;
 }
 
-/** Where the program stands in its own lifecycle. */
 export function ProgramStateBadge({ state }: { state: string }) {
   const config = STATE_CONFIG[state] ?? STATE_CONFIG.DRAFT;
   return <StatusChip config={config} />;

@@ -18,7 +18,6 @@ export interface TeamMember {
 export interface Technology {
   name: string;
   description: string;
-  /** Lucide icon name, resolved through the about page's icon map. */
   iconName: string;
 }
 

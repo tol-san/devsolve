@@ -10,11 +10,6 @@ interface ProfileHeaderProps {
   isPublicView?: boolean;
 }
 
-/**
- * Utility bar at the top of a profile: a back link, and nothing else.
- *
- * Pages that don't pass one render nothing rather than an empty row.
- */
 export default function ProfileHeader({ backHref }: ProfileHeaderProps) {
   if (!backHref) return null;
 

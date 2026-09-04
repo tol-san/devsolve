@@ -14,16 +14,9 @@ interface RequireAuthProps {
   children: React.ReactNode;
   title?: string;
   description?: string;
-  /** Where to return after signing in. Defaults to the current path. */
   redirectTo?: string;
 }
 
-/**
- * Wraps the content of a public route that still needs an account — the
- * create-post forms. `AuthGatedLink` covers the click that gets you here;
- * this covers the ways that skip it (a pasted URL, a bookmark, back/forward),
- * so the form is never rendered for someone who cannot submit it.
- */
 export function RequireAuth({
   children,
   title = "Sign in to post",

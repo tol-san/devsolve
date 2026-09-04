@@ -124,7 +124,6 @@ export function ReportSeverityAdjustmentForm({
 
   const initialSev = normalizeSeverity(detail?.severity || detail?.triageSeverity || detail?.reportedSeverity || undefined);
 
-  // Form State
   const [selectedSeverity, setSelectedSeverity] = useState<SeverityOption>(initialSev);
   const [bountyAmount, setBountyAmount] = useState<string>(
     SEVERITY_DEFAULTS[initialSev]?.bounty || "750"
@@ -137,7 +136,6 @@ export function ReportSeverityAdjustmentForm({
   const [improvementSuggestions, setImprovementSuggestions] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
-  // Sync state when detail data arrives from API
   useEffect(() => {
     if (detail?.severity) {
       const sev = normalizeSeverity(detail.severity);
@@ -151,17 +149,9 @@ export function ReportSeverityAdjustmentForm({
     }
   }, [detail?.severity, detail?.assessmentSummary]);
 
-  /* A disputed severity freezes triage until an administrator rules on it.
-     Read before anything is offered rather than discovered from the 409 it
-     would otherwise return, so nobody fills this form in for nothing. */
   const dispute = detail.dispute ?? null;
   const isBlockedByDispute = isDisputeBlocking(dispute);
-  /* Blocked, but by the researcher's pending answer rather than by an
-     administrator — a different hold, with different copy and no admin. */
   const isAwaitingReporterAnswer = isAwaitingReporter(dispute);
-  /* Settled by the reporter accepting, or by an administrator ruling. Final
-     on both sides — the sidebar hides the link here, and this guards the page
-     itself, which is still reachable by typing the address. */
   const isSeverityFinal = isDisputeSettled(dispute);
 
   const reportState = (
@@ -169,13 +159,9 @@ export function ReportSeverityAdjustmentForm({
     detail.status ||
     ""
   ).toUpperCase();
-  /* Already triaged as valid. The severity can still move — reputation is not
-     priced until the report is resolved — but "approve" is no longer what the
-     button does, so it stops saying so. */
   const isAlreadyConfirmed =
     reportState === "VALID_CONFIRMED" || reportState === "ACCEPTED";
 
-  // Dialog & Workflow State
   const searchParams = useSearchParams();
   const actionParam = searchParams?.get("action");
   const [showApprovalModal, setShowApprovalModal] = useState(false);
@@ -185,22 +171,16 @@ export function ReportSeverityAdjustmentForm({
   const [moreInfoQuestion, setMoreInfoQuestion] = useState("");
   const [duplicateOfId, setDuplicateOfId] = useState("");
   const [duplicateNote, setDuplicateNote] = useState("");
-  /* Triage may reclassify. Empty means "leave the weakness as filed", which
-     is different from clearing it — `TriageReportRequest` only ever sets. */
   const [reclassifiedWeaknessId, setReclassifiedWeaknessId] = useState("");
   const [approvalSuccess, setApprovalSuccess] = useState<boolean | null>(null);
   const [rejectionSuccess, setRejectionSuccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    /* `?action=reject` comes from the sidebar. Honouring it while a dispute
-       stands would open a dialog whose confirm is refused, so the banner
-       explains the hold instead. */
     if (actionParam === "reject" && !isBlockedByDispute) {
       setShowRejectModal(true);
     }
   }, [actionParam, isBlockedByDispute]);
 
-  // RTK Mutations
   const [approveReport, { isLoading: isApproving }] = useApproveReportMutation();
   const [rejectReport, { isLoading: isRejecting }] = useRejectReportMutation();
   const [requestMoreInfo, { isLoading: isAskingForInfo }] =
@@ -208,7 +188,6 @@ export function ReportSeverityAdjustmentForm({
   const [markDuplicate, { isLoading: isMarkingDuplicate }] =
     useMarkDuplicateMutation();
 
-  /** Asks the reporter for what triage is missing, and moves the state. */
   const handleRequestMoreInfo = async () => {
     if (isBlockedByDispute || !moreInfoQuestion.trim()) return;
     try {
@@ -227,7 +206,6 @@ export function ReportSeverityAdjustmentForm({
     }
   };
 
-  /** Closes this report against the one that got there first. */
   const handleMarkDuplicate = async () => {
     if (isBlockedByDispute) return;
     try {
@@ -334,11 +312,9 @@ export function ReportSeverityAdjustmentForm({
     }
   };
 
-  // Success State Card View (Executive Resolution Dashboard)
   if (approvalSuccess) {
     return (
       <Card className="rounded-3xl border border-emerald-500/30 bg-card p-4 sm:p-8 md:p-10 text-card-foreground shadow-2xl overflow-hidden relative min-w-0">
-        {/* Ambient Top Glow */}
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none" />
 
         <motion.div
@@ -347,12 +323,10 @@ export function ReportSeverityAdjustmentForm({
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="relative z-10 flex flex-col items-center text-center space-y-6 sm:space-y-7 min-w-0"
         >
-          {/* Animated Hero Badge */}
           <div className="flex size-16 sm:size-20 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-8 ring-emerald-500/10 shadow-lg shrink-0">
             <CheckCircle2 className="size-8 sm:size-10" />
           </div>
 
-          {/* Title & Tag Strip */}
           <div className="space-y-2.5 sm:space-y-3 max-w-2xl min-w-0">
             <div className="flex flex-wrap items-center justify-center gap-2">
               <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1 rounded-full shadow-xs">
@@ -383,8 +357,6 @@ export function ReportSeverityAdjustmentForm({
             </p>
           </div>
 
-
-          {/* 4-Column Executive Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 w-full text-left min-w-0">
             <div className="p-3.5 sm:p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
               <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
@@ -437,7 +409,6 @@ export function ReportSeverityAdjustmentForm({
             </div>
           </div>
 
-          {/* Audit & Workflow Breakdown Box */}
           <div className="w-full rounded-2xl border border-border bg-muted/30 p-4 sm:p-5 text-left space-y-3.5 min-w-0">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Automated Triage Actions Logged
@@ -468,7 +439,6 @@ export function ReportSeverityAdjustmentForm({
             )}
           </div>
 
-          {/* Action Toolbar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2 w-full">
             <Link href={`/dashboard/report-management/${detail.id}`} className="w-full sm:w-auto">
               <Button className="w-full sm:w-auto rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm h-10 px-5 cursor-pointer gap-2 shadow-xs justify-center">
@@ -572,9 +542,6 @@ export function ReportSeverityAdjustmentForm({
 
   return (
     <>
-      {/* Stated before the form, not after the submit: nothing below can be
-          acted on while the dispute stands, and only an administrator can
-          lift it — so this says who, not "try again". */}
       {isBlockedByDispute && dispute && (
         <div
           role="status"
@@ -594,10 +561,6 @@ export function ReportSeverityAdjustmentForm({
                 </span>
               </div>
 
-              {/* Two different holds. The reporter is asked first now, and
-                  no administrator is involved unless they refuse — saying one
-                  is deciding while the researcher has not answered describes
-                  a step that has not happened. */}
               {isAwaitingReporterAnswer ? (
                 <p className="text-sm leading-relaxed text-amber-900/90 dark:text-amber-200/90">
                   The researcher is confirming the severity you set. If they
@@ -619,8 +582,6 @@ export function ReportSeverityAdjustmentForm({
                 </p>
               )}
 
-              {/* Only written when the researcher refused, so it never shows
-                  while they are still being asked. */}
               {dispute.reason && !isAwaitingReporterAnswer && (
                 <p className="rounded-xl border border-amber-500/20 bg-background/60 p-3 text-sm leading-relaxed text-foreground">
                   <span className="font-semibold">
@@ -634,9 +595,6 @@ export function ReportSeverityAdjustmentForm({
         </div>
       )}
 
-      {/* Settled ratings are final on both sides. Stated here because the
-          page is reachable directly, not only through the link the sidebar
-          now hides. */}
       {isSeverityFinal && dispute && (
         <div className="mb-5 rounded-2xl border border-border bg-muted/40 p-4 sm:p-5">
           <div className="flex items-start gap-3">
@@ -680,7 +638,6 @@ export function ReportSeverityAdjustmentForm({
         </CardHeader>
 
         <CardContent className="flex flex-col gap-5 sm:gap-6 p-4 sm:p-6 pt-0 sm:pt-0 min-w-0">
-          {/* 1. Severity Rating Selector */}
           <FieldGroup className="min-w-0">
             <Field className="rounded-2xl border border-border bg-muted/40 p-4 sm:p-5 min-w-0">
               <FieldLabel className="text-foreground font-semibold text-sm sm:text-base">
@@ -724,7 +681,6 @@ export function ReportSeverityAdjustmentForm({
               </FieldContent>
             </Field>
 
-            {/* 2. Bounty Allocation (Money only) */}
             <div className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-5 min-w-0">
               <Field className="min-w-0">
                 <FieldLabel htmlFor="bounty-reward" className="text-foreground font-semibold text-sm sm:text-base flex items-center gap-1.5">
@@ -756,7 +712,6 @@ export function ReportSeverityAdjustmentForm({
               </Field>
             </div>
 
-            {/* 3. Internal Adjustment Explanation */}
             <Field className="min-w-0">
               <FieldLabel htmlFor="adjustment-explanation" className="text-foreground font-semibold text-sm sm:text-base">
                 Internal team explanation for adjustment
@@ -773,7 +728,6 @@ export function ReportSeverityAdjustmentForm({
             </Field>
           </FieldGroup>
 
-          {/* 4. Feedback to Researcher Box */}
           <div className="rounded-2xl sm:rounded-3xl border border-border bg-muted/40 p-4 sm:p-5 space-y-4 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-xs">
@@ -815,8 +769,6 @@ export function ReportSeverityAdjustmentForm({
                 </FieldContent>
               </Field>
 
-
-
               <Field className="min-w-0">
                 <FieldLabel htmlFor="improvement-suggestions" className="text-foreground font-semibold text-sm sm:text-base">
                   Suggestions for future reports (Optional)
@@ -834,7 +786,6 @@ export function ReportSeverityAdjustmentForm({
             </FieldGroup>
           </div>
 
-          {/* 5. Internal File Attachments */}
           <div className="rounded-2xl border border-dashed border-blue-500/30 bg-blue-500/5 p-4 sm:p-5 min-w-0">
             <div className="flex flex-col items-center justify-center gap-3 text-center min-w-0">
               <div className="flex size-12 items-center justify-center rounded-2xl bg-card text-blue-600 dark:text-blue-400 ring-1 ring-border shrink-0">
@@ -884,7 +835,6 @@ export function ReportSeverityAdjustmentForm({
             ) : null}
           </div>
 
-          {/* 6. Action Bar */}
           <div className="rounded-2xl border border-border bg-muted/40 p-4 sm:p-5 space-y-4 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-3 border-b border-border/60 min-w-0">
               <div className="flex flex-col gap-0.5 min-w-0">
@@ -920,9 +870,6 @@ export function ReportSeverityAdjustmentForm({
                 <span className="truncate">Reject Submission</span>
               </Button>
 
-              {/* A real state change rather than the mailto link this used to
-                  be: NEEDS_MORE_INFO moves the report, so the reporter sees
-                  it move and the question lands in the thread. */}
               <Button
                 type="button"
                 variant="outline"
@@ -939,8 +886,6 @@ export function ReportSeverityAdjustmentForm({
                 <span className="truncate">Needs more info</span>
               </Button>
 
-              {/* Distinct from a rejection: `duplicateOfId` names the report
-                  that got there first. */}
               <Button
                 type="button"
                 variant="outline"
@@ -982,7 +927,6 @@ export function ReportSeverityAdjustmentForm({
         </CardContent>
       </Card>
 
-      {/* 7. Approval Confirmation Modal */}
       <AnimatePresence>
         {showApprovalModal && (
           <div
@@ -1097,7 +1041,6 @@ export function ReportSeverityAdjustmentForm({
         )}
       </AnimatePresence>
 
-      {/* 8. Rejection Confirmation Modal */}
       <AnimatePresence>
         {showMoreInfoModal && (
           <div

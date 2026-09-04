@@ -24,13 +24,6 @@ import {
 
 type Filter = ResearcherAccessStatus | "ALL";
 
-/**
- * Where a researcher stands with every company they have approached.
- *
- * Reporting is gated on the company, once, for all of its programs — so this
- * is the list that answers "can I file this?" before the report form does, and
- * the only place a rejection or a revocation is ever explained.
- */
 export function MyAccessView() {
   const lp = useLocalePath();
 
@@ -82,8 +75,6 @@ export function MyAccessView() {
               value={status}
               onValueChange={(value) => {
                 setStatus(value as Filter);
-                /* A narrowed list is shorter than the one being paged
-                   through, so page 3 of the old one would land on nothing. */
                 setPage(0);
               }}
             >

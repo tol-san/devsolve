@@ -7,7 +7,6 @@ import { ArrowLeft, ShieldAlert, FileText } from "lucide-react";
 export const SubmitReportHeader: React.FC = () => {
   return (
     <div className="space-y-4">
-      {/* Back Navigation */}
       <nav aria-label="Back Navigation">
         <Link
           href="/dashboard/my-reports"
@@ -18,7 +17,6 @@ export const SubmitReportHeader: React.FC = () => {
         </Link>
       </nav>
 
-      {/* Header Info */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -31,7 +29,6 @@ export const SubmitReportHeader: React.FC = () => {
           </p>
         </div>
 
-        {/* Ethical Policy Note */}
         <div className="flex items-center gap-2.5 p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 text-xs font-medium text-blue-800 dark:text-blue-300 max-w-sm shrink-0">
           <ShieldAlert className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400" />
           <span>

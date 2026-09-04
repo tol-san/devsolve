@@ -1,28 +1,3 @@
-/**
- * Every region ISO 3166-1 alpha-2 gives us, as a static table.
- *
- * Shipped with the frontend rather than fetched: it changes a few times a
- * decade, it is needed during the first paint of the register form, and a
- * network round trip to learn that Cambodia is `kh` is a round trip that can
- * fail. There is deliberately no country endpoint to call.
- *
- * Generated from `Intl.DisplayNames` (CLDR), so these spellings match what
- * `countryName()` derives at render time on a modern browser — "St. Kitts &
- * Nevis", not "Saint Kitts and Nevis". Keys are **lowercase**: that is the
- * casing we store and the casing flagcdn expects in a URL.
- *
- * A handful are not sovereign countries — `un` (United Nations), `eu`, `ta`
- * (Tristan da Cunha), `um` (U.S. Outlying Islands), `xk` (Kosovo). They stay
- * because they are real places or bodies with real flags, the backend accepts
- * free text and may already hold them, and dropping a code we can name would
- * leave it rendering as an opaque string. Not all have a flag image —
- * `CountryFlag` handles that, not this table.
- *
- * What CLDR offers and this does **not** keep: `zz` ("Unknown Region"), `qo`
- * ("Outlying Oceania"), `ez` ("Eurozone") and the `xa`/`xb` pseudo-locales
- * used to test translations. None of them is somewhere a person can be, so
- * offering one to pick — or reading one back as a country — is meaningless.
- */
 export const COUNTRY_NAMES: Readonly<Record<string, string>> = {
   af: "Afghanistan",
   ax: "Åland Islands",
@@ -301,15 +276,6 @@ export const COUNTRY_NAMES: Readonly<Record<string, string>> = {
   zw: "Zimbabwe",
 };
 
-/**
- * Codes CLDR still names but that no country is issued today — Zaire, the
- * USSR, Upper Volta, East Germany, Burma, informal `uk`.
- *
- * They stay in `COUNTRY_NAMES` so a legacy value reads as a country rather
- * than as an opaque string, but they are kept out of the picker: each one
- * duplicates a name already in the list ("Vietnam" twice, "Serbia" three
- * times), and offering them would let someone store `su` for Russia.
- */
 const SUPERSEDED_CODES = new Set([
   "an", // Netherlands Antilles -> Curaçao
   "bu", // Burma -> Myanmar
@@ -329,10 +295,6 @@ const SUPERSEDED_CODES = new Set([
   "zr", // Zaire -> Congo - Kinshasa
 ]);
 
-/**
- * The picker's options: one entry per country, pre-sorted by name so no caller
- * has to sort. Superseded codes are readable but not selectable.
- */
 export const COUNTRY_OPTIONS: ReadonlyArray<{ code: string; name: string }> =
   Object.entries(COUNTRY_NAMES)
     .filter(([code]) => !SUPERSEDED_CODES.has(code))

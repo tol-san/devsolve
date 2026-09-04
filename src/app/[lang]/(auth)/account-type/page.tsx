@@ -30,16 +30,11 @@ const cardVariants: Variants = {
   },
 };
 
-
-
 export default function AccountTypeSelectionPage() {
   const { isLoggingIn, handleLogin } = useKeycloakLogin();
 
-  /* The backdrop is the auth layout's; this shell stays transparent so it
-     shows through. */
   return (
     <div className="relative flex min-h-dvh flex-col text-foreground selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-500/30 dark:selection:text-blue-50">
-      {/* ── Top bar ── */}
       <motion.header
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -76,7 +71,6 @@ export default function AccountTypeSelectionPage() {
         </div>
       </motion.header>
 
-      {/* ── Main ── */}
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 14 }}
@@ -119,7 +113,6 @@ export default function AccountTypeSelectionPage() {
             variants={cardVariants}
           />
         </motion.div>
-
 
       </main>
     </div>

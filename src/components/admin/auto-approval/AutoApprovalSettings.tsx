@@ -37,13 +37,9 @@ import {
 } from "@/lib/redux/services/admin/autoApprovalApi";
 import { cn } from "@/lib/utils";
 
-/**
- * Parses server-local ISO strings (e.g. "2026-09-03T17:04:11") without UTC shifting.
- */
 function formatServerLocalDateTime(iso?: string | null): string {
   if (!iso) return "—";
 
-  // If no timezone is present, treat as local time by splitting parts
   try {
     const parts = iso.split(/[-T:]/);
     if (parts.length >= 5) {
@@ -106,16 +102,13 @@ export function AutoApprovalSettings() {
   const [updateRule, { isLoading: isUpdating }] =
     useUpdateAutoApprovalRuleMutation();
 
-  // Target currently waiting for confirmation to turn ON
   const [confirmingTarget, setConfirmingTarget] =
     useState<AutoApprovalTarget | null>(null);
 
   const handleToggle = async (target: AutoApprovalTarget, currentlyEnabled: boolean) => {
     if (!currentlyEnabled) {
-      // Prompt requirement: confirm strictly on turning ON
       setConfirmingTarget(target);
     } else {
-      // Turning OFF: immediate update without confirmation dialog
       try {
         await updateRule({ target, enabled: false }).unwrap();
         toast.success(`Auto-approval disabled for ${TARGET_CONFIG[target].title}.`);
@@ -212,7 +205,6 @@ export function AutoApprovalSettings() {
     );
   }
 
-  // Ensure both targets exist in order
   const displayRules: AutoApprovalRule[] = [
     rules.find((r) => r.target === "PROBLEM") || {
       target: "PROBLEM",
@@ -232,7 +224,6 @@ export function AutoApprovalSettings() {
 
   return (
     <div className="space-y-6">
-      {/* ── Explanatory Risk Control Banner ── */}
       <div className="relative overflow-hidden rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-50/70 via-indigo-50/50 to-purple-50/60 p-5 dark:border-blue-500/20 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-purple-950/20">
         <div className="flex items-start gap-4">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs">
@@ -255,17 +246,11 @@ export function AutoApprovalSettings() {
         </div>
       </div>
 
-      {/* ── Kind Configuration Rows ── */}
       <div className="grid grid-cols-1 gap-5">
         {displayRules.map((rule) => {
           const config = TARGET_CONFIG[rule.target];
           const Icon = config.icon;
 
-          // Matrix:
-          // enabled && available: Switch ON, working.
-          // enabled && !available: Switch ON, but nothing is running — warn next to it.
-          // !enabled && available: Switch OFF. Normal.
-          // !enabled && !available: Switch OFF and disabled, tooltip "No review model configured".
           const isSwitchDisabled = !rule.available && !rule.enabled;
 
           return (
@@ -279,7 +264,6 @@ export function AutoApprovalSettings() {
             >
               <CardContent className="p-5 sm:p-6">
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                  {/* Left: Icon & Meta */}
                   <div className="flex items-start gap-4">
                     <div
                       className={cn(
@@ -300,7 +284,6 @@ export function AutoApprovalSettings() {
                           {config.title}
                         </h3>
 
-                        {/* Status Badge according to matrix */}
                         {rule.enabled && rule.available && (
                           <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 flex items-center gap-1.5 font-semibold text-xs">
                             <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -336,7 +319,6 @@ export function AutoApprovalSettings() {
                         {config.description}
                       </p>
 
-                      {/* Audit stamp: "last changed by X at Y" */}
                       <div className="pt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground font-medium">
                         {rule.updatedBy || rule.updatedAt ? (
                           <span className="flex items-center gap-1.5">
@@ -361,14 +343,12 @@ export function AutoApprovalSettings() {
                     </div>
                   </div>
 
-                  {/* Right: Switch & Warnings */}
                   <div className="flex sm:flex-col items-center sm:items-end justify-between gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-border">
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-foreground sm:hidden">
                         {rule.enabled ? (rule.available ? "Enabled" : "Enabled (Inactive)") : "Disabled"}
                       </span>
 
-                      {/* When enabled but unavailable, show warning label so switch doesn't look like active automation */}
                       {rule.enabled && !rule.available && (
                         <span className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
                           <AlertTriangle className="size-3.5" aria-hidden="true" />
@@ -408,7 +388,6 @@ export function AutoApprovalSettings() {
                   </div>
                 </div>
 
-                {/* Prominent warning banner when switch is ON but model is unavailable */}
                 {rule.enabled && !rule.available && (
                   <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-900 dark:text-amber-200">
                     <AlertTriangle className="size-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
@@ -423,7 +402,6 @@ export function AutoApprovalSettings() {
         })}
       </div>
 
-      {/* ── Confirmation Modal: Strictly on Turning ON ── */}
       <Dialog
         open={confirmingTarget !== null}
         onOpenChange={(open) => {

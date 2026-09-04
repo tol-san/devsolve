@@ -52,23 +52,12 @@ type SubmitRetestModalProps = {
   onOpenChange: (open: boolean) => void;
   reportId: string;
   reportTitle: string;
-  /** The open attempt, which carries the deadline, target and any bonus. */
   attempt: RetestSummary | null;
-  /** Everything already attached to this report — the only ids the API takes. */
   attachments?: RetestAttachmentOption[];
   initialVerdict?: RetestVerdict;
   onSuccess?: () => void;
 };
 
-/**
- * The researcher's answer to a retest.
- *
- * Two verdicts and nothing else: there is no accept or decline step upstream,
- * so this never offers one. Evidence is chosen from the attachments already on
- * the report, because `attachmentIds` is validated against exactly that set —
- * a report in `RETESTING` is still attachment-editable, so a new file can be
- * uploaded here first and is then selectable like the rest.
- */
 export function SubmitRetestModal({
   isOpen,
   onOpenChange,
@@ -87,9 +76,6 @@ export function SubmitRetestModal({
   const [submitRetest, { isLoading: isSubmitting }] = useSubmitRetestMutation();
   const [uploadAttachment] = useUploadReportAttachmentMutation();
 
-  /* Reset as the dialog opens, adjusting state during render rather than in
-     an effect: the verdict the opener picked is a prop, and reconciling it
-     after a paint would flash the previous answer. */
   const [wasOpen, setWasOpen] = useState(isOpen);
   if (isOpen !== wasOpen) {
     setWasOpen(isOpen);
@@ -99,8 +85,6 @@ export function SubmitRetestModal({
     }
   }
 
-  /* Only attachments the backend can resolve to an id are offerable — one
-     without an id would come back as "Attachment ... is not on this report". */
   const selectable = useMemo(
     () =>
       attachments.filter(
@@ -134,8 +118,6 @@ export function SubmitRetestModal({
 
       const newId = uploaded?.id || uploaded?.attachmentId;
       if (newId) {
-        /* Selected straight away: it was uploaded to be submitted. The list
-           itself refreshes from the report the upload invalidated. */
         setSelectedIds((current) => [...current, newId]);
       }
       toast.success("Evidence uploaded", { description: file.name });
@@ -175,8 +157,6 @@ export function SubmitRetestModal({
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      /* A non-reporter gets a 404, deliberately: the report's existence is not
-         public, so it is reported as not found rather than as forbidden. */
       const status = apiErrorStatus(error);
       toast.error(
         status === 404 ? "Report not found" : "Verdict could not be submitted",
@@ -220,7 +200,6 @@ export function SubmitRetestModal({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* What was asked for, and by when */}
           <div className="rounded-xl border border-border bg-muted/40 p-3 sm:p-3.5 space-y-2 text-sm">
             <p className="font-semibold text-foreground break-words">
               {reportTitle}
@@ -261,7 +240,6 @@ export function SubmitRetestModal({
             </div>
           </div>
 
-          {/* Verdict */}
           <div className="space-y-2">
             <span className="text-sm font-semibold text-foreground">
               Your verdict
@@ -313,7 +291,6 @@ export function SubmitRetestModal({
             </div>
           </div>
 
-          {/* Notes */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label
@@ -344,7 +321,6 @@ export function SubmitRetestModal({
             />
           </div>
 
-          {/* Evidence: this report's attachments, plus anything added now */}
           <div className="space-y-2">
             <span className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Paperclip className="size-4 text-muted-foreground" />

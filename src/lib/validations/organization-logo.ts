@@ -1,4 +1,3 @@
-/** Shared browser/server constraints for organization logo uploads. */
 export const ORGANIZATION_LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
 export const ORGANIZATION_LOGO_ACCEPTED = [

@@ -15,14 +15,6 @@ const STATUS_ICON = {
   REVOKED: MinusCircle,
 } as const;
 
-/**
- * One access state, said the same way everywhere it appears — the report form,
- * the researcher's own list and the company's queue all read from the same
- * table, so a colour never means two different things.
- *
- * `null` is a state as well: no record at all, which is where every researcher
- * starts and is not the same as having been turned down.
- */
 export function ResearcherAccessBadge({
   status,
   className,

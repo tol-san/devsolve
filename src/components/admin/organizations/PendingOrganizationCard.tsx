@@ -40,19 +40,16 @@ export const PendingOrganizationCard: React.FC<PendingOrganizationCardProps> = (
         className="block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-2xs hover:shadow-xs hover:border-blue-300 dark:hover:border-blue-800 transition-all duration-200 group cursor-pointer"
       >
         <div className="flex items-center justify-between gap-4">
-          {/* LEFT: avatar + metadata */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/50 font-bold text-base group-hover:scale-105 transition-transform">
               {initial}
             </div>
 
             <div className="space-y-1.5 flex-1 min-w-0">
-              {/* Name + badges row */}
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {item.name}
                 </h3>
-                {/* Status badge — always PENDING from this endpoint */}
                 <Badge className="text-xs font-semibold rounded-lg px-2 py-0.5 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                   PENDING
                 </Badge>
@@ -66,7 +63,6 @@ export const PendingOrganizationCard: React.FC<PendingOrganizationCardProps> = (
                 )}
               </div>
 
-              {/* Meta row */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                 {item.websiteUrl && (
                   <span className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
@@ -98,7 +94,6 @@ export const PendingOrganizationCard: React.FC<PendingOrganizationCardProps> = (
                 )}
               </div>
 
-              {/* Country + company size */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                 {item.country && (
                   <CountryDisplay
@@ -119,7 +114,6 @@ export const PendingOrganizationCard: React.FC<PendingOrganizationCardProps> = (
             </div>
           </div>
 
-          {/* RIGHT: Chevron icon */}
           <div className="shrink-0 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all">
             <ChevronRight className="w-5 h-5" />
           </div>

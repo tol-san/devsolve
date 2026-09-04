@@ -32,7 +32,6 @@ type ReportTimelineProps = {
   className?: string;
 };
 
-/** How each state reads, rather than as the constant the API sends. */
 const STATE_LABEL: Record<ReportActivityState, string> = {
   NEW: "New",
   TRIAGING: "Triaging",
@@ -52,13 +51,6 @@ const SEVERITY_TONE: Record<ReportActivitySeverity, string> = {
   NONE: "border-border bg-muted text-muted-foreground",
 };
 
-/**
- * The glyph and headline for an entry.
- *
- * Falls through to a neutral entry for a type this build has never heard of —
- * more will be added, and an unrecognised one still describes something that
- * happened to the report.
- */
 function presentationFor(activity: ReportActivity): {
   Icon: typeof Activity;
   tone: string;
@@ -114,7 +106,6 @@ function presentationFor(activity: ReportActivity): {
         headline: "Disclosure status changed",
       };
     default:
-      /* A type added after this build shipped. Shown, not swallowed. */
       return {
         Icon: Award,
         tone: "border-border text-muted-foreground bg-muted",
@@ -123,17 +114,6 @@ function presentationFor(activity: ReportActivity): {
   }
 }
 
-/**
- * Everything that has happened to a report, oldest first.
- *
- * This is the record both sides argue from when a severity is disputed, so it
- * is deliberately literal: every entry the API returns is rendered, including
- * types this build does not recognise, and nothing is inferred that the API
- * did not say.
- *
- * An empty timeline is a normal answer, not a failure — it only records what
- * happened after the feature shipped, so older reports genuinely have none.
- */
 export function ReportTimeline({
   activities,
   isLoading,
@@ -178,8 +158,6 @@ export function ReportTimeline({
             This report&apos;s activity could not be loaded.
           </p>
         ) : activities.length === 0 ? (
-          /* Not an error and not a spinner: reports filed before the timeline
-             existed have nothing recorded, which is worth saying plainly. */
           <p className="py-6 text-center text-sm text-muted-foreground">
             No recorded activity.
           </p>
@@ -187,9 +165,6 @@ export function ReportTimeline({
           <ol className="space-y-3">
             {activities.map((activity, index) => {
               const { Icon, tone, headline } = presentationFor(activity);
-              /* The transition is drawn from the states being present, not
-                 from the type — so a future type that moves the report still
-                 shows its move without this file being updated. */
               const hasTransition = Boolean(activity.fromState || activity.toState);
               const isSystem = activity.actor === null;
 
@@ -221,8 +196,6 @@ export function ReportTimeline({
                     </div>
 
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                      {/* A null actor is the platform acting, which is a fact.
-                          It is never rendered as an unknown person. */}
                       <span
                         className={cn(
                           "inline-flex items-center gap-1.5 text-sm font-medium",
@@ -274,8 +247,6 @@ export function ReportTimeline({
                       )}
                     </div>
 
-                    {/* Written by the platform, so it is plain text — and it
-                        is not the discussion, which lives in the comments. */}
                     {activity.detail && (
                       <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                         {activity.detail}

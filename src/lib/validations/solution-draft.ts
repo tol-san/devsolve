@@ -18,11 +18,6 @@ export const solutionResourceDraftSchema = z.object({
   displayOrder: z.number().int().optional(),
 });
 
-/**
- * Mirrors the backend `SaveSolutionDraftRequest`.
- *
- * Every field is optional so drafts can be saved mid-sentence during typing.
- */
 export const saveSolutionDraftSchema = z.object({
   summary: z.string().max(250).optional(),
   bodyMarkdown: z.string().max(30_000).optional(),
@@ -35,7 +30,6 @@ export const saveSolutionDraftSchema = z.object({
 
 export type SaveSolutionDraftValues = z.output<typeof saveSolutionDraftSchema>;
 
-/** Mirrors `SolutionDraftResponse`. */
 export interface SolutionDraftResponse extends SaveSolutionDraftValues {
   id: string;
   authorId?: string;

@@ -26,9 +26,6 @@ interface ThankResearcherDialogProps {
   size?: "default" | "sm" | "lg" | "icon";
 }
 
-/**
- * Maps upstream recognition API errors into clear, actionable UI messages.
- */
 function mapRecognitionError(err: any): { message: string; isAlreadyThanked: boolean } {
   const status = err?.status || err?.data?.code || err?.data?.status;
   const rawMsg = (err?.data?.message || err?.message || "").toLowerCase();
@@ -131,7 +128,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
       const warnings: string[] = [];
       let alreadyThankedEncountered = false;
 
-      // 1. Award Public Hall of Fame Recognition (POST /api/v1/recognitions)
       if (awardHallOfFame) {
         try {
           await awardRecognition({
@@ -156,7 +152,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
         }
       }
 
-      // 2. Optional Bonus Bounty Payout (POST /api/v1/reports/{id}/rewards)
       const numericBonus = parseFloat(bonusBounty.replace(/[^0-9.]/g, ""));
       if (!isNaN(numericBonus) && numericBonus > 0) {
         try {
@@ -172,7 +167,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
         }
       }
 
-      // 3. Post Public Thank-You Comment in report thread (POST /api/v1/comments)
       if (postAsComment && note) {
         try {
           await createComment({
@@ -183,7 +177,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
           }).unwrap();
           successes.push("Thank-you comment posted");
         } catch (commErr: any) {
-          // If already posted (409 Conflict), treat as satisfied
           if (commErr?.status === 409 || commErr?.data?.code === 409) {
             console.warn("Comment already exists in thread, skipping duplicate.");
           } else {
@@ -261,7 +254,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
               className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Clean Minimalist Header */}
               <div className="flex items-center justify-between border-b border-border bg-card px-6 py-4 shrink-0">
                 <div className="min-w-0">
                   <h3 className="font-bold text-base text-foreground tracking-tight">
@@ -282,10 +274,8 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
                 </Button>
               </div>
 
-              {/* Form Content */}
               <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-y-auto">
                 <div className="p-6 space-y-4 text-xs sm:text-sm leading-relaxed overflow-y-auto min-w-0">
-                  {/* Recipient Information Row */}
                   <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-muted/30 text-xs">
                     <span className="text-muted-foreground">
                       Recipient: <strong className="text-foreground font-semibold">{submitterName}</strong>
@@ -297,7 +287,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
                     )}
                   </div>
 
-                  {/* 1. Message of Gratitude */}
                   <div className="space-y-1.5">
                     <label htmlFor="modal-thank-you" className="font-semibold text-foreground text-xs sm:text-sm">
                       Message of Gratitude
@@ -323,7 +312,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
                     </div>
                   </div>
 
-                  {/* 2. Hall of Fame Recognition */}
                   <div className="rounded-xl border border-border bg-muted/20 p-3.5 flex items-start justify-between gap-3 min-w-0">
                     <div className="space-y-0.5 min-w-0">
                       <label htmlFor="modal-hall-of-fame" className="text-xs sm:text-sm font-semibold text-foreground cursor-pointer select-none block">
@@ -342,7 +330,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
                     />
                   </div>
 
-                  {/* 3. Optional Bonus Bounty */}
                   <div className="space-y-1.5">
                     <label htmlFor="modal-bonus-bounty" className="font-semibold text-foreground text-xs sm:text-sm">
                       Optional Bonus Bounty ($ USD)
@@ -363,7 +350,6 @@ export const ThankResearcherDialog: React.FC<ThankResearcherDialogProps> = ({
                   </div>
                 </div>
 
-                {/* Footer Buttons */}
                 <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 border-t border-border bg-card px-6 py-3.5 shrink-0">
                   <Button
                     type="button"

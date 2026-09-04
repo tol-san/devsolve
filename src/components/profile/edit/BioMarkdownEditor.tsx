@@ -35,7 +35,6 @@ export default function BioMarkdownEditor({
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Helper to insert markdown syntax at cursor or wrap selected text
   const insertSyntax = (before: string, after: string = "", defaultPlaceholder = "text") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -86,7 +85,6 @@ export default function BioMarkdownEditor({
           </p>
         </div>
 
-        {/* Character Counter Meter */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <div className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-mono font-medium">
             <span
@@ -106,11 +104,8 @@ export default function BioMarkdownEditor({
         </div>
       </div>
 
-      {/* Editor Container */}
       <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-xs transition focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20">
-        {/* Top Action & Mode Bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2">
-          {/* Write / Preview Tab Switcher */}
           <div className="flex items-center gap-1 rounded-xl bg-muted/80 p-1">
             <button
               type="button"
@@ -140,7 +135,6 @@ export default function BioMarkdownEditor({
             </button>
           </div>
 
-          {/* Quick Formatting Toolbar (Enabled in Write Mode) */}
           {activeTab === "write" && (
             <div className="flex items-center gap-1">
               <Button
@@ -207,7 +201,6 @@ export default function BioMarkdownEditor({
           )}
         </div>
 
-        {/* Content Box */}
         <div className="p-4 bg-background">
           {activeTab === "write" ? (
             <textarea
@@ -240,7 +233,6 @@ export default function BioMarkdownEditor({
           )}
         </div>
 
-        {/* Bottom Helper Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-border bg-muted/30 px-3.5 sm:px-4 py-2 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="whitespace-nowrap shrink-0 font-medium text-muted-foreground/80">

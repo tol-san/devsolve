@@ -22,8 +22,6 @@ export function CreateProgramPreview({
   activeInScope,
   getRewardRange,
 }: CreateProgramPreviewProps) {
-  /* The membership, not `/organizations/me`: a member creating a program has
-     no access to the organization's own record. */
   const { membership } = useCompanyAccess();
   const organization = membership
     ? {
@@ -54,10 +52,8 @@ export function CreateProgramPreview({
       </div>
 
       <div className="bg-card text-card-foreground rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 sm:p-6 shadow-xs space-y-5">
-        {/* Header: Logo, Org Name, Badge & Bookmark */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            {/* Real Logo / Initials */}
             <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center border border-border shrink-0 overflow-hidden text-muted-foreground shadow-xs">
               {logoUrl ? (
                 <Image
@@ -102,7 +98,6 @@ export function CreateProgramPreview({
           </div>
         </div>
 
-        {/* Program Title & Short Description */}
         <div className="space-y-1.5">
           <h3 className="text-lg font-bold text-foreground leading-snug">
             {programName || "Program Name Security"}
@@ -113,7 +108,6 @@ export function CreateProgramPreview({
           </p>
         </div>
 
-        {/* In-Scope Assets Pills */}
         <div className="space-y-1.5">
           <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
             IN-SCOPE ASSETS
@@ -142,7 +136,6 @@ export function CreateProgramPreview({
           </div>
         </div>
 
-        {/* Footer / Rewards & Action */}
         <div className="pt-3 border-t border-border flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-muted-foreground block">

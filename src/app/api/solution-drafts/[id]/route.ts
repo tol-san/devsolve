@@ -19,7 +19,6 @@ const unreachable = () =>
 const badId = () =>
   NextResponse.json({ message: "Invalid draft id" }, { status: 400 });
 
-/** `GET /api/solution-drafts/{id}` — fetch a solution draft by id. */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -38,7 +37,6 @@ export async function GET(
   }
 }
 
-/** `PUT /api/solution-drafts/{id}` — overwrite an existing solution draft. */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -81,7 +79,6 @@ export async function PUT(
   }
 }
 
-/** `DELETE /api/solution-drafts/{id}` — discard a solution draft. */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

@@ -8,10 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/votes/mine — proxy for backend's /api/v1/votes/mine.
- * Returns paginated user votes.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

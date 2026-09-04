@@ -59,8 +59,6 @@ export function OrganizationDataTable<TData, TValue>({
 }: OrganizationDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // TanStack Table intentionally returns callable table helpers; React Compiler
-  // skips memoizing this component because those helpers cannot be made stable.
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
@@ -78,7 +76,6 @@ export function OrganizationDataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Table Container */}
       <div className="bg-card text-card-foreground rounded-2xl border border-border overflow-hidden shadow-xs">
         <Table>
           <TableHeader>
@@ -143,7 +140,6 @@ export function OrganizationDataTable<TData, TValue>({
           </TableBody>
         </Table>
 
-        {/* Pagination Footer */}
         {data.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-muted/40 border-t border-border">
             <div className="flex flex-wrap items-center gap-4">

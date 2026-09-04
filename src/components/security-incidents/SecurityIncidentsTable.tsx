@@ -100,27 +100,23 @@ export function SecurityIncidentsTable({
   orgId = "",
   className,
 }: SecurityIncidentsTableProps) {
-  // Search & Filter State
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [verdictFilter, setVerdictFilter] = useState<"ALL" | MalwareVerdict>("ALL");
   const [sortColumn, setSortColumn] = useState<IncidentSortColumn>("blockedAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("DESC");
-  const [currentPage, setCurrentPage] = useState(0); // 0-based
+  const [currentPage, setCurrentPage] = useState(0); 
   const [pageSize, setPageSize] = useState(20);
 
-  // Selected incident for modal inspection
   const [selectedIncident, setSelectedIncident] = useState<SecurityIncident | null>(null);
   const [copiedHashId, setCopiedHashId] = useState<string | null>(null);
 
-  // Moderate target user for Admin actions
   const [moderateTarget, setModerateTarget] = useState<{
     user: MalwareUploader;
     filename?: string;
     actionType?: ModerationActionType;
   } | null>(null);
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchInput.trim());
@@ -131,7 +127,6 @@ export function SecurityIncidentsTable({
 
   const sortParam = `${sortColumn},${sortDirection}` as const;
 
-  // RTK Query: conditionally call admin vs org endpoint
   const adminQuery = useGetAdminSecurityIncidentsQuery(
     {
       search: debouncedSearch || undefined,
@@ -158,7 +153,6 @@ export function SecurityIncidentsTable({
   const activeQuery = scope === "admin" ? adminQuery : orgQuery;
   const { data, isLoading, isFetching, isError, error, refetch } = activeQuery;
 
-  // Fetch admin users to cross-reference real-time live account statuses (Active, Suspended, Removed, etc.)
   const { data: adminUsersData, refetch: refetchAdminUsers } = useGetAdminUsersQuery(
     { pageSize: 100 },
     { skip: scope !== "admin" }
@@ -181,7 +175,6 @@ export function SecurityIncidentsTable({
   const totalElements = data?.totalElements ?? 0;
   const totalPages = data?.totalPages ?? 0;
 
-  // Handle Sort Click (Strict allow-list)
   const handleSort = (column: IncidentSortColumn) => {
     if (sortColumn === column) {
       setSortDirection((prev) => (prev === "DESC" ? "ASC" : "DESC"));
@@ -213,7 +206,6 @@ export function SecurityIncidentsTable({
     setCurrentPage(0);
   };
 
-  // Check for 403 permission error
   const isForbidden =
     isError &&
     typeof error === "object" &&
@@ -229,9 +221,7 @@ export function SecurityIncidentsTable({
 
   return (
     <div className={cn("space-y-5 w-full", className)}>
-      {/* Top Filter & Search Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-card/80 backdrop-blur-sm p-4 rounded-2xl border border-border ring-1 ring-foreground/5 shadow-xs">
-        {/* Search Bar */}
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
@@ -251,9 +241,7 @@ export function SecurityIncidentsTable({
           )}
         </div>
 
-        {/* Verdict Tabs & Actions */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Verdict Filter Pill Selector */}
           <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-muted/60 border border-border text-sm">
             <button
               type="button"
@@ -304,7 +292,6 @@ export function SecurityIncidentsTable({
             </button>
           </div>
 
-          {/* Rows Per Page Selector */}
           <Select
             value={String(pageSize)}
             onValueChange={(val) => {
@@ -323,7 +310,6 @@ export function SecurityIncidentsTable({
             </SelectContent>
           </Select>
 
-          {/* Refresh Button */}
           <Button
             type="button"
             variant="outline"
@@ -338,7 +324,6 @@ export function SecurityIncidentsTable({
         </div>
       </div>
 
-      {/* 403 Forbidden State */}
       {isForbidden && (
         <Card className="p-8 rounded-2xl border-amber-500/30 bg-amber-500/5 text-center space-y-3">
           <div className="flex size-12 mx-auto items-center justify-center rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
@@ -353,7 +338,6 @@ export function SecurityIncidentsTable({
         </Card>
       )}
 
-      {/* Table Container */}
       {!isForbidden && (
         <div className="rounded-2xl border border-border bg-card ring-1 ring-foreground/5 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
@@ -432,7 +416,6 @@ export function SecurityIncidentsTable({
               </thead>
 
               <tbody className="divide-y divide-border">
-                {/* Loading Skeletons */}
                 {isLoading &&
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="animate-pulse">
@@ -471,7 +454,6 @@ export function SecurityIncidentsTable({
                     </tr>
                   ))}
 
-                {/* Empty State */}
                 {!isLoading && incidents.length === 0 && (
                   <tr>
                     <td
@@ -497,7 +479,6 @@ export function SecurityIncidentsTable({
                   </tr>
                 )}
 
-                {/* Incident Rows */}
                 {!isLoading &&
                   incidents.map((item) => {
                     const isMalicious = item.verdict === "MALICIOUS";
@@ -517,7 +498,6 @@ export function SecurityIncidentsTable({
                         onClick={() => setSelectedIncident(item)}
                         className="group hover:bg-muted/40 transition-colors cursor-pointer"
                       >
-                        {/* Verdict Badge */}
                         <td className="py-4 px-4 sm:px-5 whitespace-nowrap">
                           <span
                             className={cn(
@@ -537,7 +517,6 @@ export function SecurityIncidentsTable({
                           </span>
                         </td>
 
-                        {/* File Name, Size & Hash */}
                         <td className="py-4 px-4 sm:px-5 min-w-[220px]">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
@@ -557,7 +536,6 @@ export function SecurityIncidentsTable({
                               </span>
                             </div>
 
-                            {/* Truncated SHA-256 & Copy */}
                             <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
                               <span className="text-muted-foreground/70">SHA-256:</span>
                               <span className="text-foreground/80">{truncatedHash}</span>
@@ -587,7 +565,6 @@ export function SecurityIncidentsTable({
                           </div>
                         </td>
 
-                        {/* VT Detections */}
                         <td className="py-4 px-4 sm:px-5 whitespace-nowrap">
                           <div className="space-y-1.5">
                             <div className="flex items-baseline gap-1.5 text-sm sm:text-base">
@@ -618,7 +595,6 @@ export function SecurityIncidentsTable({
                           </div>
                         </td>
 
-                        {/* Researcher */}
                         {(() => {
                           const uploaderStatus =
                             item.uploader.status ||
@@ -651,7 +627,6 @@ export function SecurityIncidentsTable({
                                     </span>
                                   )}
 
-                                  {/* Status badge */}
                                   {item.uploader.id && (
                                     <UserStatusBadge status={uploaderStatus} size="xs" />
                                   )}
@@ -666,7 +641,6 @@ export function SecurityIncidentsTable({
                           );
                         })()}
 
-                        {/* Target Scope (Admin only) */}
                         {scope === "admin" && (
                           <td className="py-4 px-4 sm:px-5 whitespace-nowrap">
                             {item.organization ? (
@@ -681,7 +655,6 @@ export function SecurityIncidentsTable({
                           </td>
                         )}
 
-                        {/* Associated Report */}
                         <td className="py-4 px-4 sm:px-5 whitespace-nowrap">
                           {item.reportId ? (
                             <Link
@@ -697,12 +670,10 @@ export function SecurityIncidentsTable({
                           )}
                         </td>
 
-                        {/* Blocked Date */}
                         <td className="py-4 px-4 sm:px-5 whitespace-nowrap text-sm text-muted-foreground tabular-nums">
                           {formatDate(item.blockedAt)}
                         </td>
 
-                        {/* Action */}
                         <td className="py-4 px-4 sm:px-5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             <Button
@@ -847,7 +818,6 @@ export function SecurityIncidentsTable({
             </table>
           </div>
 
-          {/* Table Pagination Footer */}
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border bg-muted/20 text-xs text-muted-foreground">
               <div>
@@ -885,7 +855,6 @@ export function SecurityIncidentsTable({
         </div>
       )}
 
-      {/* Incident Detail Inspection Modal */}
       <SecurityIncidentDetailModal
         incident={selectedIncident}
         isOpen={selectedIncident !== null}
@@ -913,7 +882,6 @@ export function SecurityIncidentsTable({
         }}
       />
 
-      {/* Admin Moderation Action Dialog for Uploader / Researcher */}
       {scope === "admin" && (
         <ModerationActionDialog
           target={

@@ -10,14 +10,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/organizations/{id}/security/incidents — Next proxy for
- * /api/v1/organizations/{orgId}/security/incidents.
- *
- * Requires TRIAGE_REPORTS on that organization (or platform ADMIN).
- * Returns 403 with upstream message if caller lacks permission.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 const ALLOWED_QUERY = ["search", "verdict", "page", "size", "sort"] as const;

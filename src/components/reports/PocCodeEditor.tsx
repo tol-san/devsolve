@@ -64,7 +64,6 @@ export function PocCodeEditor({
           : "border-slate-800 focus-within:ring-2 focus-within:ring-blue-600"
       }`}
     >
-      {/* Editor Header Bar */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900/90 border-b border-slate-800">
         <div className="flex items-center gap-2">
           <Code2 className="w-4 h-4 text-blue-400" />
@@ -103,7 +102,6 @@ export function PocCodeEditor({
         </button>
       </div>
 
-      {/* Monaco Code Editor */}
       <MonacoEditor
         height={height}
         language={language}

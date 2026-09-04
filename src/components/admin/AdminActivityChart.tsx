@@ -46,7 +46,6 @@ export function AdminActivityChart({ data, timeRange }: AdminActivityChartProps)
           </div>
         </div>
 
-        {/* Recharts Area & Multi-Line Chart */}
         <div className="mt-6 w-full h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
@@ -118,7 +117,6 @@ export function AdminActivityChart({ data, timeRange }: AdminActivityChartProps)
         </div>
       </div>
 
-      {/* Chart Legend */}
       <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-6 text-xs text-slate-500 font-medium dark:border-neutral-800 dark:text-neutral-400">
         <div className="flex items-center gap-2">
           <span className="w-4 h-0.5 bg-blue-500 rounded-full" />

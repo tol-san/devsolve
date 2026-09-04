@@ -98,7 +98,6 @@ export function ResearcherReportMetrics({
                   "ring-1 ring-cyan-500/40 bg-gradient-to-br from-cyan-500/10 via-card to-card"
               )}
             >
-              {/* Highlight badge for action required */}
               {item.isActionRequired && (
                 <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-[10px] font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider animate-pulse">
                   <Sparkles className="size-2.5" />

@@ -19,7 +19,6 @@ const unreachable = () =>
 const badId = () =>
   NextResponse.json({ message: "Invalid problem id" }, { status: 400 });
 
-/** `POST /api/problems/{problemId}/solution-drafts` — create a draft solution for a problem. */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ problemId: string }> },

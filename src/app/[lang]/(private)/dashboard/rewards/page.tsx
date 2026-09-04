@@ -163,7 +163,6 @@ export default function RewardsPage() {
         transition={{ duration: 0.25 }}
         className="space-y-6  w-full"
       >
-        {/* HEADER SECTION */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
@@ -182,7 +181,6 @@ export default function RewardsPage() {
           </Button>
         </div>
 
-        {/* STATS OVERVIEW CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-5 bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 flex items-center justify-center shrink-0">
@@ -305,7 +303,6 @@ export default function RewardsPage() {
           />
         </FilterBar>
 
-        {/* REWARDS HISTORY TABLE */}
         <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs overflow-hidden">
           {paginatedRewards.length === 0 ? (
             <div className="p-12 text-center space-y-3">
@@ -332,7 +329,6 @@ export default function RewardsPage() {
               <TableBody>
                 {paginatedRewards.map((item) => (
                   <TableRow key={item.id} className="group">
-                    {/* Program & Report Title */}
                     <TableCell className="py-5 px-6 whitespace-normal">
                       <div className="space-y-1">
                         <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
@@ -347,7 +343,6 @@ export default function RewardsPage() {
                       </div>
                     </TableCell>
 
-                    {/* Severity Badge */}
                     <TableCell className="py-5 px-4 align-top sm:align-middle">
                       <span
                         className={`inline-block px-3 py-1 text-xs font-bold rounded-md border ${getSeverityBadge(
@@ -358,7 +353,6 @@ export default function RewardsPage() {
                       </span>
                     </TableCell>
 
-                    {/* Reward Amount */}
                     <TableCell className="py-5 px-4 align-top sm:align-middle">
                       {item.rewardType === "BOUNTY" ? (
                         <div className="font-extrabold text-foreground text-xl">
@@ -371,7 +365,6 @@ export default function RewardsPage() {
                       )}
                     </TableCell>
 
-                    {/* Status */}
                     <TableCell className="py-5 px-4 align-top sm:align-middle">
                       {item.status === "PAID" ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
@@ -386,12 +379,10 @@ export default function RewardsPage() {
                       )}
                     </TableCell>
 
-                    {/* Date */}
                     <TableCell className="py-5 px-4 text-sm font-medium text-muted-foreground align-top sm:align-middle">
                       {item.awardedAt}
                     </TableCell>
 
-                    {/* Action Link */}
                     <TableCell className="py-5 px-6 text-right align-top sm:align-middle">
                       <Button
                         variant="ghost"
@@ -409,7 +400,6 @@ export default function RewardsPage() {
           )}
         </div>
 
-        {/* PAGINATION CONTROL */}
         <ProgramPagination
           currentPage={currentPage}
           totalPages={totalPages}

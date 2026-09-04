@@ -502,7 +502,6 @@ function buildProblemPatchBody(
     patch.repositoryUrl = curRepo;
   }
 
-  // Technologies: diffed against baseline. Empty array clears on server.
   const curTech = (values.technologies ?? [])
     .filter((t) => t.name.trim())
     .map((t) => ({
@@ -517,7 +516,6 @@ function buildProblemPatchBody(
     patch.technologies = curTech;
   }
 
-  // Environment: diffed against baseline.
   const curEnv = (values.environment ?? [])
     .filter((e) => e.technology.trim())
     .map((e) => ({
@@ -532,7 +530,6 @@ function buildProblemPatchBody(
     patch.environment = curEnv;
   }
 
-  // Reproduction steps: diffed against baseline.
   const curSteps = (values.reproductionSteps ?? [])
     .map((step) => step.trim())
     .filter(Boolean);
@@ -543,7 +540,6 @@ function buildProblemPatchBody(
     patch.reproductionSteps = curSteps;
   }
 
-  // Tags: diffed against baseline.
   const normalizedTags = Array.from(
     new Set(submittedTags.map((tag) => tag.trim()).filter(Boolean)),
   );
@@ -561,10 +557,6 @@ function buildProblemPatchBody(
 }
 
 interface CreateProblemFormProps {
-  /**
-   * An existing problem to revise. Its presence is what puts the form in edit
-   * mode: same fields and same rules, a different verb.
-   */
   problem?: ProblemResponse;
   successHref?: string;
   cancelHref?: string;
@@ -593,11 +585,6 @@ export function CreateProblemForm({
   const isEdit = Boolean(activeProblem);
   const [deleteAttachment] = useDeleteProblemAttachmentMutation();
 
-  /**
-   * Removing a stored file. It leaves the problem immediately — the editor
-   * says so before asking — and the refreshed problem arrives through the
-   * invalidated tag, which is what takes the row off the list.
-   */
   const handleRemoveAttachment = async (attachmentId: string) => {
     const targetProblem = activeProblem ?? preparedDraft;
     if (!targetProblem?.id) return;
@@ -637,40 +624,17 @@ export function CreateProblemForm({
 
   const [refetchProblem] = useLazyGetProblemByIdQuery();
 
-  /** The HTTP status out of whatever RTK Query rejected with, if it had one. */
   const statusOf = (error: unknown) =>
     typeof error === "object" && error !== null && "status" in error
       ? (error as { status?: number }).status
       : undefined;
 
-  /* Read through a ref, not a closure: the helpers below are called from an
-     autosave timer set up on an earlier render, and a captured `activeProblem`
-     there would be exactly the stale snapshot this is meant to avoid. */
   const activeProblemRef = useRef<ProblemResponse | undefined>(activeProblem);
   useEffect(() => {
     activeProblemRef.current = activeProblem;
   }, [activeProblem]);
 
-  /**
-   * The version to send as `If-Match`.
-   *
-   * Every write to a problem — a PATCH, an attachment upload, an attachment
-   * delete — advances its version upstream, and a save carrying an older one
-   * is refused with a 412. Two snapshots of the same problem are in play:
-   * `preparedDraft`, written after each of this form's own saves, and
-   * `activeProblem`, which tracks the RTK Query cache and so also moves when
-   * an attachment mutation invalidates its tag.
-   *
-   * Neither is reliably the newer one, and `preparedDraft` used to simply
-   * shadow the other — so an upload that advanced the cache was invisible to
-   * the next save. Taking the highest of the two means our own writes can
-   * never make the next save look stale; a 412 then means what it says, that
-   * somebody else moved it.
-   */
   const versionForWrite = useCallback((id: string | undefined) => {
-    /* `activeProblemRef` already covers the `problem` prop — `activeProblem`
-       is `problem ?? fetchedDraftProblem` — so reading refs alone keeps this
-       stable, and safe to call from the autosave timer. */
     const versions = [preparedDraftRef.current, activeProblemRef.current]
       .filter(
         (entry): entry is ProblemResponse =>
@@ -680,18 +644,6 @@ export function CreateProblemForm({
     return versions.length ? Math.max(...versions) : 0;
   }, []);
 
-  /**
-   * Re-read the problem after a 412 so the next attempt is not doomed too.
-   *
-   * The backend's own words are "fetch it again before editing", and until now
-   * the only way to do that was a full page reload — which costs the author
-   * everything they had typed. This refreshes the version in place and leaves
-   * the form untouched, so pressing save again works.
-   *
-   * Deliberately not an automatic retry: a genuine 412 means someone else's
-   * edit is sitting there, and silently replaying ours would overwrite it —
-   * the exact thing the check exists to stop. The author is told, and decides.
-   */
   const resyncAfterConflict = useCallback(
     async (id: string | undefined) => {
       if (!id) return;
@@ -705,14 +657,11 @@ export function CreateProblemForm({
         /* Leaves the message standing; a reload is still the way out. */
       }
     },
-    /* `setPreparedDraft` is listed because the compiler infers it; state
-       setters are stable, so this never re-creates the callback. */
     [refetchProblem, setPreparedDraft],
   );
 
   const lastSavedPayloadRef = useRef<string>("");
 
-  // Fetch caller's problems (including drafts) when creating a problem
   const { data: myProblemsData } = useGetMyProblemsQuery(
     { size: 30 },
     {
@@ -726,7 +675,6 @@ export function CreateProblemForm({
     return (myProblemsData?.content ?? []).filter((p) => p.status === "DRAFT");
   }, [myProblemsData]);
 
-  // The latest draft available to resume
   const latestDraft = existingDrafts[0] ?? null;
 
   const {
@@ -754,8 +702,6 @@ export function CreateProblemForm({
       })),
     [categories],
   );
-  /* A category is required upstream, so the list offers no "none" — only the
-     placeholder the trigger falls back to while nothing is chosen. */
   const categorySelectItems = useMemo(
     () => [
       {
@@ -783,9 +729,6 @@ export function CreateProblemForm({
   } = useForm<ProblemFormInput, unknown, ProblemFormValues>({
     resolver: zodResolver(createProblemFormSchema),
     mode: "onBlur",
-    /* In edit mode the existing problem seeds the fields. Rows are copied
-       rather than referenced so editing one does not mutate the cached
-       response behind it. */
     defaultValues: {
       title: problem?.title ?? "",
       description: problem?.description ?? "",
@@ -807,8 +750,6 @@ export function CreateProblemForm({
         version: entry.version ?? "",
       })),
       reproductionSteps: [...(problem?.reproductionSteps ?? [])],
-      /* Existing tags come back as objects with ids; the form edits names, and
-         resending them as `newTagNames` is how the backend re-links them. */
       newTagNames: (problem?.tags ?? [])
         .map((tag) => tag.name ?? "")
         .filter(Boolean),
@@ -827,8 +768,6 @@ export function CreateProblemForm({
     remove: removeEnvironment,
   } = useFieldArray({ control, name: "environment" });
 
-  /* `reproductionSteps` is an array of bare strings, which `useFieldArray`
-     cannot key on. It is driven through `setValue` instead. */
   const title = useWatch({ control, name: "title" }) ?? "";
   const description = useWatch({ control, name: "description" }) ?? "";
   const categoryId = useWatch({ control, name: "categoryId" });
@@ -952,8 +891,6 @@ export function CreateProblemForm({
     (Boolean(expectedBehavior.trim()) &&
       Boolean(actualBehavior.trim()) &&
       reproductionSteps.some((step) => step.trim()));
-  /* The backend requires a category and a type as well as a title and a body.
-     BUG problems also require expectedBehavior, actualBehavior, and at least one reproduction step. */
   const formReady =
     titleReady &&
     descriptionReady &&
@@ -1434,31 +1371,12 @@ export function CreateProblemForm({
   const autoSaving = useRef(false);
   const autoSaveReqSeq = useRef(0);
 
-  /**
-   * Wait for a background save to land before writing.
-   *
-   * `submittingRef` stops a *new* autosave starting mid-submit, but one already
-   * in flight kept going — and both requests then carried the same version, so
-   * whichever arrived second was refused with a 412. The author saw their save
-   * fail for something the page itself did a second earlier.
-   *
-   * Bounded, because a request that never settles must not trap the save
-   * button; after that the version check is still there to catch it.
-   */
   const settleAutoSave = useCallback(async () => {
     for (let waited = 0; autoSaving.current && waited < 5000; waited += 100) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }, []);
 
-  /**
-   * Claim the write lane for a manual save.
-   *
-   * The autosave timer already refuses to start while `autoSaving` is set, so
-   * holding it for the duration of an explicit save keeps a debounce that
-   * happens to fire mid-save from issuing a second write against the same
-   * version. Returns the release.
-   */
   const holdWriteLane = useCallback(async () => {
     await settleAutoSave();
     autoSaving.current = true;
@@ -1643,7 +1561,6 @@ export function CreateProblemForm({
     >
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="flex flex-col gap-6 lg:col-span-2">
-          {/* ── Unfinished Draft Found Alert Banner ── */}
           {!isEdit && !preparedDraft && latestDraft && !dismissedDraftBanner && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
@@ -1686,7 +1603,6 @@ export function CreateProblemForm({
             </motion.div>
           )}
 
-          {/* ── Server Update Conflict Banner ── */}
           {conflictData && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
@@ -1718,7 +1634,6 @@ export function CreateProblemForm({
                 </Button>
               </div>
 
-              {/* Differences List */}
               <div className="space-y-2 rounded-lg border border-border/60 bg-background/60 p-3">
                 {conflictData.diffs.map((diff) => (
                   <div
@@ -1765,7 +1680,6 @@ export function CreateProblemForm({
             </motion.div>
           )}
 
-          {/* ── Active Draft Indicator Banner ── */}
           {preparedDraft && !isEdit && (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-xs text-emerald-800 dark:text-emerald-300">
               <div className="flex items-center gap-2">
@@ -1809,7 +1723,6 @@ export function CreateProblemForm({
 
               <CardContent className="pt-6">
                 <FieldGroup className="space-y-6">
-                  {/* ── Problem Title ── */}
                   <Field
                     data-invalid={Boolean(errors.title)}
                     data-disabled={submitting || undefined}
@@ -1854,7 +1767,6 @@ export function CreateProblemForm({
                       </FieldError>
                     )}
 
-                    {/* "Has someone already asked this?" Live & AI Duplicate Panel */}
                     <ProblemDuplicatePanel
                       title={title}
                       description={description}
@@ -1863,7 +1775,6 @@ export function CreateProblemForm({
                     />
                   </Field>
 
-                  {/* ── Problem Description ── */}
                   <Field
                     data-invalid={Boolean(errors.description)}
                     data-disabled={submitting || undefined}
@@ -1883,7 +1794,6 @@ export function CreateProblemForm({
                       </span>
                     </div>
 
-                    {/* Quick Template Helper Actions */}
                     <div className="flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
                       <span className="font-medium text-foreground/80">Insert template:</span>
                       <button
@@ -2128,10 +2038,6 @@ export function CreateProblemForm({
             </Card>
           </motion.div>
 
-          {/* ── What is actually going wrong ──
-              Every field here is optional. Together they are the difference
-              between a question someone can answer and one they have to ask
-              three follow-ups about first. */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2166,7 +2072,6 @@ export function CreateProblemForm({
 
               <CardContent>
                 <FieldGroup>
-                  {/* ── Expected against actual ── */}
                   <div className="grid gap-5 sm:grid-cols-2">
                     <Field
                       data-invalid={Boolean(errors.expectedBehavior)}
@@ -2229,7 +2134,6 @@ export function CreateProblemForm({
                     </Field>
                   </div>
 
-                  {/* ── Steps to reproduce ── */}
                   <FieldSet>
                     <div className="flex items-center justify-between gap-3">
                       <FieldLegend className="text-base">
@@ -2321,7 +2225,6 @@ export function CreateProblemForm({
                     <FieldError>{errors.reproductionSteps?.message}</FieldError>
                   </FieldSet>
 
-                  {/* ── The error itself ── */}
                   <Field
                     data-invalid={Boolean(errors.errorMessage)}
                     data-disabled={submitting || undefined}
@@ -2352,7 +2255,6 @@ export function CreateProblemForm({
                     <FieldError>{errors.errorMessage?.message}</FieldError>
                   </Field>
 
-                  {/* ── What has already been ruled out ── */}
                   <Field
                     data-invalid={Boolean(errors.attemptsTried)}
                     data-disabled={submitting || undefined}
@@ -2378,7 +2280,6 @@ export function CreateProblemForm({
                     <FieldError>{errors.attemptsTried?.message}</FieldError>
                   </Field>
 
-                  {/* ── Where it happens ── */}
                   <FieldSet>
                     <div className="flex items-center justify-between gap-3">
                       <FieldLegend className="text-base">
@@ -2494,7 +2395,6 @@ export function CreateProblemForm({
                     </Button>
                   </FieldSet>
 
-                  {/* ── Somewhere to look ── */}
                   <Field
                     data-invalid={Boolean(errors.repositoryUrl)}
                     data-disabled={submitting || undefined}
@@ -2548,9 +2448,6 @@ export function CreateProblemForm({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
-                {/* What is already stored. The dropzone below can only hold
-                    files picked in this session, so without this an author
-                    editing a problem saw none of their own evidence. */}
                 {(activeProblem ?? preparedDraft)?.attachments?.length ? (
                   <ExistingAttachments
                     attachments={(activeProblem ?? preparedDraft)!.attachments!}
@@ -2686,7 +2583,6 @@ export function CreateProblemForm({
                     </FieldError>
                   </Field>
 
-                  {/* Required upstream, so it is asked for rather than guessed. */}
                   <Field
                     data-invalid={Boolean(errors.problemType)}
                     data-disabled={submitting || undefined}

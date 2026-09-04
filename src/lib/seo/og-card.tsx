@@ -2,27 +2,10 @@ import { ImageResponse } from "next/og";
 import { SITE_NAME } from "./site";
 import { truncate } from "./text";
 
-/**
- * The social card every shared DevSolve link renders as.
- *
- * One renderer, called from each route's `opengraph-image` file, so a problem,
- * a showcase and the home page all arrive in a chat window looking like the
- * same product. Nothing is fetched while drawing — the caller passes text it
- * has already loaded, and a card that cannot be drawn is worse than a plain
- * one, so every field is optional.
- */
-
-/** Facebook's and X's shared preferred aspect: 1.91:1. */
 export const OG_SIZE = { width: 1200, height: 630 };
 
 export const OG_CONTENT_TYPE = "image/png";
 
-/**
- * Literal colours, deliberately. This renders to a PNG through satori, which
- * has no CSS variables and no media queries — the theme tokens the app styles
- * with do not exist here, and a card has one appearance regardless of the
- * reader's system theme.
- */
 const BRAND = {
   background: "#0B1120",
   panel: "#111C33",
@@ -34,17 +17,13 @@ const BRAND = {
 };
 
 export interface OgCardInput {
-  /** Small label above the title: the content type and its state. */
   eyebrow?: string;
   title: string;
   description?: string;
-  /** Tags, technologies, counts — whatever the page leads with. */
   chips?: string[];
-  /** Byline, bottom left. */
   footnote?: string;
 }
 
-/** Long titles step down a size rather than overflowing the card. */
 function titleSize(title: string): number {
   if (title.length > 90) return 54;
   if (title.length > 55) return 64;
@@ -58,8 +37,6 @@ export function ogCard({
   chips = [],
   footnote,
 }: OgCardInput) {
-  /* Satori has no line clamping, so text is cut to what is known to fit
-     rather than left to spill past the edge of the image. */
   const headline = truncate(title, 120);
   const blurb = description ? truncate(description, 160) : undefined;
   const visibleChips = chips.filter(Boolean).slice(0, 4);
@@ -79,7 +56,6 @@ export function ogCard({
           fontFamily: "sans-serif",
         }}
       >
-        {/* The accent rule doubles as the brand mark's underline. */}
         <div
           style={{
             display: "flex",

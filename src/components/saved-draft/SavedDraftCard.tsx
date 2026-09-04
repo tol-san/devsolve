@@ -168,9 +168,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
     item.category === "program" ||
     item.category === "response";
 
-  /* ──────────────────────────────────────────────────────────────────────────
-   * DESIGN 1: SECURITY BUG BOUNTY CARD (Reports & Programs)
-   * ────────────────────────────────────────────────────────────────────────── */
   if (isSecurity) {
     const isReport = item.category === "report";
 
@@ -178,7 +175,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
       <>
         <div className="group relative flex h-full flex-col justify-between rounded-2xl bg-card p-5 ring-1 ring-foreground/5 dark:ring-foreground/10 transition-all duration-200 ease-out hover:shadow-md hover:ring-foreground/10 dark:hover:ring-foreground/20">
           
-          {/* TOP RIGHT MENU */}
           <div className="absolute top-4 right-4 z-20">
             <DropdownMenu>
               <DropdownMenuTrigger
@@ -233,7 +229,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
           </div>
 
           <div className="flex flex-col flex-1 justify-between space-y-4">
-            {/* HEADER: AVATAR / LOGO, TITLE & BADGES */}
             <div>
               <div className="flex items-start gap-3.5 pr-8">
                 <div className="size-10 shrink-0 overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/5 dark:ring-foreground/10 flex items-center justify-center shadow-xs">
@@ -282,13 +277,11 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
                 </div>
               </div>
 
-              {/* DESCRIPTION */}
               <p className="mt-3 text-[13px] text-muted-foreground line-clamp-2 leading-relaxed min-h-[2.5rem]">
                 {item.description || "No write-up yet. Pick this up where you left off."}
               </p>
             </div>
 
-            {/* IN-SCOPE ASSETS */}
             <div className="space-y-1.5 pt-1">
               <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
                 {isReport ? (
@@ -332,7 +325,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
             </div>
           </div>
 
-          {/* FOOTER */}
           <div className="mt-5 pt-4 border-t border-border flex items-center justify-between shrink-0">
             <div>
               <p className="text-xs text-muted-foreground font-medium">Status</p>
@@ -351,7 +343,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
           </div>
         </div>
 
-        {/* DELETE DIALOG */}
         <DeleteDraftDialog
           isOpen={showDeleteDialog}
           onClose={() => setShowDeleteDialog(false)}
@@ -363,9 +354,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
     );
   }
 
-  /* ──────────────────────────────────────────────────────────────────────────
-   * DESIGN 2: COMMUNITY DRAFT CARD (Showcases, Problems, Solutions)
-   * ────────────────────────────────────────────────────────────────────────── */
   const isShowcase = item.category === "showcase";
   const isProblem = item.category === "problem";
   const isSolution = item.category === "solution";
@@ -413,7 +401,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
     <>
       <div className="group relative flex h-full flex-col justify-between rounded-2xl bg-card p-5 ring-1 ring-foreground/5 dark:ring-foreground/10 transition-all duration-200 ease-out hover:shadow-md hover:ring-foreground/10 dark:hover:ring-foreground/20">
         <div>
-          {/* TOP BAR: BADGES & 3-DOT MENU */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-1.5">
               <span
@@ -469,7 +456,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
             </DropdownMenu>
           </div>
 
-          {/* TITLE & OVERVIEW */}
           <div className="space-y-1.5 mt-3">
             <Link href={href} className="group/title block">
               <h4
@@ -484,10 +470,8 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
             </p>
           </div>
 
-          {/* INSET PREVIEW FOR SHOWCASES ONLY (WHEN REAL IMAGE FROM API EXISTS) */}
           {isShowcase && logoSrc && (
             <div className="relative mt-3.5 w-full max-h-[300px] overflow-hidden rounded-xl bg-slate-950/80 dark:bg-neutral-950/90 border border-slate-200/80 dark:border-neutral-800 flex items-center justify-center">
-              {/* Ambient Blurred Fill (prevents cropping portrait or landscape photos) */}
               <Image
                 src={logoSrc}
                 alt=""
@@ -529,7 +513,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
             </div>
           )}
 
-          {/* TAGS / TECH STACK SECTION */}
           <div className="space-y-1.5 pt-3">
             <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
               <TagsIcon className={`size-3.5 ${communityConfig.iconColor}`} />
@@ -563,7 +546,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
           </div>
         </div>
 
-        {/* FOOTER */}
         <div className="mt-4 pt-4 border-t border-border flex items-center justify-between shrink-0">
           <div>
             <p className="text-xs text-muted-foreground font-medium">Status</p>
@@ -582,7 +564,6 @@ export function SavedDraftCard({ item, onDelete }: SavedDraftCardProps) {
         </div>
       </div>
 
-      {/* DELETE DIALOG */}
       <DeleteDraftDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}

@@ -51,7 +51,6 @@ export function DiagramBuilderModal({
   const [currentNodes, setCurrentNodes] = useState<AppNode[]>(initialNodes);
   const [currentEdges, setCurrentEdges] = useState<Edge[]>(initialEdges);
 
-  // Sync state when initialNodes change on open, or extract from existing file/URL
   React.useEffect(() => {
     if (open) {
       if (initialNodes && initialNodes.length > 0) {
@@ -103,12 +102,9 @@ export function DiagramBuilderModal({
         return;
       }
 
-      // Determine canvas background style dynamically from theme
       const isDark = document.documentElement.classList.contains("dark");
       const exportBgColor = isDark ? "#0b0f17" : "#ffffff";
 
-      // Hide controls/minimap temporarily or style properly if capturing container
-      // skipFonts: true prevents html-to-image from crawling Monaco Editor/external stylesheets
       const dataUrl = await toPng(targetEl, {
         backgroundColor: exportBgColor,
         quality: 0.95,
@@ -117,7 +113,6 @@ export function DiagramBuilderModal({
         fontEmbedCSS: "",
         cacheBust: false,
         filter: (node) => {
-          // exclude control buttons and minimap from the exported image
           const exclusionClasses = [
             "react-flow__controls",
             "react-flow__minimap",
@@ -128,7 +123,6 @@ export function DiagramBuilderModal({
         },
       });
 
-      // Direct synchronous dataURL -> File converter (avoids fetch blob parsing issues)
       const filename = `diagram-${Date.now()}.png`;
       const arr = dataUrl.split(",");
       const mimeMatch = arr[0].match(/:(.*?);/);
@@ -140,7 +134,6 @@ export function DiagramBuilderModal({
         u8arr[n] = bstr.charCodeAt(n);
       }
 
-      // Embed React Flow graph metadata into standard PNG tEXt chunk
       let finalPngBytes: Uint8Array = u8arr;
       try {
         finalPngBytes = embedDiagramInPng(u8arr, {
@@ -169,7 +162,6 @@ export function DiagramBuilderModal({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        {/* Full screen backdrop */}
         <DialogPrimitive.Backdrop
           className={cn(
             "fixed inset-0 z-[240] bg-black/60 backdrop-blur-xs duration-150",
@@ -177,14 +169,12 @@ export function DiagramBuilderModal({
           )}
         />
 
-        {/* Full screen page container (above navbar z-[100]) */}
         <DialogPrimitive.Popup
           className={cn(
             "fixed inset-0 z-[250] flex h-screen w-screen flex-col overflow-hidden bg-background p-0 text-foreground outline-none duration-150",
             "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.99] data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-[0.99]",
           )}
         >
-          {/* ── Top Full-Width Header Bar ── */}
           <div className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-5 sm:px-6">
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -248,7 +238,6 @@ export function DiagramBuilderModal({
             </div>
           </div>
 
-          {/* ── Edge-to-Edge Canvas ── */}
           <div className="relative flex-1 w-full h-full min-h-0 overflow-hidden bg-background">
             <ReactFlowProvider>
               <DiagramCanvas

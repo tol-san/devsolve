@@ -13,7 +13,6 @@ import SectionBackdrop, {
   useInk,
 } from "./SectionBackdrop";
 
-/* ─── Programs ──────────────────────────────────────────────────────── */
 type Severity = "Critical" | "High" | "Medium";
 
 type Program = {
@@ -80,11 +79,6 @@ const CEILING = Math.max(FEATURED.max, ...PROGRAMS.map((p) => p.max));
 
 const money = (n: number) => `$${n.toLocaleString()}`;
 
-/* Severity is an ordered scale, so it rides an ink-weight ramp rather than a
-   set of unrelated hues — heavier ink reads as more severe. Every chip is
-   text-labelled, so the ordering never depends on colour alone. On a dark
-   surface the ramp inverts — strongest contrast is still most severe, it is
-   just reached with light ink rather than heavy. */
 const SEVERITY_CHIP: Record<Severity, string> = {
   Critical: "bg-[#1E293B] text-white dark:bg-neutral-100 dark:text-neutral-900",
   High: "bg-slate-200 text-slate-700 dark:bg-neutral-700 dark:text-neutral-100",
@@ -92,7 +86,6 @@ const SEVERITY_CHIP: Record<Severity, string> = {
     "border border-slate-200 text-slate-500 dark:border-neutral-700 dark:text-neutral-400",
 };
 
-/* ─── Reward reach — max payout relative to the highest on the board ── */
 function RewardBar({ max, delay = 0 }: { max: number; delay?: number }) {
   return (
     <div
@@ -111,7 +104,6 @@ function RewardBar({ max, delay = 0 }: { max: number; delay?: number }) {
   );
 }
 
-/* ─── Live indicator ────────────────────────────────────────────────── */
 function LivePill() {
   const t = useT();
   return (
@@ -131,7 +123,6 @@ function LivePill() {
   );
 }
 
-/* ─── Section ───────────────────────────────────────────────────────── */
 export function BountyPreview() {
   const t = useT();
   const ref = useRef<HTMLElement>(null);
@@ -145,7 +136,6 @@ export function BountyPreview() {
       className="relative overflow-hidden py-10 sm:py-14"
     >
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
-        {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -180,9 +170,7 @@ export function BountyPreview() {
           </Link>
         </motion.div>
 
-        {/* ── Featured program + program ledger ── */}
         <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
-          {/* Featured */}
           <motion.article
             initial={{ opacity: 0, y: 24 }}
             animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -211,7 +199,6 @@ export function BountyPreview() {
               </span>
             </div>
 
-            {/* Scope */}
             <div className="mt-6 flex flex-wrap gap-2">
               {FEATURED.scope.map((s) => (
                 <span
@@ -223,7 +210,6 @@ export function BountyPreview() {
               ))}
             </div>
 
-            {/* Max payout — the number this card leads with */}
             <div className="mt-7">
               <p className="text-sm font-medium text-slate-500 dark:text-neutral-400">
                 {t("sections.bounty.maxPayout")}
@@ -242,7 +228,6 @@ export function BountyPreview() {
               </div>
             </div>
 
-            {/* Metrics */}
             <dl className="mt-7 grid grid-cols-3 gap-4 border-t border-slate-200 pt-6 dark:border-neutral-800">
               <div>
                 <dt className="text-xs uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500">
@@ -301,7 +286,6 @@ export function BountyPreview() {
             </div>
           </motion.article>
 
-          {/* Ledger — hairline rows rather than a four-up card grid */}
           <div className="lg:col-span-7">
             <div className="flex items-baseline justify-between border-b border-slate-200 pb-3 dark:border-neutral-800">
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-neutral-500">
@@ -366,7 +350,6 @@ export function BountyPreview() {
                       </div>
                     </div>
 
-                    {/* Reward range + reach */}
                     <div className="mt-4 flex items-center gap-4 pl-13">
                       <span
                         className="w-40 shrink-0 text-sm font-semibold"
@@ -383,7 +366,6 @@ export function BountyPreview() {
           </div>
         </div>
 
-        {/* ── Company CTA ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

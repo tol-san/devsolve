@@ -9,11 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/organizations/{id}/hacktivity — proxy for
- * /api/v1/organizations/{orgId}/hacktivity.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 const ALLOWED_QUERY = ["page", "size", "sort"] as const;

@@ -102,7 +102,6 @@ function MyReportsContent() {
       ? "Resolved"
       : "All";
 
-  // Filter & Layout state
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [activeTab, setActiveTab] =
     useState<"All" | "Retesting" | "Open" | "Resolved">(initialStatus);
@@ -111,17 +110,13 @@ function MyReportsContent() {
   const [sortBy, setSortBy] = useState<string>("latest");
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 
-  // Selected report for modal detail preview
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState<number>(initialPageSize);
 
-  // Unfiltered fetch just to drive the header/footer totals and metric cards
   const { data: allReports = [], isLoading: isAllLoading } = useGetReportsQuery();
 
-  // Metric counts
   const pendingRetests = useMemo(
     () =>
       allReports.filter(
@@ -168,7 +163,6 @@ function MyReportsContent() {
     [allReports.length, retestCount, underTriageCount, resolvedCount]
   );
 
-  // Dynamic program options derived from the user's filed reports
   const programOptions: Record<string, string> = useMemo(() => {
     const options: Record<string, string> = {
       All: "All programs",
@@ -184,7 +178,6 @@ function MyReportsContent() {
     return options;
   }, [allReports, programFilter]);
 
-  // RTK Query data fetching with filters
   const { data: reports = [], isLoading } = useGetReportsQuery({
     search: searchTerm,
     status: activeTab,
@@ -195,7 +188,6 @@ function MyReportsContent() {
   const totalSubmissions = allReports.length;
   const totalPrograms = new Set(allReports.map((r) => r.program)).size;
 
-  // Client-side sorting on top of query results
   const sortedReports = useMemo(() => {
     const list = [...reports];
     if (sortBy === "latest") {
@@ -234,7 +226,6 @@ function MyReportsContent() {
     return list;
   }, [reports, sortBy]);
 
-  // Pagination calculation
   const totalItems = sortedReports.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -280,7 +271,6 @@ function MyReportsContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Header Section */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -322,7 +312,6 @@ function MyReportsContent() {
         </div>
       </header>
 
-      {/* KPI Metrics Strip */}
       <ResearcherReportMetrics
         total={totalSubmissions}
         retestCount={retestCount}
@@ -334,7 +323,6 @@ function MyReportsContent() {
         isLoading={isAllLoading}
       />
 
-      {/* Retest Requests Action Banner for Researcher */}
       {retestCount > 0 && activeTab !== "Retesting" && (
         <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent p-5 sm:p-6 shadow-xs">
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -372,7 +360,6 @@ function MyReportsContent() {
         </div>
       )}
 
-      {/* Filters & Search Toolbar */}
       <FilterBar>
         <FilterTabs
           label="Report status"
@@ -423,7 +410,6 @@ function MyReportsContent() {
               onValueChange={setSortBy}
             />
 
-            {/* View Mode Switcher */}
             <div className="flex items-center p-1 rounded-xl bg-muted/60 border border-border/80 shrink-0">
               <button
                 type="button"
@@ -500,7 +486,6 @@ function MyReportsContent() {
         />
       </FilterBar>
 
-      {/* Reports Presentation: Table View or Grid Cards View */}
       {viewMode === "table" ? (
         <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs overflow-hidden">
           <Table>
@@ -557,7 +542,6 @@ function MyReportsContent() {
                           : ""
                       )}
                     >
-                      {/* Report ID */}
                       <TableCell className="py-4 px-4 sm:px-6">
                         <div className="flex items-center gap-2">
                           {isRetesting && (
@@ -575,7 +559,6 @@ function MyReportsContent() {
                         </div>
                       </TableCell>
 
-                      {/* Vulnerability & Program */}
                       <TableCell className="py-4 px-4 whitespace-normal sm:px-6 max-w-xs">
                         <div className="flex items-center gap-3">
                           <Avatar className="size-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-xs shrink-0 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20">
@@ -596,24 +579,20 @@ function MyReportsContent() {
                         </div>
                       </TableCell>
 
-                      {/* Type */}
                       <TableCell className="py-4 px-4 sm:px-6">
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                           {report.type}
                         </span>
                       </TableCell>
 
-                      {/* Severity */}
                       <TableCell className="py-4 px-4 sm:px-6">
                         <SeverityBadge severity={report.severity} />
                       </TableCell>
 
-                      {/* Status */}
                       <TableCell className="py-4 px-4 sm:px-6">
                         <StatusBadge status={report.status} />
                       </TableCell>
 
-                      {/* Bounty / Reward */}
                       <TableCell className="py-4 px-4 sm:px-6">
                         {report.isBountyHighlight ? (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shadow-xs">
@@ -632,7 +611,6 @@ function MyReportsContent() {
                         )}
                       </TableCell>
 
-                      {/* Last Activity */}
                       <TableCell className="py-4 px-4 sm:px-6">
                         <div className="flex flex-col gap-0.5">
                           <span className="text-sm text-muted-foreground font-medium">
@@ -651,7 +629,6 @@ function MyReportsContent() {
                         </div>
                       </TableCell>
 
-                      {/* Actions */}
                       <TableCell className="py-4 px-4 sm:px-6 text-center">
                         <div className="flex items-center justify-center gap-1.5">
                           {isRetesting && (
@@ -683,7 +660,6 @@ function MyReportsContent() {
             </TableBody>
           </Table>
 
-          {/* Reusable, Premium Table Pagination */}
           <ResearcherReportPagination
             currentPage={safeCurrentPage}
             totalPages={totalPages}
@@ -694,7 +670,6 @@ function MyReportsContent() {
           />
         </div>
       ) : (
-        /* Grid Cards View */
         <div className="space-y-6">
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -736,7 +711,6 @@ function MyReportsContent() {
             </div>
           )}
 
-          {/* Grid View Pagination */}
           <ResearcherReportPagination
             currentPage={safeCurrentPage}
             totalPages={totalPages}
@@ -749,7 +723,6 @@ function MyReportsContent() {
         </div>
       )}
 
-      {/* Report Quick View Modal */}
       <ReportQuickViewModal
         report={selectedReport}
         onClose={() => setSelectedReport(null)}

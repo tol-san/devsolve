@@ -52,7 +52,6 @@ export function SubmitReportReviewStep({
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Section Header */}
       <div className="flex items-center gap-3 pb-2">
         <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
           <Send className="w-5 h-5" />
@@ -67,9 +66,7 @@ export function SubmitReportReviewStep({
         </div>
       </div>
 
-      {/* Main Review Overview Container Card */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-5">
-        {/* Dynamic Program Header inside Review Box */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-xs">
@@ -90,7 +87,6 @@ export function SubmitReportReviewStep({
           </Badge>
         </div>
 
-        {/* 1. REPORT TITLE CARD */}
         <div className="space-y-2 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -126,7 +122,6 @@ export function SubmitReportReviewStep({
           </div>
         </div>
 
-        {/* 2. TARGET CARD */}
         <div className="space-y-2 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -157,7 +152,6 @@ export function SubmitReportReviewStep({
           </div>
         </div>
 
-        {/* 3. REPORT CARD */}
         <div className="space-y-2 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -195,7 +189,6 @@ export function SubmitReportReviewStep({
           </div>
         </div>
 
-        {/* 4. PROOF OF CONCEPT CARD */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -221,7 +214,6 @@ export function SubmitReportReviewStep({
         </div>
       </div>
 
-      {/* Submission Checklist */}
       <div className="space-y-3 pt-2">
         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
           Submission Checklist
@@ -284,7 +276,6 @@ export function SubmitReportReviewStep({
           </label>
         </div>
 
-        {/* Warning callout banner if checklist incomplete */}
         {!isChecklistComplete && (
           <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-sm font-medium text-amber-900 dark:text-amber-300 leading-relaxed mt-2">
             <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
@@ -295,14 +286,12 @@ export function SubmitReportReviewStep({
         )}
       </div>
 
-      {/* Error Alert */}
       {submitError && (
         <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-sm font-semibold text-red-600 dark:text-red-400">
           {submitError}
         </div>
       )}
 
-      {/* Action Buttons Row */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center gap-3">
           <Button

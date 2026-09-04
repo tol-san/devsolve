@@ -64,7 +64,6 @@ export function useReportManagement() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Debounce search input to avoid recalculating on each keystroke
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm.trim());
@@ -104,7 +103,6 @@ export function useReportManagement() {
       return matchesSearch && matchesType && matchesSeverity && matchesStatus && matchesQueue;
     });
 
-    // Apply sorting
     list.sort((a, b) => {
       switch (sortOption) {
         case "OLDEST": {

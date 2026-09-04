@@ -10,7 +10,6 @@ import {
   LucideIcon,
 } from "lucide-react";
 
-
 export const JOB_TITLES = [
   "CTO / VP Engineering",
   "Security Lead / CISO",
@@ -53,8 +52,6 @@ export interface FeatureItem {
   text: string;
 }
 
-/* One line per pillar the platform actually runs on — bounty, problems,
-   solutions, showcase — rather than four ways of saying "security". */
 export const USER_FEATURES: FeatureItem[] = [
   { icon: Bug, text: "Hunt live bounty programs & earn rewards" },
   { icon: MessagesSquare, text: "Ask & discuss technical dev problems" },

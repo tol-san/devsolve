@@ -12,14 +12,6 @@ import {
 } from "@/lib/api/proxy";
 import { commentUpdateSchema } from "@/lib/validations/engagement";
 
-/**
- * One comment: read it, revise it, or withdraw it.
- *
- * Who may do which is the backend's call — it answers `canEdit` and
- * `canDelete` on every comment it serves, and enforces the same rules here.
- * Its 403 comes back unchanged rather than being second-guessed locally.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, context: Context) {
@@ -37,7 +29,6 @@ export async function GET(request: NextRequest, context: Context) {
   }
 }
 
-/** PATCH /api/comments/{id} — the author revising their own comment. */
 export async function PATCH(request: NextRequest, context: Context) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();
@@ -67,13 +58,6 @@ export async function PATCH(request: NextRequest, context: Context) {
   }
 }
 
-/**
- * DELETE /api/comments/{id}.
- *
- * A soft delete upstream: the comment comes back with `removed: true` and a
- * `removalReason` so a thread with replies under it keeps its shape instead of
- * orphaning them.
- */
 export async function DELETE(request: NextRequest, context: Context) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

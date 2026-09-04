@@ -30,7 +30,6 @@ interface Step1BasicInfoProps {
   setVisibility: (val: ProgramVisibility) => void;
   setPolicy: (val: string) => void;
   formatHandle: (val: string) => string;
-  /** Set when editing, so the program's own handle does not read as taken. */
   programId?: string;
 }
 
@@ -50,11 +49,6 @@ export function Step1BasicInfo({
   formatHandle,
   programId,
 }: Step1BasicInfoProps) {
-  /* One debounced call answers both questions the author has about a handle:
-     whether it is well formed, and whether anyone already holds it. The
-     upstream refuses malformed handles here too, returning the broken rule as
-     `reason`, so there is nothing to pre-validate against a copy of the pattern
-     that would drift the day the rule changes. */
   const [checkHandle, handleCheck] = useLazyGetProgramHandleAvailabilityQuery();
   const trimmedHandle = handle.trim();
 
@@ -71,8 +65,6 @@ export function Step1BasicInfo({
     return () => clearTimeout(timer);
   }, [trimmedHandle, programId, checkHandle]);
 
-  /* Only trust an answer that is about the handle currently in the box — a
-     slower earlier request must not label what has since been typed. */
   const availability =
     handleCheck.data && handleCheck.originalArgs?.handle === trimmedHandle
       ? handleCheck.data
@@ -85,7 +77,6 @@ export function Step1BasicInfo({
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {/* Program Name */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-foreground">
             Program Name <span className="text-rose-500">*</span>
@@ -100,7 +91,6 @@ export function Step1BasicInfo({
           />
         </div>
 
-        {/* Handle */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-foreground">
             Handle <span className="text-rose-500">*</span>
@@ -142,9 +132,7 @@ export function Step1BasicInfo({
             )}
           >
             {availability?.available === false
-              ? /* The upstream's own words: the rule that refused it, rather
-                   than our paraphrase of a pattern we would have to keep in
-                   step with theirs. */
+              ? 
                 (availability.reason ?? "That handle is not available.")
               : availability?.available === true
                 ? `devsolve.app/programs/${availability.handle}`
@@ -153,7 +141,6 @@ export function Step1BasicInfo({
         </div>
       </div>
 
-      {/* Description */}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-foreground">
           Description <span className="text-rose-500">*</span>
@@ -167,10 +154,6 @@ export function Step1BasicInfo({
         />
       </div>
 
-      {/* Policy — the terms researchers actually agree to. It was carried in
-          state and sent on every save, but never had a field: the payload
-          substituted a paragraph about sandbox API keys instead, so the program
-          shipped with terms nobody in the organization had written. */}
       <div className="space-y-2">
         <label
           htmlFor="program-policy"
@@ -192,9 +175,7 @@ export function Step1BasicInfo({
         </p>
       </div>
 
-      {/* Program Type & Visibility */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {/* Program Type */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-foreground">
             Program Type
@@ -213,7 +194,6 @@ export function Step1BasicInfo({
           </Select>
         </div>
 
-        {/* Visibility */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-foreground">
             Visibility

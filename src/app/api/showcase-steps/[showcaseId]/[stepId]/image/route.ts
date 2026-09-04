@@ -11,15 +11,6 @@ import {
 } from "@/lib/api/proxy";
 import { validateImageFile } from "@/lib/validations/showcase";
 
-/**
- * PUT/DELETE /api/showcase-steps/{showcaseId}/{stepId}/image — the screenshot
- * attached to one build step.
- *
- * `multipart/form-data` with a single `file` part upstream, answering with the
- * step and its new `imageUrl`. The route is scoped to an existing step, so the
- * create form uploads only after the step has been posted.
- */
-
 type Context = { params: Promise<{ showcaseId: string; stepId: string }> };
 
 async function resolveIds(context: Context) {

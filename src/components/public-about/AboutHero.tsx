@@ -26,9 +26,7 @@ export function AboutHero({
   return (
     <section className="relative -mt-(--navbar-height) overflow-hidden pt-(--navbar-height)">
       <div className="relative mx-auto max-w-7xl px-6 pt-12 sm:px-12 sm:pt-16 lg:px-16">
-        {/* ─── Top Header: Editorial Split Layout ─── */}
         <div className="grid grid-cols-1 items-start justify-between gap-8 pb-8 sm:pb-12 lg:grid-cols-12 lg:gap-12">
-          {/* Left Column: Kicker + Main Heading */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -46,7 +44,6 @@ export function AboutHero({
             </h1>
           </motion.div>
 
-          {/* Right Column: Paragraph + CTA Button */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -66,7 +63,6 @@ export function AboutHero({
           </motion.div>
         </div>
 
-        {/* ─── Hero Image Container: Framed Inside Max-Width Bounds ─── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

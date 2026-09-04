@@ -1,4 +1,3 @@
-// Profile
 
 export interface SocialLinks {
   website?: string;
@@ -15,10 +14,10 @@ export interface ProfileBadge {
 
 export interface ProfileStats {
   reputation: number;
-  globalRank?: number; // no leaderboard/rank endpoint exists yet — omitted, never faked
+  globalRank?: number; 
   reportsSubmitted: number;
   accepted: number;
-  acceptedRate: number; // 0-100
+  acceptedRate: number; 
   totalEarned: number;
   bountyCurrency?: string;
   rewardedReports?: number;
@@ -40,21 +39,18 @@ export interface Profile {
   displayName: string;
   avatarInitials: string;
   avatarUrl?: string;
-  /** The banner behind the profile header, when one has been uploaded. */
   coverUrl?: string;
   bio: string;
   location?: string;
-  memberSince: string; // e.g. "March 2023"
+  memberSince: string; 
   socialLinks: SocialLinks;
   followers: number;
   following: number;
   isOwnProfile: boolean;
   phone?: string;
-  dateOfBirth?: string; // ISO date string, e.g. "1998-04-12"
+  dateOfBirth?: string; 
   gender?: "MALE" | "FEMALE" | "OTHER";
 }
-
-// Hacktivity
 
 export type Severity = "critical" | "high" | "medium" | "low";
 
@@ -63,24 +59,17 @@ export type HacktivityType = "resolved" | "badge" | "rank" | "retest";
 export interface HacktivityEntry {
   id: string;
   type: HacktivityType;
-  actorHandle: string; // e.g. "@ghostkode"
-  date: string; // ISO date
-  /** resolved */
+  actorHandle: string; 
+  date: string; 
   severity?: Severity;
   program?: string;
   bounty?: number;
-  /** badge */
   badgeName?: string;
-  /** rank */
-  rankLabel?: string; // e.g. "#7 Global"
+  rankLabel?: string; 
 }
 
-// Community
-
-/** The three kinds of post a portfolio holds, one endpoint each. */
 export type CommunityPostTag = "Problem" | "Solutions" | "Showcase";
 
-/** A small status chip — "Solved" on a problem, "Pending review" on a showcase. */
 export interface CommunityPostStatus {
   label: string;
   tone: "positive" | "pending";
@@ -92,33 +81,21 @@ export interface CommunityPost {
   description: string;
   tag: CommunityPostTag;
   votes: number;
-  /** Problems only: solutions are answers, showcases draw comments instead. */
   answers?: number;
   views?: number;
   status?: CommunityPostStatus;
-  date: string; // ISO date
-  /** Where the card opens — the problem thread, or the showcase page. */
+  date: string; 
   href?: string;
-  /** Showcase cover, when there is one. */
   thumbnailUrl?: string;
 }
-
-// Hall of Thanks
 
 export interface ThanksEntry {
   id: string;
   orgName: string;
   orgLogoUrl?: string;
   message: string;
-  date: string; // ISO date
+  date: string; 
 }
-
-// Following
-//
-// GET /api/v1/follows/mine only returns raw follow relationships (id,
-// followableType, followableId, createdAt) — no denormalized display name,
-// avatar, or stats, since there's no per-type lookup endpoint yet to enrich
-// them with. FollowRecord reflects exactly what the backend returns.
 
 export type FollowableType = "USER" | "ORGANIZATION" | "TOPIC" | (string & {});
 
@@ -126,7 +103,7 @@ export interface FollowRecord {
   id: string;
   followableType: FollowableType;
   followableId: string;
-  createdAt: string; // ISO date
+  createdAt: string; 
   displayName?: string;
   username?: string;
   avatarUrl?: string;
@@ -164,8 +141,6 @@ export interface FollowingUsersResponse {
   empty: boolean;
 }
 
-// Edit Profile
-
 export interface SocialLinksForm {
   github: string;
   twitter: string;
@@ -188,11 +163,9 @@ export interface NotificationChannelPrefs {
 
 export type NotificationPreferences = Record<NotificationKey, NotificationChannelPrefs>;
 
-
 export interface EditProfileFormData {
   avatarInitials: string;
-  avatarUrl?: string; // NEW — backend-persisted photo URL
-  /** The banner behind the profile header. Uploaded separately from the form. */
+  avatarUrl?: string; 
   coverUrl?: string;
   fullName: string;
   username: string;
@@ -200,20 +173,20 @@ export interface EditProfileFormData {
   accountType: string;
   bio: string;
   location: string;
-  phone?: string; // NEW
-  dateOfBirth?: string; // NEW — ISO date string, e.g. "1998-04-12"
-  gender?: "MALE" | "FEMALE" | "OTHER"; // NEW — matches backend enum exactly
+  phone?: string; 
+  dateOfBirth?: string; 
+  gender?: "MALE" | "FEMALE" | "OTHER"; 
   socialLinks: SocialLinksForm;
   twoFactorEnabled: boolean;
   notifications: NotificationPreferences;
 }
 export interface AccountStatus {
-  memberSince: string; // e.g. "Jan 2025"
+  memberSince: string; 
   totalSubmissions: number;
   acceptedReports: number;
   reputationPoints: number;
-  acceptanceRate: number; // 0-100
+  acceptanceRate: number; 
   phone?: string;
-  dateOfBirth?: string; // ISO date string, e.g. "1998-04-12"
+  dateOfBirth?: string; 
   gender?: "MALE" | "FEMALE" | "OTHER";
 }

@@ -4,14 +4,6 @@ import { OG_CONTENT_TYPE, OG_SIZE, ogCard } from "@/lib/seo/og-card";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo/site";
 import { describe, humanizeEnum } from "@/lib/seo/text";
 
-/**
- * The card a shared problem link unfurls into.
- *
- * File-based metadata outranks anything `generateMetadata` returns, so this is
- * the single source of the page's `og:image` — the sibling `page.tsx` sets no
- * image of its own.
- */
-
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const alt = `A problem on ${SITE_NAME}`;
@@ -24,9 +16,6 @@ export default async function Image({
   const { id } = await params;
   const problem = await getProblem(id);
 
-  /* A link to a draft or a deleted problem still gets a branded card. An
-     image URL that 404s renders as a broken box in most chat clients, which
-     looks worse than a generic card. */
   if (!problem?.title) {
     return ogCard({
       eyebrow: "Community",

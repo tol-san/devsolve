@@ -10,13 +10,6 @@ import {
   validationFailed,
 } from "@/lib/api/proxy";
 
-/**
- * POST /api/problems/duplicate-check — AI duplicate review on demand.
- *
- * Authenticated: requires a valid bearer token.
- * Rate limited to 5/min and 40/hour per account.
- * Reads candidates with a model, returns aiReviewed: true/false and ranked suggestions.
- */
 const duplicateCheckSchema = z.object({
   title: z.string().min(1).max(180),
   description: z.string().max(20000).optional(),

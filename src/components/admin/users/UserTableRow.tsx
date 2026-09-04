@@ -53,7 +53,6 @@ const ROLE_OPTIONS: {
   { value: "MODERATOR", label: "Moderator", icon: ShieldAlert },
 ];
 
-/** Deterministic avatar colour based on name */
 function getAvatarColor(name: string): string {
   const colors = [
     "bg-blue-100 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300",
@@ -95,9 +94,7 @@ export function UserTableRow({
       }`}
     >
       <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* LEFT: avatar + identity */}
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          {/* Avatar */}
           <div
             className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${getAvatarColor(
               user.name
@@ -106,9 +103,7 @@ export function UserTableRow({
             {initials}
           </div>
 
-          {/* Identity block */}
           <div className="space-y-1.5 flex-1 min-w-0">
-            {/* Name + badges row */}
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {user.name}
@@ -117,7 +112,6 @@ export function UserTableRow({
               <UserStatusBadge status={user.status} />
             </div>
 
-            {/* Meta row */}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1">
                 <Mail className="w-3.5 h-3.5 text-slate-400" />
@@ -147,9 +141,7 @@ export function UserTableRow({
           </div>
         </div>
 
-        {/* RIGHT: actions */}
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-          {/* Quick toggle button */}
           <Button
             variant="outline"
             onClick={() =>
@@ -174,7 +166,6 @@ export function UserTableRow({
             )}
           </Button>
 
-          {/* More actions dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger
               className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
@@ -187,7 +178,6 @@ export function UserTableRow({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
 
-              {/* Change role sub-menu */}
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="text-sm font-medium cursor-pointer">
                   <Shield className="w-4 h-4 mr-2 text-slate-400" />
@@ -220,7 +210,6 @@ export function UserTableRow({
 
               <DropdownMenuSeparator />
 
-              {/* Toggle suspend/activate */}
               <DropdownMenuItem
                 onClick={() =>
                   onUpdateStatus(user.id, isSuspended ? "ACTIVE" : "SUSPENDED")

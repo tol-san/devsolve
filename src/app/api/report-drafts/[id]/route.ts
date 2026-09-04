@@ -23,7 +23,6 @@ const unreachable = () =>
 const badId = () =>
   NextResponse.json({ message: "Invalid draft id" }, { status: 400 });
 
-/** `GET /api/report-drafts/{id}` — one draft, to resume it. */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -57,14 +56,6 @@ export async function GET(
   }
 }
 
-/**
- * `PUT /api/report-drafts/{id}` — overwrite a draft.
- *
- * Every field is optional upstream, which is the point: a draft is saved
- * mid-sentence and must never be refused for being incomplete. The schema
- * here therefore only enforces the ceilings, so an over-long field is caught
- * while the reporter still has it on screen rather than at submit.
- */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -114,7 +105,6 @@ export async function PUT(
   }
 }
 
-/** `DELETE /api/report-drafts/{id}` — discard it. */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

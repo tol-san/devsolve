@@ -21,10 +21,8 @@ function OrganizationSecurityContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Dashboard Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="space-y-1">
-          {/* Breadcrumbs */}
           <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             <Link
               href="/dashboard"
@@ -43,7 +41,6 @@ function OrganizationSecurityContent() {
             <span className="text-foreground">Security Incidents</span>
           </div>
 
-          {/* Title & Subtext */}
           <div className="flex items-center gap-2.5 pt-1">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
               <ShieldAlert className="size-5" />
@@ -58,7 +55,6 @@ function OrganizationSecurityContent() {
         </div>
       </header>
 
-      {/* Incidents Table with Organization Scope */}
       {orgId ? (
         <SecurityIncidentsTable scope="org" orgId={orgId} />
       ) : (

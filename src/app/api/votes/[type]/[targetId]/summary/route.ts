@@ -12,14 +12,6 @@ import {
   type VoteTargetType,
 } from "@/lib/validations/engagement";
 
-/**
- * GET /api/votes/{type}/{targetId}/summary — score, up/down counts, and the
- * caller's own vote.
- *
- * The counts are public, so a signed-out visitor gets them too; `currentUserVote`
- * only means anything when a token is forwarded, which it is when there is one.
- */
-
 type Context = { params: Promise<{ type: string; targetId: string }> };
 
 export async function GET(request: NextRequest, context: Context) {

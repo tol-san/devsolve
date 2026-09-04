@@ -1,20 +1,6 @@
-/**
- * Turning user-written Markdown into the one-line plain text a `<meta>`
- * description or a social card needs.
- *
- * Problem bodies and showcase overviews are Markdown, and a description that
- * still carries `##`, backticks and link syntax is what search engines show
- * under the title — so the syntax is stripped rather than escaped.
- */
 
-/** Roughly what Google renders before truncating a description itself. */
 export const DESCRIPTION_LIMIT = 160;
 
-/**
- * Markdown to prose. Fenced code goes entirely — a description made of a stack
- * trace tells a reader nothing about the page — while link and image syntax
- * collapses to the text a human wrote.
- */
 export function plainText(source: string | null | undefined): string {
   if (!source) return "";
 
@@ -55,26 +41,16 @@ export function plainText(source: string | null | undefined): string {
   );
 }
 
-/**
- * Cuts to `limit` characters on a word boundary, adding an ellipsis only when
- * something was actually dropped.
- */
 export function truncate(value: string, limit: number): string {
   if (value.length <= limit) return value;
 
   const clipped = value.slice(0, limit - 1);
   const lastSpace = clipped.lastIndexOf(" ");
-  /* Falling back to the hard cut covers a single word longer than the limit,
-     where there is no space to break on. */
   const stem = lastSpace > limit * 0.6 ? clipped.slice(0, lastSpace) : clipped;
 
   return `${stem.replace(/[\s,;:.!?-]+$/, "")}…`;
 }
 
-/**
- * The description a page advertises: its own Markdown reduced to prose and
- * trimmed to length, or the fallback when the body is empty.
- */
 export function describe(
   source: string | null | undefined,
   fallback: string,
@@ -84,7 +60,6 @@ export function describe(
   return text ? truncate(text, limit) : truncate(fallback, limit);
 }
 
-/** Sentence-cases an upstream enum (`IN_PROGRESS` -> `In progress`). */
 export function humanizeEnum(value: string | null | undefined): string {
   if (!value) return "";
   const words = value.toLowerCase().replace(/_/g, " ");

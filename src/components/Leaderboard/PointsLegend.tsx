@@ -30,14 +30,6 @@ const ITEMS: { label: string; points: number; dot: string; glow: string }[] = [
   },
 ];
 
-/**
- * How reputation is earned. Deliberately stated in points, not payouts — a
- * Critical at a startup and a Critical at a bank move the board identically.
- *
- * Severity is the whole ladder: the platform pays this automatically when a
- * report is resolved. Recognition used to appear here for +25 and no longer
- * does — it is public credit and awards no reputation.
- */
 export default function PointsLegend({ className = "" }: { className?: string }) {
   const reduce = useReducedMotion();
 
@@ -56,7 +48,6 @@ export default function PointsLegend({ className = "" }: { className?: string })
               ? undefined
               : {
                   y: -2,
-                  // Hairline picks up the item's own hue on hover
                   boxShadow: `0 0 0 1px ${item.glow}, 0 6px 16px -8px ${item.glow}`,
                 }
           }

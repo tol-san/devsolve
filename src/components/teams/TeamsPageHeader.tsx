@@ -7,18 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
-/**
- * The page header, in the dashboard's standard shape: breadcrumb, title, one
- * line of what the screen is for.
- *
- * The counts that used to be spelled out here now sit in the stats row below
- * it, where they can be read at a glance instead of parsed out of a sentence —
- * and stated once rather than three times on one screen.
- */
 export function TeamsPageHeader() {
-  /* Without this the href is locale-less, and the middleware bounces it to the
-     locale copy — a redirect round trip that also drops client-side
-     navigation on a link the reader is one click away from. */
   const lp = useLocalePath();
 
   return (

@@ -36,22 +36,17 @@ export const auth = betterAuth({
     genericOAuth({
       config: [
         {
-          // Spread the keycloak preset (sets providerId, discoveryUrl, clientId, clientSecret, scopes)
           ...keycloak({
             clientId: process.env.KEYCLOAK_CLIENT_ID!,
             clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
             issuer: process.env.KEYCLOAK_ISSUER!,
           }),
-          // Must be set at this level — keycloak() preset does NOT forward pkce
-          // Required because Keycloak client has "Require PKCE: On" with S256
           pkce: true,
 
           getUserInfo: async (tokens) => {
-            // Keycloak stores realm_access.roles inside the JWT (idToken or accessToken)
             const idTokenPayload = parseJwtPayload(tokens.idToken);
             const accessTokenPayload = parseJwtPayload(tokens.accessToken);
 
-            // Fetch base user profile from Keycloak userinfo endpoint
             const issuer = process.env.KEYCLOAK_ISSUER!;
             let userInfo: any = {};
             try {
@@ -63,7 +58,6 @@ export const auth = betterAuth({
               console.error("[Auth] Error fetching Keycloak userinfo:", err);
             }
 
-            // Extract realm_access roles from JWT tokens and UserInfo response
             const realmRoles: string[] = Array.from(
               new Set([
                 ...(idTokenPayload?.realm_access?.roles || []),
@@ -80,7 +74,6 @@ export const auth = betterAuth({
             console.log("[Auth Server Debug] Extracted Keycloak Realm Roles:", realmRoles);
             console.log("=======================================================\n");
 
-            // Map Keycloak Realm Roles to app roles (supports single or multi-role users)
             const upperRoles = realmRoles.map((r) => String(r).toUpperCase());
             const appRoles = upperRoles.filter((r) =>
               ["USER", "COMPANY", "ADMIN", "MODERATOR"].includes(r)
@@ -103,5 +96,4 @@ export const auth = betterAuth({
     }),
   ],
 });
-
 

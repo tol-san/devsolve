@@ -44,7 +44,6 @@ import { cn } from "@/lib/utils";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-/** The role's own words, so this screen and the invite form agree. */
 function roleCopy(role: OrganizationInvitationRole | undefined) {
   const option = INVITE_ROLE_OPTIONS.find((entry) => entry.role === role);
   return {
@@ -53,7 +52,6 @@ function roleCopy(role: OrganizationInvitationRole | undefined) {
   };
 }
 
-/** What went wrong accepting, in the invitee's terms rather than the code's. */
 function acceptFailureMessage(error: unknown): string {
   const status = apiErrorStatus(error);
 
@@ -74,29 +72,12 @@ function acceptFailureMessage(error: unknown): string {
   );
 }
 
-/**
- * Invitations companies have sent this account.
- *
- * Backed by `GET /organizations/invitations/me`, which is the only place a
- * signed-in invitee can read their own `invitationToken` — the token otherwise
- * only reaches them by email, and the INVITATION notification does not carry
- * it (its `notifiableId` is the organization's id, not the token).
- *
- * Every row here is live: upstream returns only invitations that would succeed
- * if accepted right now — pending, unexpired, into an organization that is
- * still active — ordered soonest-to-expire first. So the list is rendered in
- * the order it arrives, accepting happens in place, and the accepted row
- * leaves on the refetch rather than being hidden client-side.
- */
 export function MyInvitationsView() {
   const lp = useLocalePath();
 
   const { data, isLoading, isError, isFetching, error, refetch } =
     useGetMyInvitationsQuery();
 
-  /* One clock for the whole list, ticking, so a deadline read as "in an hour"
-     does not still say that an hour later. Null on the first render, which is
-     what keeps the server's markup and the client's identical. */
   const now = useNow();
 
   const invitations = data ?? [];
@@ -196,16 +177,12 @@ function InvitationRow({
   now,
 }: {
   invitation: MyOrganizationInvitation;
-  /** Null until the page has mounted; see `useNow`. */
   now: number | null;
 }) {
   const lp = useLocalePath();
   const [acceptInvitation, { isLoading }] =
     useAcceptOrganizationInvitationMutation();
 
-  /* Held so the row can report its own success straight away. The refetch that
-     removes it is a round trip behind, and a row vanishing under the cursor
-     with only a toast to explain it is the worst moment on this screen. */
   const [accepted, setAccepted] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -213,22 +190,14 @@ function InvitationRow({
   const invitedBy = invitation.invitedByName?.trim();
   const role = roleCopy(invitation.role);
 
-  /* Upstream filters expired invitations out, so this is only reached by a
-     page left open past the deadline. Worth saying, rather than letting the
-     accept come back 410. */
   const expiresAt = toDate(invitation.expiresAt);
   const expired = now !== null && !!expiresAt && expiresAt.getTime() <= now;
-  /* Under a day left. Only the badge changes, so urgency reads without the
-     list rearranging itself. */
   const urgent =
     now !== null &&
     !expired &&
     !!expiresAt &&
     expiresAt.getTime() - now < ONE_DAY_MS;
 
-  /* Before the clock lands, the deadline is stated as the date it is — true
-     without knowing what today is, and the same string on both sides of
-     hydration. */
   const deadline = expired
     ? "Expired"
     : now === null
@@ -296,7 +265,6 @@ function InvitationRow({
             {!accepted && (
               <Badge
                 variant="outline"
-                /* The exact moment, for anyone who needs to plan around it. */
                 title={formatDateTime(invitation.expiresAt)}
                 className={cn(
                   "h-7 gap-1.5 rounded-full px-2.5 text-sm font-semibold",
@@ -377,12 +345,6 @@ function InvitationRow({
   );
 }
 
-/**
- * The list could not be read at all.
- *
- * Split on the status because the ways out differ: a session that ended is
- * fixed by signing in, and nothing else here is fixed by anything but waiting.
- */
 function LoadFailed({
   error,
   isRetrying,
@@ -433,8 +395,6 @@ function LoadFailed({
         <Button
           type="button"
           disabled={isLoggingIn}
-          /* Carries this screen through the round trip, so signing in lands
-             back on the invitations rather than the home page. */
           onClick={() => void handleLogin(pathname)}
           className="h-10 shrink-0 cursor-pointer rounded-xl px-4 text-sm font-semibold"
         >
@@ -465,7 +425,6 @@ function LoadFailed({
   );
 }
 
-/** Shaped like the rows it stands in for, so nothing jumps when they arrive. */
 function InvitationsSkeleton() {
   return (
     <div

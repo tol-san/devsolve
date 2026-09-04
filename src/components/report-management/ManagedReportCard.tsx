@@ -234,7 +234,6 @@ export function ManagedReportCard({
           </div>
         </div>
 
-        {/* Mobile View */}
         <div className="space-y-3 lg:hidden">
           <div className="flex items-start gap-3">
             <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted border border-border">

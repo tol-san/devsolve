@@ -90,7 +90,6 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
         sev.border
       )}
     >
-      {/* Subtle top severity accent gradient */}
       <div
         className={cn(
           "absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r",
@@ -99,10 +98,8 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
       />
 
       <div className="space-y-4">
-        {/* Header: Organization & Program Info + Hall of Thanks Badge */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3.5 min-w-0 flex-1">
-            {/* Organization Logo */}
             {orgLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -145,7 +142,6 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
                 )}
               </div>
 
-              {/* Program Link & Time */}
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                 <span className="font-medium text-foreground/70">recognized for</span>
                 {programHref ? (
@@ -168,20 +164,17 @@ export default function ThanksCard({ recognition }: ThanksCardProps) {
             </div>
           </div>
 
-          {/* Hall of Thanks Accolade Pill */}
           <div className="flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400 shrink-0 shadow-2xs">
             <Award className="size-3.5 text-amber-500" />
             <span>Hall of Thanks</span>
           </div>
         </div>
 
-        {/* Accolade Recognition Title */}
         <div className="flex items-center gap-2 rounded-xl bg-muted/40 dark:bg-muted/20 border border-border/60 px-3.5 py-2 text-sm text-foreground">
           <Sparkles className="size-4 text-amber-500 shrink-0" />
           <span className="font-bold text-foreground text-sm">{recognition.title}</span>
         </div>
 
-        {/* Executive Gratitude Note */}
         {recognition.description && (
           <div className="relative overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/[0.04] dark:bg-amber-500/[0.06] p-4 text-sm text-foreground leading-relaxed">
             <Quote className="absolute right-3.5 top-3 size-7 text-amber-500/15 dark:text-amber-500/10 pointer-events-none rotate-180" />

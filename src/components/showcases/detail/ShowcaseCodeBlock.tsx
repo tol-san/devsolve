@@ -16,17 +16,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 interface ShowcaseCodeBlockProps {
-  /** Raw code snippet string from the showcase step */
   code: string;
-  /** Optional explicit language override */
   language?: string;
-  /** Optional custom container class name */
   className?: string;
 }
 
-/**
- * Detects the programming language from code heuristics if not explicitly given.
- */
 function detectLanguage(code: string, fallback = "typescript"): string {
   if (/\b(export\s+(async\s+)?function|import\s+.*\s+from|interface\s+\w+|type\s+\w+\s*=|<ApiResponse|:\s*Promise<|:\s*(string|number|boolean|void))\b/.test(code)) {
     return "typescript";
@@ -52,9 +46,6 @@ function detectLanguage(code: string, fallback = "typescript"): string {
   return fallback;
 }
 
-/**
- * Maps language identifier to display label.
- */
 function formatLanguageName(lang: string): string {
   switch (lang.toLowerCase()) {
     case "typescript":
@@ -85,18 +76,6 @@ function formatLanguageName(lang: string): string {
   }
 }
 
-/**
- * State-of-the-art syntax highlighted code viewer for showcase implementation steps.
- *
- * Features:
- * - Dynamic Light / Dark mode switching (adapts automatically to site theme + manual override toggle)
- * - macOS window dots and header with file/language badge and line count
- * - One-click "Copy Code" with visual and toast feedback
- * - Line numbers gutter with selection isolation (numbers cannot be copied)
- * - Prism syntax highlighting with bespoke Dark (One Dark) and Light (One Light) themes
- * - Word-wrap toggle
- * - Safe normalization of Windows CRLF to LF
- */
 export function ShowcaseCodeBlock({
   code,
   language: explicitLanguage,
@@ -112,21 +91,18 @@ export function ShowcaseCodeBlock({
     setMounted(true);
   }, []);
 
-  // Determine active visual theme (dark vs light)
   const isDark = useMemo(() => {
     if (themeOverride === "light") return false;
     if (themeOverride === "dark") return true;
-    if (!mounted) return true; // Server-rendered default to prevent flash
+    if (!mounted) return true; 
     return resolvedTheme === "dark";
   }, [themeOverride, mounted, resolvedTheme]);
 
-  // 1. Sanitize code and extract language if enclosed in markdown code fences
   const { cleanCode, language } = useMemo(() => {
     if (!code) return { cleanCode: "", language: "typescript" };
 
     let normalized = code.replace(/\r\n/g, "\n").trim();
 
-    // Check if user accidentally pasted enclosing markdown backticks
     const fenceMatch = normalized.match(/^```([a-zA-Z0-9_-]+)?\n([\s\S]*?)\n```$/);
     if (fenceMatch) {
       const extractedLang = fenceMatch[1]?.toLowerCase();
@@ -144,7 +120,6 @@ export function ShowcaseCodeBlock({
     };
   }, [code, explicitLanguage]);
 
-  // 2. Syntax highlight via Prism
   const highlightedHtml = useMemo(() => {
     if (!cleanCode) return "";
 
@@ -152,7 +127,6 @@ export function ShowcaseCodeBlock({
     try {
       return Prism.highlight(cleanCode, grammar, language);
     } catch {
-      // Fallback to plain text escaping if grammar fails
       return cleanCode
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -160,7 +134,6 @@ export function ShowcaseCodeBlock({
     }
   }, [cleanCode, language]);
 
-  // 3. Line numbers array
   const lines = useMemo(() => {
     if (!cleanCode) return [1];
     return cleanCode.split("\n");
@@ -201,7 +174,6 @@ export function ShowcaseCodeBlock({
             : "border-border/90 bg-slate-50/95 text-slate-900 shadow-sm",
         )}
       >
-        {/* ── macOS Window Header Bar ── */}
         <div
           className={cn(
             "flex items-center justify-between border-b px-4 py-2.5 backdrop-blur-xs transition-colors duration-200",
@@ -210,7 +182,6 @@ export function ShowcaseCodeBlock({
               : "border-border/60 bg-slate-200/50",
           )}
         >
-          {/* Window dots & title */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5" aria-hidden="true">
               <div className="size-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/50" />
@@ -242,9 +213,7 @@ export function ShowcaseCodeBlock({
             </div>
           </div>
 
-          {/* Action buttons: Theme Toggle, Word Wrap, Copy */}
           <div className="flex items-center gap-1.5">
-            {/* Theme Toggle Button (Light / Dark) */}
             <button
               type="button"
               onClick={handleToggleTheme}
@@ -270,7 +239,6 @@ export function ShowcaseCodeBlock({
               )}
             </button>
 
-            {/* Word wrap toggle */}
             <button
               type="button"
               onClick={() => setWrapLines(!wrapLines)}
@@ -289,7 +257,6 @@ export function ShowcaseCodeBlock({
               <span className="hidden md:inline">{wrapLines ? "Wrapped" : "Wrap"}</span>
             </button>
 
-            {/* Copy button */}
             <button
               type="button"
               onClick={handleCopy}
@@ -321,9 +288,7 @@ export function ShowcaseCodeBlock({
           </div>
         </div>
 
-        {/* ── Code Display with Line Numbers ── */}
         <div className="relative flex text-[13px] sm:text-sm font-mono leading-relaxed overflow-x-auto">
-          {/* Gutter (Line Numbers) */}
           <div
             aria-hidden="true"
             className={cn(
@@ -340,7 +305,6 @@ export function ShowcaseCodeBlock({
             ))}
           </div>
 
-          {/* Syntax Highlighted Code */}
           <pre
             className={cn(
               "flex-1 p-4 font-mono leading-relaxed tab-size-2 transition-colors duration-200",
@@ -359,7 +323,6 @@ export function ShowcaseCodeBlock({
         </div>
       </div>
 
-      {/* Scoped CSS for Prism syntax tokens with modern Dark and Light themes */}
       <style jsx global>{`
         /* ── Dark Mode Syntax Highlight (One Dark) ── */
         .prism-dark .token.keyword {

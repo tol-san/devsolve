@@ -36,7 +36,6 @@ function DashboardSkeleton() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12 animate-pulse"
     >
-      {/* Header skeleton */}
       <div className="flex flex-col sm:flex-row justify-between gap-4 pb-4 border-b border-border/60">
         <div className="space-y-2">
           <div className="h-8 w-64 rounded-xl bg-muted/70" />
@@ -49,7 +48,6 @@ function DashboardSkeleton() {
         </div>
       </div>
 
-      {/* 4 Stat Cards skeleton */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((item) => (
           <div
@@ -66,13 +64,11 @@ function DashboardSkeleton() {
         ))}
       </div>
 
-      {/* Middle row skeleton */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="h-84 rounded-2xl border border-border/60 bg-card/60 p-5 lg:col-span-5" />
         <div className="h-84 rounded-2xl border border-border/60 bg-card/60 p-5 lg:col-span-7" />
       </div>
 
-      {/* Bottom row skeleton */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((item) => (
           <div
@@ -173,7 +169,6 @@ export default function DashboardPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Page Header with personalized greeting & primary actions */}
       <DashboardHeader
         onRefresh={refetch}
         isRefreshing={isFetching}
@@ -182,10 +177,8 @@ export default function DashboardPage() {
         userName={displayName}
       />
 
-      {/* Top 4 Stat Metric Cards */}
       <DashboardStatCards stats={dashboardData.stats} />
 
-      {/* Middle Section: Action Queue + My Programs */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-5">
           <DashboardActionQueue
@@ -201,7 +194,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Bottom Section: Status Breakdown + Severity Breakdown + Security Feed */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <DashboardReportStatus distribution={dashboardData.reportStatus} />
         <DashboardReportSeverity distribution={dashboardData.reportSeverity} />

@@ -8,11 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/organizations/me/hacktivity — proxy for
- * /api/v1/organizations/me/hacktivity.
- */
-
 const ALLOWED_QUERY = ["organizationId", "page", "size", "sort"] as const;
 
 export async function GET(request: NextRequest) {

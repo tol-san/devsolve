@@ -57,7 +57,6 @@ export function FeaturedDisclosures({
         </span>
       </div>
 
-      {/* Grid of featured disclosure cards */}
       <div
         className={cn(
           "grid gap-4",
@@ -84,7 +83,6 @@ export function FeaturedDisclosures({
               transition={{ duration: 0.3, delay: index * 0.06, ease: "easeOut" }}
               className="group relative flex flex-col justify-between gap-4 overflow-hidden rounded-2xl border border-border/70 bg-card p-5 shadow-xs transition-all duration-200 hover:border-border hover:shadow-md"
             >
-              {/* Top severity accent glow line */}
               <div
                 aria-hidden
                 className={cn("absolute inset-x-0 top-0 h-1", severity.rail)}

@@ -8,12 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * `GET /api/tags` — search or list tags from `/api/v1/tags`.
- *
- * Forwards optional `q` (keyword filter) and `limit` to the backend.
- * Accessible to public users and admins alike.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
 

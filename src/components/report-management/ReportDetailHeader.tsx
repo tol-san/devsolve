@@ -227,7 +227,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
   const lastRetest = detail.retestHistory && detail.retestHistory.length > 0
     ? detail.retestHistory[detail.retestHistory.length - 1]
     : null;
-  /* The attempt still owed an answer, which is the one carrying a deadline. */
   const openRetest = openRetestAttempt(detail.retestHistory);
   const openRetestDue = retestDeadline(openRetest?.dueAt);
   const isReopenedFromFailedRetest =
@@ -236,7 +235,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
 
   return (
     <div className="space-y-5">
-      {/* 1. Breadcrumbs & Top Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border/80">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground font-medium">
           <Link
@@ -295,7 +293,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             <span>Preview Summary</span>
           </Button>
 
-          {/* Dedicated Thank Researcher / Recognition Dialog (gated on ACTIVE member with AWARD_REWARDS or Owner + RESOLVED report with severity) */}
           {showThankButton && (
             <ThankResearcherDialog detail={detail} />
           )}
@@ -354,7 +351,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
         </div>
       </div>
 
-      {/* Quick Report Overview Modal */}
       <AnimatePresence>
         {showPreviewModal && (
           <div
@@ -457,10 +453,8 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
         )}
       </AnimatePresence>
 
-      {/* 2. Main Title Banner Card */}
       <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden p-0 py-0 gap-0">
         <CardContent className="p-5 sm:p-6 space-y-5">
-          {/* Top Row: Badges & Title */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <Badge
@@ -519,7 +513,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               {detail.title}
             </h1>
 
-            {/* Dispute / Severity Disagreement Alert Banner */}
             {detail.dispute && detail.dispute.status === "OPEN" ? (
               <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2.5">
                 <ShieldAlert className="size-4 text-rose-500 shrink-0 mt-0.5" />
@@ -548,9 +541,7 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             ) : null}
           </div>
 
-          {/* Key Facts Summary Strip */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 p-4 rounded-xl bg-muted/40 border border-border/80 text-sm">
-            {/* Submitter */}
             <div className="space-y-1 min-w-0 overflow-hidden">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 truncate">
                 <User className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -581,7 +572,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               </div>
             </div>
 
-            {/* Target Asset */}
             <div className="space-y-1 min-w-0 overflow-hidden">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 truncate">
                 <Globe className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -599,7 +589,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               </div>
             </div>
 
-            {/* Reward Range */}
             <div className="space-y-1 min-w-0 overflow-hidden">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 truncate">
                 <Coins className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -615,7 +604,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
               </div>
             </div>
 
-            {/* Submitted Date & Time */}
             <div className="space-y-1 min-w-0 overflow-hidden">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 truncate">
                 <CalendarDays className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
@@ -632,7 +620,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
             </div>
           </div>
 
-          {/* Retest Status Context Banners */}
           {isWaitingForRetest && (
             <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4 space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -650,7 +637,6 @@ export function ReportDetailHeader({ detail }: ReportDetailHeaderProps) {
                 <strong className="text-foreground">{displayName}</strong> has been
                 asked to re-run their proof of concept on the deployed fix.
               </p>
-              {/* The deadline the attempt lapses on, when it has one. */}
               <p
                 className={cn(
                   "text-sm font-semibold",

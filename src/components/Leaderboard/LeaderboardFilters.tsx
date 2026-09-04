@@ -48,7 +48,6 @@ export default function LeaderboardFilters({
       className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 dark:ring-foreground/10"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        {/* Period — the one control that changes what "reputation" means */}
         <div
           role="group"
           aria-label="Ranking period"
@@ -106,8 +105,6 @@ export default function LeaderboardFilters({
               className="h-11 w-full rounded-xl bg-muted/50 text-base font-medium text-foreground shadow-xs sm:w-48"
             >
               <Globe2 className="mr-1 h-4 w-4 text-muted-foreground" aria-hidden />
-              {/* Rendered from the option list so the label is right on first
-                  paint, before the popup has ever mounted its items. */}
               <SelectValue placeholder="All countries">
                 {(selected: string) =>
                   selected === "all"
@@ -154,8 +151,6 @@ export default function LeaderboardFilters({
               ))}
             </SelectContent>
           </Select>
-          {/* Reset lives inline rather than on a second row — it only exists
-              while something is actually filtered. */}
           <AnimatePresence initial={false}>
             {hasFilters && (
               <motion.button

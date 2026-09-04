@@ -39,12 +39,6 @@ import { useDeleteSolutionDraftMutation } from "@/lib/redux/services/solutionDra
 import type { MyPost } from "@/lib/redux/services/myCommunityApi";
 import { cn } from "@/lib/utils";
 
-/**
- * One of the author's own posts. Unlike a public card this leads with the
- * workflow state — whether it is live, waiting on a reviewer, or sent back —
- * because that is the question someone opens this page to answer.
- */
-
 const KIND_STYLES: Record<MyPost["kind"], string> = {
   Problem: "bg-red-50 text-red-700 border border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/20",
   Solution: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20",
@@ -71,7 +65,6 @@ function formatDate(iso: string) {
   });
 }
 
-/** What deleting one costs, in the author's words. */
 const DELETE_COPY: Record<MyPost["kind"], string> = {
   Problem:
     "Answers already posted under it go with it, and anyone holding a link will find nothing there.",
@@ -207,7 +200,6 @@ export function MyPostCard({ post }: { post: MyPost }) {
           </p>
         </div>
 
-        {/* What a reviewer asked for, where the author will look for it. */}
         {post.note && (
           <p className="flex gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm leading-relaxed text-rose-700 dark:border-rose-500/25 dark:bg-rose-500/10 dark:text-rose-200">
             <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -255,8 +247,6 @@ export function MyPostCard({ post }: { post: MyPost }) {
                 Edit
               </Link>
             ) : (
-              /* What is left here is an answer that names no problem: the edit
-                 route is nested under one, so there is nowhere to send it. */
               <Button
                 type="button"
                 size="sm"
@@ -270,8 +260,6 @@ export function MyPostCard({ post }: { post: MyPost }) {
               </Button>
             )}
 
-            {/* A draft is private until it is submitted, so this is the step
-                that turns one into a post. */}
             {post.canSubmit && (
               <Button
                 type="button"
@@ -349,7 +337,6 @@ export function MyPostCard({ post }: { post: MyPost }) {
   );
 }
 
-/** Pulls something readable out of an RTK Query error. */
 function messageOf(error: unknown, fallback: string): string {
   if (typeof error === "object" && error !== null && "data" in error) {
     const data = (error as { data?: unknown }).data;

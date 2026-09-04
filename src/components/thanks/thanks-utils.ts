@@ -1,38 +1,22 @@
-/**
- * Utilities for formatting Hall of Thanks dates.
- *
- * Country rendering lives in `CountryDisplay` — the emoji flag helper that was
- * here produced regional-indicator pairs, which Windows has no glyphs for.
- */
 
-/**
- * Parses an ISO LocalDateTime string from the server (e.g. "2026-08-30T14:02:11.482").
- * As specified in the contract, the server local time is UTC+7 without a timezone suffix.
- */
 export function parseServerDate(raw: string | null | undefined): Date | null {
   if (!raw) return null;
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
-  // If there's already a timezone indicator (Z, +07:00, etc.), parse directly
   if (/[zZ]|[+-]\d{2}(:?\d{2})?$/.test(trimmed)) {
     const d = new Date(trimmed);
     return isNaN(d.getTime()) ? null : d;
   }
 
-  // Otherwise append +07:00 as documented in the backend specification
   const withTz = `${trimmed}+07:00`;
   const d = new Date(withTz);
   if (!isNaN(d.getTime())) return d;
 
-  // Fallback to direct parse
   const fallback = new Date(trimmed);
   return isNaN(fallback.getTime()) ? null : fallback;
 }
 
-/**
- * Returns a human-friendly relative time string (e.g. "2 days ago", "Aug 30, 2026").
- */
 export function formatRelativeTime(dateInput: string | Date | null | undefined): string {
   const date = typeof dateInput === "string" ? parseServerDate(dateInput) : dateInput;
   if (!date || isNaN(date.getTime())) return "Recently";
@@ -58,9 +42,6 @@ export function formatRelativeTime(dateInput: string | Date | null | undefined):
   });
 }
 
-/**
- * Full date formatted with time for tooltips.
- */
 export function formatFullDateTime(dateInput: string | Date | null | undefined): string {
   const date = typeof dateInput === "string" ? parseServerDate(dateInput) : dateInput;
   if (!date || isNaN(date.getTime())) return "";

@@ -7,7 +7,6 @@ export interface AutoApprovalRule {
   enabled: boolean;
   available: boolean;
   updatedBy: string | null;
-  /** Server-local ISO string without timezone suffix, e.g. "2026-09-03T17:04:11" */
   updatedAt: string | null;
 }
 

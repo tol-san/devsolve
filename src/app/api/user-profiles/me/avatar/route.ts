@@ -8,19 +8,6 @@ import {
 } from "@/lib/api/proxy";
 import { validateAvatarFile } from "@/lib/validations/avatar";
 
-/**
- * PUT/DELETE /api/user-profiles/me/avatar — proxy for the backend's
- * /api/v1/user-profiles/me/avatar.
- *
- * No id in the path: the avatar belongs to whoever the bearer token
- * identifies, so the session is the entire authorization story here.
- *
- * The upstream takes `multipart/form-data` with a single `file` part. The part
- * is read out and re-encoded rather than streamed through — streaming would
- * need `duplex: "half"` and would forward the bytes unchecked. Avatars are
- * capped at 2MB, so buffering one costs nothing.
- */
-
 export async function PUT(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

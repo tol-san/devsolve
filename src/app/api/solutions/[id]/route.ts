@@ -12,16 +12,8 @@ import {
 } from "@/lib/api/proxy";
 import { solutionUpdateSchema } from "@/lib/validations/solution";
 
-/**
- * One solution — read, revised, or withdrawn by its author.
- *
- * Who may do which is the backend's call throughout; the token is relayed and
- * its 403 comes back unchanged.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
-/** GET /api/solutions/{id} — one answer in full, for the edit form to load. */
 export async function GET(request: NextRequest, context: Context) {
   const token = await bearerTokenFor(request);
 
@@ -37,17 +29,6 @@ export async function GET(request: NextRequest, context: Context) {
   }
 }
 
-/**
- * PATCH /api/solutions/{id} — the author revising their own answer.
- *
- * Guarded by `If-Match`, which upstream compares against the record's version.
- * A stale version is refused with a 412 rather than silently overwriting
- * whatever was saved in between, so the header is required and relayed
- * verbatim — never invented here.
- *
- * Editing an approved answer sends it back for review upstream, which is the
- * backend's decision to make and is reflected in the response it returns.
- */
 export async function PATCH(request: NextRequest, context: Context) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();
@@ -86,7 +67,6 @@ export async function PATCH(request: NextRequest, context: Context) {
   }
 }
 
-/** DELETE /api/solutions/{id} — the author withdrawing their own answer. */
 export async function DELETE(request: NextRequest, context: Context) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

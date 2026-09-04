@@ -39,17 +39,10 @@ import {
 
 interface CategoryTableProps {
   categories: CategoryResponse[];
-  /** Everything before filtering, so the footer can say what was hidden. */
   totalCount?: number;
   onEdit: (category: CategoryResponse) => void;
 }
 
-/**
- * A stored `iconUrl` is not necessarily a reachable one — the backend
- * currently hands back an internal MinIO host over plain http, which no
- * browser can load. Falling back to the glyph on error keeps the column
- * readable instead of filling it with broken-image icons.
- */
 function CategoryIcon({ url }: { url?: string }) {
   const [failed, setFailed] = useState(false);
 
@@ -237,7 +230,6 @@ export function CategoryTable({
           </TableBody>
         </Table>
 
-        {/* Footer */}
         {shown > 0 && (
           <div className="flex items-center justify-between gap-4 border-t border-border bg-muted/40 px-4 py-3">
             <div className="text-sm font-medium text-muted-foreground">

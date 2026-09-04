@@ -40,25 +40,11 @@ function getInitials(text: string): string {
     .slice(0, 2);
 }
 
-/** Does this path sit under that nav href? */
-/**
- * Whether this entry is the page being looked at.
- *
- * `usePathname` returns the URL as it actually is, locale and all
- * (`/km/dashboard/team-management`), while the nav entries are written without
- * one. Comparing the two directly meant no entry ever matched and nothing was
- * ever highlighted, so the target is localised first.
- *
- * The two roots are exact-match only: every dashboard path begins with
- * `/km/dashboard`, so a prefix test would light Dashboard up on every screen,
- * and `/km` would light up Home on all of them.
- */
 function matches(pathname: string, target: string, isRoot: boolean): boolean {
   if (isRoot) return pathname === target;
   return pathname === target || pathname.startsWith(`${target}/`);
 }
 
-/** All the sidebar needs of an organization, and all a membership carries. */
 export type SidebarOrganizationIdentity = {
   name?: string;
   slug?: string | null;
@@ -75,7 +61,6 @@ interface SidebarContentProps {
   isOrganizationLoading: boolean;
   onNavItemClick?: () => void;
   onSignOut: () => void;
-  /** Desktop icon-rail mode. The toggle itself lives on the aside's edge. */
   collapsed?: boolean;
 }
 
@@ -91,10 +76,6 @@ function SidebarContent({
   collapsed = false,
 }: SidebarContentProps) {
   const t = useT();
-  /* Every entry goes through this: a locale-less href still resolves, but only
-     by bouncing off the middleware redirect, which costs a round trip and
-     drops client-side navigation. It is also what the active check compares
-     against. */
   const lp = useLocalePath();
   const { openNotification } = useNotification();
   const { hasCompanyAccess, isOwner, canAny } = useCompanyAccess();
@@ -123,19 +104,10 @@ function SidebarContent({
   ).map((r) => r.trim().toUpperCase());
 
   const filteredNavItems = NAV_ITEMS.filter((item) => {
-    /* Owner-exclusive screens sit on endpoints that answer 404 for a member,
-       so they are hidden rather than offered as a dead end. */
     if (item.ownerOnly && !isOwner) return false;
 
-    /* The member's own view of a workspace they joined; for an owner it would
-       only restate the screens they already have. */
     if (item.memberOnly && (!hasCompanyAccess || isOwner)) return false;
 
-    /* The company workspace is decided by permissions, never by the `COMPANY`
-       realm role — that role means "registered a company", so an invited
-       member never has it however much access they were granted. Owners come
-       back from the memberships endpoint holding all ten, so this covers them
-       without a second rule. */
     if (item.permissions?.length) return canAny(item.permissions);
 
     if (!item.roles) return true;
@@ -150,9 +122,6 @@ function SidebarContent({
         items.findIndex((other) => other.href === item.href) === index,
     );
 
-  /* Longest match wins, so a nested route lights up only its own entry.
-     `/dashboard/profile/settings` used to highlight "My Profile" as well,
-     because a plain `startsWith` can't tell a parent from the real target. */
   const activeHref = filteredNavItems
     .map((item) => item.href)
     .filter((href) =>
@@ -164,11 +133,6 @@ function SidebarContent({
     new Set(filteredNavItems.map((item) => item.category || "Overview")),
   );
 
-  /* Whose card is this? An owner's account IS the company, so it shows
-     the organization. A member is a person who happens to belong to one:
-     their own name, email and avatar belong here, and the workspace they
-     were invited into is on My Team. Company *access* is a different
-     question, and the nav below answers it separately. */
   const identityName = isOwner
     ? organization?.name || t("sidebar.status.default")
     : displayName;
@@ -182,8 +146,6 @@ function SidebarContent({
     ? getOrgStatusLabel(organization?.status)
     : undefined;
   const identityIsLoading = isPending || (isOwner && isOrganizationLoading);
-  /* Organization settings belong to the owner — `/organizations/me` is an
-     owner endpoint. A member's settings are their own account's. */
   const settingsHref = isOwner
     ? "/dashboard/organizations"
     : "/dashboard/profile/settings";
@@ -192,12 +154,7 @@ function SidebarContent({
     : t("sidebar.settings");
 
   return (
-    /* `data-scroll-host` makes the whole sidebar the hover target for the
-       nav's scrollbar below, rather than the narrow strip the bar sits in. */
     <div data-scroll-host className="flex h-full flex-col overflow-hidden">
-      {/* Close control, drawer only. Desktop has no row here at all — its
-          collapse toggle floats on the sidebar's edge, so the profile card
-          starts flush with the top padding instead of after an empty band. */}
       {onNavItemClick && (
         <div className="mb-2 flex h-9 shrink-0 items-center justify-end">
           <Button
@@ -212,7 +169,6 @@ function SidebarContent({
         </div>
       )}
 
-      {/* Profile card — resolves the real username rather than guessing a slug */}
       <Link
         href={lp("/dashboard/profile")}
         onClick={onNavItemClick}
@@ -274,11 +230,8 @@ function SidebarContent({
         )}
       </Link>
 
-      {/* Which organization the company screens below are showing. Renders
-          nothing unless this account is on more than one. */}
       <OrganizationSwitcher collapsed={collapsed} />
 
-      {/* Navigation */}
       <nav className="scrollbar-hover-only min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
         {categories.map((category, catIndex) => {
           const categoryItems = filteredNavItems.filter(
@@ -329,15 +282,11 @@ function SidebarContent({
                     className={cn(
                       "group relative flex h-10 w-full items-center rounded-xl px-3 text-sm font-semibold transition-colors",
                       collapsed ? "justify-center px-0" : "justify-between",
-                      /* On a card surface a tint alone is easy to miss, so
-                         the active row carries a ring as well as the rail. */
                       isActive
                         ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
-                    {/* The rail is the only active cue left when labels are
-                        hidden, so it lives outside the label block. */}
                     {isActive && (
                       <motion.span
                         layoutId="sidebar-active-rail"
@@ -384,7 +333,6 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* Footer */}
       <div className="mt-auto shrink-0 space-y-1.5 border-t border-slate-200/60 pt-3 dark:border-neutral-800">
         <Link
           href={lp(settingsHref)}
@@ -426,10 +374,6 @@ const Sidebar = () => {
   const { user, isPending, areRolesResolved, displayName, handleSignOut } =
     useSidebarAuth();
 
-  /* Company access is a membership, not a realm role: `COMPANY` is granted for
-     registering a company, so an invited member never carries it. The
-     membership row also carries the identity this card needs — `/organizations/me`
-     is owner-only and answers 404 for a member. */
   const { membership, isLoading: isMembershipLoading } = useCompanyAccess();
 
   const organization: SidebarOrganizationIdentity | undefined = membership
@@ -445,8 +389,6 @@ const Sidebar = () => {
   const isSidebarIdentityPending =
     isPending || (Boolean(user) && !areRolesResolved);
 
-  /* Escape closes the drawer, and the page behind it stops scrolling while it
-     is open — a drawer you can scroll past is a drawer that feels broken. */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -464,9 +406,6 @@ const Sidebar = () => {
     };
   }, [isOpen]);
 
-  /* Back/forward navigation doesn't run a nav item's onClick, so the drawer
-     would otherwise stay open over the new page. Adjusted during render
-     against the previous path rather than in an effect. */
   const [renderedPath, setRenderedPath] = useState(pathname);
   if (renderedPath !== pathname) {
     setRenderedPath(pathname);
@@ -542,16 +481,9 @@ const Sidebar = () => {
         )}
       </AnimatePresence>
 
-      {/* Desktop — collapses to an icon rail.
-          `overflow-visible` so the edge toggle can sit half outside; the
-          content wrapper inside does its own clipping during the animation. */}
       <motion.aside
         animate={{ width: collapsed ? 84 : 260 }}
         transition={{ type: "spring", stiffness: 380, damping: 34 }}
-        /* The navbar's surface: opaque in light, translucent and blurred in
-           dark, so the page backdrop reads through it without washing the nav
-           out. It sat on the bare backdrop before, which left the grid paper
-           running straight under the labels. */
         className="sticky top-0 z-30 hidden h-dvh shrink-0 flex-col overflow-visible border-r border-border bg-card p-4 backdrop-blur-xl lg:flex dark:bg-card/85"
       >
         <SidebarContent

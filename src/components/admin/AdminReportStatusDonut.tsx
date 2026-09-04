@@ -28,7 +28,6 @@ export function AdminReportStatusDonut({
         </h3>
         <p className="text-sm text-slate-400 mt-0.5 dark:text-neutral-400">All-time breakdown</p>
 
-        {/* Recharts Donut Graphic */}
         <div className="my-4 relative h-[170px] w-full flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -57,7 +56,6 @@ export function AdminReportStatusDonut({
             </PieChart>
           </ResponsiveContainer>
 
-          {/* Center Donut Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
             <span className="text-2xl font-extrabold text-slate-900 tracking-tight dark:text-neutral-100">
               {total}
@@ -66,7 +64,6 @@ export function AdminReportStatusDonut({
           </div>
         </div>
 
-        {/* Status Breakdown Legend & Progress Bars */}
         <div className="space-y-3">
           {pieData.map((item) => (
             <div
@@ -81,7 +78,6 @@ export function AdminReportStatusDonut({
                 <span className="font-semibold text-slate-600 dark:text-neutral-300">{item.name}</span>
               </div>
 
-              {/* Progress bar */}
               <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden dark:bg-neutral-800">
                 <div
                   className={`h-full rounded-full ${item.barBg}`}

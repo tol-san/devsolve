@@ -16,7 +16,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const path = `/programs/${id}`;
   const program = await getProgram(id);
 
-  // Private and unpublished programs are refused upstream, and stay unindexed.
   if (!program?.name) {
     return pageMetadata({
       title: 'Bug bounty program',

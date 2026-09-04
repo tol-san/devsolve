@@ -14,7 +14,7 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from "lucide-r
 import { cn } from "@/lib/utils";
 
 interface DatePickerProps {
-  value?: string; // YYYY-MM-DD
+  value?: string; 
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
@@ -81,7 +81,6 @@ export function DatePicker({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfWeek = new Date(year, month, 1).getDay();
 
-  // Generate year options from 1920 to currentYear + 5
   const yearOptions = useMemo(() => {
     const years: number[] = [];
     for (let y = currentYear + 5; y >= 1920; y--) {
@@ -175,10 +174,8 @@ export function DatePicker({
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Positioner align="start" sideOffset={6} className="isolate z-50 outline-none">
           <PopoverPrimitive.Popup className="w-80 rounded-2xl bg-popover text-popover-foreground p-4 border border-border shadow-xl space-y-4 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95">
-            {/* Header Controls: Month Select & Year Select */}
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 flex-1">
-                {/* Month Picker */}
                 <Select value={String(month)} onValueChange={(val) => val && handleMonthChange(val)}>
                   <SelectTrigger className="h-8 flex-1 text-xs font-bold rounded-lg bg-muted border-border text-foreground">
                     <SelectValue>{monthNames[month]}</SelectValue>
@@ -192,7 +189,6 @@ export function DatePicker({
                   </SelectContent>
                 </Select>
 
-                {/* Year Picker */}
                 <Select value={String(year)} onValueChange={(val) => val && handleYearChange(val)}>
                   <SelectTrigger className="h-8 w-22 text-xs font-bold rounded-lg bg-muted border-border text-foreground">
                     <SelectValue>{String(year)}</SelectValue>
@@ -207,7 +203,6 @@ export function DatePicker({
                 </Select>
               </div>
 
-              {/* Prev / Next Month Arrow Buttons */}
               <div className="flex items-center gap-0.5">
                 <Button type="button" variant="ghost" size="icon-sm" onClick={prevMonth} className="size-7 rounded-lg text-muted-foreground hover:text-foreground">
                   <ChevronLeft className="size-4" />
@@ -218,7 +213,6 @@ export function DatePicker({
               </div>
             </div>
 
-            {/* Days Grid */}
             <div>
               <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
                 {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
@@ -276,7 +270,6 @@ export function DatePicker({
               </div>
             </div>
 
-            {/* Footer Action Shortcuts */}
             <div className="pt-2 border-t border-border flex items-center justify-between">
               <Button
                 type="button"

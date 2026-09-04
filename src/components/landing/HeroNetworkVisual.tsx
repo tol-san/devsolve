@@ -18,16 +18,6 @@ import {
 import { ACCENT, PRIMARY } from "./SectionBackdrop";
 import { RealEarthIllustration } from "./RealEarthIllustration";
 
-/**
- * High-performance, GPU-accelerated Cyber Security & Developer Network Visualization.
- * 
- * Features:
- * - Pure SVG & CSS Compositor transforms (0 heavy 3D bundles, 0 runtime canvas memory leaks).
- * - Orbital defense rings with rotating radar sweep.
- * - Global threat & solution telemetry beacons (representing Bug Bounty + Community Hub).
- * - Subtle floating code syntax & cryptographic validation badges.
- * - Full Dark / Light mode responsiveness and prefers-reduced-motion support.
- */
 export function HeroNetworkVisual() {
   const reduce = useReducedMotion();
 
@@ -36,16 +26,12 @@ export function HeroNetworkVisual() {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 -z-1 overflow-hidden"
     >
-      {/* ── 1. AMBIENT RADIANT LIGHT HALO ── */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[550px] w-[800px] max-w-full rounded-full bg-gradient-to-tr from-blue-600/15 via-indigo-500/10 to-emerald-500/15 blur-[120px] dark:from-blue-500/20 dark:via-indigo-500/15 dark:to-emerald-400/20" />
 
-      {/* ── 2. REALISTIC EARTH GLOBE & SECURITY ORBITAL NETWORK ── */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-35 sm:opacity-50 dark:opacity-45 scale-90 sm:scale-100 lg:scale-110">
         <RealEarthIllustration />
       </div>
 
-      {/* ── 3. FLOATING TELEMETRY FLANK CARDS (Left & Right Flanks) ── */}
-      {/* Left Flank Badge: Live Triage Activity */}
       <motion.div
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
@@ -66,7 +52,6 @@ export function HeroNetworkVisual() {
         </div>
       </motion.div>
 
-      {/* Right Flank Badge: Bounty Settlement Guarantee */}
       <motion.div
         initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: 1, x: 0 }}
@@ -89,7 +74,6 @@ export function HeroNetworkVisual() {
         </div>
       </motion.div>
 
-      {/* Subtle Floating Code Nodes in Midground */}
       <motion.div
         animate={reduce ? undefined : { y: [-6, 6, -6] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}

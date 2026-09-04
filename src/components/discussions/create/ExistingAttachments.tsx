@@ -17,13 +17,6 @@ import {
 import { attachmentUrl } from "@/lib/api/attachment-url";
 import { formatBytes } from "@/lib/discussions/format";
 
-/**
- * A stored attachment, in either spelling the API uses for one.
- *
- * Problems call the fields `originalFileName` and `sizeBytes`; solutions call
- * the same two `fileName` and `fileSize`. Both are read here so one component
- * serves both editors, the way `reportsApi` already reconciles them.
- */
 export type ExistingAttachment = {
   id?: string;
   originalFileName?: string;
@@ -36,32 +29,10 @@ export type ExistingAttachment = {
 
 type ExistingAttachmentsProps = {
   attachments: ExistingAttachment[];
-  /**
-   * Removes one file. Omit it and the list is read-only, which is the right
-   * behaviour wherever the viewer is not the author.
-   *
-   * The parent owns the call because the two editors delete differently — an
-   * answer's endpoint additionally wants its version as `If-Match`.
-   */
   onRemove?: (attachmentId: string) => Promise<void>;
   disabled?: boolean;
 };
 
-/**
- * The files already on this problem or answer, shown while it is being edited.
- *
- * The editor's own file list can only hold uploads from this session —
- * `AttachedFile` carries a browser `File`, which an attachment stored months
- * ago does not have — so anything already saved was simply absent from the
- * form. The author could see their evidence on the public page and not while
- * editing, which reads as though editing had dropped it.
- *
- * These are listed apart from the dropzone because they are not pending work.
- * That distinction matters most for removal: taking one away happens the
- * moment it is confirmed, not when the form is saved, and cannot be undone by
- * abandoning the edit. The copy says so, and the confirm step exists because
- * of it.
- */
 export function ExistingAttachments({
   attachments,
   onRemove,
@@ -86,8 +57,6 @@ export function ExistingAttachments({
       await onRemove(id);
       setPendingRemoval(null);
     } finally {
-      /* Cleared either way: the row survives a failure, and leaving it
-         spinning would suggest the file was on its way out when it is not. */
       setRemovingId(null);
     }
   };
@@ -106,7 +75,6 @@ export function ExistingAttachments({
 
       <ul className="space-y-2">
         {files.map((file, index) => {
-          /* Non-null: the list was filtered on exactly this. */
           const href = attachmentUrl(file.downloadUrl) as string;
           const name = nameOf(file);
           const isImage =
@@ -121,9 +89,6 @@ export function ExistingAttachments({
             >
               <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
                 {isImage ? (
-                  /* Unoptimized: the bytes come from our own download route,
-                     which streams whatever storage returns — there is no
-                     stable remote pattern for the image optimizer to key on. */
                   <Image
                     src={href}
                     alt={name}
@@ -163,8 +128,6 @@ export function ExistingAttachments({
                   )}
                 </a>
 
-                {/* Only offered when the file can be identified — the API
-                    deletes by id, and a row without one cannot be named. */}
                 {onRemove && file.id && (
                   <button
                     type="button"
@@ -209,8 +172,6 @@ export function ExistingAttachments({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
-                /* Held open by hand: the dialog closes on its own once the
-                   delete resolves, so a failure leaves the file on screen. */
                 event.preventDefault();
                 void confirmRemoval();
               }}

@@ -48,16 +48,6 @@ import { useGetMyProfileQuery } from "@/lib/redux/services/solutionsApi";
 import { AutoApprovalHoldNotice } from "@/components/notifications/AutoApprovalHoldNotice";
 import { cn } from "@/lib/utils";
 
-/**
- * A showcase in full, laid out the way `ProblemDetailPage` lays out its
- * showcase view: the title card with the vote box, the three showcase tabs,
- * the comment thread, and the metadata / links / posted-by sidebar.
- *
- * The difference is the data. Everything here is the real record —
- * `GET /showcases/{id}` and its steps, `/votes/SHOWCASE/{id}` for the score,
- * `/comments` for the thread — where the problem page reads a mock store.
- */
-
 interface ShowcaseDetailProps {
   id: string;
 }
@@ -79,8 +69,6 @@ function formatDate(iso?: string) {
   });
 }
 
-
-
 export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const { data: showcase, isLoading } = useGetShowcaseByIdQuery(id);
   const [reporting, setReporting] = useState(false);
@@ -95,8 +83,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
     (showcase?.authorName && (showcase.authorName === me?.fullName || showcase.authorName === session?.user?.name))
   );
 
-  /* The showcase response carries its steps; the dedicated endpoint is the
-     fallback for when it comes back without them. */
   const embeddedSteps = showcase?.steps;
   const { data: fetchedSteps } = useGetShowcaseStepsQuery(id, {
     skip: !showcase || (embeddedSteps?.length ?? 0) > 0,
@@ -106,7 +92,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
     ...(embeddedSteps?.length ? embeddedSteps : (fetchedSteps ?? [])),
   ].sort((a, b) => a.stepNumber - b.stepNumber);
 
-  /* ── Votes ── */
   const { data: votes } = useGetVoteSummaryQuery({
     type: "SHOWCASE",
     targetId: id,
@@ -146,10 +131,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
     }
   };
 
-  /* Comments live in `CommentsSection`, which owns their fetching, threading,
-     composer and per-comment actions. */
-
-  /* Counted once per mount, not per render. */
   const [incrementViews] = useIncrementShowcaseViewsMutation();
   const counted = useRef(false);
 
@@ -197,9 +178,7 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3 space-y-6">
-            {/* Main Title Header Card */}
             <div className={`${CARD} p-6`}>
-              {/* Inline AI auto-approval hold explanation (author-only when pending) */}
               <AutoApprovalHoldNotice
                 notifiableId={id}
                 notifiableType="SHOWCASE"
@@ -249,7 +228,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
 
               {showcase.coverImageUrl && (
                 <div className="mt-5">
-                  {/* Ambient backdrop and increased frame height so portrait & landscape uploads look full and professional */}
                   <ShowcaseImage
                     url={showcase.coverImageUrl}
                     alt={`${showcase.title} cover`}
@@ -305,11 +283,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
               </div>
             </div>
 
-            {/* ── Build guide ──────────────────────────────────────────────
-                One pass through the steps, each carrying its own code,
-                screenshot and diagram. They were three tabs over the same
-                steps, which made a reader hop between views to assemble what
-                one step was actually saying. */}
             <div className={`${CARD} p-6 space-y-4`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-base font-bold text-slate-900 dark:text-neutral-100 flex items-center space-x-2">
@@ -391,7 +364,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
             />
           </div>
 
-          {/* Right Sidebar */}
           <div className="space-y-6">
             <div className={`${CARD} p-5 space-y-3.5 text-sm`}>
               <h3
@@ -453,14 +425,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   );
 }
 
-/**
- * The author of the showcase, linked to their public profile.
- *
- * `/profile/[username]` takes a user id rather than a name — the backend has
- * no lookup by name — which is exactly what a showcase carries. A record
- * without an `authorId` still renders, just not as a link, so a malformed row
- * degrades to plain text instead of a dead route.
- */
 function PostedBy({
   authorId,
   authorName,
@@ -544,28 +508,13 @@ function ProjectLink({ href, label }: { href: string; label: string }) {
   );
 }
 
-/**
- * `next/image` only accepts hosts allowed in `next.config.ts`, which covers
- * every `https` host. An author who pasted an `http` or `data:` URL would make
- * the component throw during render, so those keep the plain tag.
- */
 function isOptimizable(url: string) {
   return url.startsWith("https://") || url.startsWith("/");
 }
 
-/**
- * One bounded, uncropped image.
- *
- * `object-contain` inside a fixed-height box rather than `object-cover`: a
- * screenshot or a diagram is read, and cropping one to fill a frame cuts off
- * the part being explained. The height cap keeps a tall portrait screenshot
- * from running the page, and `sizes` tells the optimizer to serve roughly what
- * is on screen — twice that on a retina display — so nothing looks soft.
- */
 function ShowcaseImage({
   url,
   alt,
-  /** Tailwind height classes for the frame. */
   heightClassName = "h-64 sm:h-72",
   sizes = "(max-width: 1024px) 100vw, 860px",
   framed = true,
@@ -601,7 +550,6 @@ function ShowcaseImage({
       >
         {isOptimizable(url) ? (
           <>
-            {/* Ambient Blurred Background Fill (eliminates empty letterbox spaces for portrait/custom images) */}
             <Image
               src={url}
               alt=""
@@ -611,7 +559,6 @@ function ShowcaseImage({
               quality={30}
               className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
             />
-            {/* Main Crisp Image */}
             <Image
               src={url}
               alt={alt}
@@ -624,14 +571,12 @@ function ShowcaseImage({
           </>
         ) : (
           <>
-            {/* Ambient Blurred Background Fill */}
             <img
               src={url}
               alt=""
               aria-hidden="true"
               className="absolute inset-0 h-full w-full object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
             />
-            {/* Main Crisp Image */}
             <img
               src={url}
               alt={alt}
@@ -642,7 +587,6 @@ function ShowcaseImage({
           </>
         )}
 
-        {/* Hover zoom overlay badge */}
         <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/60 px-2.5 py-1 text-xs font-semibold text-white opacity-0 backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 shadow-md">
           <ZoomIn className="size-3.5" />
           <span>Preview</span>
@@ -706,4 +650,3 @@ function DetailSkeleton() {
   );
 }
 
-/** Pulls something readable out of an RTK Query error. */

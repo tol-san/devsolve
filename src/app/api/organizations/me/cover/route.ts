@@ -9,11 +9,6 @@ import {
 } from "@/lib/api/proxy";
 import { validateCoverImageFile } from "@/lib/validations/cover-image";
 
-/**
- * PUT/DELETE /api/organizations/me/cover — proxy for the backend's
- * /api/v1/organizations/me/cover.
- */
-
 export async function PUT(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

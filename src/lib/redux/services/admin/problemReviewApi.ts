@@ -6,25 +6,13 @@ import type {
   ProblemStatus,
 } from "@/lib/validations/problem";
 
-/**
- * The moderation side of problems: the queue, and the decision on one entry.
- *
- * Kept apart from `problemsApi` because these routes are role-gated upstream —
- * a signed-in author hitting them gets a 403 — and because the rows here are
- * problems in states the public index never serves.
- */
-
 export interface ProblemReviewQueueParams {
-  /** Omitted upstream means every status, so the queue names its own. */
   status?: ProblemStatus;
-  /** Zero-based, matching Spring's own paging on this controller. */
   page?: number;
   size?: number;
-  /** `property,(asc|desc)` — defaults to `createdAt,ASC` upstream. */
   sort?: string;
 }
 
-/** Drops undefined entries so RTK Query's cache keys stay stable. */
 function params(source: object): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(source)) {
@@ -37,7 +25,6 @@ const QUEUE = "QUEUE";
 
 export const problemReviewApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    /** GET /api/v1/admin/problems — problems awaiting a decision. */
     getProblemReviewQueue: builder.query<
       Page<ProblemResponse>,
       ProblemReviewQueueParams | void
@@ -49,12 +36,6 @@ export const problemReviewApi = baseApi.injectEndpoints({
       providesTags: [{ type: "ProblemReview", id: QUEUE }],
     }),
 
-    /**
-     * PATCH /api/v1/admin/problems/{id}/moderation.
-     *
-     * Publishing changes what the public problem feed serves, so the
-     * discussion list is invalidated alongside the queue.
-     */
     updateProblemModeration: builder.mutation<
       ProblemResponse,
       { id: string; body: ProblemModerationRequest }

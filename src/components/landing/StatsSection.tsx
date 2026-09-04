@@ -6,34 +6,16 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import SectionBackdrop, { SURFACE } from "./SectionBackdrop";
 
-/* ─── Palette ───────────────────────────────────────────────────────────
-   Mark colours were checked with the palette validator against a white
-   surface, which set the following constraints:
-     · #2563EB — 5.17:1. Safe as both the trend mark and as text.
-     · #10B981 — 2.54:1. Mark-only; too low for text, so deltas are typeset
-                 in emerald-700 (#047857, 5.48:1) instead.
-     · #1E293B — fails the chroma floor as a mark (reads gray), so it is
-                 used strictly as ink.
-
-   Every one of those was measured against white, so none of them carries
-   over to the near-black surface. Both sets live in globals.css as `--ds-*`
-   custom properties — see the note there for why they are tokens and not a
-   JS branch — and the dark restatements hold the same 4.5:1 floor for
-   anything set as text (blue-400 7.8:1, emerald-400 10.3:1 on #0A0A0A).
-   ──────────────────────────────────────────────────────────────────── */
 const TONE = {
   deemphasis: "var(--ds-deemphasis)",
   deltaInk: "var(--ds-delta)",
   trend: "var(--ds-trend)",
-  /* Ring that lifts the endpoint dot off the surface behind it. */
   dotRing: SURFACE,
   ink: "var(--ds-ink)",
 } as const;
 
-/* ─── Data — 12 monthly points per metric ──────────────────────────── */
 type Stat = {
   label: string;
-  /** Catalogue keys — the literals above remain the fallback. */
   labelKey: string;
   unit: string;
   unitKey: string;
@@ -77,19 +59,12 @@ const STATS: Stat[] = [
   },
 ];
 
-/** Delta is derived from the series, so it can never contradict the trend. */
 function quarterDelta(series: number[]) {
   const now = series[series.length - 1];
   const then = series[series.length - 4];
   return ((now - then) / then) * 100;
 }
 
-/* ─── Count-up ──────────────────────────────────────────────────────────
-   The final value sits in the DOM at opacity 0 to reserve the box width and
-   carry the accessible text; the animating figure is overlaid and hidden
-   from assistive tech. That keeps proportional figures (no tabular-nums on
-   a display-size number) without the layout shuddering mid-count.
-   ──────────────────────────────────────────────────────────────────── */
 function CountUp({
   target,
   format,
@@ -130,10 +105,6 @@ function CountUp({
   );
 }
 
-/* ─── Sparkline ─────────────────────────────────────────────────────────
-   Whole trend in the de-emphasis grey, current period in the primary hue,
-   2px round-capped line, 8px end marker with a 2px surface ring.
-   ──────────────────────────────────────────────────────────────────── */
 function Sparkline({
   series,
   label,
@@ -224,7 +195,6 @@ function Sparkline({
   );
 }
 
-/* ─── Delta chip — sign + arrow + named period, never colour alone ──── */
 function Delta({ value }: { value: number }) {
   const tone = TONE;
   return (
@@ -241,7 +211,6 @@ function Delta({ value }: { value: number }) {
   );
 }
 
-/* ─── Section ──────────────────────────────────────────────────────── */
 export function StatsSection() {
   const t = useT();
   const ref = useRef<HTMLElement>(null);
@@ -257,7 +226,6 @@ export function StatsSection() {
       className="relative overflow-hidden py-10 sm:py-14"
     >
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
-        {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -291,9 +259,7 @@ export function StatsSection() {
           </p>
         </motion.div>
 
-        {/* ── Hero figure + supporting tiles ── */}
         <div className="grid grid-cols-1 gap-x-12 lg:grid-cols-12">
-          {/* Hero figure — one per view */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -333,7 +299,6 @@ export function StatsSection() {
             </div>
           </motion.div>
 
-          {/* Supporting stat tiles, hairline-separated rather than boxed */}
           <div className="lg:col-span-7">
             {STATS.map((stat, i) => {
               const target = stat.series[stat.series.length - 1];

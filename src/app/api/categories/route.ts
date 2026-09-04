@@ -13,14 +13,6 @@ import {
   categoryCreateSchema,
 } from "@/lib/validations/category";
 
-/**
- * GET/POST /api/categories — proxy for the backend's /api/v1/categories.
- *
- * Listing every category (including inactive ones) is an admin view, so both
- * verbs require a session. The public, active-only list lives at
- * `/api/categories/active`.
- */
-
 const scopeParam = z.enum(CATEGORY_SCOPES).optional();
 
 export async function GET(request: NextRequest) {

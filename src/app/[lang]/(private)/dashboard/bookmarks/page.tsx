@@ -86,7 +86,6 @@ export default function BookmarksPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* HEADER WITH SEARCH & CATEGORY PILLS */}
       <BookmarkHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -101,11 +100,8 @@ export default function BookmarksPage() {
         visibleCount={bookmarks.length}
       />
 
-
-      {/* MAIN CONTENT AREA */}
       <main className="pt-2">
         {isLoading || isFetching ? (
-          /* SKELETON LOADING STATE */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
@@ -126,7 +122,6 @@ export default function BookmarksPage() {
             ))}
           </div>
         ) : bookmarks.length === 0 ? (
-          /* EMPTY STATE */
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -157,7 +152,6 @@ export default function BookmarksPage() {
             )}
           </motion.div>
         ) : selectedCategory === "all" ? (
-          /* ALL CATEGORIES (GROUPED BY CATEGORY) */
           <div className="space-y-10">
             {groupedBookmarks.map((group) => (
               <section key={group.category} className="space-y-4">
@@ -193,7 +187,6 @@ export default function BookmarksPage() {
             ))}
           </div>
         ) : (
-          /* SPECIFIC CATEGORY GRID */
           <motion.div
             layout
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"

@@ -102,7 +102,6 @@ export function ResearcherHoverCard({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* ── Hover Trigger ── */}
       {children ? (
         <Link
           href={profileHref}
@@ -124,7 +123,6 @@ export function ResearcherHoverCard({
         </Link>
       )}
 
-      {/* ── Floating Summary Card Popover ── */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -140,7 +138,6 @@ export function ResearcherHoverCard({
             )}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header: Avatar, Name, Handle, Badges */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative">
@@ -174,12 +171,10 @@ export function ResearcherHoverCard({
               </Badge>
             </div>
 
-            {/* Bio */}
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground line-clamp-2">
               {bio}
             </p>
 
-            {/* Badges / Highlights */}
             <div className="mt-3 flex flex-wrap gap-1.5">
               {badges.map((b) => (
                 <span
@@ -192,7 +187,6 @@ export function ResearcherHoverCard({
               ))}
             </div>
 
-            {/* Key Statistics Grid */}
             <div className="mt-3.5 grid grid-cols-3 gap-2 rounded-xl border border-border bg-muted/40 p-2.5 text-center">
               <div className="space-y-0.5">
                 <p className="text-[10px] uppercase font-bold text-muted-foreground">Reputation</p>
@@ -218,7 +212,6 @@ export function ResearcherHoverCard({
               </div>
             </div>
 
-            {/* Location & Member Info */}
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
               <span className="flex items-center gap-1 truncate">
                 <MapPin className="size-3 shrink-0" />
@@ -230,7 +223,6 @@ export function ResearcherHoverCard({
               </span>
             </div>
 
-            {/* Footer Action Buttons */}
             <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
               <Link href={profileHref} className="flex-1">
                 <Button

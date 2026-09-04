@@ -8,11 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/solutions/mine — the caller's own solutions, including the ones
- * still waiting on review.
- */
-
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

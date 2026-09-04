@@ -144,10 +144,6 @@ export const STUDENT_DEVELOPERS: TeamMember[] = [
 
 ];
 
-/* Ordered clockwise from the top of the constellation on the about page —
-   the layout there looks positions up by name, so reordering this list is
-   safe, but keeping the two in step keeps the entrance stagger travelling
-   around the ring rather than jumping across it. */
 export const TECHNOLOGIES: Technology[] = [
   {
     name: "Next.js",
@@ -223,6 +219,4 @@ export const OFFERINGS: Offering[] = [
   },
   // 2 more.
 ];
-
-
 

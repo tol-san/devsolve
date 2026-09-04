@@ -27,12 +27,6 @@ const virusTotalUrlSchema = z.object({
     }, "URL must be a valid HTTP or HTTPS address"),
 });
 
-/**
- * POST /api/virus-total/urls — submit a URL for VirusTotal analysis.
- *
- * Backend: POST /api/v1/virus-total/urls
- * JSON body: { "url": "https://example.com/download" }
- */
 export async function POST(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

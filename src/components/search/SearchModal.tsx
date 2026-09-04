@@ -9,15 +9,6 @@ import { useSearchModal } from "@/components/search/useSearchModal";
 
 const emptySubscribe = () => () => {};
 
-/**
- * Global Search Dialog Modal.
- *
- * Rendered through a React Portal directly to document.body so the backdrop
- * blurs the entire screen and page content cleanly without being clipped or
- * constrained by parent transforms or stacking contexts.
- *
- * Supports global ⌘K / Ctrl+K keyboard shortcut across the entire app.
- */
 export function SearchModal() {
   const { isOpen, close, toggle } = useSearchModal();
   const mounted = useSyncExternalStore(
@@ -26,7 +17,6 @@ export function SearchModal() {
     () => false,
   );
 
-  /* Global keyboard shortcut (Cmd+K / Ctrl+K) and Escape key listener */
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -40,7 +30,6 @@ export function SearchModal() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [isOpen, close, toggle]);
 
-  /* Lock body scroll while search overlay is active */
   useEffect(() => {
     if (!isOpen) return;
     const originalOverflow = document.body.style.overflow;
@@ -56,7 +45,6 @@ export function SearchModal() {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[99999] flex flex-col items-center justify-start overflow-y-auto px-4 pt-16 sm:pt-24 pb-6">
-          {/* Fullscreen Backdrop: Blurs all content across the entire page */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -67,7 +55,6 @@ export function SearchModal() {
             aria-hidden="true"
           />
 
-          {/* Centered Search Command Dialog */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: -12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

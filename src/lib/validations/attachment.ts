@@ -44,7 +44,6 @@ export function extensionOf(name: string): string {
   return name.split(".").pop()?.toLowerCase() ?? "";
 }
 
-/** Client-side pre-validation mirroring backend VirusTotal rules. */
 export function validateAttachment(file: File): string | null {
   if (!file.name || !file.name.trim()) {
     return "Filename cannot be blank.";
@@ -77,7 +76,6 @@ export function validateAttachment(file: File): string | null {
   return null;
 }
 
-/** Client-side pre-validation for URLs submitted to VirusTotal scan. */
 export function validateScanUrl(rawUrl: string): string | null {
   if (!rawUrl || !rawUrl.trim()) {
     return "URL cannot be empty.";
@@ -100,7 +98,6 @@ export function validateScanUrl(rawUrl: string): string | null {
   return null;
 }
 
-/** Browsers commonly leave .log files without a MIME type. */
 export function withAttachmentMime(file: File): File {
   if (file.type) return file;
   const inferred = MIME_BY_EXTENSION[extensionOf(file.name)]?.[0];

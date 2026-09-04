@@ -64,14 +64,12 @@ export default function AdminProfileView() {
   const { user } = useSidebarAuth();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch admin personal profile info
   const {
     data: profile,
     isLoading: isProfileLoading,
     refetch: refetchProfile,
   } = useGetEditProfileFormQuery();
 
-  // Fetch system overview statistics
   const {
     data: overview,
     isLoading: isOverviewLoading,
@@ -87,7 +85,6 @@ export default function AdminProfileView() {
   const avatarUrl = profile?.avatarUrl || user?.image || undefined;
   const location = profile?.location || "Global Administrator";
 
-  /* Edit mode — render ProfileEditPanel */
   if (isEditing) {
     return (
       <motion.div
@@ -139,7 +136,6 @@ export default function AdminProfileView() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* PAGE HEADER */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
@@ -187,7 +183,6 @@ export default function AdminProfileView() {
         </div>
       </header>
 
-      {/* Admin Hero Header Card */}
       <div className="relative overflow-hidden rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 sm:p-8 shadow-xs">
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
@@ -222,7 +217,6 @@ export default function AdminProfileView() {
         )}
       </div>
 
-      {/* Streamlined Stats Summary (3 Cards) */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="gap-3 rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 py-5 px-5 shadow-xs">
           <div className="flex items-center justify-between">
@@ -283,7 +277,6 @@ export default function AdminProfileView() {
         </Card>
       </div>
 
-      {/* Administrative Modules Shortcuts */}
       <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 shadow-xs">
         <h2 className="text-sm font-semibold text-muted-foreground mb-4">
           Administrative Modules

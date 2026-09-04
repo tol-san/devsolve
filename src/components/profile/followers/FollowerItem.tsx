@@ -67,10 +67,6 @@ export default function FollowerItem({ record, baseProfilePath = "/dashboard/pro
     }
   };
 
-  /* `targetId` rather than `record.id`: both name the same account, and one of
-     them is always present. Reading `record.id` directly threw here whenever a
-     payload arrived without it, taking the whole page down rather than
-     degrading one row. */
   const shortId = targetId ? targetId.slice(0, 8) : "";
 
   const displayName =
@@ -80,8 +76,6 @@ export default function FollowerItem({ record, baseProfilePath = "/dashboard/pro
   const handle = record.username ? `@${record.username}` : shortId ? `#${shortId}` : "";
   const initials = record.avatarInitials ?? displayName.slice(0, 2).toUpperCase();
 
-  /* Followers come back without a handle, so they are addressed by id — the
-     profile route takes either. */
   const profileSegment = record.username ?? targetId;
   const profileUrl = profileSegment ? `${baseProfilePath}/${profileSegment}` : "#";
 
@@ -92,7 +86,6 @@ export default function FollowerItem({ record, baseProfilePath = "/dashboard/pro
       className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all hover:bg-muted/20"
     >
       <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-        {/* Avatar */}
         <Link href={profileUrl} className="relative shrink-0 group">
           {record.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -108,7 +101,6 @@ export default function FollowerItem({ record, baseProfilePath = "/dashboard/pro
           )}
         </Link>
 
-        {/* User Info */}
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <Link
@@ -140,7 +132,6 @@ export default function FollowerItem({ record, baseProfilePath = "/dashboard/pro
         </div>
       </div>
 
-      {/* Action Button */}
       <div className="shrink-0 flex items-center gap-2 self-end sm:self-center">
         <button
           type="button"

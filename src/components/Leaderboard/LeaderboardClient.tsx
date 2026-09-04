@@ -27,7 +27,6 @@ export default function LeaderboardClient() {
   const [pageSize, setPageSize] = useState(10);
   const tableRef = useRef<HTMLDivElement>(null);
 
-  // Debounce search so typing updates the input field instantly while avoiding rapid API re-queries
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(filters.search.trim());
@@ -42,7 +41,6 @@ export default function LeaderboardClient() {
     search: debouncedSearch,
   });
 
-  // Any change to what is being ranked or filtered invalidates the page cursor.
   const updateFilters = useCallback(
     (patch: Partial<LeaderboardFilterState>) => {
       setFilters((current) => ({ ...current, ...patch }));
@@ -66,7 +64,6 @@ export default function LeaderboardClient() {
       ? Math.max(1, Math.round((myRankEntry.rank / data.totalRanked) * 100))
       : null;
 
-  // The pinned bar can only jump to a row the filters actually leave visible.
   const myIndex = entries.findIndex((entry) => entry.isCurrentUser);
   const jumpToMe = useCallback(() => {
     if (myIndex < 0) return;
@@ -80,7 +77,6 @@ export default function LeaderboardClient() {
     <div className="space-y-8 pb-12 sm:pb-16">
       <LeaderboardPodium podium={data.podium} period={filters.period} />
 
-      {/* Filter & Search Bar */}
       <LeaderboardFilters
         value={filters}
         countries={data.countries}

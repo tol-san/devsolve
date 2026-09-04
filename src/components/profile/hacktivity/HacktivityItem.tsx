@@ -38,7 +38,6 @@ function titleCase(severity: Severity): string {
   return severity.charAt(0) + severity.slice(1).toLowerCase();
 }
 
-/** The program, named only when the row carries one. */
 function Target({ activity }: { activity: HacktivityActivity }) {
   const name = activity.program?.name || activity.organization?.name;
   if (!name) return null;
@@ -51,14 +50,6 @@ function Target({ activity }: { activity: HacktivityActivity }) {
   );
 }
 
-/**
- * What happened, in the words of the event.
- *
- * The researcher is the subject of the page they are on, so the sentence
- * starts with the action rather than repeating their handle on every row.
- * A report is named only when `title` survived the disclosure check in
- * `toActivity` — an undisclosed finding is described, never titled.
- */
 function Description({ activity }: { activity: HacktivityActivity }) {
   const severity = activity.severity;
   const severityText = severity && severity !== "NONE" && (
@@ -135,7 +126,6 @@ function Description({ activity }: { activity: HacktivityActivity }) {
   }
 }
 
-/** Money when it was paid, points when that is what the program gives. */
 function RewardBadge({ reward }: { reward: HacktivityActivity["reward"] }) {
   if (reward.kind === "cash") {
     return (

@@ -85,7 +85,6 @@ export const DashboardReportSeverity: React.FC<DashboardReportSeverityProps> = (
                   </div>
                 </div>
 
-                {/* Progress Bar Track */}
                 <div className="w-full h-2 bg-muted/80 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}

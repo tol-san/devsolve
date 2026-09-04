@@ -30,7 +30,6 @@ export const SubmitReportProgressNav: React.FC<SubmitReportProgressNavProps> = (
 
   return (
     <div className="bg-card rounded-2xl border border-border p-4 space-y-3.5 font-sans shadow-xs">
-      {/* Header & Monochromatic Micro Progress Bar */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
           <span>Express Submission Progress</span>
@@ -49,7 +48,6 @@ export const SubmitReportProgressNav: React.FC<SubmitReportProgressNavProps> = (
         </div>
       </div>
 
-      {/* Step List */}
       <div className="space-y-1">
         {STEPS.map((step) => {
           const IconComponent = step.icon;

@@ -23,13 +23,8 @@ interface ProfileOverviewResponse {
   badges: ProfileBadge[];
 }
 
-// Real shape of GET/PATCH /api/v1/user-profiles/me (confirmed against the live
-// OpenAPI spec at devsolve-api.quizzy.it.com/v3/api-docs). The backend has no
-// public username lookup, no badges/hacktivity/community/thanks/following
-// endpoints — only the signed-in user's own profile.
 interface UserProfileApiResponse {
   id: string;
-  /** The published handle. Absent on records predating it. */
   username?: string;
   email: string;
   firstName?: string;
@@ -38,7 +33,6 @@ interface UserProfileApiResponse {
   biography?: string;
   phone?: string;
   avatarUrl?: string;
-  /** The profile banner. */
   coverImageUrl?: string;
   dateOfBirth?: string;
   gender?: "MALE" | "FEMALE" | "OTHER";
@@ -56,19 +50,9 @@ interface UserProfileApiResponse {
   lastLoginAt?: string;
   createdAt?: string;
   updatedAt?: string;
-  /**
-   * `GET /user-profiles/{userId}` answers with PublicUserProfileResponse, not
-   * the shape above: it carries only id, fullName, biography, avatarUrl,
-   * country, socialLinks, the four counters, and `joinedAt`. Everything else
-   * here — email, firstName/lastName, phone, dateOfBirth, gender, status,
-   * createdAt — is private and absent for anyone but the signed-in user.
-   */
   joinedAt?: string;
 }
 
-// Real shape of GET /api/v1/reports/mine content items (per the live OpenAPI
-// spec). No program/organization display name is included anywhere on this
-// object — only programId — so it has to be resolved separately per report.
 interface ReportApiResponse {
   id: string;
   programId: string;
@@ -79,10 +63,6 @@ interface ReportApiResponse {
   resolvedAt?: string;
 }
 
-// Real shape of GET /api/v1/problems/mine content items. There's no distinct
-// "Solutions" or "Discussion" post type on the backend — those are solutions
-// and comments attached to a problem, not standalone posts — so only problems
-// map cleanly onto CommunityPost's card shape (title/description/votes/views).
 interface ProblemApiResponse {
   id: string;
   title: string;
@@ -93,9 +73,6 @@ interface ProblemApiResponse {
   createdAt?: string;
 }
 
-// Real shape of GET /api/v1/user-profiles/{userId}/solutions content items.
-// `summary` is the one-line heading the author wrote; `isAccepted` is the
-// asker having picked this answer, which is separate from moderation.
 interface SolutionApiResponse {
   id: string;
   problemId?: string;
@@ -108,8 +85,6 @@ interface SolutionApiResponse {
   createdAt?: string;
 }
 
-// Real shape of GET /api/v1/user-profiles/{userId}/showcases content items
-// (ShowCasesSummaryResponse), trimmed to what a portfolio card shows.
 interface ShowcaseApiResponse {
   id: string;
   title: string;
@@ -120,8 +95,6 @@ interface ShowcaseApiResponse {
   createdAt?: string;
 }
 
-// Real shape of GET /api/v1/votes/{type}/{targetId}/summary — `score` is the
-// net (upvotes - downvotes) count, which is what the vote-count UI expects.
 interface VoteSummaryApiResponse {
   score?: number;
 }
@@ -153,19 +126,8 @@ export interface PagePublicUserProfileResponse {
   empty: boolean;
 }
 
-
-/**
- * How many of each kind of post a portfolio pulls. Votes are not embedded in
- * any of the three list responses, so this is also the bound on the per-item
- * enrichment fan-out behind the community tab.
- */
 const PORTFOLIO_PAGE_SIZE = 10;
 
-/**
- * Problem descriptions, solution bodies and showcase overviews are all
- * markdown. The card clamps them to two lines, where `##` and `[a](b)` read as
- * noise rather than as formatting.
- */
 function plainText(markdown: string): string {
   return markdown
     .replace(/```[\s\S]*?```/g, " ")
@@ -180,20 +142,11 @@ function plainText(markdown: string): string {
     .trim();
 }
 
-/** The opening sentence, for content that has no title of its own. */
 function firstLine(text: string, max = 90): string {
   const opening = text.split(/(?<=[.!?])\s/)[0] ?? text;
   return opening.length > max ? `${opening.slice(0, max).trimEnd()}…` : opening;
 }
 
-// socialLinks comes back as a flat platform/url array — map the platforms our
-// UI actually has fields for onto SocialLinksForm. "X" is the platform's name
-// for what our UI calls "twitter". FACEBOOK/TELEGRAM/OTHER have no field in
-// this app's UI (see ProfileBio.tsx, BioSocialSection.tsx) so they're dropped
-// on read; toSocialLinksPayload only ever writes the four platforms below, so
-// a link stored under one of those unsupported platforms elsewhere would be
-// silently omitted the next time this app saves — same as before this app had
-// any real social-links support at all.
 function socialLinksOf(raw: UserProfileApiResponse): SocialLinksForm {
   const links = raw.socialLinks ?? [];
   const urlFor = (platform: string) => links.find((link) => link.platform === platform)?.url ?? "";
@@ -231,26 +184,11 @@ function fullNameOf(raw: UserProfileApiResponse, fallback: string): string {
   return raw.fullName || [raw.firstName, raw.lastName].filter(Boolean).join(" ") || fallback;
 }
 
-/**
- * The API exposes no username, so the one in profile URLs is the local part of
- * the email. It is a display handle only — never send it anywhere the backend
- * expects a `userId`.
- */
-/**
- * The account's handle.
- *
- * The backend publishes one now. Deriving it from the email is kept only for
- * records written before that existed — and it was never more than a guess:
- * two people whose addresses differ only by domain derive the same name, and
- * the email is returned for the signed-in user alone, so everybody else came
- * out blank.
- */
 function usernameOf(raw: UserProfileApiResponse, fallback: string): string {
   if (raw.username?.trim()) return raw.username.trim();
   return raw.email ? raw.email.split("@")[0] : fallback;
 }
 
-/** Tells a real `userId` path segment from a derived username. */
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -264,12 +202,6 @@ function acceptedRateOf(total: number, valid: number): number {
   return total > 0 ? Math.round((valid / total) * 1000) / 10 : 0;
 }
 
-// Derives the severity-breakdown bars and rejected/duplicate/retest counters
-// from the user's own reports (GET /reports/mine) — there's no dedicated
-// stats-breakdown endpoint, so this is computed client-side. Rejected/duplicate
-// reports are counted separately from the severity bars rather than double
-// counted. There's no retest endpoint at all yet, so `retests` is always 0 —
-// a real "nothing tracked" rather than a fabricated placeholder count.
 function severityStatsOf(reports: ReportApiResponse[]): SeverityStats {
   const counts = { critical: 0, high: 0, medium: 0, low: 0, rejected: 0, duplicate: 0 };
   for (const report of reports) {
@@ -315,7 +247,6 @@ function severityStatsFromHacktivity(
     else if (sev === "LOW") counts.low += 1;
   }
 
-  // Ensure criticalReports from raw profile is at least included
   if (typeof raw.criticalReports === "number" && raw.criticalReports > counts.critical) {
     counts.critical = raw.criticalReports;
   }
@@ -327,10 +258,6 @@ function totalEarnedOf(reports: ReportApiResponse[]): number {
   return reports.reduce((sum, report) => sum + (report.rewards?.reduce((s, reward) => s + (reward.amount ?? 0), 0) ?? 0), 0);
 }
 
-// Shared by toProfileOverview and getAccountStatus so the submission/accepted
-// counts shown on the profile page and the Settings sidebar can't drift apart.
-// raw.totalReports/validReports are trusted when present; reports.length is
-// only a fallback for when the profile response omits them.
 function reportCountsOf(raw: UserProfileApiResponse, reports: ReportApiResponse[]) {
   const total = raw.totalReports ?? reports.length;
   const valid = raw.validReports ?? reports.filter((r) => r.state === "RESOLVED" || r.state === "VALID_CONFIRMED").length;
@@ -347,17 +274,8 @@ function toProfileOverview(
   const displayName = fullNameOf(raw, "DevSolve user");
   const { total: totalReports, valid: validReports } = reportCountsOf(raw, reports);
 
-  /* Deliberately not spread over `mockProfile`. Doing that quietly backfilled
-     every field the response didn't carry, and a public profile is missing ten
-     of them — so another researcher's page showed the mock's username, bio,
-     location and join date, and inherited its `isOwnProfile: true`, which put
-     owner-only controls on a stranger's profile and made the followers and
-     following tabs load the viewer's own lists. Absent data now reads as
-     absent. */
   const profile: Profile = {
     id: raw.id,
-    // Derived from the email, which only `/me` returns — blank for everyone
-    // else, since there is no username on the API at all.
     username: usernameOf(raw, ""),
     displayName,
     avatarInitials: initialsOf(displayName),
@@ -365,7 +283,6 @@ function toProfileOverview(
     coverUrl: raw.coverImageUrl,
     bio: raw.biography || "",
     location: raw.country || undefined,
-    // Public profiles carry `joinedAt`; `/me` carries `createdAt`.
     memberSince: memberSinceOf(raw.joinedAt ?? raw.createdAt, ""),
     socialLinks: socialLinksOf(raw),
     followers: social.followers,
@@ -378,12 +295,10 @@ function toProfileOverview(
 
   const stats: ProfileStats = {
     reputation: raw.reputation ?? 0,
-    // No leaderboard/rank endpoint exists yet — omitted rather than faked.
     globalRank: undefined,
     reportsSubmitted: totalReports,
     accepted: validReports,
     acceptedRate: acceptedRateOf(totalReports, validReports),
-    // Total bounty earned across all programs, provided directly by the backend profile.
     totalEarned:
       typeof raw.totalBountyEarned === "number"
         ? raw.totalBountyEarned
@@ -398,34 +313,16 @@ function toProfileOverview(
     ? severityStatsOf(reports)
     : severityStatsFromHacktivity(hacktivities, raw);
 
-  // No badges endpoint exists yet — an empty grid is honest; the mock badge
-  // set was fabricated achievement data with no backing from the backend.
   return { profile, stats, severity, badges: [] };
 }
 
 export const profileApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    /**
-     * Resolves the `[username]` route segment to a profile.
-     *
-     * The API keys profiles on a UUID (`GET /user-profiles/{userId}`) and
-     * returns no username field at all — the one in our URLs is derived from
-     * the email by `usernameOf`. So a segment that is not a UUID is a name
-     * only we know about, and handing it to `/user-profiles/{userId}` makes
-     * the backend reject it as a malformed UUID with a 400 before it looks
-     * anything up. The shape is therefore checked here, and a derived name is
-     * resolved against `/user-profiles/me`, the one place it can be matched.
-     */
     getProfileByUsername: builder.query<ProfileOverviewResponse, string>({
       async queryFn(username, _api, _extraOptions, fetchWithBQ) {
         const isMeRoute = !username || username === "me";
         const isUserId = !isMeRoute && UUID_PATTERN.test(username);
 
-        /* Three ways in, and each is a real lookup. The handle used to be the
-           odd one out: with no way to resolve it, the query fetched `/me` and
-           checked whether the segment matched a name derived from that
-           account's email — so a handle only ever resolved for the person
-           already signed in, and everybody else's URL answered 404. */
         const path = isMeRoute
           ? "/user-profiles/me"
           : isUserId
@@ -434,19 +331,12 @@ export const profileApi = baseApi.injectEndpoints({
 
         const profileResult = await fetchWithBQ(path);
 
-        /* Errors are passed through rather than answered with a stand-in
-           profile. A 404 here means the backend has no record for that id, and
-           filling the page with mock reputation, badges and severity stats
-           attributed it all to a person who does not exist — a reader had no
-           way to tell invented numbers from real ones. The screens tell the
-           two cases apart from this status. */
         if (profileResult.error) {
           return { error: profileResult.error };
         }
 
         const raw = profileResult.data as UserProfileApiResponse;
 
-        /* Determine if this profile belongs to the currently signed-in user */
         let isSelf = isMeRoute;
         if (!isSelf) {
           const meResult = await fetchWithBQ("/user-profiles/me");
@@ -461,9 +351,6 @@ export const profileApi = baseApi.injectEndpoints({
           }
         }
 
-        /* Reports are confidential: `/reports/mine` is the only per-user report
-           endpoint the API has, so for own profiles we pull it to compute accurate
-           severity breakdowns. For other users, we pull public hacktivity. */
         const [followingResult, followersResult, reportsResult, hacktivityResult] = await Promise.all([
           fetchWithBQ(isSelf ? `/follows/mine?size=1` : `/follows/users/${raw.id}/following?size=1`),
           fetchWithBQ(`/follows/USER/${raw.id}/followers?size=1`),
@@ -519,8 +406,6 @@ export const profileApi = baseApi.injectEndpoints({
             ? []
             : ((result.data as { content?: T[] } | undefined)?.content ?? []);
 
-        /* Drafts, pending-approval and rejected problems are not community
-           content — only what someone can actually open is listed. */
         const problems = contentOf<ProblemApiResponse>(problemsResult).filter(
           (problem) =>
             problem.status === "PUBLISHED" ||
@@ -530,8 +415,6 @@ export const profileApi = baseApi.injectEndpoints({
         const solutions = contentOf<SolutionApiResponse>(solutionsResult);
         const showcases = contentOf<ShowcaseApiResponse>(showcasesResult);
 
-        /* Every list failed — report it rather than showing an empty tab that
-           looks like "this person has posted nothing". */
         if (problemsResult.error && solutionsResult.error && showcasesResult.error) {
           return { error: problemsResult.error };
         }
@@ -591,8 +474,6 @@ export const profileApi = baseApi.injectEndpoints({
             const body = plainText(solution.bodyMarkdown ?? "");
             return {
               id: solution.id,
-              /* The author's own summary is the heading. Its opening line
-                 stands in for answers posted before that field existed. */
               title: solution.summary?.trim() || firstLine(body) || "Solution",
               description: body,
               tag: "Solutions",
@@ -601,7 +482,6 @@ export const profileApi = baseApi.injectEndpoints({
                 ? { label: "Accepted", tone: "positive" }
                 : undefined,
               date: solution.createdAt || new Date().toISOString(),
-              /* Solutions are read on the problem they answer. */
               href: solution.problemId
                 ? `/community/${solution.problemId}`
                 : undefined,
@@ -632,25 +512,11 @@ export const profileApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
-    // No backend endpoint yet — mocked until a hall-of-thanks API exists.
-    /* The API has no thanks/recognition endpoint — only the `recognitionCount`
-       aggregate on the profile — so there is nothing to read. It returned a
-       fixed mock list, which put the same invented names and messages on every
-       profile including strangers'. An empty tab is at least true. */
     getThanks: builder.query<ThanksEntry[], string>({
       queryFn: () => ({ data: [] as ThanksEntry[] }),
       providesTags: ["Profile"],
     }),
 
-    /**
-     * The first authenticated request after login, which is what makes the
-     * backend create the user's profile row — for social sign-ups there is no
-     * registration call, so this is the only thing that provisions them.
-     *
-     * `strict=1` keeps the proxy from papering a 404 over with a synthesised
-     * profile: here a 404 is the whole signal, meaning authenticated but
-     * unprovisioned, i.e. a backend/Keycloak misconfiguration.
-     */
     getProfileProvisioningStatus: builder.query<UserProfileApiResponse, void>({
       query: () => `/user-profiles/me?strict=1`,
       providesTags: ["Profile"],
@@ -679,10 +545,6 @@ export const profileApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
-    // firstName/lastName/biography/phone/avatarUrl/dateOfBirth/gender/country
-    // are real, persisted fields (per UpdateUserProfileRequest). username, email,
-    // socialLinks, 2FA, and notification prefs have no backend support yet and are
-    // kept client-side only.
     updateProfile: builder.mutation<EditProfileFormData, Partial<EditProfileFormData>>({
       query: (body) => {
         const [firstName, ...rest] = (body.fullName ?? "").trim().split(/\s+/).filter(Boolean);
@@ -722,9 +584,6 @@ export const profileApi = baseApi.injectEndpoints({
       invalidatesTags: ["Profile"],
     }),
 
-    // Same totalSubmissions/acceptedReports derivation as toProfileOverview
-    // (via reportCountsOf) so the Settings sidebar never disagrees with the
-    // main profile page's numbers.
     getAccountStatus: builder.query<AccountStatus, void>({
       async queryFn(_arg, _api, _extraOptions, fetchWithBQ) {
         const [profileResult, reportsResult] = await Promise.all([
@@ -754,10 +613,6 @@ export const profileApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
-    // GET /api/v1/follows/mine — always the signed-in user's own follows (same
-    // "me only" constraint as /user-profiles/me). Fetched at a large page size
-    // so the counts pills reflect what's actually in the list rather than just
-    // the first page; there's no documented filter-by-type query param yet.
     getMyFollows: builder.query<{ counts: FollowingCounts; items: FollowRecord[] }, void>({
       query: () => `/follows/mine?size=100`,
       transformResponse: (raw: { content?: FollowRecord[] }) => {
@@ -773,22 +628,6 @@ export const profileApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
-    // GET /api/v1/follows/{type}/{targetId}/followers — who follows a given
-    // followable target. Takes the target's real user id (from getProfileByUsername's
-    // `profile.id`, itself sourced from /user-profiles/me) rather than a username,
-    // since the backend has no username-based lookup.
-    /**
-     * Who follows this account.
-     *
-     * The page returns `FollowerResponse` — `userId`, `fullName`, `avatarUrl`,
-     * `followedAt` — which is not the shape of a `FollowRecord`. It used to be
-     * handed straight through under that name, so every field the list reads
-     * arrived `undefined`: React warned about missing keys, and the item
-     * crashed outright on `record.id.slice()` while building a fallback name.
-     *
-     * There is no username on this payload, so a follower is addressed by id.
-     * The profile route resolves a UUID as readily as a handle.
-     */
     getFollowers: builder.query<{ total: number; items: FollowRecord[] }, string>({
       query: (userId) => `/follows/USER/${userId}/followers?size=100`,
       transformResponse: (raw: {
@@ -817,7 +656,6 @@ export const profileApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
-    // GET /api/v1/follows/users/{userId}/following — entities followed by a specific user
     getUserFollowing: builder.query<{ counts: FollowingCounts; items: FollowRecord[] }, string>({
       query: (userId) => `/follows/users/${userId}/following?size=100`,
       transformResponse: (raw: { content?: FollowRecord[] }) => {
@@ -864,7 +702,6 @@ export const profileApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
-    // GET /api/v1/follows/{type}/{targetId}/summary — status & follower count
     getFollowSummary: builder.query<
       { followableType: string; followableId: string; followerCount: number; following: boolean },
       { type: string; targetId: string }
@@ -873,7 +710,6 @@ export const profileApi = baseApi.injectEndpoints({
       providesTags: ["Profile"],
     }),
 
-    // PUT /api/v1/follows/{type}/{targetId} — follow an entity
     followTarget: builder.mutation<FollowRecord, { type: string; targetId: string }>({
       query: ({ type, targetId }) => ({
         url: `/follows/${type}/${targetId}`,
@@ -882,7 +718,6 @@ export const profileApi = baseApi.injectEndpoints({
       invalidatesTags: ["Profile"],
     }),
 
-    // DELETE /api/v1/follows/{type}/{targetId} — unfollow an entity
     unfollowTarget: builder.mutation<void, { type: string; targetId: string }>({
       query: ({ type, targetId }) => ({
         url: `/follows/${type}/${targetId}`,
@@ -891,7 +726,6 @@ export const profileApi = baseApi.injectEndpoints({
       invalidatesTags: ["Profile"],
     }),
 
-    // PUT /api/v1/user-profiles/me/cover — upload cover image
     uploadCoverImage: builder.mutation<UserProfileApiResponse, FormData>({
       query: (body) => ({
         url: "/user-profiles/me/cover",
@@ -901,7 +735,6 @@ export const profileApi = baseApi.injectEndpoints({
       invalidatesTags: ["Profile"],
     }),
 
-    // DELETE /api/v1/user-profiles/me/cover — remove cover image
     removeCoverImage: builder.mutation<UserProfileApiResponse, void>({
       query: () => ({
         url: "/user-profiles/me/cover",
@@ -910,7 +743,6 @@ export const profileApi = baseApi.injectEndpoints({
       invalidatesTags: ["Profile"],
     }),
 
-    // GET /api/v1/user-profiles — search / list public profiles
     getPublicProfiles: builder.query<
       PagePublicUserProfileResponse,
       { query?: string; pageNumber?: number; pageSize?: number } | void

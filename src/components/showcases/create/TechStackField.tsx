@@ -15,12 +15,6 @@ interface TechStackFieldProps {
   onChange: (next: string[]) => void;
 }
 
-/**
- * Chip input with autocomplete over a known list, and free entry for anything
- * not on it. Every value goes through `canonicalizeTech` first: the
- * showcase_tech table is unique per showcase, so `react`, `React` and
- * `ReactJS` must not arrive as three rows.
- */
 export function TechStackField({ value, onChange }: TechStackFieldProps) {
   const [draft, setDraft] = useState("");
   const [open, setOpen] = useState(false);
@@ -50,7 +44,6 @@ export function TechStackField({ value, onChange }: TechStackFieldProps) {
 
   const remove = (tech: string) => onChange(value.filter((t) => t !== tech));
 
-  /** True when the draft is a new value rather than one already listed. */
   const canonicalDraft = canonicalizeTech(draft);
   const showCustom =
     canonicalDraft.length > 0 &&
@@ -116,8 +109,6 @@ export function TechStackField({ value, onChange }: TechStackFieldProps) {
               setOpen(true);
             }}
             onFocus={() => setOpen(true)}
-            /* A click on a suggestion blurs the input first, so closing is
-               deferred past the mousedown that selects it. */
             onBlur={() => window.setTimeout(() => setOpen(false), 120)}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === ",") {

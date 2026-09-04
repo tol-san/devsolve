@@ -19,7 +19,6 @@ const unreachable = () =>
 const badId = () =>
   NextResponse.json({ message: "Invalid draft id" }, { status: 400 });
 
-/** `GET /api/showcase-drafts/{id}` — fetch a showcase draft to resume. */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -38,7 +37,6 @@ export async function GET(
   }
 }
 
-/** `PUT /api/showcase-drafts/{id}` — overwrite an existing showcase draft. */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -81,7 +79,6 @@ export async function PUT(
   }
 }
 
-/** `DELETE /api/showcase-drafts/{id}` — discard a showcase draft. */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

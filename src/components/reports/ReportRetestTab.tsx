@@ -27,7 +27,6 @@ export function ReportRetestTab({
 }: ReportRetestTabProps) {
   return (
     <div className="w-full space-y-4">
-      {/* Quick Demo Toggle State Bar */}
       <div className="flex items-center justify-end gap-2 text-xs">
         <span className="text-slate-400 font-medium">Demo State:</span>
         {retestHistory.length === 0 ? (
@@ -52,14 +51,12 @@ export function ReportRetestTab({
       </div>
 
       {retestHistory.length === 0 ? (
-        /* Empty State Placeholder */
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
           className="bg-card rounded-3xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-8 sm:p-16 flex flex-col items-center justify-center text-center space-y-6 shadow-xs my-2"
         >
-          {/* Center Graphic */}
           <div className="relative flex items-center justify-center w-48 h-48 sm:w-56 sm:h-56 rounded-full bg-blue-500/10">
             <span className="absolute top-8 left-10 w-2.5 h-2.5 rounded-full bg-blue-400/40" />
             <span className="absolute right-8 top-24 w-2 h-2 rounded-full bg-muted-foreground/30" />
@@ -91,7 +88,6 @@ export function ReportRetestTab({
           </Button>
         </motion.div>
       ) : (
-        /* Retest History Data Table */
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}

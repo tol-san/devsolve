@@ -7,14 +7,6 @@ import { Button } from "@/components/ui/button";
 import { validateIconFile } from "@/lib/validations/category";
 import { cn } from "@/lib/utils";
 
-/**
- * What should happen to the icon when the dialog is saved.
- *
- * Upload is deliberately deferred rather than fired on file-select: the
- * endpoint is `PUT /categories/{id}/icon`, so on create there is no id yet,
- * and on edit an immediate upload would survive Cancel. Holding an intent
- * makes both flows behave the same and keeps Cancel honest.
- */
 export type IconIntent =
   | { kind: "keep" }
   | { kind: "file"; file: File }
@@ -22,7 +14,6 @@ export type IconIntent =
   | { kind: "remove" };
 
 interface CategoryIconFieldProps {
-  /** The icon already stored on the category, if it has one. */
   currentUrl?: string;
   value: IconIntent;
   onChange: (intent: IconIntent) => void;
@@ -39,9 +30,6 @@ export function CategoryIconField({
   const [linkDraft, setLinkDraft] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /* Derived rather than stored: holding the handle in state would mean an
-     effect writing state on every intent change, and a render cascade with
-     it. The effect below only cleans up. */
   const objectUrl = useMemo(
     () => (value.kind === "file" ? URL.createObjectURL(value.file) : null),
     [value],
@@ -74,14 +62,10 @@ export function CategoryIconField({
   const clear = () => {
     setLinkDraft("");
     setError(null);
-    // Only an icon that exists upstream needs deleting; anything staged in
-    // this session just goes back to whatever was there before.
     onChange(currentUrl ? { kind: "remove" } : { kind: "keep" });
   };
 
   return (
-    /* min-w-0: this sits in a grid track, and grid items refuse to shrink
-       below their content without it. */
     <div className="min-w-0 space-y-2">
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-semibold text-foreground">
@@ -121,10 +105,6 @@ export function CategoryIconField({
             />
           </span>
 
-          {/* Deliberately not the file name or the URL: either can be
-              arbitrarily long, and a grid item defaults to min-width:auto, so
-              one long unbroken string would widen the whole dialog instead of
-              truncating. These labels are fixed-length by construction. */}
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-foreground">
               {value.kind === "file"
@@ -229,7 +209,6 @@ export function CategoryIconField({
         onChange={(event) => {
           const file = event.target.files?.[0];
           if (file) accept(file);
-          // Let the same file be re-picked after a rejected attempt.
           event.target.value = "";
         }}
       />

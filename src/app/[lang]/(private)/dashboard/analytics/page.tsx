@@ -45,7 +45,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Targeted scope assets fallback data
 const topAssets = [
   { name: "api.tiktok.com", reports: 42, critical: 4, type: "API" },
   { name: "moderation.tiktok.com", reports: 28, critical: 1, type: "Web" },
@@ -62,7 +61,6 @@ export default function OrganizationAnalyticsPage() {
     refetch,
   } = useAdminOverview();
 
-  // Dynamic monthly report trend data from adminOverview or fallback
   const reportTrendData = adminOverview?.activityChart?.map((item) => ({
     month: item.month,
     total: item.reports,
@@ -77,7 +75,6 @@ export default function OrganizationAnalyticsPage() {
     { month: "Jun", total: 78, accepted: 56, rejected: 12 },
   ];
 
-  // Dynamic severity breakdown from adminOverview or fallback
   const severityData = adminOverview
     ? [
         {
@@ -137,7 +134,6 @@ export default function OrganizationAnalyticsPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* HEADER SECTION */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-2 border-b border-border">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -148,7 +144,6 @@ export default function OrganizationAnalyticsPage() {
           </p>
         </div>
 
-        {/* CONTROLS */}
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="outline"
@@ -179,9 +174,7 @@ export default function OrganizationAnalyticsPage() {
         </div>
       </header>
 
-      {/* 4 KPI CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* 1. TOTAL REPORTS */}
         <div className="bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -204,7 +197,6 @@ export default function OrganizationAnalyticsPage() {
           </p>
         </div>
 
-        {/* 2. ACCEPTED */}
         <div className="bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -227,7 +219,6 @@ export default function OrganizationAnalyticsPage() {
           </p>
         </div>
 
-        {/* 3. REJECTED */}
         <div className="bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -250,7 +241,6 @@ export default function OrganizationAnalyticsPage() {
           </p>
         </div>
 
-        {/* 4. TOTAL SUBMITTERS */}
         <div className="bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -274,9 +264,7 @@ export default function OrganizationAnalyticsPage() {
         </div>
       </div>
 
-      {/* CHARTS ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* REPORT SUBMISSION & ACCEPTANCE TREND (2 COLS) */}
         <div className="lg:col-span-2 bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-6">
           <div>
             <h3 className="text-lg font-bold text-foreground">
@@ -334,7 +322,6 @@ export default function OrganizationAnalyticsPage() {
           </div>
         </div>
 
-        {/* SEVERITY BREAKDOWN (1 COL) */}
         <div className="bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-6 flex flex-col justify-between">
           <div>
             <h3 className="text-lg font-bold text-foreground">
@@ -373,7 +360,6 @@ export default function OrganizationAnalyticsPage() {
             </ResponsiveContainer>
           </div>
 
-          {/* Legend */}
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
             {severityData.map((s) => (
               <div key={s.name} className="flex items-center gap-2">
@@ -389,9 +375,7 @@ export default function OrganizationAnalyticsPage() {
         </div>
       </div>
 
-      {/* BOTTOM ROW: REWARDS & TARGET ASSETS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* REWARDS SUMMARY */}
         <div className="bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-5">
           <h3 className="text-lg font-bold text-foreground">
             Payouts & Rewards Summary
@@ -426,7 +410,6 @@ export default function OrganizationAnalyticsPage() {
           </div>
         </div>
 
-        {/* MOST TESTED ASSETS */}
         <div className="lg:col-span-2 bg-card text-card-foreground p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-5 overflow-hidden">
           <div>
             <h3 className="text-lg font-bold text-foreground">

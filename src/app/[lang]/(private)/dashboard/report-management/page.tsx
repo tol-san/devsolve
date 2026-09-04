@@ -264,13 +264,6 @@ function ReportManagementContent() {
   );
 }
 
-/**
- * The company's report queue.
- *
- * Guarded on `VIEW_REPORTS` rather than on being a company account: an invited
- * member with that permission does this work, and the guard wraps the content
- * so its queries do not fire before the answer is in.
- */
 export default function ReportManagementPage() {
   return (
     <RequireOrgPermission

@@ -26,7 +26,6 @@ interface ReportSummaryTabProps {
   sidebar?: React.ReactNode;
 }
 
-/** A titled card. Rendered only when there is something to put in it. */
 function Section({
   title,
   children,
@@ -44,9 +43,6 @@ function Section({
   );
 }
 
-/**
- * Everything the reporter wrote, rendered with full Markdown support.
- */
 export function ReportSummaryTab({ report, sidebar }: ReportSummaryTabProps) {
   const hasEvidence = report.attachments.length > 0;
   const hasReferences = report.referenceLinks.length > 0;
@@ -54,7 +50,6 @@ export function ReportSummaryTab({ report, sidebar }: ReportSummaryTabProps) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left Column: Main Content */}
       <main className="lg:col-span-2 space-y-6">
         <Section title="Description">
           <div className="prose dark:prose-invert max-w-none text-foreground">
@@ -263,10 +258,8 @@ export function ReportSummaryTab({ report, sidebar }: ReportSummaryTabProps) {
         </Section>
       </main>
 
-      {/* Right Column: Sidebar */}
       {sidebar ?? <ReportSidebarPanels report={report} />}
 
-      {/* Attachment Preview Modal */}
       <AttachmentPreviewModal
         attachment={previewAttachment}
         isOpen={Boolean(previewAttachment)}

@@ -12,22 +12,6 @@ import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import type { OrganizationInvitationPermission } from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 
-/**
- * Keeps an organization screen to the members whose permissions cover it.
- *
- * The companion to `RequireRole`, one level finer: role says which *kind* of
- * account this is, a permission says what this member was given when they were
- * invited. Two people on the same team can hold the same COMPANY role and
- * still disagree about whether this screen is theirs.
- *
- * Same standing as `RequireRole`: a courtesy, not a security boundary. The
- * backend authorizes every request regardless — what this prevents is a member
- * watching a screen fire calls it has no business making and reading a 403
- * where an explanation belongs.
- *
- * Wrap the *content*, not the page, so the guarded component's hooks do not
- * run before the answer is in.
- */
 export function RequireOrgPermission({
   permission,
   title,
@@ -39,14 +23,7 @@ export function RequireOrgPermission({
   permission: OrganizationInvitationPermission;
   title: string;
   description: string;
-  /** Where this member should have gone instead. */
   action?: { href: string; label: string };
-  /**
-   * Only an `ACTIVE` organization accepts program and report actions; a
-   * `PENDING` or `REJECTED` one answers 403 or 409. Screens that only read can
-   * opt out, but anything that acts should say why it cannot rather than
-   * render an empty list and let the reader discover it.
-   */
   requireActiveOrganization?: boolean;
   children: React.ReactNode;
 }) {
@@ -54,8 +31,6 @@ export function RequireOrgPermission({
   const { granted, isResolved } = useOrganizationPermission(permission);
   const { membership, isActive } = useCompanyAccess();
 
-  /* The roster arrives a beat after the session. Deciding before it lands
-     would show the refusal to the very members the screen is for. */
   if (!isResolved) {
     return (
       <div
@@ -104,7 +79,6 @@ export function RequireOrgPermission({
   );
 }
 
-/** One card, whichever of the two reasons kept the reader out. */
 function Notice({
   icon,
   title,

@@ -3,7 +3,7 @@ import type { Node, Edge } from "@xyflow/react";
 export interface ErdColumn {
   id: string;
   name: string;
-  type: string; // e.g. "UUID", "VARCHAR(255)", "BIGINT", "TIMESTAMP", "BOOLEAN", "TEXT", "INTEGER", "JSONB", "NUMERIC(10,2)"
+  type: string; 
   isPk?: boolean;
   isFk?: boolean;
   isNullable?: boolean;
@@ -19,7 +19,6 @@ export interface UmlMember {
 }
 
 export type CustomNodeType =
-  // Architecture
   | "clientNode"
   | "serverNode"
   | "databaseNode"
@@ -63,19 +62,15 @@ export interface CustomNodeData extends Record<string, unknown> {
     | "cyan"
     | "teal"
     | "orange";
-  // ERD fields
   tableName?: string;
   columns?: ErdColumn[];
-  // UML Class fields
   attributes?: UmlMember[];
   methods?: UmlMember[];
   isInterface?: boolean;
-  // Flowchart / Process fields
   actor?: string;
   status?: "pending" | "running" | "completed" | "failed" | "active";
   triggerType?: "webhook" | "timer" | "click" | "queue" | "manual";
   terminalType?: "start" | "end" | "stop";
-  // Boundary / Group fields
   groupTitle?: string;
   borderStyle?: "solid" | "dashed" | "dotted";
   width?: number;
@@ -93,5 +88,4 @@ export interface DiagramTemplate {
   nodes: AppNode[];
   edges: AppEdge[];
 }
-
 

@@ -15,18 +15,6 @@ import {
 } from "@/components/ui/dialog";
 import { useUpdateProblemModerationMutation } from "@/lib/redux/services/admin/problemReviewApi";
 
-/**
- * Confirms one moderation decision — `PATCH /admin/problems/{id}/moderation`.
- *
- * Approving puts the problem in front of the whole community and rejecting
- * takes the author's submission away, so both are confirmed rather than fired
- * from a bare click.
- *
- * There is no note field on purpose: `ProblemModerationRequest` carries only a
- * status, so anything typed here would go nowhere. Showcases have their own
- * `rejectionReason`; problems do not, yet.
- */
-
 export type ProblemDecision = "PUBLISHED" | "REJECTED";
 
 interface ProblemDecisionDialogProps {
@@ -49,9 +37,6 @@ export function ProblemDecisionDialog({
   const [moderate, { isLoading }] = useUpdateProblemModerationMutation();
   const [error, setError] = useState<string | null>(null);
 
-  /* A stale error must not greet the next problem opened. Adjusted during
-     render rather than in an effect, so the dialog is already clean on its
-     first paint. */
   const [opened, setOpened] = useState({ isOpen, problemId, decision });
   if (
     opened.isOpen !== isOpen ||
@@ -155,7 +140,6 @@ export function ProblemDecisionDialog({
   );
 }
 
-/** Pulls something readable out of an RTK Query error. */
 function messageOf(error: unknown, fallback: string): string {
   if (typeof error === "object" && error !== null && "data" in error) {
     const data = (error as { data?: unknown }).data;

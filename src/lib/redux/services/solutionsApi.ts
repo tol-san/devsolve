@@ -8,28 +8,18 @@ import type {
 } from "@/lib/validations/solution";
 import type { AuthorSummary } from "./problemsApi";
 
-/**
- * Answers on a problem — `GET /api/v1/problems/{problemId}/solutions`.
- *
- * The response embeds its author and carries its own vote score, so a card
- * rendering one needs no follow-up request for either.
- */
-
 export type { ApproachType, ResourceType };
 
-/** `VerificationStep` — one thing to run, and what it should print. */
 export interface VerificationStep {
   instruction?: string;
   expectedResult?: string;
 }
 
-/** `TestedWith` — a stack the answer was actually verified against. */
 export interface TestedWith {
   technology?: string;
   version?: string;
 }
 
-/** `ResourceSummary` — a link the answer leans on. */
 export interface ResourceSummary {
   id?: string;
   type?: ResourceType;
@@ -47,7 +37,6 @@ export interface SolutionAttachmentSummary {
   createdAt?: string;
 }
 
-/** `ModerationDetails` — where the answer stands in the review queue. */
 export interface ModerationDetails {
   revisionId?: string;
   revisionNumber?: number;
@@ -57,7 +46,6 @@ export interface ModerationDetails {
   reviewedAt?: string;
 }
 
-/** `SolutionResponse`. */
 export interface SolutionResponse {
   id: string;
   problemId?: string;
@@ -74,16 +62,13 @@ export interface SolutionResponse {
   voteScore?: number;
   commentCount?: number;
   viewerVote?: string;
-  /** Sent back as the `If-Match` header on an update. */
   version?: number;
-  /** Set client-side when this record came from the signed-in user's list. */
   viewerOwnsSolution?: boolean;
   moderation?: ModerationDetails;
   createdAt: string;
   updatedAt?: string;
 }
 
-/** `PublicUserProfileResponse`, trimmed to what an author line needs. */
 export interface PublicProfileSummary {
   id: string;
   fullName?: string;
@@ -103,8 +88,6 @@ function mergeEditableSolution(
   return {
     ...published,
     ...owned,
-    /* The author's endpoint may omit expanded relations even though its text
-       and moderation fields are the pending revision we need. */
     author: owned.author ?? published.author,
     problemId: owned.problemId ?? published.problemId,
     version: owned.version ?? published.version,
@@ -129,13 +112,6 @@ export const solutionsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * GET /api/solutions/mine — the caller's own answers, review state and all.
-     *
-     * The public list under a problem serves approved answers only, so this is
-     * the only place an author can see that the one they just posted exists and
-     * is waiting. Signed-out callers get a 401, which is the answer.
-     */
     getMySolutions: builder.query<
       Page<SolutionResponse>,
       { pageNumber?: number; pageSize?: number } | void
@@ -151,7 +127,6 @@ export const solutionsApi = baseApi.injectEndpoints({
       providesTags: [{ type: "Solution", id: "MINE" }],
     }),
 
-    /** GET /api/user-profiles/{userId} — an author's public profile. */
     getPublicProfile: builder.query<PublicProfileSummary, string>({
       query: (userId) => `/user-profiles/${userId}`,
       providesTags: (_result, _error, userId) => [
@@ -159,23 +134,11 @@ export const solutionsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * GET /api/user-profiles/me — the caller's own id as the backend knows it.
-     *
-     * `author.id` on a problem is that same id, so this is what tells the page
-     * whether the reader is looking at their own post.
-     */
     getMyProfile: builder.query<PublicProfileSummary, void>({
       query: () => "/user-profiles/me",
       providesTags: [{ type: "Profile", id: "ME" }],
     }),
 
-    /**
-     * POST /api/v1/problems/{problemId}/solutions.
-     *
-     * Invalidates the problem's answer list so a freshly posted solution shows
-     * up without a reload.
-     */
     createSolution: builder.mutation<
       SolutionResponse,
       { problemId: string; body: CreateSolutionRequest }
@@ -212,14 +175,6 @@ export const solutionsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * Removing one stored file from an answer.
-     *
-     * Immediate, like the problem equivalent, and additionally guarded: this
-     * endpoint requires `If-Match`, so a version that has moved on is refused
-     * with a 412 rather than quietly deleting from a stale view. Quoted the
-     * way the upstream ETag is, matching the upload above.
-     */
     deleteSolutionAttachment: builder.mutation<
       void,
       { solutionId: string; version: number; attachmentId: string }
@@ -235,15 +190,6 @@ export const solutionsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * One answer in full for the edit form.
-     *
-     * The public detail endpoint keeps returning the last approved copy while
-     * an edit is waiting for moderation. `/solutions/mine` is the author's
-     * source of truth and carries that pending copy, so it wins when present.
-     * The public detail remains the fallback and supplies expanded relations
-     * that the author list may omit.
-     */
     getSolutionById: builder.query<SolutionResponse, string>({
       async queryFn(id, _api, _extraOptions, fetchWithBQ) {
         const [detailResult, firstMineResult] = await Promise.all([
@@ -265,8 +211,6 @@ export const solutionsApi = baseApi.injectEndpoints({
             solution.id === id || solution.moderation?.revisionId === id,
         );
 
-        /* Most authors fit on the first page. Continue only when necessary so
-           an older answer still opens its pending revision correctly. */
         for (
           let pageNumber = 1;
           !editable && pageNumber < (minePage?.totalPages ?? 0);
@@ -300,16 +244,6 @@ export const solutionsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: "Solution", id }],
     }),
 
-    /**
-     * PATCH /api/solutions/{id} — the author revising their own answer.
-     *
-     * `version` becomes the `If-Match` header, quoted the way the upstream
-     * ETag is. Saving over a newer version is refused with a 412 rather than
-     * silently winning.
-     *
-     * Editing sends the answer back through review upstream, so the author's
-     * own list is invalidated alongside the problem's.
-     */
     updateSolution: builder.mutation<
       SolutionResponse,
       {
@@ -337,13 +271,6 @@ export const solutionsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * DELETE /api/solutions/{id} — the author withdrawing their own answer.
-     *
-     * The problem it answered is invalidated alongside the author's own list,
-     * so the count under that problem drops without a reload. `problemId` is
-     * optional because the caller does not always know it.
-     */
     deleteSolution: builder.mutation<void, { id: string; problemId?: string }>({
       query: ({ id }) => ({ url: `/solutions/${id}`, method: "DELETE" }),
       invalidatesTags: (_result, _error, { problemId }) => [

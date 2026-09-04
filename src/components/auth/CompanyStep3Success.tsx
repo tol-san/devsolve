@@ -19,7 +19,6 @@ export function CompanyStep3Success() {
       transition={{ duration: 0.4 }}
       className="bg-card border border-border rounded-3xl p-8 sm:p-10 text-center shadow-xl shadow-blue-500/5 my-auto text-card-foreground w-full"
     >
-      {/* Animated Success Icon */}
       <div className="relative size-20 mx-auto mb-6 flex items-center justify-center">
         <div className="absolute inset-0 bg-emerald-100/80 dark:bg-emerald-500/20 rounded-full animate-ping opacity-75" />
         <div className="relative size-20 bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center shadow-xs">
@@ -40,7 +39,6 @@ export function CompanyStep3Success() {
         {t("auth.companyRegister.successSubtitle")} {t("auth.companyRegister.successDescription")}
       </p>
 
-      {/* Verification Steps List */}
       <div className="bg-muted/40 border border-border rounded-2xl p-5 max-w-md mx-auto text-left mb-8 space-y-3">
         <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
           What happens next:

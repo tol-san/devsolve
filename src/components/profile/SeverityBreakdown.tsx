@@ -71,7 +71,6 @@ export default function SeverityBreakdown({ severity }: SeverityBreakdownProps) 
         </span>
       </div>
 
-      {/* ── Severity Bars ────────────────────────────────────────── */}
       <div className="mt-5 space-y-4">
         {SEVERITY_CONFIG.map((row) => {
           const value = severity[row.key];
@@ -106,7 +105,6 @@ export default function SeverityBreakdown({ severity }: SeverityBreakdownProps) 
         })}
       </div>
 
-      {/* ── Resolution Metrics Sub-Grid ──────────────────────────── */}
       <div className="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-5">
         <div className="flex flex-col items-center rounded-xl bg-muted/40 p-3 text-center">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">

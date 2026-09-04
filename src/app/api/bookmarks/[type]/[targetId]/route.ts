@@ -13,17 +13,8 @@ import {
   type BookmarkTargetType,
 } from "@/lib/validations/engagement";
 
-/**
- * PUT/DELETE /api/bookmarks/{type}/{targetId} — proxy for the backend's
- * /api/v1/bookmarks/{type}/{targetId}.
- *
- * `PUT` is idempotent upstream: bookmarking twice leaves one bookmark.
- * Both are attributed to the session, so both require one.
- */
-
 type Context = { params: Promise<{ type: string; targetId: string }> };
 
-/** The path pair, or null when either half is malformed. */
 async function resolveTarget(context: Context) {
   const { type, targetId } = await context.params;
   const upper = type.toUpperCase() as BookmarkTargetType;

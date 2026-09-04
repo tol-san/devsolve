@@ -35,14 +35,6 @@ import type { Program } from "@/lib/types/programs/types";
 import { cn } from "@/lib/utils";
 import { CountryDisplay } from "@/components/shared/CountryDisplay";
 
-/**
- * One company, from the researcher side.
- *
- * The list this opens from answers "may I file here?"; the question straight
- * after is "what have I already filed, and what else can I file against?".
- * Both are about the organization rather than any one program, because that is
- * the level approval is granted at.
- */
 export function CompanyAccessDetail({
   organizationId,
 }: {
@@ -55,9 +47,6 @@ export function CompanyAccessDetail({
   const { data: organization, isLoading: isOrgLoading } =
     useGetOrganizationByIdQuery(organizationId, { skip: !organizationId });
 
-  /* The record rather than the list: this is the screen that finally uses
-     `GET /organizations/{id}/researchers/me`, which answers for one company
-     and returns null when the researcher has never approached it. */
   const { data: access, isLoading: isAccessLoading } =
     useGetMyOrganizationAccessQuery(organizationId, { skip: !organizationId });
 
@@ -69,9 +58,6 @@ export function CompanyAccessDetail({
       { skip: !organizationId },
     );
 
-  /* Reports carry the id of the company that received them, so this is a
-     filter rather than another round trip — and the list is usually already
-     in the cache from the reports screen. */
   const filed = useMemo(
     () => (reports ?? []).filter((report) => report.organizationId === organizationId),
     [reports, organizationId],
@@ -86,7 +72,6 @@ export function CompanyAccessDetail({
 
   const status = access?.status ?? null;
   const approved = access?.canSubmitReports === true;
-  /* Cleared without ever applying — the company came to them. */
   const invited = access ? wasInvited(access) && status === "APPROVED" : false;
   const actionLabel = requestActionLabel(status);
   const name = organization?.name?.trim() || access?.organizationName?.trim() || "";
@@ -171,7 +156,6 @@ export function CompanyAccessDetail({
         )}
       </header>
 
-      {/* Where the researcher stands, and the one move available from here. */}
       <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-1">
@@ -244,7 +228,6 @@ export function CompanyAccessDetail({
         )}
       </section>
 
-      {/* What has already gone to them. */}
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-base font-bold tracking-tight text-foreground">
@@ -301,7 +284,6 @@ export function CompanyAccessDetail({
         )}
       </section>
 
-      {/* What can still be filed. */}
       <section className="space-y-3">
         <h2 className="text-base font-bold tracking-tight text-foreground">
           Their programs
@@ -338,8 +320,6 @@ export function CompanyAccessDetail({
                   </p>
                 </div>
 
-                {/* Offered only once the company has cleared them — a submit
-                    link that ends in a 403 is worse than no link. */}
                 {approved && (
                   <Link
                     href={lp(`/dashboard/submit-report?programId=${program.id}`)}

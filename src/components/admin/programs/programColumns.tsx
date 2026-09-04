@@ -42,7 +42,6 @@ import {
 import { ProgramRejectDialog } from "@/components/admin/programs/ProgramRejectDialog";
 import { cn } from "@/lib/utils";
 
-/** The sortable header the users table uses, so both read the same. */
 function SortableHeader({
   label,
   column,
@@ -91,9 +90,6 @@ function OwnerProgramActions({
   const [isOpen, setIsOpen] = useState(false);
   const [deleteProgram, { isLoading }] = useDeleteProgramMutation();
 
-  /* Deleting a program is its own permission, and a member without it meets a
-     403 at the end of the confirmation. The button is not shown at all rather
-     than shown and refused. */
   const { can } = useCompanyAccess();
   const canDelete = can("DELETE_PROGRAM");
 
@@ -321,9 +317,6 @@ export const getProgramColumns =
         header: ({ column }) => <SortableHeader label="Type" column={column} />,
         cell: ({ row }) => (
           <Badge variant="secondary" className="rounded-lg font-semibold text-xs dark:bg-slate-800 dark:text-slate-300">
-            {/* Null until the author reaches step 1's engagement question, and
-                falling through to "RESPONSE" labelled every unfinished draft as
-                a response program. */}
             {row.original.engagementType
               ? row.original.engagementType === "BOUNTY"
                 ? "BOUNTY"

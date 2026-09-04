@@ -9,11 +9,9 @@ interface WeaknessPage {
   content?: Weakness[];
   totalElements?: number;
   totalPages?: number;
-  /** Zero-based index of the page that came back. */
   number?: number;
 }
 
-/** The upstream refuses anything larger: `pageSize must be <= 100`. */
 export const WEAKNESS_PAGE_MAX = 100;
 
 export interface AdminWeaknessQuery {
@@ -25,19 +23,11 @@ export interface AdminWeaknessQuery {
 
 export interface AdminWeaknessList {
   rows: Weakness[];
-  /** Across the whole catalogue, not just this page. */
   total: number;
   page: number;
   totalPages: number;
 }
 
-/**
- * The catalogue as an admin sees it: retired entries included, and writeable.
- *
- * Every mutation invalidates `Weakness`, which the report form's search query
- * also provides — so renaming or retiring an entry here is reflected in the
- * submit form without a reload.
- */
 export const adminWeaknessesApi = proxyApi.injectEndpoints({
   endpoints: (builder) => ({
     getAdminWeaknesses: builder.query<AdminWeaknessList, AdminWeaknessQuery | void>({
@@ -50,9 +40,6 @@ export const adminWeaknessesApi = proxyApi.injectEndpoints({
         } = input ?? {};
         const params = new URLSearchParams({
           page: String(Math.max(0, page)),
-          /* Clamped rather than trusted: the upstream answers 400 above 100,
-             and a caller asking for more should get the most it will serve
-             instead of an error. */
           size: String(Math.min(Math.max(1, size), WEAKNESS_PAGE_MAX)),
           sort: "name,ASC",
         });

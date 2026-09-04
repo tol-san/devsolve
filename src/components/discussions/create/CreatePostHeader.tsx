@@ -36,7 +36,6 @@ export function CreatePostHeader({
 
   return (
     <div className="space-y-4">
-      {/* Top Bar: Back Link + Format Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
           href={backHref}
@@ -50,7 +49,6 @@ export function CreatePostHeader({
           <span>Back to Community</span>
         </Link>
 
-        {/* Format Switcher Pills */}
         <div className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/80 self-start sm:self-auto text-xs font-semibold">
           <Link
             href={problemHref}
@@ -75,7 +73,6 @@ export function CreatePostHeader({
         </div>
       </div>
 
-      {/* Header title & subtitle */}
       <div className="space-y-3 pb-2">
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">

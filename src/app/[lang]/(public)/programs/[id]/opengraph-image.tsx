@@ -3,8 +3,6 @@ import { OG_CONTENT_TYPE, OG_SIZE, ogCard } from "@/lib/seo/og-card";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo/site";
 import { describe, humanizeEnum } from "@/lib/seo/text";
 
-/** The card a shared bug bounty program link unfurls into. */
-
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 export const alt = `A bug bounty program on ${SITE_NAME}`;

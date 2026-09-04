@@ -8,18 +8,6 @@ import {
 } from "@/lib/api/proxy";
 import { CATEGORY_SCOPES } from "@/lib/validations/category";
 
-/**
- * GET /api/categories/active — the pickable categories for one scope, used by
- * the create forms and by the public feeds to offer a category filter.
- *
- * No session required: an active category is public metadata, and the showcase
- * index shows category names to signed-out visitors already. A caller who has
- * a token still sends it.
- *
- * A static segment beats the sibling `[id]` route in the App Router, so
- * "active" is never read as a category id.
- */
-
 const scopeParam = z.enum(CATEGORY_SCOPES).optional();
 
 export async function GET(request: NextRequest) {

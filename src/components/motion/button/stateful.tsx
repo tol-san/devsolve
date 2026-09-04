@@ -1,5 +1,4 @@
 "use client";
-// beui.dev/components/motion/button
 
 import { Check, Loader2, X } from "lucide-react";
 import {
@@ -49,8 +48,6 @@ const CASCADE_LETTER_VARIANTS: Variants = {
 };
 
 const ICON_VARIANTS: Variants = {
-  // Width collapses too, so the icon adds/removes its own space smoothly
-  // instead of popping the row width in a single frame.
   initial: { opacity: 0, width: 0, scale: 0.7, filter: ROLL_BLUR },
   animate: {
     opacity: 1,
@@ -98,9 +95,6 @@ function TextSlot({
   const label = typeof children === "string" ? children : null;
   const cascade = label !== null && !reduce;
 
-  // Measure strings with the same per-letter layout as the cascade. Measuring
-  // the whole string preserves kerning, which can make it narrower than the
-  // inline-block letters and clip the final glyph during the width animation.
   useLayoutEffect(() => {
     const nextWidth = measureRef.current?.offsetWidth;
     if (!nextWidth) return;
@@ -122,7 +116,6 @@ function TextSlot({
         {cascade
           ? label.split("").map((char, index) => (
               <span
-                // biome-ignore lint/suspicious/noArrayIndexKey: position is the slot identity.
                 key={index}
                 className="inline-block whitespace-pre"
               >
@@ -146,7 +139,6 @@ function TextSlot({
             >
               {label.split("").map((char, index) => (
                 <motion.span
-                  // biome-ignore lint/suspicious/noArrayIndexKey: position is the slot identity.
                   key={index}
                   custom={index * CASCADE_STAGGER}
                   variants={CASCADE_LETTER_VARIANTS}

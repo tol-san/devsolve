@@ -13,17 +13,6 @@ import {
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { cn } from "@/lib/utils";
 
-/**
- * Which organization the company screens are showing.
- *
- * Renders nothing for the great majority of accounts: one organization needs no
- * choosing, and none needs no control. It appears only once an account is
- * genuinely on several — owning one and invited into another, or invited into
- * two — which is the case the workspace used to handle by silently showing the
- * first and pretending the rest did not exist.
- *
- * The choice is remembered, so it survives navigation and reloads.
- */
 export function OrganizationSwitcher({
   collapsed = false,
 }: {

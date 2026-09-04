@@ -40,11 +40,6 @@ function parseResponseBody(raw: string): unknown {
   }
 }
 
-/**
- * Fetches the complete admin program DTO, including private and pending
- * programs. The backend exposes a dedicated detail endpoint, so this route
- * must not fall back to a paginated list of summary DTOs.
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

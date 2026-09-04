@@ -9,10 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * PATCH /api/notifications/[id]/read — Mark a single notification as read.
- * Proxies PATCH /api/v1/notifications/{notificationId}/read
- */
 export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },

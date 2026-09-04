@@ -5,13 +5,6 @@ import { CheckCircle2, Clock, FilePen, Sparkles, XCircle } from "lucide-react";
 
 import type { ShowcaseReviewStatus } from "@/lib/validations/showcase";
 
-/**
- * The two facts that decide how a reviewer reads a submission: whether it is a
- * first publish or an edit to something already live, and where the decision
- * stands. Shared so the queue row and the detail header cannot label the same
- * submission differently.
- */
-
 const CHIP =
   "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold";
 

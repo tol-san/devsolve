@@ -80,19 +80,6 @@ import {
   contentScanErrorMessage,
 } from "@/lib/api/error-message";
 
-/**
- * Answering a problem, on its own page.
- *
- * Laid out like `CreateProblemForm` — numbered cards on the left, a sticky
- * column on the right — because the two are the same kind of task and a writer
- * moving between them should not have to relearn the screen. The right column
- * keeps the problem itself in view, which is the thing being answered.
- *
- * The three fields the backend requires (a summary, the body, and what kind of
- * answer this is) come first; evidence — how to verify it, what it was tested
- * against, what it costs, what to read — follows in optional cards.
- */
-
 const CARD_CLASS =
   "rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900";
 
@@ -112,12 +99,7 @@ const MAX_RESOURCES = 10;
 interface CreateSolutionFormProps {
   problemId: string;
   problem?: ProblemResponse;
-  /**
-   * An existing answer to revise. Its presence is what puts the form in edit
-   * mode: same fields and same rules, a different verb.
-   */
   solution?: SolutionResponse;
-  /** Where a posted solution lands the author. Defaults to the problem. */
   successHref?: string;
   cancelHref?: string;
   stickyTop?: string;
@@ -142,13 +124,6 @@ export function CreateSolutionForm({
   const isEdit = Boolean(solution);
   const [deleteAttachment] = useDeleteSolutionAttachmentMutation();
 
-  /**
-   * Removing a stored file from this answer.
-   *
-   * Sends the answer's current `version` as `If-Match`, which this endpoint
-   * requires: if someone else has edited the answer since this form loaded,
-   * the delete is refused with a 412 rather than applied to a stale view.
-   */
   const handleRemoveAttachment = async (attachmentId: string) => {
     if (!solution?.id) return;
     try {
@@ -181,9 +156,6 @@ export function CreateSolutionForm({
     formState: { errors, isDirty },
   } = useForm<SolutionFormInput, unknown, SolutionFormValues>({
     resolver: zodResolver(solutionFormSchema),
-    /* In edit mode the existing answer seeds the fields. Rows are copied
-       rather than referenced so editing one does not mutate the cached
-       response behind it. */
     defaultValues: {
       summary: solution?.summary ?? "",
       bodyMarkdown: solution?.bodyMarkdown ?? "",
@@ -209,8 +181,6 @@ export function CreateSolutionForm({
   const tested = useFieldArray({ control, name: "testedWith" });
   const resources = useFieldArray({ control, name: "resources" });
 
-  /* `useWatch` rather than `watch()`, matching `CreateProblemForm` — the
-     latter returns a function the React Compiler cannot memoize safely. */
   const summary = useWatch({ control, name: "summary" }) ?? "";
   const bodyMarkdown = useWatch({ control, name: "bodyMarkdown" }) ?? "";
   const approachType = useWatch({ control, name: "approachType" }) ?? "FIX";
@@ -306,8 +276,6 @@ export function CreateSolutionForm({
   const onSubmit = async (values: SolutionFormValues) => {
     setSubmitError(null);
 
-    /* Half-filled rows are how a repeatable field looks while it is being
-       used. They are dropped here rather than rejected mid-edit. */
     const verificationSteps = (values.verificationSteps ?? []).filter(
       (step) => step.instruction.trim() && step.expectedResult.trim(),
     );
@@ -329,10 +297,6 @@ export function CreateSolutionForm({
       summary: values.summary.trim(),
       bodyMarkdown: values.bodyMarkdown,
       approachType: values.approachType,
-      /* Empty collections are sent as `[]` on an edit and dropped on a create.
-         The difference matters: PATCH treats an absent field as "leave it
-         alone", so omitting an emptied list would silently keep the old rows
-         the author just deleted. */
       verificationSteps: isEdit
         ? verificationSteps
         : verificationSteps.length
@@ -389,8 +353,6 @@ export function CreateSolutionForm({
       });
       router.push(done);
     } catch (caught) {
-      /* A 412 is the concurrency guard, not a validation failure: someone
-         saved a newer version between this form loading and submitting. */
       const status =
         typeof caught === "object" && caught !== null && "status" in caught
           ? (caught as { status?: number }).status
@@ -416,7 +378,6 @@ export function CreateSolutionForm({
       className="w-full"
     >
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
-        {/* ── The answer ── */}
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           {availableDraft && (
             <motion.div
@@ -497,7 +458,6 @@ export function CreateSolutionForm({
               </CardHeader>
 
               <CardContent className="space-y-6 pt-6">
-                {/* ── The one-liner ── */}
                 <div className="space-y-2">
                   <div className="flex items-baseline justify-between gap-3">
                     <Label
@@ -532,7 +492,6 @@ export function CreateSolutionForm({
                   )}
                 </div>
 
-                {/* ── What kind of answer this is ── */}
                 <div className="space-y-2">
                   <Label
                     htmlFor="solution-approach"
@@ -577,7 +536,6 @@ export function CreateSolutionForm({
                   )}
                 </div>
 
-                {/* ── The answer itself ── */}
                 <div className="space-y-2">
                   <div className="flex items-baseline justify-between gap-3">
                     <Label
@@ -625,7 +583,6 @@ export function CreateSolutionForm({
             </Card>
           </motion.div>
 
-          {/* ── Proof ── */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -658,7 +615,6 @@ export function CreateSolutionForm({
               </CardHeader>
 
               <CardContent className="space-y-6 pt-6">
-                {/* ── How to verify ── */}
                 <fieldset className="space-y-3">
                   <legend className="flex items-center gap-2 text-base font-semibold">
                     <ListChecks
@@ -751,7 +707,6 @@ export function CreateSolutionForm({
                   </Button>
                 </fieldset>
 
-                {/* ── What it was proven against ── */}
                 <fieldset className="space-y-3 border-t border-slate-100 pt-6 dark:border-neutral-800">
                   <legend className="text-base font-semibold">
                     Tested with
@@ -825,7 +780,6 @@ export function CreateSolutionForm({
                   </Button>
                 </fieldset>
 
-                {/* ── What it costs ── */}
                 <div className="space-y-2 border-t border-slate-100 pt-6 dark:border-neutral-800">
                   <div className="flex items-baseline justify-between gap-3">
                     <Label
@@ -862,7 +816,6 @@ export function CreateSolutionForm({
                   )}
                 </div>
 
-                {/* ── Further reading ── */}
                 <fieldset className="space-y-3 border-t border-slate-100 pt-6 dark:border-neutral-800">
                   <legend className="text-base font-semibold">Resources</legend>
 
@@ -1006,8 +959,6 @@ export function CreateSolutionForm({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
-                {/* Same gap as the problem editor: the dropzone holds only
-                    this session's picks, so stored evidence was invisible. */}
                 {solution?.attachments?.length ? (
                   <ExistingAttachments
                     attachments={solution.attachments}
@@ -1035,7 +986,6 @@ export function CreateSolutionForm({
           </motion.div>
         </div>
 
-        {/* ── What is being answered, and the actions ── */}
         <aside
           className="flex flex-col gap-5 lg:sticky lg:self-start"
           style={{ top: stickyTop } as React.CSSProperties}
@@ -1262,7 +1212,6 @@ export function CreateSolutionForm({
   );
 }
 
-/** The kind of link a resource row points at. Watched so the trigger shows it. */
 function ResourceTypeSelect({
   index,
   control,

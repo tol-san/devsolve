@@ -9,17 +9,6 @@ import {
 } from "@/lib/api/proxy";
 import { validateIconFile } from "@/lib/validations/category";
 
-/**
- * PUT/DELETE /api/categories/{id}/icon — proxy for the backend's
- * /api/v1/categories/{id}/icon.
- *
- * The upstream takes `multipart/form-data` with a single `file` part. Rather
- * than stream the request body through (which would need `duplex: "half"` and
- * would forward whatever was sent unchecked), the part is read out, validated
- * against the size and type rules, and re-encoded. Icons are capped at 1MB, so
- * buffering one is cheap.
- */
-
 const idSchema = z.uuid("Category id must be a UUID");
 
 type Context = { params: Promise<{ id: string }> };

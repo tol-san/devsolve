@@ -44,7 +44,6 @@ export default function PersonalDetailsSection({
 }: PersonalDetailsSectionProps) {
   return (
     <div className="space-y-6">
-      {/* Identity & Basic Info Section */}
       <section id="section-identity" className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/80 pb-4">
           <div>
@@ -63,7 +62,6 @@ export default function PersonalDetailsSection({
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {/* Full Name */}
           <div className="space-y-2">
             <label
               htmlFor="edit-full-name"
@@ -87,13 +85,6 @@ export default function PersonalDetailsSection({
             )}
           </div>
 
-          {/* Country.
-              Was a free-text box placeheld "e.g. San Francisco, USA or
-              Remote", which is why profiles hold values like that and why the
-              read path still has to cope with them. It writes the profile's
-              `country` field, so it is now the same picker as everywhere else
-              and stores an ISO code. A legacy value is left showing until the
-              person picks something, rather than being cleared for them. */}
           <div className="space-y-2">
             <label
               htmlFor="edit-location"
@@ -114,7 +105,6 @@ export default function PersonalDetailsSection({
             )}
           </div>
 
-          {/* Username (Managed / Read-only with context) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label
@@ -143,7 +133,6 @@ export default function PersonalDetailsSection({
             </p>
           </div>
 
-          {/* Email (Managed / Read-only with context) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label
@@ -174,7 +163,6 @@ export default function PersonalDetailsSection({
         </div>
       </section>
 
-      {/* Personal & Contact Details Section */}
       <section id="section-personal" className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/80 pb-4">
           <div>
@@ -193,7 +181,6 @@ export default function PersonalDetailsSection({
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          {/* Phone */}
           <div className="space-y-2">
             <label
               htmlFor="edit-phone"
@@ -221,7 +208,6 @@ export default function PersonalDetailsSection({
             )}
           </div>
 
-          {/* Date of Birth */}
           <div className="space-y-2">
             <label
               htmlFor="edit-dob"
@@ -244,7 +230,6 @@ export default function PersonalDetailsSection({
           </div>
         </div>
 
-        {/* Gender Selection Cards */}
         <div className="space-y-3 pt-2">
           <label className="block text-base font-semibold text-foreground">
             Gender

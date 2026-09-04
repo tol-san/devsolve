@@ -28,17 +28,6 @@ const unreachable = () =>
     { status: 502 }
   );
 
-/**
- * The invitations addressed to the signed-in account.
- *
- * Upstream only returns invitations that would actually succeed if accepted
- * right now — pending, unexpired, into an organization that is still active —
- * sorted soonest-to-expire first. Nothing is filtered or reordered here.
- *
- * Note the shape of the empty answer: `200` with `[]`, never a 404. Anything
- * that is not ok really is a failure and is relayed as one, so the screen can
- * tell "you have no invitations" apart from "we could not ask".
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

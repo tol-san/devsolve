@@ -10,12 +10,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/admin/showcases/{id}/review-history — every past decision on one
- * showcase, newest first, so a reviewer can see what was already asked for
- * before ruling on the current submission.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, context: Context) {

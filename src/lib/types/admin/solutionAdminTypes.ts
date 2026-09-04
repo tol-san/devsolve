@@ -1,33 +1,16 @@
 import { PaginatedResponse } from "./types";
 
-/**
- * The moderation view of a solution.
- *
- * Two different things were once conflated here under one `reviewStatus`:
- * a moderator letting an answer be seen at all, and the person who asked the
- * problem picking it as the one that worked. Upstream they are separate —
- * `moderation.status` and `isAccepted` — and only the first is a decision
- * anyone makes on this screen.
- */
-
-/** What `UpdateSolutionReviewStatusRequest.reviewStatus` accepts. */
 export type SolutionReviewStatus =
   | "PENDING"
   | "APPROVED"
   | "REJECTED"
   | "ACCEPTED";
 
-/**
- * Mirrors `AuthorSummary`. The name arrives as `displayName` on a solution and
- * as `fullName` on a problem, whatever the schema says, so both are declared
- * and `authorNameOf` is what reads them — never either field directly.
- */
 export interface SolutionAuthor {
   id?: string;
   fullName?: string;
   displayName?: string;
   avatarUrl?: string;
-  /** Absent on the author embedded in a solution. */
   reputation?: number;
 }
 
@@ -75,16 +58,10 @@ export interface SolutionAttachment {
 export interface SolutionResponse {
   id: string;
   problemId?: string;
-  /** Present on the compact admin response when author details are not expanded. */
   authorId?: string;
   author?: SolutionAuthor;
   summary?: string;
   bodyMarkdown?: string;
-  /**
-   * The deployed admin API currently calls the solution body `description`.
-   * Keep the richer `bodyMarkdown` field as well so the screen works with
-   * both response versions during the backend rollout.
-   */
   description?: string;
   videoUrl?: string;
   diagramUrl?: string;
@@ -94,13 +71,11 @@ export interface SolutionResponse {
   tradeoffs?: string;
   resources?: SolutionResource[];
   attachments?: SolutionAttachment[];
-  /** The asker's choice, not a moderator's. Read-only here. */
   isAccepted?: boolean;
   voteScore?: number;
   commentCount?: number;
   version?: number;
   moderation?: SolutionModerationDetails;
-  /** Compact admin responses expose moderation fields at the top level. */
   reviewStatus?: SolutionReviewStatus;
   reviewedBy?: string;
   reviewedAt?: string;
@@ -113,7 +88,6 @@ export type PageSolutionResponse = PaginatedResponse<SolutionResponse>;
 
 export interface UpdateSolutionReviewStatusRequest {
   reviewStatus: SolutionReviewStatus;
-  /** Capped at 2000 upstream, and only meaningful on a rejection. */
   rejectionReason?: string;
 }
 

@@ -7,7 +7,6 @@ import { ArrowRight, ArrowUpRight, Bug, MessageSquare, Trophy } from "lucide-rea
 import type { LucideIcon } from "lucide-react";
 import SectionBackdrop, { ACCENT, PRIMARY, SECONDARY } from "./SectionBackdrop";
 
-/* ─── The three pillars, restated as the closing argument ──────────── */
 const PILLARS: { icon: LucideIcon; title: string; body: string; href: string }[] = [
   {
     icon: Bug,
@@ -38,7 +37,6 @@ export function CTABanner() {
       <SectionBackdrop tone="dark" seed={9} gridSize={72} />
 
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
-        {/* ── Headline ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -69,7 +67,6 @@ export function CTABanner() {
           </p>
         </motion.div>
 
-        {/* ── Three pillars ── */}
         <div className="mt-14 grid grid-cols-1 gap-px overflow-hidden rounded-2xl bg-white/10 sm:grid-cols-3">
           {PILLARS.map((p, i) => {
             const Icon = p.icon;
@@ -101,7 +98,6 @@ export function CTABanner() {
           })}
         </div>
 
-        {/* ── Actions ── */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}

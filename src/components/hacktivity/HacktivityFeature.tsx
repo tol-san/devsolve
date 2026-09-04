@@ -94,7 +94,6 @@ export default function HacktivityFeature({
   return (
     <div className="px-4 py-8 sm:px-6 sm:py-12 md:px-8 lg:px-12">
       <div className="mx-auto flex max-w-7xl flex-col gap-8">
-        {/* Hero Header */}
         <header className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between border-b border-border/60 pb-8">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -118,12 +117,9 @@ export default function HacktivityFeature({
           <HacktivityStatsBar initialStats={initialStats} />
         </header>
 
-        {/* Featured Highlights Strip */}
         <FeaturedDisclosures initialActivities={initialFeed?.activities} />
 
-        {/* Main Feed + Sidebar */}
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-          {/* Main Feed Column */}
           <div className="flex min-w-0 flex-col gap-5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
@@ -145,7 +141,6 @@ export default function HacktivityFeature({
               ) : null}
             </div>
 
-            {/* Filter Bar */}
             <HacktivityFilters
               state={state}
               setFilters={setFilters}
@@ -153,7 +148,6 @@ export default function HacktivityFeature({
               isFiltered={isFiltered}
             />
 
-            {/* Stream Count Status */}
             <div
               ref={feedRef}
               className="flex items-center justify-between gap-3 scroll-mt-24 pt-1"
@@ -182,7 +176,6 @@ export default function HacktivityFeature({
               </p>
             </div>
 
-            {/* Stream List / States */}
             {isInitialLoading ? (
               <div className="flex flex-col gap-3.5">
                 {[0, 1, 2, 3, 4].map((index) => (
@@ -220,7 +213,6 @@ export default function HacktivityFeature({
                   </AnimatePresence>
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 ? (
                   <nav
                     aria-label="Stream pages"
@@ -263,11 +255,9 @@ export default function HacktivityFeature({
             )}
           </div>
 
-          {/* Sticky Sidebar */}
           <aside className="flex flex-col gap-5 lg:sticky lg:top-[calc(var(--navbar-height)+1.5rem)]">
             <TopResearchers />
 
-            {/* Coordinated Disclosure Explainer Card */}
             <section className="overflow-hidden rounded-2xl border border-border/70 bg-card p-5 shadow-xs space-y-3">
               <div className="flex items-center gap-2">
                 <div className="flex size-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -296,7 +286,6 @@ export default function HacktivityFeature({
               </div>
             </section>
 
-            {/* Organization CTA Mini-card */}
             <section className="overflow-hidden rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-500/5 via-transparent to-indigo-500/5 p-5 shadow-xs space-y-3">
               <h3 className="text-sm font-bold text-foreground">
                 Run a Bounty Program

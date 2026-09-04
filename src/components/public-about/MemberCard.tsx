@@ -73,7 +73,6 @@ export function MemberCard({ member }: { member: TeamMember }) {
   const socials = socialsFor(member);
   const chip = ROLE_CHIP[member.badge ?? "Member"] ?? ROLE_CHIP.Member;
 
-  // GSAP 3D tilt interaction on mouse move
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -125,7 +124,6 @@ export function MemberCard({ member }: { member: TeamMember }) {
           className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
-        {/* Scrim */}
         <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-slate-950/75 to-transparent" />
 
         <span

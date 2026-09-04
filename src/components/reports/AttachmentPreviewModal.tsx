@@ -177,7 +177,6 @@ export function AttachmentPreviewModal({
   return createPortal(
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
-        {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -186,7 +185,6 @@ export function AttachmentPreviewModal({
           className="fixed inset-0 bg-black/80 backdrop-blur-md"
         />
 
-        {/* Modal Window */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -194,7 +192,6 @@ export function AttachmentPreviewModal({
           transition={{ duration: 0.2, ease: "easeOut" }}
           className="relative flex flex-col w-full max-w-4xl max-h-[90vh] rounded-2xl bg-card border border-border shadow-2xl overflow-hidden z-10"
         >
-          {/* Modal Header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-muted/40">
             <div className="flex items-center gap-3 min-w-0 pr-4">
               <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -225,7 +222,6 @@ export function AttachmentPreviewModal({
               </div>
             </div>
 
-            {/* Header Actions */}
             <div className="flex items-center gap-1.5 shrink-0">
               {isText && textContent && (
                 <Button
@@ -276,9 +272,7 @@ export function AttachmentPreviewModal({
             </div>
           </div>
 
-          {/* Modal Body */}
           <div className="flex-1 overflow-auto p-4 sm:p-6 bg-background/50 flex flex-col items-center justify-center min-h-[300px]">
-            {/* 1. Image Preview */}
             {isImage && objectUrl && (
               <div className="flex flex-col items-center justify-center w-full h-full space-y-4">
                 <div className="relative flex items-center justify-center overflow-hidden max-h-[60vh] max-w-full rounded-xl bg-muted/20 border border-border/60 p-2">
@@ -294,7 +288,6 @@ export function AttachmentPreviewModal({
                   />
                 </div>
 
-                {/* Image Zoom & Rotation Controls */}
                 <div className="flex items-center gap-1 rounded-xl border border-border bg-card/90 p-1 shadow-sm backdrop-blur-xs">
                   <Button
                     type="button"
@@ -349,7 +342,6 @@ export function AttachmentPreviewModal({
               </div>
             )}
 
-            {/* 2. Text / Log Viewer */}
             {isText && (
               <div className="w-full h-full flex flex-col">
                 {isLoadingText ? (
@@ -365,7 +357,6 @@ export function AttachmentPreviewModal({
               </div>
             )}
 
-            {/* 3. PDF Preview */}
             {isPdf && objectUrl && (
               <div className="w-full h-[65vh] flex flex-col rounded-xl overflow-hidden border border-border">
                 <iframe
@@ -376,7 +367,6 @@ export function AttachmentPreviewModal({
               </div>
             )}
 
-            {/* 4. Document / Generic Fallback */}
             {(!isImage || !objectUrl) && (!isText || (!textContent && !isLoadingText)) && (!isPdf || !objectUrl) && (
               <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
                 <div className="size-16 rounded-2xl bg-muted text-muted-foreground flex items-center justify-center">

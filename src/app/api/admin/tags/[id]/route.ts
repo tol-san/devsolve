@@ -14,13 +14,6 @@ const UUID =
 const badId = () =>
   NextResponse.json({ message: "Invalid tag id" }, { status: 400 });
 
-/**
- * `DELETE /api/admin/tags/{id}` — admin tag moderation deletion.
- *
- * Supports `?force=true` query parameter to forcefully remove and unlink the tag
- * from any existing problems, showcases, or revisions.
- * Relays upstream `TagDeletionResponse` detailing unlinked item counts.
- */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

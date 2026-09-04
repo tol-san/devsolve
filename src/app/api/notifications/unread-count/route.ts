@@ -7,10 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/notifications/unread-count — Unread notifications count badge.
- * Proxies GET /api/v1/notifications/unread-count
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

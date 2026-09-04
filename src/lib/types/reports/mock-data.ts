@@ -20,7 +20,6 @@ export const MOCK_RETEST_HISTORY: RetestItem[] = [
   },
 ];
 
-// Initial mock dataset for reports matching the prompt specs
 export const MOCK_REPORTS: ReportItem[] = [
   {
     id: "1",
@@ -125,7 +124,3 @@ export const MOCK_REPORTS: ReportItem[] = [
   },
 ];
 
-/* MOCK_REPORT_DETAIL and MOCK_REJECTED_REPORT_DETAIL lived here and were
-   served whenever /reports/{id} failed, and in place of every rejected report.
-   Both screens now render the report the API returns, or say plainly that it
-   could not be loaded, so the fixtures have no caller left. */

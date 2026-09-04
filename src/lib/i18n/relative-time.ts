@@ -4,16 +4,6 @@ import { useCallback } from "react";
 import { useLocale, useT } from "./I18nProvider";
 import { LOCALE_TAGS } from "./config";
 
-/**
- * "Just now", "3 hours ago", "5 days ago", or a plain date once a post is a
- * week old — in the reader's language.
- *
- * The feed's API transforms used to format this, which is why every card read
- * in English on `/km`: an RTK Query `transformResponse` runs outside React and
- * cannot reach the catalogue. The raw timestamp already travels alongside the
- * formatted one as `sortTimestamp`, so the wording is decided here instead,
- * where the locale is known.
- */
 export function useRelativeTime() {
   const t = useT();
   const locale = useLocale();

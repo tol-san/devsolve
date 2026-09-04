@@ -13,16 +13,11 @@ import ProfileNotFound from "@/components/profile/ProfileNotFound";
 import { isNotFoundError } from "@/lib/api/query-error";
 import { authClient } from "@/lib/auth/auth-client";
 
-/**
- * A member's public profile view.
- */
 export default function PublicProfileView() {
   const { username } = useParams<{ username: string }>();
   const { data: session } = authClient.useSession();
   const { data, isLoading, isError, error, refetch } =
     useGetProfileByUsernameQuery(username);
-  /* Cached and shared with every other screen that asks, so this costs one
-     request per session rather than one per profile viewed. */
   const { data: me } = useGetProfileByUsernameQuery("me", { skip: !session });
 
   if (isLoading) {
@@ -44,14 +39,6 @@ export default function PublicProfileView() {
   const sessionEmail = session?.user?.email;
   const sessionUsername = sessionEmail ? sessionEmail.split("@")[0].toLowerCase() : "";
 
-  /* Whose profile this is, decided on ids from the same source.
-     `session.user.id` is better-auth's, which is not the id the profile API
-     keys on, and the email-derived name is a guess that stopped agreeing with
-     anything the day the backend began publishing real handles — someone whose
-     handle is not their email's local part failed every check here and lost
-     the edit controls on their own profile. `/user-profiles/me` answers with
-     the same id space as the profile being viewed, so the two can simply be
-     compared. The older guesses stay as a fallback for records with no id. */
   const isOwnProfile = Boolean(
     rawProfile.isOwnProfile ||
     (me?.profile.id && rawProfile.id && me.profile.id === rawProfile.id) ||
@@ -76,15 +63,11 @@ export default function PublicProfileView() {
         transition={{ duration: 0.3, ease: "easeOut" }}
         className="w-full space-y-6 pb-16"
       >
-        {/* ── Top Hero Card / Banner ────────────────────────────────── */}
         <ProfileHeroBanner profile={profile} />
 
-        {/* ── Key Metrics Stat Strip ────────────────────────────────── */}
         <StatsCards stats={effectiveStats} />
 
-        {/* ── Two-Column Main Content Layout ────────────────────────── */}
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start xl:gap-8">
-          {/* Left Column: About & Network (sticky on desktop) */}
           <div className="w-full shrink-0 lg:sticky lg:top-24 lg:w-80">
             <ProfileSidebar
               profile={profile}
@@ -93,7 +76,6 @@ export default function PublicProfileView() {
             />
           </div>
 
-          {/* Right Column: Tabbed Content (Overview, Hacktivity, Community, Thanks) */}
           <div className="min-w-0 flex-1">
             <Suspense fallback={null}>
               <ProfileTabsContainer

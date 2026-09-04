@@ -16,10 +16,8 @@ function AutoApprovalContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Dashboard Page Standard Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="space-y-1">
-          {/* Breadcrumb Navigation */}
           <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             <Link
               href="/dashboard"
@@ -38,7 +36,6 @@ function AutoApprovalContent() {
             <span className="text-foreground">AI Auto-Approval</span>
           </div>
 
-          {/* Title & Subtext */}
           <div className="flex items-center gap-2.5 pt-1">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
               <Bot className="size-5" />
@@ -63,7 +60,6 @@ function AutoApprovalContent() {
         </div>
       </header>
 
-      {/* Main Settings Component */}
       <AutoApprovalSettings />
     </motion.div>
   );

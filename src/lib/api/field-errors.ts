@@ -1,19 +1,4 @@
-/**
- * Turns a backend rejection into per-field messages the form can attach.
- *
- * The report API answers a bad submission with a targeted reason — which
- * weakness id was retired, which asset is out of scope, that the severity and
- * score disagree. Flattening all of that into one red banner above the form
- * throws away the only part that tells the reporter what to change, and on a
- * fifteen-field form it leaves them hunting.
- *
- * Two sources are read. A Spring validation failure carries a field map; a
- * business-rule rejection carries prose. The prose is matched against the
- * phrases the API actually uses, and anything unrecognised is returned as a
- * form-level message rather than guessed at.
- */
 
-/** Form field names this module can address. */
 export type ReportField =
   | "title"
   | "vulnerabilityInformation"
@@ -31,7 +16,6 @@ export type ReportField =
   | "proofOfConcept"
   | "remediationRecommendation";
 
-/** API field name → the form control that owns it. */
 const FIELD_ALIASES: Record<string, ReportField> = {
   title: "title",
   vulnerabilityInformation: "vulnerabilityInformation",
@@ -51,12 +35,6 @@ const FIELD_ALIASES: Record<string, ReportField> = {
   remediationRecommendation: "remediationRecommendation",
 };
 
-/**
- * Phrases the backend returns, in the order they should be tried.
- *
- * Ordered because several overlap: "weakness not found" and "not found" would
- * both match a retired weakness, and the more specific rule has to win.
- */
 const MESSAGE_RULES: Array<{
   field: ReportField;
   test: RegExp;
@@ -104,9 +82,7 @@ const MESSAGE_RULES: Array<{
 ];
 
 export interface MappedErrors {
-  /** Messages to attach to individual controls. */
   fields: Partial<Record<ReportField, string>>;
-  /** What could not be attributed to a field — shown once, above the form. */
   formMessage: string | null;
 }
 
@@ -122,15 +98,12 @@ function firstString(value: string | string[] | undefined): string | undefined {
   return value || undefined;
 }
 
-/** Digs the API's JSON body out of an RTK Query error. */
 function bodyOf(error: unknown): ApiErrorBody | null {
   if (typeof error !== "object" || error === null) return null;
   const data = (error as { data?: unknown }).data;
   if (typeof data !== "object" || data === null) return null;
 
   const body = data as ApiErrorBody;
-  /* The proxy nests the upstream payload under `details` when it relays a
-     failure, so the real field map is often one level down. */
   const nested =
     typeof body.details === "object" && body.details !== null
       ? (body.details as ApiErrorBody)
@@ -155,7 +128,6 @@ export function mapReportErrors(error: unknown): MappedErrors {
     };
   }
 
-  // 1. A structured field map is unambiguous — take it as given.
   const map = { ...(body.errors ?? {}), ...(body.fieldErrors ?? {}) };
   for (const [key, raw] of Object.entries(map)) {
     const field = FIELD_ALIASES[key];
@@ -163,7 +135,6 @@ export function mapReportErrors(error: unknown): MappedErrors {
     if (field && message) fields[field] = message;
   }
 
-  // 2. Otherwise fall back to matching the prose.
   const prose = body.message?.trim();
   if (prose && Object.keys(fields).length === 0) {
     const rule = MESSAGE_RULES.find((candidate) => candidate.test.test(prose));

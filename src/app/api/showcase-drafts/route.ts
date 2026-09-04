@@ -15,9 +15,6 @@ const unreachable = () =>
     { status: 502 },
   );
 
-/**
- * `GET /api/showcase-drafts` — find caller's showcase drafts.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();
@@ -36,9 +33,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * `POST /api/showcase-drafts` — create a new showcase draft.
- */
 export async function POST(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

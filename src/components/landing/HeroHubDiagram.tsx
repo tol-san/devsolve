@@ -53,9 +53,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
     },
   ];
 
-  // Exact vertical centers for each of the 4 card boxes:
-  // Card 0: 12.5% | Card 1: 37.5% | Card 2: 62.5% | Card 3: 87.5%
-  // Convergence points at Hub perimeter: 30%, 43%, 57%, 70%
   const leftBridges = [
     { d: "M 0, 12.5 C 55, 12.5, 65, 30, 100, 30", cy: 12.5, hubY: 30 },
     { d: "M 0, 37.5 C 50, 37.5, 65, 43, 100, 43", cy: 37.5, hubY: 43 },
@@ -72,13 +69,10 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
 
   return (
     <div className={`relative mx-auto w-full max-w-6xl px-2 sm:px-4 select-none ${className}`}>
-      {/* ── Ambient Radiant Bloom Behind Diagram ── */}
       <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[480px] w-[750px] max-w-full rounded-full bg-gradient-to-tr from-blue-500/15 via-sky-400/10 to-emerald-400/15 blur-[60px] sm:blur-[120px] dark:from-blue-500/25 dark:via-sky-600/20 dark:to-emerald-400/20" />
 
-      {/* ── MAIN DIAGRAM CONTAINER ── */}
       <div className="relative flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-0 z-10">
         
-        {/* ── 1. LEFT COLUMN: DEVELOPERS & HUNTERS (4 CARDS) ── */}
         <div className="w-full lg:w-[290px] shrink-0 flex flex-col">
           <div className="mb-3">
             <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
@@ -90,7 +84,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
             </p>
           </div>
 
-          {/* 4 Cards Grid - Fixed total height matching the bridge */}
           <div className="flex flex-col justify-between h-[310px] space-y-2.5">
             {researcherFeatures.map((item, idx) => {
               const isHovered = hoveredCard?.side === "left" && hoveredCard?.index === idx;
@@ -108,7 +101,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                       : "border-slate-200/90 bg-white/90 shadow-[0_2px_10px_-3px_rgba(30,41,59,0.07)] hover:border-[#2563EB]/60 hover:shadow-[0_6px_18px_-4px_rgba(37,99,235,0.15)] dark:border-neutral-800/90 dark:bg-neutral-900/85 dark:hover:border-blue-400/60"
                   }`}
                 >
-                  {/* Left Indicator Icon */}
                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[#2563EB] shadow-2xs dark:border-blue-400/40 dark:bg-blue-950 dark:text-blue-400">
                     <span className="h-2 w-2 rounded-full bg-[#2563EB] dark:bg-blue-400" />
                   </div>
@@ -121,7 +113,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     </p>
                   </div>
 
-                  {/* Explicit Right Terminal Beacon at Vertical Center (Middle of Card) */}
                   <span
                     className={`hidden lg:block absolute -right-1 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full transition-all duration-200 ${
                       isHovered
@@ -135,7 +126,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
           </div>
         </div>
 
-        {/* ── 2. LEFT FLUID CONNECTING BRIDGE (ALIGNED TO EXACT VERTICAL CENTERS) ── */}
         <div className="hidden lg:block flex-1 h-[310px] self-end relative px-0.5 pointer-events-none">
           <svg
             className="w-full h-full overflow-visible"
@@ -154,7 +144,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
               const isHovered = hoveredCard?.side === "left" && hoveredCard?.index === i;
               return (
                 <g key={`left-bridge-${i}`}>
-                  {/* Static Baseline Path */}
                   <path
                     d={b.d}
                     stroke="#2563EB"
@@ -164,7 +153,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     className="transition-all duration-300"
                   />
 
-                  {/* Flowing animated pulse energy */}
                   {!reduce && (
                     <path
                       d={b.d}
@@ -176,7 +164,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     />
                   )}
 
-                  {/* Terminal Hub Anchor Dot */}
                   <circle
                     cx="100"
                     cy={b.hubY}
@@ -190,30 +177,22 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
           </svg>
         </div>
 
-        {/* ── 3. CENTER CORE: CONCENTRIC CONVERGENCE HUB ── */}
         <div className="relative flex items-center justify-center shrink-0 self-center lg:self-end mx-auto my-4 lg:my-0">
           
-          {/* Core Outer Orbit Ring Container */}
           <div className="relative flex items-center justify-center h-64 w-64 sm:h-76 sm:w-76 md:h-88 md:w-88">
             
-            {/* Outer Orbit Track with Orbiting Particles */}
             <motion.div
               animate={reduce ? undefined : { rotate: 360 }}
               transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
               className="absolute inset-0 rounded-full border border-dashed border-blue-400/40 dark:border-blue-400/35 pointer-events-none"
             >
-              {/* Orbit Particle 1 (Primary Blue) */}
               <div className="absolute top-2 left-1/4 h-3.5 w-3.5 -translate-x-1/2 rounded-full bg-[#2563EB] shadow-[0_0_14px_#2563EB]" />
-              {/* Orbit Particle 2 (Accent Emerald) */}
               <div className="absolute bottom-4 right-1/4 h-3.5 w-3.5 rounded-full bg-[#10B981] shadow-[0_0_12px_#10B981]" />
-              {/* Orbit Particle 3 (Sky Blue) */}
               <div className="absolute top-1/2 -right-1.5 h-3 w-3 rounded-full bg-sky-500 shadow-[0_0_12px_#0EA5E9]" />
             </motion.div>
 
-            {/* Middle Concentric Ring Plate */}
             <div className="relative flex items-center justify-center h-52 w-52 sm:h-60 sm:w-60 md:h-70 md:w-70 rounded-full border border-blue-200/90 bg-gradient-to-br from-blue-50/95 via-sky-50/90 to-indigo-50/95 shadow-[0_12px_36px_-8px_rgba(37,99,235,0.2)] backdrop-blur-xl dark:border-blue-500/30 dark:bg-gradient-to-br dark:from-slate-900/95 dark:via-blue-950/85 dark:to-slate-950/95 dark:shadow-[0_0_40px_rgba(37,99,235,0.3)]">
               
-              {/* ── SMOOTH ROTATING CIRCULAR TEXT AROUND LOGO ── */}
               <motion.div
                 animate={reduce ? undefined : { rotate: 360 }}
                 transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
@@ -242,10 +221,8 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                 </svg>
               </motion.div>
 
-              {/* ── INNER GLOWING CORE WITH PROMINENT DEVSOLVE LOGO ── */}
               <div className="relative flex items-center justify-center h-32 w-32 sm:h-36 sm:w-36 md:h-42 md:w-42 rounded-full border-2 border-blue-500/25 bg-white p-5 shadow-[0_10px_35px_-4px_rgba(37,99,235,0.25),inset_0_0_20px_rgba(37,99,235,0.08)] dark:border-blue-400/50 dark:bg-neutral-900/95 dark:shadow-[0_0_35px_rgba(37,99,235,0.4),inset_0_0_15px_rgba(37,99,235,0.12)]">
                 <div className="relative h-16 w-16 sm:h-20 sm:w-20 md:h-26 md:w-26">
-                  {/* Light Mode No-Text Logo */}
                   <Image
                     src="/devsolvewithouttext-lightmode.png"
                     alt="DevSolve"
@@ -254,7 +231,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     sizes="120px"
                     className="object-contain drop-shadow-[0_6px_16px_rgba(37,99,235,0.3)] dark:hidden"
                   />
-                  {/* Dark Mode No-Text Logo */}
                   <Image
                     src="/only-devsolve-logo-notext-darkmode.png"
                     alt="DevSolve"
@@ -269,7 +245,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
           </div>
         </div>
 
-        {/* ── 4. RIGHT FLUID CONNECTING BRIDGE (ALIGNED TO EXACT VERTICAL CENTERS) ── */}
         <div className="hidden lg:block flex-1 h-[310px] self-end relative px-0.5 pointer-events-none">
           <svg
             className="w-full h-full overflow-visible"
@@ -288,7 +263,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
               const isHovered = hoveredCard?.side === "right" && hoveredCard?.index === i;
               return (
                 <g key={`right-bridge-${i}`}>
-                  {/* Static Baseline Path */}
                   <path
                     d={b.d}
                     stroke="#10B981"
@@ -298,7 +272,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     className="transition-all duration-300"
                   />
 
-                  {/* Flowing animated pulse energy */}
                   {!reduce && (
                     <path
                       d={b.d}
@@ -310,7 +283,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     />
                   )}
 
-                  {/* Terminal Hub Anchor Dot */}
                   <circle
                     cx="0"
                     cy={b.hubY}
@@ -324,7 +296,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
           </svg>
         </div>
 
-        {/* ── 5. RIGHT COLUMN: SECURITY & DEVOPS (4 CARDS) ── */}
         <div className="w-full lg:w-[290px] shrink-0 flex flex-col text-left lg:text-right">
           <div className="mb-3">
             <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center lg:justify-end gap-2">
@@ -336,7 +307,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
             </p>
           </div>
 
-          {/* 4 Cards Grid - Fixed total height matching the bridge */}
           <div className="flex flex-col justify-between h-[310px] space-y-2.5">
             {organizationFeatures.map((item, idx) => {
               const isHovered = hoveredCard?.side === "right" && hoveredCard?.index === idx;
@@ -354,7 +324,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                       : "border-slate-200/90 bg-white/90 shadow-[0_2px_10px_-3px_rgba(30,41,59,0.07)] hover:border-[#10B981]/60 hover:shadow-[0_6px_18px_-4px_rgba(16,185,129,0.15)] dark:border-neutral-800/90 dark:bg-neutral-900/85 dark:hover:border-emerald-400/60"
                   }`}
                 >
-                  {/* Right Indicator Icon */}
                   <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-[#10B981] shadow-2xs dark:border-emerald-400/40 dark:bg-emerald-950 dark:text-emerald-400">
                     <span className="h-2 w-2 rounded-full bg-[#10B981] dark:bg-emerald-400" />
                   </div>
@@ -367,7 +336,6 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
                     </p>
                   </div>
 
-                  {/* Explicit Left Terminal Beacon at Vertical Center (Middle of Card) */}
                   <span
                     className={`hidden lg:block absolute -left-1 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full transition-all duration-200 ${
                       isHovered

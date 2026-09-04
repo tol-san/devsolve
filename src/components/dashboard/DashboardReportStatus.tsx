@@ -44,7 +44,6 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
     },
   ];
 
-  // SVG Donut chart dimensions
   const strokeWidth = 14;
   const radius = 38;
   const circumference = 2 * Math.PI * radius;
@@ -71,10 +70,8 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-6 mt-5">
-          {/* Donut Chart SVG */}
           <div className="relative size-36 shrink-0 flex items-center justify-center">
             <svg viewBox="0 0 100 100" className="size-full transform -rotate-90">
-              {/* Background Track Circle */}
               <circle
                 cx="50"
                 cy="50"
@@ -83,7 +80,6 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
                 strokeWidth={strokeWidth}
                 className="stroke-muted/50"
               />
-              {/* Colored Segments */}
               {segments.map((seg, i) => (
                 <circle
                   key={i}
@@ -110,7 +106,6 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
             </div>
           </div>
 
-          {/* Legend Details */}
           <div className="w-full space-y-2">
             {items.map((item) => {
               const percent = total > 0 ? Math.round((item.count / total) * 100) : 0;

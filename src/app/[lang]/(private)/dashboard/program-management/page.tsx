@@ -44,7 +44,6 @@ function ProgramManagementPageContent() {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(20);
 
-  // Debounce search query changes (300ms) to update debouncedSearch and reset page
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -52,12 +51,10 @@ function ProgramManagementPageContent() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset pageIndex to 0 when debounced search value changes
   useEffect(() => {
     setPageIndex(0);
   }, [debouncedSearch]);
 
-  // ADMIN queries — fetch all 3 queues (PENDING_REVIEW, APPROVED, REJECTED) to build complete admin dataset and accurate counts
   const { data: adminPendingResponse, isLoading: isAdminPendingLoading } =
     useGetAdminProgramsQuery(
       { submissionState: "PENDING_REVIEW", size: 100 },
@@ -74,18 +71,12 @@ function ProgramManagementPageContent() {
       { skip: !isAdminScope }
     );
 
-  // COMPANY DATA QUERY (for non-admin users)
   const {
     data: companyOverallResponse,
     isLoading: isCompanyLoading,
     error: companyError,
   } = useGetMyCompanyProgramsQuery({ size: 100 }, { skip: isAdminScope });
 
-  /* Switching organizations is a frontend choice, but this endpoint has no
-     organization parameter: `/organizations/me/programs` resolves the caller
-     and answers 409 when that is more than one company. Selecting a workspace
-     in the sidebar therefore moves identity, permissions and navigation, and
-     cannot move this list until the endpoint accepts an organization. */
   const isAmbiguousOrganization =
     apiErrorStatus(companyError) === 409 || (hasMultiple && Boolean(companyError));
 
@@ -93,13 +84,11 @@ function ProgramManagementPageContent() {
     ? isAdminPendingLoading || isAdminApprovedLoading || isAdminRejectedLoading
     : isCompanyLoading;
 
-  // Combine items for Admin or Company
   const rawPrograms: ProgramManagementSummaryItem[] = useMemo(() => {
     if (isAdminScope) {
       const pending = adminPendingResponse?.content ?? [];
       const approved = adminApprovedResponse?.content ?? [];
       const rejected = adminRejectedResponse?.content ?? [];
-      // Deduplicate by id if needed
       const map = new Map<string, ProgramManagementSummaryItem>();
       [...pending, ...approved, ...rejected].forEach((p) => map.set(p.id, p));
       return Array.from(map.values());
@@ -113,7 +102,6 @@ function ProgramManagementPageContent() {
     companyOverallResponse,
   ]);
 
-  // Calculate stat cards & tab counts
   const counts = useMemo(() => {
     if (isAdminScope) {
       const pendingCount = adminPendingResponse?.totalElements ?? 0;
@@ -140,7 +128,6 @@ function ProgramManagementPageContent() {
     rawPrograms,
   ]);
 
-  // Filter programs by submissionStateFilter, stateFilter, and searchQuery
   const filteredPrograms = useMemo(() => {
     let list = rawPrograms;
 
@@ -165,7 +152,6 @@ function ProgramManagementPageContent() {
     return list;
   }, [rawPrograms, submissionStateFilter, stateFilter, searchQuery]);
 
-  // Apply sorting by chosen field and direction
   const sortedAndFilteredPrograms = useMemo(() => {
     if (!sort) return filteredPrograms;
     const list = [...filteredPrograms];
@@ -192,7 +178,6 @@ function ProgramManagementPageContent() {
     return list;
   }, [filteredPrograms, sort]);
 
-  // Paginate the filtered & sorted list
   const totalElements = sortedAndFilteredPrograms.length;
   const totalPages = Math.ceil(totalElements / pageSize) || 1;
 
@@ -200,7 +185,6 @@ function ProgramManagementPageContent() {
     const start = pageIndex * pageSize;
     return sortedAndFilteredPrograms.slice(start, start + pageSize);
   }, [sortedAndFilteredPrograms, pageIndex, pageSize]);
-
 
   const handleSubmissionStateChange = useCallback(
     (state: ProgramSubmissionState | "ALL") => {
@@ -237,7 +221,6 @@ function ProgramManagementPageContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* PAGE HEADER */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
@@ -264,7 +247,6 @@ function ProgramManagementPageContent() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Pending review alert badge for admin */}
           {isAdminScope && counts.pendingReview > 0 && (
             <Badge
               variant="outline"
@@ -278,8 +260,6 @@ function ProgramManagementPageContent() {
             </Badge>
           )}
 
-          {/* Offered only to accounts that hold CREATE_PROGRAM: a viewer who
-              followed it would fill the form in and meet a 403 at the end. */}
           {!isAdminScope && can("CREATE_PROGRAM") && (
             <Link href="/dashboard/create-program">
               <Button className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm h-10 px-4 gap-2  shadow-xs cursor-pointer">
@@ -291,7 +271,6 @@ function ProgramManagementPageContent() {
         </div>
       </header>
 
-      {/* One account, two organizations: the endpoint cannot pick for us. */}
       {isAmbiguousOrganization && (
         <div
           role="alert"
@@ -313,7 +292,6 @@ function ProgramManagementPageContent() {
         </div>
       )}
 
-      {/* STAT CARDS */}
       {!isLoading && (
         <ProgramStatCards
           total={counts.all}
@@ -333,7 +311,6 @@ function ProgramManagementPageContent() {
         </div>
       )}
 
-      {/* FILTER BAR */}
       <ProgramFiltersBar
         submissionStateFilter={submissionStateFilter}
         onSubmissionStateChange={handleSubmissionStateChange}
@@ -346,7 +323,6 @@ function ProgramManagementPageContent() {
         counts={counts}
       />
 
-      {/* DATA TABLE */}
       <main className="flex flex-col gap-3">
         {isLoading ? (
           <div className="space-y-3 animate-pulse">

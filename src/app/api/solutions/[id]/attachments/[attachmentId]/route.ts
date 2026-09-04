@@ -9,19 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * DELETE /api/solutions/{id}/attachments/{attachmentId} — removing one file
- * from an answer while its author edits it.
- *
- * Unlike the problem equivalent this endpoint **requires `If-Match`**, the
- * solution's `version`, and refuses the call without one. It is the same
- * optimistic-concurrency guard the solution's own PATCH uses: two people
- * editing one answer must not silently overwrite each other, and a stale
- * version means someone else moved first. The header is forwarded from the
- * caller rather than invented, so a stale value is refused upstream — which is
- * the point of sending it.
- */
-
 type Context = { params: Promise<{ id: string; attachmentId: string }> };
 
 export async function DELETE(request: NextRequest, context: Context) {

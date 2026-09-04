@@ -23,18 +23,6 @@ import { cn } from "@/lib/utils";
 
 const DEBOUNCE_MS = 275;
 
-/**
- * The full results page.
- *
- * `q`, `type` and `page` live in the URL rather than in state, so a result set
- * can be linked, bookmarked and reached with the back button. State here is
- * only the text field, which runs ahead of the URL while someone types.
- *
- * With a `type` the API returns one group and real paging; without one it
- * returns the grouped overview and `totalPages` is null. Both are rendered
- * from the same response, since the shape does not change — only which fields
- * are null.
- */
 export function SearchResultsView() {
   const router = useRouter();
   const pathname = usePathname();
@@ -48,20 +36,6 @@ export function SearchResultsView() {
 
   const [input, setInput] = useState(q);
 
-  /**
-   * Keeping the field and the URL in step, in the one direction that needs it.
-   *
-   * The field follows the URL when the URL moved on its own — the back button,
-   * or a link into a query — because a box still showing the previous search
-   * reads as a bug. It must *not* follow the URL when this view was what
-   * changed it: the debounce lands a moment after the last keystroke, so
-   * copying `q` back over the input would delete whatever was typed in between
-   * and the field would visibly rewind mid-word.
-   *
-   * `pushedQuery` is what we last wrote, so the two cases can be told apart.
-   * Adjusted during render rather than in an effect: reconciling after a paint
-   * would show the stale value for a frame.
-   */
   const [pushedQuery, setPushedQuery] = useState(q);
   const [syncedQuery, setSyncedQuery] = useState(q);
   if (q !== syncedQuery) {
@@ -84,7 +58,6 @@ export function SearchResultsView() {
       if (next.type) search.set("type", next.type);
       else search.delete("type");
     }
-    /* Page zero is the default and stays out of the URL. */
     if (next.page !== undefined) {
       if (next.page > 0) search.set("page", String(next.page));
       else search.delete("page");
@@ -93,8 +66,6 @@ export function SearchResultsView() {
     router.replace(`${pathname}?${search.toString()}`, { scroll: false });
   };
 
-  /* Typing rewrites the URL, debounced, and always returns to the first page —
-     staying on page 4 of a query nobody is running any more shows nothing. */
   useEffect(() => {
     const trimmed = input.trim();
     if (trimmed === q) return;
@@ -148,8 +119,6 @@ export function SearchResultsView() {
           )}
         </div>
 
-        {/* Tabs are the only "filter" there is — the API takes no filtering or
-            sorting parameters, so nothing else can be offered here. */}
         <nav className="flex flex-wrap gap-2" aria-label="Result type">
           <TypeTab
             label="Everything"
@@ -180,8 +149,6 @@ export function SearchResultsView() {
           body="Something went wrong on our side. Try again in a moment."
         />
       ) : !hasResults && !isFetching ? (
-        /* "No query yet" and "no matches" are different facts and get
-           different words — one is an invitation, the other an answer. */
         q ? (
           <EmptyState
             icon={SearchX}
@@ -219,8 +186,6 @@ export function SearchResultsView() {
                 ))}
               </div>
 
-              {/* Only the grouped view truncates a section; the typed view is
-                  already showing the page it was asked for. */}
               {!type && group.totalHits > group.hits.length && (
                 <Button
                   variant="outline"
@@ -234,8 +199,6 @@ export function SearchResultsView() {
             </section>
           ))}
 
-          {/* Paging exists only in the typed mode, where totalPages is a
-              number rather than null. */}
           {type && totalPages !== null && totalPages > 1 && (
             <nav
               aria-label="Pagination"
@@ -252,7 +215,6 @@ export function SearchResultsView() {
               </Button>
 
               <span className="text-sm font-medium text-muted-foreground">
-                {/* `page` is zero-based upstream and one-based to a reader. */}
                 Page {page + 1} of {totalPages}
               </span>
 

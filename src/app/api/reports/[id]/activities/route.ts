@@ -9,17 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/reports/{id}/activities — the report's timeline.
- *
- * Readable by anyone who can already read the report, so there is no extra
- * check here: a 403 or 404 from upstream means exactly what it means on
- * `GET /reports/{id}`, and is relayed rather than reinterpreted.
- *
- * The upstream answers a plain JSON array, not a page. It is small — tens of
- * entries — and is fetched once alongside the report.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, context: Context) {

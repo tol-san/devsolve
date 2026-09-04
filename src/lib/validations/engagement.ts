@@ -2,11 +2,6 @@ import * as z from "zod";
 import { isCleanText, profanityMessage } from "@/lib/moderation/profanity";
 import { isReadableText, readabilityMessage } from "@/lib/moderation/readability";
 
-/**
- * Votes and comments hang off several kinds of content, so their schemas live
- * together here rather than under any one feature.
- */
-
 export const VOTE_TARGET_TYPES = [
   "PROBLEM",
   "SOLUTION",
@@ -16,7 +11,6 @@ export const VOTE_TARGET_TYPES = [
 
 export type VoteTargetType = (typeof VOTE_TARGET_TYPES)[number];
 
-/** What can be bookmarked. A comment cannot; a program can. */
 export const BOOKMARK_TARGET_TYPES = [
   "PROGRAM",
   "PROBLEM",
@@ -36,18 +30,12 @@ export const COMMENTABLE_TYPES = [
 
 export type CommentableType = (typeof COMMENTABLE_TYPES)[number];
 
-/**
- * Mirrors `VoteRequest`. The backend types `value` as a plain int; only an
- * up- or downvote is meaningful, so anything else is rejected here rather than
- * stored as a score nobody can undo through the UI.
- */
 export const voteRequestSchema = z.object({
   value: z.union([z.literal(1), z.literal(-1)], {
     message: "value must be 1 (upvote) or -1 (downvote)",
   }),
 });
 
-/** Mirrors `CreateCommentRequest`. */
 export const commentCreateSchema = z.object({
   commentableType: z.enum(COMMENTABLE_TYPES, {
     message: `commentableType must be one of ${COMMENTABLE_TYPES.join(", ")}`,
@@ -60,10 +48,6 @@ export const commentCreateSchema = z.object({
     .max(5000, "A comment must not exceed 5000 characters")
     .refine(isCleanText, profanityMessage("Your comment"))
     .refine(isReadableText, readabilityMessage("Your comment")),
-  /* Defaulted rather than optional so `parsed.data` — which is what the proxy
-     forwards — always carries every field the backend binds. Omitting
-     `internal` makes its non-nullable boolean fail to deserialize, and Spring
-     reports that as a missing or malformed body. */
   parentCommentId: z
     .uuid("parentCommentId must be a UUID")
     .nullable()
@@ -72,7 +56,6 @@ export const commentCreateSchema = z.object({
   mentionedUserIds: z.array(z.uuid()).default([]),
 });
 
-/** Mirrors `UpdateCommentRequest` — the body is the only editable field. */
 export const commentUpdateSchema = z.object({
   content: z
     .string()
@@ -83,12 +66,10 @@ export const commentUpdateSchema = z.object({
     .refine(isReadableText, readabilityMessage("Your comment")),
 });
 
-/** How `/comments/thread` and `/comments` order a page. */
 export const COMMENT_SORTS = ["NEWEST", "OLDEST", "TOP"] as const;
 
 export type CommentSort = (typeof COMMENT_SORTS)[number];
 
-/** What a reader can report. Mirrors `CreateFlagRequest.flaggableType`. */
 export const FLAGGABLE_TYPES = [
   "PROBLEM",
   "SOLUTION",
@@ -108,7 +89,6 @@ export const FLAG_REASONS = [
 
 export type FlagReason = (typeof FLAG_REASONS)[number];
 
-/** Mirrors `CreateFlagRequest`. */
 export const flagCreateSchema = z.object({
   flaggableType: z.enum(FLAGGABLE_TYPES, {
     message: `flaggableType must be one of ${FLAGGABLE_TYPES.join(", ")}`,

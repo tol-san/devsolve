@@ -14,7 +14,6 @@ export function DashboardSlaStrip({ sla }: DashboardSlaStripProps) {
   return (
     <div className="rounded-2xl border border-border/80 bg-card/60 p-5 sm:p-6 shadow-2xs backdrop-blur-md">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-        {/* Left header */}
         <div className="flex items-center gap-3.5">
           <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
             <ShieldCheck className="size-6" />
@@ -32,9 +31,7 @@ export function DashboardSlaStrip({ sla }: DashboardSlaStripProps) {
           </div>
         </div>
 
-        {/* Right metrics strip */}
         <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-3 lg:pt-0 border-t lg:border-t-0 border-border/60">
-          {/* Metric 1: Mean Time to Triage */}
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
               <Timer className="size-3.5 text-muted-foreground" />
@@ -49,7 +46,6 @@ export function DashboardSlaStrip({ sla }: DashboardSlaStripProps) {
             </span>
           </div>
 
-          {/* Metric 2: Mean Time to Resolve */}
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
               <CheckCircle className="size-3.5 text-muted-foreground" />
@@ -62,7 +58,6 @@ export function DashboardSlaStrip({ sla }: DashboardSlaStripProps) {
             <span className="text-xs text-muted-foreground mt-0.5">From triage to fix</span>
           </div>
 
-          {/* Metric 3: SLA Compliance */}
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
               <Target className="size-3.5 text-muted-foreground" />

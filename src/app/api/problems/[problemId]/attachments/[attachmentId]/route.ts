@@ -9,17 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * DELETE /api/problems/{problemId}/attachments/{attachmentId} — removing one
- * file from a problem while its author edits it.
- *
- * Immediate and final: the file is gone from the problem as soon as this
- * answers, not when the form is saved. Whether the caller may do it at all is
- * the upstream's decision — a published problem with answers under it is not
- * an untouched draft — so a refusal is relayed as written rather than
- * pre-empted here.
- */
-
 type Context = { params: Promise<{ problemId: string; attachmentId: string }> };
 
 export async function DELETE(request: NextRequest, context: Context) {

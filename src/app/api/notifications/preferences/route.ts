@@ -8,11 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET/PUT /api/notifications/preferences — proxy for
- * /api/v1/notifications/preferences.
- */
-
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

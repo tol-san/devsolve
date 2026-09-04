@@ -1,6 +1,4 @@
-// src/lib/mockData.ts
 import { ProgramItem } from "./programs/types";
-
 
 export const MOCK_PROGRAMSss: ProgramItem[] = [
   {

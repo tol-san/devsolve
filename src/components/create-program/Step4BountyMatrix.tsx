@@ -45,7 +45,6 @@ export function Step4BountyMatrix({
         {programType === "BOUNTY" ? "Bounty Matrix" : "Response Matrix"}
       </h2>
 
-      {/* Checkbox Offer Financial Bounties */}
       <div className="p-4 bg-muted/50 rounded-xl border border-border flex items-center gap-3">
         <input
           type="checkbox"
@@ -64,7 +63,6 @@ export function Step4BountyMatrix({
         </label>
       </div>
 
-      {/* REWARD MATRIX TABLE (DYNAMIC $ vs pts) */}
       {offerBounties && (
         <div className="border border-border rounded-xl overflow-x-auto bg-card">
           <Table className="min-w-[320px] sm:min-w-full">
@@ -80,7 +78,6 @@ export function Step4BountyMatrix({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* CRITICAL */}
               <TableRow>
                 <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
                   <span className="inline-block px-2.5 py-1 text-xs font-bold rounded-md bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20">
@@ -139,7 +136,6 @@ export function Step4BountyMatrix({
                 </TableCell>
               </TableRow>
 
-              {/* HIGH */}
               <TableRow>
                 <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
                   <span className="inline-block px-2.5 py-1 text-xs font-bold rounded-md bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20">
@@ -198,7 +194,6 @@ export function Step4BountyMatrix({
                 </TableCell>
               </TableRow>
 
-              {/* MEDIUM */}
               <TableRow>
                 <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
                   <span className="inline-block px-2.5 py-1 text-xs font-bold rounded-md bg-sky-50 text-sky-600 border border-sky-200 dark:bg-sky-500/10 dark:text-sky-300 dark:border-sky-500/20">
@@ -257,7 +252,6 @@ export function Step4BountyMatrix({
                 </TableCell>
               </TableRow>
 
-              {/* LOW */}
               <TableRow>
                 <TableCell className="py-3 px-3 sm:py-4 sm:px-6">
                   <span className="inline-block px-2.5 py-1 text-xs font-bold rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20">
@@ -320,7 +314,6 @@ export function Step4BountyMatrix({
         </div>
       )}
 
-      {/* INFO BOX */}
       <div className="p-4 bg-blue-50/80 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl flex items-start gap-3 text-blue-900 dark:text-blue-200">
         <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
         <p className="text-xs sm:text-sm font-medium leading-relaxed">

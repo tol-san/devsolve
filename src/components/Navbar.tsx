@@ -56,7 +56,6 @@ type NavItem = {
   description?: string;
   descTKey?: string;
   icon?: "problem" | "showcase" | "hacktivity";
-  /** Catalogue key — `name` remains the stable identity and fallback. */
   tKey?: string;
 };
 
@@ -66,13 +65,7 @@ type NavLink = {
   items?: NavItem[];
   icon?: LucideIcon;
   external?: boolean;
-  /**
-   * Dropped from the bar once there is a session — an introduction to the
-   * platform is for people deciding whether to join, not for members who
-   * already have.
-   */
   guestOnly?: boolean;
-  /** Catalogue key — `name` remains the stable identity and fallback. */
   tKey?: string;
 };
 
@@ -316,7 +309,6 @@ export const Navbar = () => {
     start: "bottom-up",
   });
 
-  // Track scroll for elevation styling
   useEffect(() => {
     let frame = 0;
     const update = () => {
@@ -341,7 +333,6 @@ export const Navbar = () => {
     };
   }, [pathname]);
 
-  // Lock body scroll when mobile drawer is open
   useEffect(() => {
     if (!mobileMenuOpen) return;
 
@@ -375,7 +366,6 @@ export const Navbar = () => {
     };
   }, []);
 
-  // Hover intent for community dropdown
   const communityCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const openCommunityMenu = () => {
@@ -405,7 +395,6 @@ export const Navbar = () => {
     [],
   );
 
-  // Auto-close on route change
   const [renderedPath, setRenderedPath] = useState(pathname);
   if (renderedPath !== pathname) {
     setRenderedPath(pathname);
@@ -414,7 +403,6 @@ export const Navbar = () => {
     setMobileCommunityOpen(false);
   }
 
-  // Close mobile menu when expanding to desktop
   useEffect(() => {
     const query = window.matchMedia("(min-width: 1024px)");
     const handleChange = (event: MediaQueryListEvent) => {
@@ -428,7 +416,6 @@ export const Navbar = () => {
     return () => query.removeEventListener("change", handleChange);
   }, []);
 
-  // Keyboard Escape & click outside dismissal
   useEffect(() => {
     if (!mobileMenuOpen && !communityMenuOpen) return;
 
@@ -498,7 +485,6 @@ export const Navbar = () => {
         className="fixed inset-x-0 top-0 z-[100] w-full"
       >
         <div className="pointer-events-none isolate">
-          {/* Mobile Backdrop Scrim */}
           <AnimatePresence>
             {mobileMenuOpen && (
               <motion.button
@@ -515,7 +501,6 @@ export const Navbar = () => {
           </AnimatePresence>
 
           <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-3 sm:px-6">
-            {/* Desktop & Mobile Top Capsule */}
             <div
               className={cn(
                 "pointer-events-auto flex min-h-16 items-center rounded-2xl border px-3.5 sm:px-5 backdrop-blur-xl transition-all duration-300",
@@ -526,7 +511,6 @@ export const Navbar = () => {
               )}
             >
               <div className="flex w-full items-center justify-between gap-3 lg:gap-4 xl:gap-6">
-                {/* 1. Brand Logo (Clickable, Compact) */}
                 <Link
                   href={lp("/")}
                   aria-label="Go to DevSolve homepage"
@@ -544,7 +528,6 @@ export const Navbar = () => {
                     className="flex items-center"
                   >
                     <span className="relative block h-9 w-32 sm:h-10 sm:w-36 xl:h-11 xl:w-40">
-                      {/* Light Mode Logo */}
                       <Image
                         src="/devsolve-logo.png"
                         alt="DevSolve"
@@ -553,7 +536,6 @@ export const Navbar = () => {
                         sizes="(min-width: 1280px) 160px, 144px"
                         className="origin-left object-contain object-left scale-[1.12] dark:hidden"
                       />
-                      {/* Dark Mode Logo */}
                       <Image
                         src="/devsolve-fulltext-logo-darkmode.png"
                         alt="DevSolve"
@@ -566,7 +548,6 @@ export const Navbar = () => {
                   </motion.div>
                 </Link>
 
-                {/* 2. Desktop Navigation Links (Center: Home, Programs, Community, Leaderboard) */}
                 <nav
                   aria-label="Main navigation"
                   className="hidden items-center justify-center lg:flex flex-1"
@@ -756,13 +737,11 @@ export const Navbar = () => {
                   </div>
                 </nav>
 
-                {/* 3. Clean Desktop Utilities (Logged In: Notification + Search + Profile. Logged Out: Search + Theme + Language + Login/Get Started) */}
                 <div className="hidden lg:flex shrink-0 items-center justify-end gap-2">
                   {sessionUser && <NotificationTrigger />}
 
                   <NavbarSearch variant="icon" />
 
-                  {/* When logged out: Provide direct Dark Mode and Language toggles */}
                   {!sessionUser && (
                     <>
                       <Button
@@ -816,13 +795,11 @@ export const Navbar = () => {
                   />
                 </div>
 
-                {/* 4. Clean Mobile Top Bar Utilities (<1024px: Notification, Search & Menu of equal size) */}
                 <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
                   {sessionUser && <NotificationTrigger className="size-9" />}
 
                   <NavbarSearch variant="icon" className="size-9" />
 
-                  {/* Hamburger ↔ X Menu Button (Equal 36px x 36px circular button with 18px icon) */}
                   <Button
                     size="icon"
                     variant="ghost"
@@ -847,7 +824,6 @@ export const Navbar = () => {
             </div>
           </div>
 
-          {/* 5. Refined Mobile Navigation Drawer Card */}
           <AnimatePresence>
             {mobileMenuOpen && (
               <motion.div
@@ -874,7 +850,6 @@ export const Navbar = () => {
                 className="pointer-events-auto relative z-10 px-4 pb-5 sm:px-6 lg:hidden"
               >
                 <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-card/98 p-3.5 sm:p-4 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 backdrop-blur-2xl">
-                  {/* Navigation Links */}
                   <nav
                     aria-label="Mobile navigation"
                     className="flex flex-col gap-1 pb-2.5"
@@ -1045,7 +1020,6 @@ export const Navbar = () => {
                     })}
                   </nav>
 
-                  {/* Mobile User Card & Actions */}
                   <div className="space-y-2.5 border-t border-border/70 pt-2.5">
                     {sessionUser ? (
                       <>
@@ -1168,7 +1142,6 @@ export const Navbar = () => {
                       </div>
                     )}
 
-                    {/* Bottom Utility Controls (Two-Column Pill Layout) */}
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/70">
                       <button
                         type="button"

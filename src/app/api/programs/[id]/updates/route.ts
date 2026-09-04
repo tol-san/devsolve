@@ -9,11 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/programs/{id}/updates — proxy for
- * /api/v1/programs/{id}/updates.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 const ALLOWED_QUERY = ["page", "size", "sort"] as const;

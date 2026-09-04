@@ -13,11 +13,6 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-/* Drawn rather than illustrated: both pieces are built from the same tokens as
-   the rest of the UI, so they stay on-brand and cost nothing to load. Each one
-   puts the account holder in the picture — one person, or a company and its
-   team — so the card shows who it is for, not just what it does. */
-
 const PILLARS: { icon: LucideIcon; label: string }[] = [
   { icon: Bug, label: "Bounty" },
   { icon: MessagesSquare, label: "Problems" },
@@ -28,19 +23,13 @@ const PILLARS: { icon: LucideIcon; label: string }[] = [
 const CYCLE = 4.4;
 const BEAT = 1.1;
 
-/**
- * Developer — you at the top, the four pillars branching off below. Says
- * "one account, all four" before the feature list repeats it.
- */
 export function ResearcherArt() {
   const reduce = useReducedMotion();
 
   return (
     <div className="flex w-full flex-col items-center">
-      {/* ── The person the account belongs to ── */}
       <div className="flex items-center gap-2">
         <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-neutral-800 text-blue-700 dark:text-blue-400 shadow-[0_0_0_1px_rgba(37,99,235,0.35)]">
-          {/* Slow halo, so the persona reads as the live element */}
           {!reduce && (
             <motion.span
               aria-hidden
@@ -57,10 +46,8 @@ export function ResearcherArt() {
         </span>
       </div>
 
-      {/* Drop from the persona into the track below */}
       <span aria-hidden className="h-3 w-px bg-slate-200 dark:bg-neutral-700" />
 
-      {/* ── The four pillars, lit in sequence ── */}
       <div className="relative w-full max-w-62">
         <span
           aria-hidden
@@ -95,8 +82,6 @@ export function ResearcherArt() {
                 }}
                 className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white dark:bg-neutral-800 shadow-[0_0_0_1px_rgba(30,41,59,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]"
               >
-                {/* Accent hairline fades in on the beat — opacity only, so the
-                    resting shadow underneath never repaints. */}
                 {!reduce && (
                   <motion.span
                     aria-hidden
@@ -137,19 +122,14 @@ const QUEUE = [
   { label: "Medium", dot: "bg-amber-500", width: "w-20" },
 ];
 
-/* The security team behind the program — initials rather than stock faces. */
 const TEAM = ["A", "M", "K"];
 
-/**
- * Organization — the company, its inbound queue, and the team working it.
- */
 export function OrganizationArt() {
   const reduce = useReducedMotion();
 
   return (
     <div className="flex w-full items-center justify-center px-3">
       <div className="w-full max-w-62 rounded-xl bg-white dark:bg-neutral-850 dark:bg-neutral-900 p-3 shadow-[0_0_0_1px_rgba(30,41,59,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
-        {/* ── The company the account belongs to ── */}
         <div className="flex items-center gap-2 border-b border-slate-100 dark:border-neutral-800 pb-2.5">
           <span className="relative flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
             {!reduce && (
@@ -180,7 +160,6 @@ export function OrganizationArt() {
           </span>
         </div>
 
-        {/* ── Reports landing in the queue ── */}
         <ul className="mt-2.5 space-y-2">
           {QUEUE.map((row, i) => (
             <motion.li
@@ -203,7 +182,6 @@ export function OrganizationArt() {
           ))}
         </ul>
 
-        {/* ── The team triaging them ── */}
         <div className="mt-3 flex items-center gap-2 border-t border-slate-100 dark:border-neutral-800 pt-2.5">
           <span className="flex -space-x-1.5">
             {TEAM.map((initial) => (
@@ -221,7 +199,6 @@ export function OrganizationArt() {
 
           <BarChart3 className="h-3 w-3 shrink-0 text-slate-400 dark:text-neutral-500" aria-hidden />
 
-          {/* Triage progress — scaleX on a fixed track, so nothing reflows */}
           <span className="ml-auto h-1.5 w-14 overflow-hidden rounded-full bg-slate-100 dark:bg-neutral-800">
             <motion.span
               className="block h-full w-full origin-left rounded-full bg-emerald-500/70"

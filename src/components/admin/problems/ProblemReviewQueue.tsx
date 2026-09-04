@@ -35,24 +35,12 @@ import { excerptOf } from "@/lib/markdown-excerpt";
 import { SDLC_LABELS, type ProblemStatus } from "@/lib/validations/problem";
 import { authorNameOf } from "@/lib/discussions/format";
 
-/**
- * The problem approval queue — `GET /api/v1/admin/problems`.
- *
- * A submitted problem sits at `PENDING_APPROVAL` and stays off the public feed
- * until it is published here, so this is the gate between an author pressing
- * Submit and anyone reading the result.
- *
- * Built as a panel rather than a page so it can live as a tab inside the
- * moderation screen, next to the showcase queue.
- */
-
 const STATUS_TABS: { value: ProblemStatus; label: string }[] = [
   { value: "PENDING_APPROVAL", label: "Pending" },
   { value: "PUBLISHED", label: "Published" },
   { value: "REJECTED", label: "Rejected" },
 ];
 
-/** Where a problem is opened in full. */
 export const problemReviewHref = (problemId: string) =>
   `/dashboard/content-moderation/problems/${problemId}`;
 
@@ -66,7 +54,6 @@ export function ProblemReviewQueue() {
       status,
       page,
       size: pageSize,
-      // Longest-waiting first, so nothing sits at the back of the queue.
       sort: "createdAt,ASC",
     });
 
@@ -79,7 +66,6 @@ export function ProblemReviewQueue() {
 
   return (
     <div className="space-y-4">
-      {/* Status tabs */}
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1 rounded-xl bg-muted p-1">
           {STATUS_TABS.map((tab) => (
@@ -463,7 +449,6 @@ function QueueSkeleton() {
   );
 }
 
-/** Pulls something readable out of an RTK Query error. */
 function messageOf(error: unknown, fallback: string): string {
   if (typeof error === "object" && error !== null && "data" in error) {
     const data = (error as { data?: unknown }).data;

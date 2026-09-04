@@ -70,8 +70,6 @@ export const ProgramFiltersBar: React.FC<ProgramFiltersBarProps> = ({
   onSortChange,
   counts,
 }) => {
-  /* The review tab is deliberately not listed as an active filter: it is the
-     view the reader chose, not something hiding rows inside it. */
   const activeFilters: ActiveFilter[] = [
     ...(stateFilter !== "ALL"
       ? [
@@ -95,8 +93,6 @@ export const ProgramFiltersBar: React.FC<ProgramFiltersBarProps> = ({
 
   return (
     <FilterBar>
-      {/* The review queue is the primary split, so it gets its own row rather
-          than competing with search and sort for the same line. */}
       <ToggleGroup
         multiple={false}
         value={[submissionStateFilter]}

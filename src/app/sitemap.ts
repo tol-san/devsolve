@@ -15,23 +15,8 @@ import {
   localise,
 } from "@/lib/i18n/config";
 
-/**
- * The public map of the site, served at `/sitemap.xml`.
- *
- * A crawler finds most of this by following links, but the feed paginates and
- * filters in the browser — a problem three pages down is reachable by a person
- * and invisible to a crawler. Listing them here is what gets them discovered.
- *
- * Only content an anonymous visitor can open is listed: published problems,
- * approved showcases, public programs and public profiles. Anything the
- * backend would refuse never reaches the loop, since the fetches carry no
- * session.
- */
-
-/** Rebuilt hourly; new content is discoverable within the hour without a deploy. */
 export const revalidate = 3600;
 
-/** Landing pages, ordered by how much of the site they lead to. */
 const STATIC_ROUTES: {
   path: string;
   priority: number;
@@ -49,9 +34,6 @@ const STATIC_ROUTES: {
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  /* One slow listing should not hold up the others, and any of them may come
-     back empty when the backend is unreachable — the static routes below are
-     always emitted, so the sitemap is never served empty. */
   const [problems, showcases, programs, profiles] = await Promise.all([
     listProblems(),
     listShowcases(),
@@ -69,8 +51,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         isoDateTime(problem.updatedAt ?? problem.publishedAt ?? problem.createdAt) ??
         now,
       changeFrequency: "weekly",
-      /* A problem with an answer is worth more of a crawl budget than one
-         still waiting for its first. */
       priority: (problem.solutionCount ?? 0) > 0 ? 0.8 : 0.6,
     }));
 
@@ -101,9 +81,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }));
 
-  /* Static pages do not change on every crawl — `lastModified` is omitted so
-     Google relies on its own change-detection rather than being told these
-     pages were just modified at every sitemap fetch. */
   const singleLocale: MetadataRoute.Sitemap = [
     ...STATIC_ROUTES.map((route) => ({
       url: absoluteUrl(route.path),
@@ -116,11 +93,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...profileEntries,
   ];
 
-  /* Every URL is emitted once per locale, and each entry declares the others
-     through `alternates.languages`. Listing only one language would leave the
-     other undiscoverable; listing both without the alternates would look like
-     duplicate content. The paths above are still written locale-free, so a new
-     route is added in one place and picks up both languages automatically. */
   return LOCALES.flatMap((locale) =>
     singleLocale.map((entry) => {
       const path = new URL(entry.url).pathname;

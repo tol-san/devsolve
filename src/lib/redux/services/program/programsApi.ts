@@ -11,18 +11,14 @@ import { PageProgramManagementSummaryResponseDto } from "@/lib/types/admin/progr
 
 export * from "@/lib/types/programs/types";
 
-/** `GET /organizations/me/programs/handle-available` */
 export type ProgramHandleAvailability = {
-  /** The normalized form that will be stored — show this back to the author. */
   handle: string;
   available: boolean;
-  /** The rule that failed, or null when the handle is free. */
   reason?: string | null;
 };
 
 export const programsApi = proxyApi.injectEndpoints({
   endpoints: (builder) => ({
-    // GET /programs?page=0&size=20&search=...
     getPrograms: builder.query<
       PaginatedResponse<Program>,
       GetProgramsParams | void
@@ -30,7 +26,6 @@ export const programsApi = proxyApi.injectEndpoints({
       query: (params) => {
         const queryParams = new URLSearchParams();
 
-        // Convert 1-indexed UI page to 0-indexed Spring Boot page
         if (params?.page !== undefined) {
           queryParams.append("page", (params.page - 1).toString());
         }
@@ -50,9 +45,6 @@ export const programsApi = proxyApi.injectEndpoints({
       providesTags: ["Program"],
     }),
 
-    /** Exact country values present in published programs. The program API
-     * matches countries exactly, so these values are safer than guessing
-     * whether an organization stored an ISO code or a full country name. */
     getProgramCountryValues: builder.query<string[], void>({
       async queryFn(_arg, _api, _extraOptions, fetchWithBQ) {
         const firstResult = await fetchWithBQ("programs?page=0&size=100");
@@ -91,7 +83,6 @@ export const programsApi = proxyApi.injectEndpoints({
       providesTags: [{ type: "Program", id: "COUNTRIES" }],
     }),
 
-    // GET /organizations/me/programs (COMPANY role)
     getMyCompanyPrograms: builder.query<
       PageProgramManagementSummaryResponseDto,
       {
@@ -132,13 +123,11 @@ export const programsApi = proxyApi.injectEndpoints({
       providesTags: ["Program"],
     }),
 
-    // GET /organizations/me/programs/{id} (COMPANY role)
     getMyCompanyProgramById: builder.query<ProgramDetail, string>({
       query: (id) => `organizations/me/programs/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Program", id }],
     }),
 
-    // GET /programs/{id}
     getProgramById: builder.query<ProgramDetail, string>({
       query: (id) => `programs/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Program", id }],
@@ -149,9 +138,6 @@ export const programsApi = proxyApi.injectEndpoints({
       CreateProgramRequest & { state?: string; submit?: boolean }
     >({
       query: ({ submit, ...body }) => ({
-        /* One transaction: the program is created and enters review together,
-           so a failure leaves nothing behind rather than an orphan draft the
-           author was told had been submitted. */
         url: submit
           ? "/organizations/me/programs?submit=true"
           : "/organizations/me/programs",
@@ -161,24 +147,12 @@ export const programsApi = proxyApi.injectEndpoints({
       invalidatesTags: ["Program"],
     }),
 
-    /**
-     * Whether a handle can still be taken.
-     *
-     * Checks every program — draft, private, soft-deleted — through the same
-     * repository the write uses, so it cannot disagree with the save.
-     * `GET /programs/handle/{handle}` is not a substitute: it resolves
-     * published programs only, so a draft holding the handle reads as free.
-     *
-     * Malformed handles answer here too, with the broken rule as `reason`, so
-     * one debounced call covers both format and uniqueness.
-     */
     getProgramHandleAvailability: builder.query<
       ProgramHandleAvailability,
       { handle: string; programId?: string }
     >({
       query: ({ handle, programId }) => {
         const params = new URLSearchParams({ handle });
-        /* Editing an existing program: its own handle must not read as taken. */
         if (programId) params.set("programId", programId);
 
         return `/organizations/me/programs/handle-available?${params.toString()}`;
@@ -211,7 +185,6 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // PATCH /programs/{id} (update state: DRAFT -> ACTIVE)
     updateProgramState: builder.mutation<
       Program,
       { id: string; state: "ACTIVE" | "PAUSED" | "CLOSED" | "DRAFT" }
@@ -227,7 +200,6 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // PATCH /programs/{id}/submit (company sends a draft for admin review)
     submitProgram: builder.mutation<Program, string>({
       query: (id) => ({
         url: `/programs/${id}/submit`,
@@ -239,7 +211,6 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // PATCH /programs/{id}/publish (publish / set to ACTIVE)
     publishProgram: builder.mutation<Program, string>({
       query: (id) => ({
         url: `/programs/${id}/publish`,
@@ -251,7 +222,6 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // PATCH /programs/{id}/close (close program)
     closeProgram: builder.mutation<Program, string>({
       query: (id) => ({
         url: `/programs/${id}/close`,
@@ -263,7 +233,6 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // PATCH /programs/{id}/pause (pause program)
     pauseProgram: builder.mutation<Program, string>({
       query: (id) => ({
         url: `/programs/${id}/pause`,
@@ -275,7 +244,6 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // PATCH /programs/{id}/resume (resume paused program back to ACTIVE)
     resumeProgram: builder.mutation<Program, string>({
       query: (id) => ({
         url: `/programs/${id}/resume`,
@@ -287,7 +255,6 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // PATCH /programs/{id} (update visibility: PUBLIC, PRIVATE, INVITE_ONLY)
     updateProgramVisibility: builder.mutation<
       Program,
       { id: string; visibility: "PUBLIC" | "PRIVATE" | "INVITE_ONLY" }
@@ -303,7 +270,6 @@ export const programsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    // GET /programs/{id}/updates (public changelog/updates)
     getProgramUpdates: builder.query<
       any,
       { id: string; page?: number; size?: number; sort?: string }

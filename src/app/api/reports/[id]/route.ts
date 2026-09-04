@@ -72,7 +72,6 @@ export async function GET(
 
     const reportData = (typeof body === "object" && body !== null ? body : {}) as Record<string, any>;
 
-    // Enrich with program display details if not already present
     if (reportData.programId && !reportData.programName) {
       try {
         const progRes = await fetch(
@@ -119,7 +118,6 @@ export async function GET(
       }
     }
 
-    // Enrich with reporter profile details if reporterId is present and profile name missing
     const repId =
       reportData.reporterId ||
       reportData.reporter_id ||
@@ -157,7 +155,6 @@ export async function GET(
       }
     }
 
-    // Enrich with suggestedWeakness from database if upstream report did not include it
     if (!reportData.suggestedWeakness && !reportData.suggested_weakness) {
       try {
         const weakness = await getReportWeakness(id);
@@ -171,7 +168,6 @@ export async function GET(
       }
     }
 
-    // Guarantee empty arrays for arrays per contract
     reportData.attachments = Array.isArray(reportData.attachments) ? reportData.attachments : [];
     reportData.rewards = Array.isArray(reportData.rewards) ? reportData.rewards : [];
     reportData.retestHistory = Array.isArray(reportData.retestHistory) ? reportData.retestHistory : [];

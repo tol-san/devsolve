@@ -27,7 +27,6 @@ type ResolveReportDialogProps = {
   reportId: string;
   reportTitle: string;
   severity: string;
-  /** Named in the award warning, so it is clear who gets paid. */
   submitterName?: string;
   onSuccess?: () => void;
 };
@@ -54,10 +53,6 @@ export function ResolveReportDialog({
 
   const isLoading = isResolving || isAwarding;
 
-  /* What resolving will cost, quoted from the same severity the call sends.
-     This is the one place the policy table may be used: it describes a
-     payment that has not happened yet. Once it has, the number to show is
-     the report's own `reputationPoints`. */
   const reputationAward = pointsFor(severity);
 
   const handleResolve = async () => {
@@ -119,9 +114,6 @@ export function ResolveReportDialog({
         </DialogHeader>
 
         <div className="space-y-5 py-1">
-          {/* What is being closed. Quiet by design: it is orientation, not a
-              decision, and the two amber blocks it used to compete with left
-              the irreversible warning with no emphasis of its own. */}
           <dl className="rounded-xl border border-border bg-muted/30 px-3.5 py-3 text-sm">
             <dt className="sr-only">Report</dt>
             <dd className="font-semibold leading-snug text-foreground break-words">
@@ -142,9 +134,6 @@ export function ResolveReportDialog({
             </div>
           </dl>
 
-          {/* The one emphasis in the dialog. Resolving pays the researcher and
-              cannot be taken back, so it is stated before the button rather
-              than discovered after it. */}
           {reputationAward !== null && (
             <section className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
               <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200">
@@ -220,8 +209,6 @@ export function ResolveReportDialog({
             </div>
           </div>
 
-          {/* Neutral, not amber: this is an optional courtesy, and dressing it
-              as a warning gave it the same weight as the irreversible award. */}
           <label
             htmlFor="resolve-hall-of-thanks"
             className="flex cursor-pointer select-none items-start gap-3 rounded-xl border border-border bg-background p-3.5 transition-colors hover:bg-muted/40"

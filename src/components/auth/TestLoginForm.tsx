@@ -8,15 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-/**
- * Static sign-in form used by /test-login.
- *
- * Presentation only: no submit handler, no provider calls, no validation, no
- * redirects. Every control is inert so the screen can be dropped in front of
- * whichever flow ends up behind it. Styling mirrors `UserRegisterForm` so the
- * two screens read as one family.
- */
-
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -35,7 +26,6 @@ const itemVariants: Variants = {
 };
 
 export function TestLoginForm() {
-  // UI affordance only — reveals the field, nothing to do with signing in.
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -45,7 +35,6 @@ export function TestLoginForm() {
       animate="visible"
       className="w-full max-w-xl lg:max-w-2xl mx-auto my-auto flex flex-col justify-center"
     >
-      {/* Main Title Header */}
       <motion.div variants={itemVariants} className="mb-6 text-center sm:text-left">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
           Welcome back
@@ -55,12 +44,10 @@ export function TestLoginForm() {
         </p>
       </motion.div>
 
-      {/* Social Sign In Buttons */}
       <motion.div
         variants={itemVariants}
         className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6"
       >
-        {/* Google */}
         <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
           <Button
             type="button"
@@ -88,7 +75,6 @@ export function TestLoginForm() {
           </Button>
         </motion.div>
 
-        {/* GitHub */}
         <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
           <Button
             type="button"
@@ -106,7 +92,6 @@ export function TestLoginForm() {
         </motion.div>
       </motion.div>
 
-      {/* Divider */}
       <motion.div variants={itemVariants} className="relative mb-6 flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border/60" />
@@ -116,9 +101,7 @@ export function TestLoginForm() {
         </span>
       </motion.div>
 
-      {/* No onSubmit target: this screen is presentation only. */}
       <form onSubmit={(event) => event.preventDefault()} className="space-y-4">
-        {/* Email or Username */}
         <motion.div variants={itemVariants}>
           <Label
             htmlFor="identifier"
@@ -141,7 +124,6 @@ export function TestLoginForm() {
           </div>
         </motion.div>
 
-        {/* Password */}
         <motion.div variants={itemVariants}>
           <div className="flex items-baseline justify-between gap-3 mb-1.5">
             <Label
@@ -175,7 +157,6 @@ export function TestLoginForm() {
               aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
-              {/* Cross-fade the two icons rather than hard-swapping them. */}
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
                   key={showPassword ? "hide" : "show"}
@@ -196,7 +177,6 @@ export function TestLoginForm() {
           </div>
         </motion.div>
 
-        {/* Keep me signed in */}
         <motion.div variants={itemVariants} className="pt-1">
           <label className="flex items-center gap-2.5 cursor-pointer group">
             <input
@@ -210,7 +190,6 @@ export function TestLoginForm() {
           </label>
         </motion.div>
 
-        {/* Submit */}
         <motion.div variants={itemVariants} className="pt-2">
           <Button
             type="submit"
@@ -222,7 +201,6 @@ export function TestLoginForm() {
         </motion.div>
       </form>
 
-      {/* Bottom Register Link */}
       <motion.div
         variants={itemVariants}
         className="mt-6 text-center text-xs sm:text-sm text-muted-foreground"

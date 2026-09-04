@@ -14,9 +14,6 @@ const unreachable = () =>
     { status: 502 },
   );
 
-/**
- * `GET /api/solution-drafts` — find caller's solution drafts, optionally filtered by problemId.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

@@ -43,10 +43,6 @@ type LeaderboardPage = z.infer<typeof leaderboardPageSchema>;
 
 const PAGE_SIZE = 100;
 
-/**
- * The window the ranking is measured over. Anything else is dropped rather
- * than passed on, so a typo cannot turn into an upstream error.
- */
 const PERIODS = ["DAY", "WEEK", "MONTH", "ALL_TIME"] as const;
 
 type Period = (typeof PERIODS)[number];
@@ -88,9 +84,6 @@ export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const period = periodOf(params);
 
-  /* A caller that names a page wants that page — the widget asking for the
-     top five has no use for every ranked researcher. Only the unpaged call,
-     which the leaderboard screen makes, is stitched together below. */
   const page = params.get("page");
   const size = params.get("size");
   if (page !== null || size !== null) {

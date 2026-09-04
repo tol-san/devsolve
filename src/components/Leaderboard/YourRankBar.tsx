@@ -17,14 +17,9 @@ type Props = {
   totalRanked: number;
   topPercent: number | null;
   period: LeaderboardPeriod;
-  /** Present only when the row survives the active filters. */
   onJumpToMe?: () => void;
 };
 
-/**
- * Pinned so the board means something to everyone, not just the top ten.
- * Sticks to the bottom of the viewport while the ranking scrolls past.
- */
 export default function YourRankBar({
   entry,
   totalRanked,

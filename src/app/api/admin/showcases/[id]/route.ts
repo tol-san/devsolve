@@ -9,12 +9,6 @@ import {
 } from "@/lib/api/proxy";
 import { getShowcaseFromDb } from "@/lib/server/db";
 
-/**
- * GET /api/admin/showcases/{id} — the full submission under review, steps
- * included. For a revision this is the pending copy rather than what is
- * currently live on the index.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 export async function GET(request: NextRequest, context: Context) {

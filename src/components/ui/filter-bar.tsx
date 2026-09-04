@@ -16,19 +16,6 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-/**
- * The dashboard's one way of narrowing a list.
- *
- * Every screen with a search box had grown its own bar — different heights,
- * different borders, filters that said `updatedAt,DESC` at the reader, search
- * fields squeezed until the placeholder truncated. These are the parts they
- * all share, so the next screen inherits the decisions instead of re-making
- * them.
- *
- * The shape is always the same: search leads and takes the room, filters
- * follow as labelled capsules, and anything currently hiding rows is named
- * underneath with a way to undo it.
- */
 export function FilterBar({
   className,
   children,
@@ -48,7 +35,6 @@ export function FilterBar({
   );
 }
 
-/** Search on the left, filters on the right, stacked on small screens. */
 export function FilterRow({
   className,
   children,
@@ -63,7 +49,6 @@ export function FilterRow({
   );
 }
 
-/** The filters themselves, wrapping rather than shrinking their labels. */
 export function FilterControls({
   className,
   children,
@@ -78,12 +63,6 @@ export function FilterControls({
   );
 }
 
-/**
- * The search field.
- *
- * Takes the remaining width because it is the control people reach for first,
- * and clears itself from inside rather than from a button somewhere else.
- */
 export function FilterSearch({
   value,
   onChange,
@@ -94,7 +73,6 @@ export function FilterSearch({
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  /** Announced to screen readers, since the placeholder is not a label. */
   label: string;
   className?: string;
 }) {
@@ -125,16 +103,6 @@ export function FilterSearch({
   );
 }
 
-/**
- * One filter, as a labelled capsule.
- *
- * The label is not decoration: a control reading "Any state" on its own leaves
- * the reader to guess what it governs.
- *
- * `items` is also what makes the trigger readable — Base UI's `Select.Value`
- * renders the raw value unless the root is handed this map, which is how
- * screens ended up showing `updatedAt,DESC` and `PENDING_REVIEW`.
- */
 export function FilterSelect({
   icon: Icon,
   label,
@@ -188,13 +156,6 @@ export type ActiveFilter = {
   clear: () => void;
 };
 
-/**
- * What is currently hiding rows, and one press to stop it.
- *
- * Renders nothing when nothing is narrowing the list, so the bar keeps its
- * height until it has something to say. A view the reader deliberately chose —
- * a tab, a queue — does not belong here; only the filters layered inside it.
- */
 export function ActiveFilters({
   filters,
   onClearAll,
@@ -245,18 +206,9 @@ export function ActiveFilters({
 export type FilterTab<T extends string> = {
   value: T;
   label: string;
-  /** Shown as a pill after the label when the screen knows the number. */
   count?: number;
 };
 
-/**
- * The queue a list is being read through.
- *
- * A segmented control rather than another dropdown: these are the few states
- * worth switching between constantly, and a tab row shows all of them at once
- * with their sizes. It sits on its own line above the filters, since it is the
- * view rather than a narrowing of it.
- */
 export function FilterTabs<T extends string>({
   value,
   onChange,

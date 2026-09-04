@@ -100,13 +100,8 @@ function CreateProgramContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* PAGE HEADER & BREADCRUMB */}
       <CreateProgramHeader isEditing={isEditingDraft} />
 
-      {/* A program with the reviewers is read-only until they answer: saving
-          over it would change what is being reviewed underneath them. Both
-          save buttons are disabled, so the reason is stated once here rather
-          than left to a tooltip nobody hovers. */}
       {isUnderReview ? (
         <div className="flex items-start gap-3 rounded-2xl bg-card p-4 ring-1 ring-foreground/5 dark:ring-foreground/10 sm:items-center">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
@@ -126,16 +121,13 @@ function CreateProgramContent() {
         </div>
       ) : null}
 
-      {/* STEPPER TABS */}
       <CreateProgramStepper
         steps={steps}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
-      {/* MAIN LAYOUT GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* LEFT 2 COLUMNS: FORM STEPS */}
         <div className="lg:col-span-2 p-4 sm:p-6 md:p-8 bg-card text-card-foreground rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-6 min-w-0">
           {activeTab === 1 && (
             <Step1BasicInfo
@@ -195,7 +187,6 @@ function CreateProgramContent() {
             />
           )}
 
-          {/* FOOTER NAVIGATION BUTTONS */}
           <div className="pt-4 border-t border-border flex flex-col-reverse sm:flex-row items-stretch sm:items-start justify-between gap-3">
             <Button
               type="button"
@@ -216,11 +207,7 @@ function CreateProgramContent() {
                 type="button"
                 variant="outline"
                 onClick={handleSaveDraft}
-                /* Saving while the program is still loading would write the
-                   form's empty defaults over it. */
                 disabled={isCreating || isFetchingDraft || !canSaveDraft}
-                /* Disabled buttons cannot say why on their own, and there are
-                   two separate reasons to be disabled here. */
                 title={
                   isUnderReview
                     ? "This program is being reviewed and cannot be edited"
@@ -234,8 +221,6 @@ function CreateProgramContent() {
               >
                 <Save className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span className="truncate">
-                  {/* An approved or live program is no longer a draft, so saving
-                      it is an edit and says so. */}
                   {isDraftProgram ? "Save as Draft" : "Save Changes"}
                 </span>
               </Button>
@@ -278,7 +263,6 @@ function CreateProgramContent() {
                           : "Submit for Review"}
                   </Button>
 
-                  {/* Missing fields note positioned cleanly under the button */}
                   {missingForSubmit.length > 0 && !isUnderReview ? (
                     <p className="text-xs text-muted-foreground text-left sm:text-right">
                       <span className="font-semibold text-foreground">
@@ -304,7 +288,6 @@ function CreateProgramContent() {
           </div>
         </div>
 
-        {/* RIGHT 1 COLUMN: LIVE PREVIEW & GUIDANCE SIDEBAR */}
         <div className="space-y-6 lg:sticky lg:top-6">
           <CreateProgramPreview
             programName={programName}

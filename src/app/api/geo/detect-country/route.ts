@@ -6,7 +6,6 @@ const ipCountrySchema = z.object({
   country_code: z.string().length(2),
 });
 
-/** GET /api/geo/detect-country — resolves the caller's public IP country. */
 export async function GET() {
   try {
     const upstream = await fetch("https://ipapi.co/json/", {

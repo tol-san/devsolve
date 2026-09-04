@@ -85,7 +85,6 @@ export default function ReportConfirmationPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -106,10 +105,8 @@ export default function ReportConfirmationPage() {
         )}
       </header>
 
-      {/* Metrics Summary Cards */}
       <ReportConfirmationStatCards reports={reports} />
 
-      {/* Filters & Search */}
       <ReportConfirmationFilters
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
@@ -120,7 +117,6 @@ export default function ReportConfirmationPage() {
         counts={counts}
       />
 
-      {/* Reports List Queue */}
       <main className="space-y-3">
         {isLoading || isFetching ? (
           <div className="space-y-3 animate-pulse">
@@ -159,7 +155,6 @@ export default function ReportConfirmationPage() {
         )}
       </main>
 
-      {/* Detail Drawer Modal */}
       <ReportConfirmationDetailDrawer
         report={selectedReport}
         isOpen={!!selectedReport}

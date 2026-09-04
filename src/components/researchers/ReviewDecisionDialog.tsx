@@ -32,13 +32,6 @@ const BLURB: Record<ReviewDecision, string> = {
     "They stop being able to file new reports. Reports they already filed are unaffected.",
 };
 
-/**
- * One decision on one researcher, with the note that explains it.
- *
- * The note is optional upstream and worth writing anyway: on a rejection or a
- * revocation it is the only thing the researcher is shown, and without it the
- * refusal arrives with no reason at all.
- */
 export function ReviewDecisionDialog({
   organizationId,
   record,
@@ -105,9 +98,6 @@ function ReviewDecisionForm({
       toast.success(`${who} ${DECISION_DONE[decision]}.`);
       onClose();
     } catch (error) {
-      /* A 409 means the row was stale — someone else reviewed it first, or the
-         state moved under it. The upstream names which, so it is shown as
-         written rather than guessed from what this screen last loaded. */
       toast.error(apiErrorMessage(error, "The decision could not be saved."));
     }
   };

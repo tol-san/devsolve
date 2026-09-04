@@ -21,12 +21,6 @@ const unreachable = () =>
 const invalidOrg = () =>
   NextResponse.json({ message: "Invalid organization id" }, { status: 400 });
 
-/**
- * `GET /api/organizations/{id}/researchers` — the company's review queue.
- *
- * Oldest first upstream, which is the order a queue is worked in; `status`
- * narrows it to one tab.
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -56,12 +50,6 @@ export async function GET(
   }
 }
 
-/**
- * `POST /api/organizations/{id}/researchers` — the researcher asks for access.
- *
- * A 409 comes back when a request is already pending or already approved, and
- * its message is relayed intact: the upstream knows which of the two it is.
- */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

@@ -18,14 +18,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUpdateShowcaseReviewStatusMutation } from "@/lib/redux/services/admin/showcaseReviewApi";
 import type { ShowcaseReviewStatus } from "@/lib/validations/showcase";
 
-/**
- * Confirms one review decision — `PATCH /admin/showcases/{id}/review-status`.
- *
- * Approving publishes the submission, so it is confirmed rather than fired
- * from a bare click. Rejecting demands a reason: it is the only thing the
- * author is shown, and the proxy refuses a `REJECTED` body without one.
- */
-
 const MAX_REASON = 2000;
 
 interface ShowcaseDecisionDialogProps {
@@ -49,9 +41,6 @@ export function ShowcaseDecisionDialog({
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  /* A fresh reason per opening — a note typed for one submission must never
-     ride along to the next. Adjusted during render rather than in an effect,
-     so the field is already empty on the first paint. */
   const [opened, setOpened] = useState({ isOpen, showcaseId, decision });
   if (
     opened.isOpen !== isOpen ||
@@ -197,7 +186,6 @@ export function ShowcaseDecisionDialog({
   );
 }
 
-/** Pulls something readable out of an RTK Query error. */
 function messageOf(error: unknown, fallback: string): string {
   if (typeof error === "object" && error !== null && "data" in error) {
     const data = (error as { data?: unknown }).data;

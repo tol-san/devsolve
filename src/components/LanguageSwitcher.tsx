@@ -21,7 +21,6 @@ import {
 } from "@/lib/i18n/config";
 import { useLocale } from "@/lib/i18n/I18nProvider";
 
-/** Mirrors the cookie the proxy reads, so a choice survives a bare-URL visit. */
 const LOCALE_COOKIE = "devsolve.locale";
 
 function rememberLocale(next: Locale) {
@@ -58,12 +57,6 @@ export const FLAGS: Record<Locale, (p: { className?: string }) => React.ReactEle
 
 export { rememberLocale, LOCALE_COOKIE };
 
-
-/**
- * Switches between the site's available languages.
- *
- * Rendered as a compact pill with a dropdown menu displaying language options.
- */
 export function LanguageSwitcher({ className }: { className?: string }) {
   const locale = useLocale();
   const pathname = usePathname();

@@ -4,12 +4,6 @@ import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-/**
- * The page heading. `isEditing` is what the route already knows from its `id`
- * parameter — the screen is reused to edit an existing program, and titling
- * that "Create New Program" told the author they were about to make a second
- * one.
- */
 export function CreateProgramHeader({ isEditing = false }: { isEditing?: boolean }) {
   const title = isEditing ? "Edit Program" : "Create New Program";
 

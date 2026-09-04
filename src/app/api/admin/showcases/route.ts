@@ -10,15 +10,6 @@ import {
 } from "@/lib/api/proxy";
 import { SHOWCASE_REVIEW_STATUSES } from "@/lib/validations/showcase";
 
-/**
- * GET /api/admin/showcases — the moderation queue. One row per submission
- * awaiting a decision, which is either an initial publish or a revision of an
- * already-approved showcase (`submissionType` says which).
- *
- * Role enforcement is the backend's: the token is relayed and a non-admin gets
- * its 403 back unchanged.
- */
-
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

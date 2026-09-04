@@ -9,14 +9,6 @@ import {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * `POST /api/report-drafts/{id}/submit` — file the draft as a real report.
- *
- * The upstream promotes what it already holds, so nothing is sent with it.
- * This is where the draft's relaxed rules end: `reportedSeverity` may be
- * `NONE` on a draft and is refused on a report, so a 400 here is expected
- * and its message is relayed intact for the form to attach to a field.
- */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

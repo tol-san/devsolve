@@ -1,7 +1,6 @@
 import type { DiagramTemplate } from "./types";
 
 export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
-  // ── 1. Conceptual & Domain Maps ──
   {
     id: "concept-ddd",
     name: "DDD Concept & Bounded Contexts",
@@ -150,7 +149,6 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
     ],
   },
 
-  // ── 2. Flowchart & Business Process ──
   {
     id: "flow-checkout",
     name: "User Checkout Flowchart",
@@ -265,7 +263,6 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
     ],
   },
 
-  // ── 3. UML Class Diagram ──
   {
     id: "uml-ecommerce",
     name: "UML Class Architecture",
@@ -367,7 +364,6 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
     ],
   },
 
-  // ── 4. ERD Relational Database Schemas ──
   {
     id: "erd-ecommerce",
     name: "E-Commerce Schema (ERD)",
@@ -653,7 +649,6 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
     ],
   },
 
-  // ── 5. System Architecture ──
   {
     id: "system-architecture",
     name: "System Architecture",
@@ -903,5 +898,4 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
     ],
   },
 ];
-
 

@@ -57,11 +57,6 @@ function formatJoinedDate(joinedAt?: string): string {
   });
 }
 
-/**
- * The owner has no role, and defaulting them to `Member` was not harmless: it
- * read as a demotion in the Role column, and it made the owner look like a rank
- * a manager may act on.
- */
 function formatRole(role?: string | null): MemberRole | null {
   if (role === "MANAGER") return "Manager";
   if (role === "MEMBER") return "Member";
@@ -70,11 +65,6 @@ function formatRole(role?: string | null): MemberRole | null {
   return null;
 }
 
-/**
- * `SUSPENDED` names an invitation nobody has accepted yet rather than a
- * disciplinary state — reading it as anything else showed people who had never
- * arrived as fully active members of the team.
- */
 function formatStatus(
   status?: string,
   invitationPending?: boolean,

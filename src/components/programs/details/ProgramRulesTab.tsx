@@ -5,15 +5,12 @@ import { motion } from "motion/react";
 import { RuleSection, ProgramDetail } from "@/lib/types/programs/types";
 
 interface ProgramRulesTabProps {
-  /* Null on a draft, absent on an older record — both mean "not written yet". */
   rulesOfEngagement?: RuleSection | null;
   exclusions?: RuleSection | null;
-  program?: ProgramDetail; // Fallback in case parent passes program directly!
+  program?: ProgramDetail; 
 }
 
 export const ProgramRulesTab: React.FC<ProgramRulesTabProps> = (props) => {
-  // Debug Log: Check F12 Console in Browser!
-  // console.log("ProgramRulesTab received props:", props);
 
   const rawRulesData = props.rulesOfEngagement ?? props.program?.rulesOfEngagement;
   const rawExclusionsData = props.exclusions ?? props.program?.exclusions;
@@ -73,7 +70,6 @@ export const ProgramRulesTab: React.FC<ProgramRulesTabProps> = (props) => {
       transition={{ duration: 0.2 }}
       className="bg-card rounded-2xl p-6 sm:p-8 ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-8 text-foreground"
     >
-      {/* Rules of Engagement */}
       <div className="space-y-3">
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
           Rules of Engagement
@@ -103,7 +99,6 @@ export const ProgramRulesTab: React.FC<ProgramRulesTabProps> = (props) => {
 
       <hr className="border-border" />
 
-      {/* Exclusions */}
       <div className="space-y-3">
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
           Exclusions

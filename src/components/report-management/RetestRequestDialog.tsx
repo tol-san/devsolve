@@ -39,7 +39,6 @@ type RetestRequestDialogProps = {
   submitterName: string;
   severity: string;
   defaultEndpoint?: string;
-  /** The report's backend state. A retest may only be asked for from `RESOLVED`. */
   reportState?: string;
   onSuccess?: () => void;
 };
@@ -89,13 +88,8 @@ export function RetestRequestDialog({
 
   const [requestRetest, { isLoading }] = useRequestRetestMutation();
 
-  /* The backend allows this only from `RESOLVED`, and answers a 409 naming
-     the actual state otherwise. Saying so before the call is friendlier than
-     letting them write a note and then be refused. */
   const isResolved = !reportState || reportState.toUpperCase() === "RESOLVED";
 
-  /* Kept as the decimal string the API takes. Trimming to two places here
-     matches `NUMERIC(10,2)` upstream, which refuses anything longer. */
   const normalizedBounty = bountyReward.trim().replace(/[^0-9.]/g, "");
   const isBountyValid =
     normalizedBounty === "" ||
@@ -125,10 +119,6 @@ export function RetestRequestDialog({
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      /* The upstream's 409s name the problem exactly — "A retest is already
-         awaiting the researcher", "A final severity is required before
-         requesting a retest", "This program does not offer monetary bounties"
-         — so they are shown as written rather than flattened into one line. */
       toast.error("Retest could not be requested", {
         description: apiErrorMessage(
           error,
@@ -182,7 +172,6 @@ export function RetestRequestDialog({
             </div>
           )}
 
-          {/* Summary Card */}
           <div className="rounded-xl border border-border bg-muted/40 p-3 sm:p-3.5 space-y-1.5 text-xs">
             <p className="font-semibold text-foreground break-words">{reportTitle}</p>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
@@ -192,7 +181,6 @@ export function RetestRequestDialog({
             </div>
           </div>
 
-          {/* Environment & Bonus Bounty Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
             <div className="space-y-1.5 flex flex-col justify-between">
               <div className="space-y-1.5">
@@ -256,7 +244,6 @@ export function RetestRequestDialog({
                 />
               </div>
 
-              {/* Quick Bonus Suggestion Chips */}
               <div className="flex flex-wrap items-center gap-1 pt-0.5">
                 <span className="text-[10px] font-medium text-muted-foreground mr-0.5">Quick:</span>
                 {BONUS_SUGGESTIONS.map((sug) => (
@@ -284,7 +271,6 @@ export function RetestRequestDialog({
             </div>
           </div>
 
-          {/* Target Endpoint */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <Globe className="size-3.5 text-muted-foreground" />
@@ -299,7 +285,6 @@ export function RetestRequestDialog({
             />
           </div>
 
-          {/* Retest Instructions */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-foreground">
@@ -318,7 +303,6 @@ export function RetestRequestDialog({
               className="resize-none text-xs border-border bg-background leading-relaxed"
             />
 
-            {/* Smart Templates */}
             <div className="space-y-1.5 pt-0.5">
               <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
                 <Sparkles className="size-3 text-amber-500" />
@@ -340,7 +324,6 @@ export function RetestRequestDialog({
             </div>
           </div>
 
-          {/* Live Preview Toggle */}
           <div className="pt-1">
             <button
               type="button"

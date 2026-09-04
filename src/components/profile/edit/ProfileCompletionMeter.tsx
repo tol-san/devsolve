@@ -131,7 +131,6 @@ export default function ProfileCompletionMeter({
           </p>
         </div>
 
-        {/* Dynamic Progress Bar */}
         <div className="w-full sm:w-56 space-y-1.5">
           <div className="flex justify-between text-xs font-semibold text-muted-foreground">
             <span>Progress</span>
@@ -148,7 +147,6 @@ export default function ProfileCompletionMeter({
         </div>
       </div>
 
-      {/* Quick Suggestions Chips */}
       {pendingTasks.length > 0 && (
         <div className="mt-4 border-t border-border/70 pt-3">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">

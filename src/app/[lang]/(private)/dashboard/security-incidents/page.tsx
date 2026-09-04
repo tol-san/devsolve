@@ -16,10 +16,8 @@ function SecurityIncidentsContent() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Dashboard Page Standard Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="space-y-1">
-          {/* Breadcrumb Navigation */}
           <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             <Link
               href="/dashboard"
@@ -38,7 +36,6 @@ function SecurityIncidentsContent() {
             <span className="text-foreground">Security Incidents</span>
           </div>
 
-          {/* Title & Subtext */}
           <div className="flex items-center gap-2.5 pt-1">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
               <ShieldAlert className="size-5" />
@@ -53,7 +50,6 @@ function SecurityIncidentsContent() {
         </div>
       </header>
 
-      {/* Main Incident Table */}
       <SecurityIncidentsTable scope="admin" />
     </motion.div>
   );

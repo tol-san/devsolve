@@ -12,14 +12,6 @@ import {
 } from "@/components/ui/card";
 import type { CategoryResponse } from "@/lib/redux/services/categoriesApi";
 
-/**
- * The four figures at the top of category management, in the same shape as the
- * users dashboard's cards: a neutral icon chip and one number.
- *
- * Categories arrive as a plain array rather than a page, so every figure is a
- * count of the whole set — there is no "of the current page" caveat here.
- */
-
 export function CategoryStatCards({
   categories,
 }: {

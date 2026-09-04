@@ -56,12 +56,10 @@ export function ReportQuickViewModal({
   const [copiedId, setCopiedId] = useState(false);
   const [copiedEndpoint, setCopiedEndpoint] = useState(false);
 
-  // Lazy fetch richer report detail when the modal is open
   const { data: reportDetail } = useGetReportByIdQuery(report?.id || "", {
     skip: !report?.id,
   });
 
-  // Handle ESC key to close modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -98,7 +96,6 @@ export function ReportQuickViewModal({
     router.push(`/dashboard/my-reports/${report.id}`);
   };
 
-  // Severity Accent Theme
   const getSeverityAccent = (sev: string | null | undefined) => {
     switch ((sev || "MEDIUM").toUpperCase()) {
       case "CRITICAL":
@@ -131,7 +128,6 @@ export function ReportQuickViewModal({
 
   const severityAccent = getSeverityAccent(report.severity);
 
-  // Status Stepper Stages
   const getLifecycleStage = (status: string) => {
     switch (status) {
       case "SUBMITTED":
@@ -172,7 +168,6 @@ export function ReportQuickViewModal({
           onClick={(e) => e.stopPropagation()}
           className="relative bg-card text-card-foreground rounded-2xl sm:rounded-3xl max-w-2xl w-full shadow-2xl ring-1 ring-foreground/10 border border-border/80 overflow-hidden flex flex-col max-h-[92vh] my-auto"
         >
-          {/* Top Accent Gradient Bar */}
           <div
             className={cn(
               "h-1.5 w-full bg-gradient-to-r",
@@ -182,9 +177,7 @@ export function ReportQuickViewModal({
             )}
           />
 
-          {/* Modal Header */}
           <div className="p-5 sm:p-6 pb-4 border-b border-border bg-muted/25 space-y-3.5">
-            {/* Top Row: ID Badge + Badges + Close Button */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-wrap min-w-0">
                 <button
@@ -259,12 +252,10 @@ export function ReportQuickViewModal({
               </Button>
             </div>
 
-            {/* Title */}
             <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight leading-snug">
               {report.title}
             </h2>
 
-            {/* Program & Metadata Row */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Avatar className="size-6 rounded-lg bg-primary/10 text-primary font-bold text-xs ring-1 ring-primary/20">
@@ -299,9 +290,7 @@ export function ReportQuickViewModal({
             </div>
           </div>
 
-          {/* Modal Scrollable Body */}
           <div className="p-5 sm:p-6 space-y-5 overflow-y-auto">
-            {/* Retest Action Banner (When Retesting is active) */}
             {isRetesting && (
               <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent p-4 sm:p-4.5 space-y-3 shadow-xs">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -329,7 +318,6 @@ export function ReportQuickViewModal({
                   )}
                 </div>
 
-                {/* Retest Bonus & Endpoint Info */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
                   {Number(latestRetest?.bountyReward) > 0 && (
                     <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-200 font-semibold text-xs">
@@ -347,7 +335,6 @@ export function ReportQuickViewModal({
               </div>
             )}
 
-            {/* Lifecycle Progress Pipeline */}
             <div className="p-4 rounded-2xl bg-muted/30 border border-border/70 space-y-2.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[11px]">
@@ -358,7 +345,6 @@ export function ReportQuickViewModal({
                 </span>
               </div>
 
-              {/* Progress Steps Visual */}
               <div className="grid grid-cols-4 gap-2 relative">
                 {steps.map((step) => {
                   const isCompleted = step.number < currentStage || (step.number === 4 && report.status === "RESOLVED");
@@ -369,7 +355,6 @@ export function ReportQuickViewModal({
                       key={step.number}
                       className="flex flex-col items-center text-center space-y-1.5"
                     >
-                      {/* Step Indicator Dot / Icon */}
                       <div
                         className={cn(
                           "size-7 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-200 border",
@@ -387,7 +372,6 @@ export function ReportQuickViewModal({
                         )}
                       </div>
 
-                      {/* Step Labels */}
                       <div className="space-y-0.5">
                         <span
                           className={cn(
@@ -411,9 +395,7 @@ export function ReportQuickViewModal({
               </div>
             </div>
 
-            {/* 4 Glassmorphism Key Stat Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {/* Severity Card */}
               <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-2 hover:border-border transition-colors">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -428,7 +410,6 @@ export function ReportQuickViewModal({
                 </div>
               </div>
 
-              {/* Status Card */}
               <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-2 hover:border-border transition-colors">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -443,7 +424,6 @@ export function ReportQuickViewModal({
                 </div>
               </div>
 
-              {/* Reward Card */}
               <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-2 hover:border-border transition-colors">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -467,7 +447,6 @@ export function ReportQuickViewModal({
                 </div>
               </div>
 
-              {/* Scope & Program Type Card */}
               <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-2 hover:border-border transition-colors">
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -485,7 +464,6 @@ export function ReportQuickViewModal({
               </div>
             </div>
 
-            {/* Target Endpoint Preview (If available) */}
             {reportDetail?.targetEndpoint && (
               <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
@@ -517,7 +495,6 @@ export function ReportQuickViewModal({
               </div>
             )}
 
-            {/* Weakness & Vulnerability Summary Preview */}
             {(reportDetail?.weakness || reportDetail?.description) && (
               <div className="p-4 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-2.5">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -551,7 +528,6 @@ export function ReportQuickViewModal({
               </div>
             )}
 
-            {/* Activity Metadata Footer Strip */}
             <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/70 flex items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2 text-muted-foreground min-w-0">
                 <Clock className="size-4 text-primary shrink-0" />
@@ -569,7 +545,6 @@ export function ReportQuickViewModal({
             </div>
           </div>
 
-          {/* Modal Action Footer */}
           <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-t border-border bg-muted/20">
             <button
               type="button"

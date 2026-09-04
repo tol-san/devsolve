@@ -2,13 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import * as z from "zod";
 import { registerCompanyRequestSchema } from "@/lib/validations/auth";
 
-/**
- * POST /api/organizations/register — proxy for the backend's POST /api/v1/organizations/register.
- *
- * Company registration runs server-side rather than straight from the browser so the
- * backend origin (and any future service credentials) never reach the client directly.
- */
-
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
 export async function POST(request: NextRequest) {

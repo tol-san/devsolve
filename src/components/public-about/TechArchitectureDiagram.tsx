@@ -175,7 +175,6 @@ export function TechArchitectureDiagram() {
 
   return (
     <div className="relative w-full overflow-hidden rounded-3xl border border-border bg-card shadow-2xl backdrop-blur-xl">
-      {/* ─── Header Toolbar ─── */}
       <div className="flex flex-col gap-4 border-b border-border/80 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div>
           <div className="flex items-center gap-2">
@@ -189,7 +188,6 @@ export function TechArchitectureDiagram() {
           </h3>
         </div>
 
-        {/* Filter Controls */}
         <div className="flex flex-wrap items-center gap-1.5 rounded-2xl bg-muted/60 p-1 border border-border/60">
           {[
             { id: "all", label: "Full Architecture" },
@@ -212,23 +210,18 @@ export function TechArchitectureDiagram() {
         </div>
       </div>
 
-      {/* ─── Main Interactive Canvas & Inspector ─── */}
       <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-12 lg:gap-8 lg:p-8 items-center">
-        {/* Isometric SVG Canvas */}
         <div className="relative lg:col-span-8 flex items-center justify-center min-h-[460px] sm:min-h-[520px] rounded-2xl bg-[#0c1322] overflow-hidden border border-white/10 shadow-inner">
-          {/* Ambient Lighting Gradient inside SVG container */}
           <div className="pointer-events-none absolute -top-20 -left-20 size-72 rounded-full bg-blue-500/20 blur-[100px]" />
           <div className="pointer-events-none absolute -bottom-20 -right-20 size-80 rounded-full bg-teal-500/20 blur-[120px]" />
           <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-96 rounded-full bg-indigo-500/10 blur-[140px]" />
 
-          {/* SVG Isometric Graphic */}
           <svg
             viewBox="0 0 1060 620"
             className="w-full h-full max-h-[580px] select-none"
             preserveAspectRatio="xMidYMid meet"
           >
             <defs>
-              {/* Circuit Glow Filter */}
               <filter id="circuit-glow" x="-20%" y="-20%" width="140%" height="140%">
                 <feGaussianBlur stdDeviation="3.5" result="blur" />
                 <feMerge>
@@ -237,7 +230,6 @@ export function TechArchitectureDiagram() {
                 </feMerge>
               </filter>
 
-              {/* Linear Gradients for isometric faces */}
               <linearGradient id="core-top" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
                 <stop offset="100%" stopColor="#0284c7" stopOpacity="0.9" />
@@ -259,9 +251,7 @@ export function TechArchitectureDiagram() {
               </linearGradient>
             </defs>
 
-            {/* ─── ISOMETRIC CIRCUIT BUS / DATA PATHS ─── */}
             <g className="circuit-traces" strokeLinecap="round" strokeLinejoin="round">
-              {/* Bus from Next.js to Proxy */}
               <path
                 d="M 235 300 L 290 330 L 330 350"
                 fill="none"
@@ -272,7 +262,6 @@ export function TechArchitectureDiagram() {
                 filter="url(#circuit-glow)"
               />
 
-              {/* Bus from Proxy to Spring Boot Core */}
               <path
                 d="M 440 395 L 510 350 L 580 310"
                 fill="none"
@@ -282,7 +271,6 @@ export function TechArchitectureDiagram() {
                 filter="url(#circuit-glow)"
               />
 
-              {/* Bus from Portal (Keycloak) to Proxy & Core */}
               <path
                 d="M 230 460 L 230 390 L 330 360"
                 fill="none"
@@ -293,7 +281,6 @@ export function TechArchitectureDiagram() {
                 filter="url(#circuit-glow)"
               />
 
-              {/* Bus from Core to PostgreSQL */}
               <path
                 d="M 680 260 L 760 210 L 890 180"
                 fill="none"
@@ -303,7 +290,6 @@ export function TechArchitectureDiagram() {
                 filter="url(#circuit-glow)"
               />
 
-              {/* Bus from Core to Redis */}
               <path
                 d="M 540 240 L 460 200 L 410 210"
                 fill="none"
@@ -313,7 +299,6 @@ export function TechArchitectureDiagram() {
                 opacity="0.8"
               />
 
-              {/* Bus from Redis to MinIO Storage */}
               <path
                 d="M 410 170 L 410 110 L 440 100"
                 fill="none"
@@ -322,7 +307,6 @@ export function TechArchitectureDiagram() {
                 opacity="0.75"
               />
 
-              {/* Bus from Core to Cloudflare */}
               <path
                 d="M 620 340 L 680 380 L 760 410"
                 fill="none"
@@ -332,7 +316,6 @@ export function TechArchitectureDiagram() {
                 filter="url(#circuit-glow)"
               />
 
-              {/* Bus from Core to Meilisearch */}
               <path
                 d="M 650 250 L 720 220 L 760 190"
                 fill="none"
@@ -343,41 +326,32 @@ export function TechArchitectureDiagram() {
               />
             </g>
 
-            {/* ─── ISOMETRIC 3D OBJECTS ─── */}
-
-            {/* 1. FRONTEND APP SLAB (NEXT.JS) */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("nextjs")}
               onMouseEnter={() => setHoveredNodeId("nextjs")}
               onMouseLeave={() => setHoveredNodeId(null)}
             >
-              {/* Base Platform */}
               <polygon points="120,270 200,230 260,260 180,300" fill="#1e293b" />
               <polygon points="120,270 180,300 180,315 120,285" fill="#0f172a" />
               <polygon points="260,260 180,300 180,315 260,275" fill="#1e3a8a" />
-              {/* Floating Holographic Glass Cube */}
               <polygon points="140,240 190,210 230,230 180,260" fill="url(#core-top)" opacity="0.6" />
               <polygon points="140,240 180,260 180,285 140,265" fill="#0284c7" opacity="0.8" />
               <polygon points="230,230 180,260 180,285 230,255" fill="#38bdf8" opacity="0.7" />
-              {/* Glow Badge Label */}
               <text x="180" y="335" fill="#93c5fd" fontSize="13" fontWeight="bold" textAnchor="middle">
                 Next.js Client
               </text>
             </g>
 
-            {/* 2. REVERSE PROXY & GATEWAY CHASSIS */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("proxy")}
               onMouseEnter={() => setHoveredNodeId("proxy")}
               onMouseLeave={() => setHoveredNodeId(null)}
             >
-              {/* Isometric Server Rack Chassis */}
               <polygon points="280,380 430,300 520,350 370,430" fill="#e2e8f0" />
               <polygon points="280,380 370,430 370,470 280,420" fill="#0284c7" />
               <polygon points="520,350 370,430 370,470 520,390" fill="#0f172a" />
-              {/* Vents / LED matrix */}
               <circle cx="300" cy="405" r="2.5" fill="#38ef7d" />
               <circle cx="310" cy="410" r="2.5" fill="#38ef7d" />
               <circle cx="320" cy="415" r="2.5" fill="#38bdf8" />
@@ -386,38 +360,31 @@ export function TechArchitectureDiagram() {
               </text>
             </g>
 
-            {/* 3. CORE MICROSERVICES ENGINE (SPRING BOOT) */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("spring")}
               onMouseEnter={() => setHoveredNodeId("spring")}
               onMouseLeave={() => setHoveredNodeId(null)}
             >
-              {/* Layer 1 Base */}
               <polygon points="480,260 620,190 730,250 590,320" fill="#f8fafc" />
               <polygon points="480,260 590,320 590,335 480,275" fill="#0284c7" />
               <polygon points="730,250 590,320 590,335 730,265" fill="#0369a1" />
-              {/* Layer 2 Core CPU Inset */}
               <polygon points="520,255 610,210 680,250 590,295" fill="url(#core-die)" />
-              {/* Internal Pulsing Die */}
               <polygon points="550,250 610,220 650,245 590,275" fill="#ffffff" opacity="0.85" />
               <text x="600" y="355" fill="#6ee7b7" fontSize="14" fontWeight="bold" textAnchor="middle">
                 Spring Boot Core Engine
               </text>
             </g>
 
-            {/* 4. SECURITY & AUTH PORTAL CYLINDER (KEYCLOAK) */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("keycloak")}
               onMouseEnter={() => setHoveredNodeId("keycloak")}
               onMouseLeave={() => setHoveredNodeId(null)}
             >
-              {/* Cylindrical Base Platform */}
               <ellipse cx="230" cy="480" rx="45" ry="20" fill="#0284c7" />
               <ellipse cx="230" cy="470" rx="45" ry="20" fill="#38bdf8" />
               <ellipse cx="230" cy="460" rx="35" ry="15" fill="#0c4a6e" />
-              {/* Holographic Beam */}
               <polygon points="205,460 255,460 245,380 215,380" fill="url(#portal-beam)" />
               <ellipse cx="230" cy="380" rx="15" ry="7" fill="#67e8f9" opacity="0.9" />
               <text x="230" y="525" fill="#c084fc" fontSize="13" fontWeight="bold" textAnchor="middle">
@@ -425,18 +392,15 @@ export function TechArchitectureDiagram() {
               </text>
             </g>
 
-            {/* 5. DATABASE CYLINDER (POSTGRESQL) */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("postgres")}
               onMouseEnter={() => setHoveredNodeId("postgres")}
               onMouseLeave={() => setHoveredNodeId(null)}
             >
-              {/* Cylindrical Stack */}
               <path d="M 870 170 C 870 185, 930 185, 930 170 L 930 190 C 930 205, 870 205, 870 190 Z" fill="#0369a1" />
               <path d="M 870 150 C 870 165, 930 165, 930 150 L 930 170 C 930 185, 870 185, 870 170 Z" fill="#0284c7" />
               <ellipse cx="900" cy="150" rx="30" ry="12" fill="#38bdf8" />
-              {/* Particle Stream */}
               <circle cx="890" cy="125" r="2" fill="#67e8f9" />
               <circle cx="900" cy="120" r="2.5" fill="#38ef7d" />
               <circle cx="910" cy="127" r="2" fill="#67e8f9" />
@@ -446,7 +410,6 @@ export function TechArchitectureDiagram() {
               </text>
             </g>
 
-            {/* 6. REDIS MEMORY QUEUE BLOCKS */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("redis")}
@@ -473,7 +436,6 @@ export function TechArchitectureDiagram() {
               </text>
             </g>
 
-            {/* 7. MINIO S3 OBJECT STORE TOWER */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("minio")}
@@ -488,14 +450,12 @@ export function TechArchitectureDiagram() {
               </text>
             </g>
 
-            {/* 8. CLOUDFLARE EDGE CLOUD CLUSTER */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("cloudflare")}
               onMouseEnter={() => setHoveredNodeId("cloudflare")}
               onMouseLeave={() => setHoveredNodeId(null)}
             >
-              {/* Isometric Cloud Shapes */}
               <g transform="translate(600, 360)">
                 <path
                   d="M 10 30 Q 0 30 0 20 Q 0 10 15 10 Q 25 0 45 5 Q 65 0 75 15 Q 90 15 90 30 Z"
@@ -519,7 +479,6 @@ export function TechArchitectureDiagram() {
               </text>
             </g>
 
-            {/* 9. MEILISEARCH TIERED SEARCH CUBE */}
             <g
               className="cursor-pointer transition-transform duration-300 hover:scale-105"
               onClick={() => setSelectedNodeId("search")}
@@ -535,14 +494,12 @@ export function TechArchitectureDiagram() {
             </g>
           </svg>
 
-          {/* Quick Click / Select Guide Overlay */}
           <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-slate-900/80 px-3.5 py-1.5 text-xs text-slate-300 backdrop-blur-md border border-white/10">
             <Sparkles className="size-3.5 text-cyan-400 animate-pulse" />
             <span>Click any node to inspect architecture layer & specs</span>
           </div>
         </div>
 
-        {/* ─── Inspector Detail Panel ─── */}
         <div className="lg:col-span-4 flex flex-col justify-between h-full space-y-6">
           <AnimatePresence mode="wait">
             <motion.div
@@ -553,7 +510,6 @@ export function TechArchitectureDiagram() {
               transition={{ duration: 0.25 }}
               className="rounded-2xl border border-border bg-card p-6 shadow-lg space-y-5"
             >
-              {/* Header Badge & Title */}
               <div>
                 <div className="flex items-center justify-between gap-2">
                   <span
@@ -578,12 +534,10 @@ export function TechArchitectureDiagram() {
                 </h4>
               </div>
 
-              {/* Description */}
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {activeNode.description}
               </p>
 
-              {/* Specs & Architecture Highlights */}
               <div className="border-t border-border/80 pt-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
                   Technical Specifications
@@ -603,7 +557,6 @@ export function TechArchitectureDiagram() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Quick Node Grid Selector */}
           <div className="rounded-2xl border border-border/60 bg-muted/40 p-4">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
               Components Overview

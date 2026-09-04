@@ -5,17 +5,11 @@ import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
 
 interface WavyRippleBackgroundProps {
   className?: string;
-  /** Primary wave color in CSS format (hex, rgb, etc.) */
   waveColor?: string;
-  /** Background color of the container */
   backgroundColor?: string;
-  /** Animation speed multiplier (default: 1.2) */
   speed?: number;
-  /** Wave ripple frequency (default: 3.5) */
   frequency?: number;
-  /** Thickness scaling/sharpness of the rings (default: 3.5) */
   ringSharpness?: number;
-  /** Maximum opacity of the waves (default: 0.45) */
   maxOpacity?: number;
 }
 
@@ -108,7 +102,6 @@ export default function WavyRippleBackground({
     const container = containerRef.current;
     if (!container) return;
 
-    // Create OGL context
     const renderer = new Renderer({ alpha: true, antialias: true });
     const gl = renderer.gl;
 
@@ -116,11 +109,9 @@ export default function WavyRippleBackground({
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    // Dynamic full viewport geometry
     const geometry = new Triangle(gl);
     if (geometry.attributes.uv) delete geometry.attributes.uv;
 
-    // Create shader program
     const program = new Program(gl, {
       vertex: VERTEX_SHADER,
       fragment: FRAGMENT_SHADER,
@@ -143,7 +134,6 @@ export default function WavyRippleBackground({
     const mesh = new Mesh(gl, { geometry, program });
     container.appendChild(gl.canvas);
 
-    // Handle resizing
     const resize = () => {
       const w = container.offsetWidth;
       const h = container.offsetHeight;

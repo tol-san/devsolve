@@ -20,7 +20,6 @@ const unreachable = () =>
 const badId = () =>
   NextResponse.json({ message: "Invalid weakness id" }, { status: 400 });
 
-/** `PATCH /api/admin/weaknesses/{id}` — every field optional upstream. */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -63,13 +62,6 @@ export async function PATCH(
   }
 }
 
-/**
- * `DELETE /api/admin/weaknesses/{id}`.
- *
- * Reports reference a weakness by id, so removing one that is already cited
- * is the upstream's call to allow or refuse — whatever it answers is relayed
- * rather than second-guessed here.
- */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

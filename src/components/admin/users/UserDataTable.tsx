@@ -101,10 +101,8 @@ export function UserDataTable<TData, TValue>({
     },
   });
 
-
   return (
     <div className="flex flex-col gap-4">
-      {/* Table Container */}
       <div className="bg-card text-card-foreground rounded-2xl border border-border overflow-hidden shadow-xs">
         <Table>
           <TableHeader>
@@ -180,7 +178,6 @@ export function UserDataTable<TData, TValue>({
           </TableBody>
         </Table>
 
-        {/* Pagination Footer */}
         {data.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-muted/40 border-t border-border">
             <div className="flex flex-wrap items-center gap-4">

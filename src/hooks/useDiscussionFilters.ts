@@ -25,8 +25,6 @@ export function useDiscussionFilters(defaultCategory: DiscussionCategory = "All"
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
 
-  // `searchInput` drives the text field (instant); `searchQuery` drives the
-  // query (debounced) so typing doesn't fire a request per keystroke.
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -40,7 +38,6 @@ export function useDiscussionFilters(defaultCategory: DiscussionCategory = "All"
     return () => clearTimeout(timeout);
   }, [searchInput, searchQuery]);
 
-  // Any filter change returns to the first page.
   const handleSetCategory = useCallback((value: DiscussionCategory) => {
     setCategory(value);
     setPage(1);
@@ -112,7 +109,6 @@ export function useDiscussionFilters(defaultCategory: DiscussionCategory = "All"
     searchQuery !== "";
 
   return {
-    // Filter state
     category,
     topic,
     tag,
@@ -122,7 +118,6 @@ export function useDiscussionFilters(defaultCategory: DiscussionCategory = "All"
     page,
     limit,
     hasActiveFilters,
-    // Filter handlers
     setCategory: handleSetCategory,
     setTopic: handleSetTopic,
     setTag: handleSetTag,
@@ -132,7 +127,6 @@ export function useDiscussionFilters(defaultCategory: DiscussionCategory = "All"
     setPage,
     setLimit: handleSetLimit,
     resetFilters: handleResetFilters,
-    // Query results
     discussionsResult,
     topicsResult,
     tagsResult,

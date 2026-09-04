@@ -37,13 +37,6 @@ import type {
 } from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 
-/**
- * Where a permission actually takes you.
- *
- * Only screens that exist and that the permission genuinely governs — a member
- * sent to a screen their permissions do not cover would meet a 403 the backend
- * is right to give them, and this page would have been the one that lied.
- */
 const DESTINATIONS: {
   permissions: OrganizationInvitationPermission[];
   href: string;
@@ -125,18 +118,6 @@ function roleCopy(role: OrganizationInvitationRole | undefined) {
   };
 }
 
-/**
- * The organization this account was invited into, from the member's side.
- *
- * The company's own screens — Team Management, Organization — sit on owner-only
- * endpoints, so someone who accepted an invitation joined a team and then had
- * nowhere in the app that said so. This is that place, and it answers three
- * questions in the order they get asked: which organization am I on, what am I
- * allowed to do there, and where does that let me go.
- *
- * It cannot list teammates: the roster is `/organizations/me/members`, which
- * belongs to the owner.
- */
 export function MyTeamView() {
   const lp = useLocalePath();
   const {
@@ -189,8 +170,6 @@ export function MyTeamView() {
         </p>
       </header>
 
-      {/* Which organization, and what am I on it — one card, because the two
-          answers are read together and used to be split across three. */}
       <section className="overflow-hidden rounded-2xl border border-border bg-card">
         <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="flex min-w-0 items-center gap-4">
@@ -233,8 +212,6 @@ export function MyTeamView() {
             </div>
           </div>
 
-          {/* The role, given the weight it deserves: it answers "what am I
-              here", and it was a badge in a card of its own before. */}
           <div className="shrink-0 rounded-xl bg-muted/60 px-4 py-3 sm:text-right">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               Your role
@@ -258,7 +235,6 @@ export function MyTeamView() {
         ) : null}
       </section>
 
-      {/* Where those permissions lead */}
       {open.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-base font-bold tracking-tight text-foreground">
@@ -302,9 +278,6 @@ export function MyTeamView() {
         </section>
       ) : null}
 
-      {/* Every permission, held or not — the question this page gets asked is
-          usually "why can't I see X?", and a list of only what you have cannot
-          answer it. */}
       <section className="space-y-3">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <h2 className="text-base font-bold tracking-tight text-foreground">
@@ -370,8 +343,6 @@ export function MyTeamView() {
         </ul>
       </section>
 
-      {/* An account can be on more than one. The workspace shows the first, so
-          naming the rest is the difference between "incomplete" and "wrong". */}
       {others.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-base font-bold tracking-tight text-foreground">
@@ -457,7 +428,6 @@ function OtherMembership({
   );
 }
 
-/** Shaped like the page it stands in for. */
 function MyTeamSkeleton() {
   return (
     <div
@@ -476,10 +446,6 @@ function MyTeamSkeleton() {
   );
 }
 
-/**
- * For everyone who is not on a team — which is most accounts, and is not a
- * failure. The way onto one is an invitation, so that is where this points.
- */
 function NotOnATeam() {
   const lp = useLocalePath();
 

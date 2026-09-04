@@ -2,8 +2,6 @@
 
 import React from "react";
 import { useFormContext } from "react-hook-form";
-// lucide-react v1 dropped its brand icons, so the repo link borrows the
-// generic VCS glyph the landing page already uses for source.
 import { GitBranch, Globe, Video } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -37,11 +35,6 @@ const LINKS: LinkField[] = [
   },
 ];
 
-/**
- * The three first-class project links. Each one echoes the host it resolved
- * to, which is how a typo like `guthub.com` becomes visible before publish —
- * the scheme is added at validation time, so what you see is what is stored.
- */
 export function ProjectLinksField() {
   const {
     register,

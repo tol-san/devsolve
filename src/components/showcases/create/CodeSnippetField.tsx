@@ -22,7 +22,6 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ),
 });
 
-/** Monaco's language ids — the label is what the author picks from. */
 export const CODE_LANGUAGES = [
   { id: "typescript", label: "TypeScript" },
   { id: "javascript", label: "JavaScript" },

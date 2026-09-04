@@ -16,7 +16,6 @@ export type ActionSwapButtonVariant = "primary" | "secondary" | "outline" | "gho
 export type ActionSwapButtonSize = "sm" | "md" | "lg" | "icon";
 export type ActionSwapAnimation = "blur" | "roll" | "cascade";
 
-/** Animations with a single-element variant set (cascade animates per letter). */
 type CoreAnimation = "blur" | "roll";
 
 export interface ActionSwapButtonProps extends Omit<
@@ -54,10 +53,6 @@ const ROLL_EXIT_TRANSITION = { duration: 0.14, ease: EASE_OUT } as const;
 const SWAP_BLUR = "blur(8px)";
 const ROLL_BLUR = "blur(3px)";
 
-// Cascade rolls the label one letter at a time, left to right. The leaving
-// and landing strings overlap as independent layers (no shared cells), so
-// proportional glyph widths never jitter. Exits cascade at half the enter
-// stagger so the tail of the old label lingers briefly.
 const CASCADE_STAGGER = 0.025;
 
 const CASCADE_LETTER_VARIANTS: Variants = {
@@ -172,8 +167,6 @@ export function ActionSwapText({
     setWidth((currentWidth) => (currentWidth === nextWidth ? currentWidth : nextWidth));
   });
 
-  // Cascade needs a plain string to split into letters; non-string content
-  // and reduced motion fall back to the closest single-element animation.
   const label = typeof children === "string" ? children : null;
   const cascade = animation === "cascade" && label !== null && !reduce;
   const coreAnimation: CoreAnimation =
@@ -196,7 +189,6 @@ export function ActionSwapText({
       </span>
       {cascade ? (
         <>
-          {/* Letters are decorative fragments; readers get the whole label. */}
           <span className="sr-only">{label}</span>
           <AnimatePresence initial={false}>
             <motion.span
@@ -209,7 +201,6 @@ export function ActionSwapText({
             >
               {label.split("").map((char, i) => (
                 <motion.span
-                  // biome-ignore lint/suspicious/noArrayIndexKey: position is the slot identity — the letter at a position is exactly what rolls.
                   key={i}
                   custom={i * CASCADE_STAGGER}
                   variants={CASCADE_LETTER_VARIANTS}
@@ -246,7 +237,6 @@ export function ActionSwapIcon({
   className,
 }: ActionSwapIconProps) {
   const reduce = useReducedMotion();
-  // Icons are single elements — cascade maps to its closest motion, roll.
   const coreAnimation: CoreAnimation =
     animation === "cascade" ? "roll" : animation;
 

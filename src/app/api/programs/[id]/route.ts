@@ -88,7 +88,6 @@ export async function GET(
         upstream = fallbackUpstream;
       } else {
         if (idIsUuid && token) {
-          // 1. Try company organization program detail endpoint first (full ProgramDetail object)
           const orgMeUpstream = await fetch(
             `${BACKEND_API_URL}/organizations/me/programs/${id}`,
             {
@@ -104,7 +103,6 @@ export async function GET(
           if (orgMeUpstream.ok) {
             upstream = orgMeUpstream;
           } else {
-            // 2. Try admin program detail endpoint
             const adminUpstream = await fetch(
               `${BACKEND_API_URL}/admin/programs/${id}`,
               {
@@ -122,7 +120,6 @@ export async function GET(
           }
         }
 
-        // 3. Fallback to public/summary list lookup if detailed endpoints failed
         if (!upstream.ok) {
           const publicSearchRes = await fetch(
             `${BACKEND_API_URL}/programs?size=100`,

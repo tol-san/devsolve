@@ -17,11 +17,6 @@ export type ManagedReport = {
   type: ReportType;
   status: ReportStatus;
   severity: ReportSeverity | null;
-  /**
-   * What the researcher claimed, and what triage decided — kept apart.
-   * `severity` is the agreed rating (null while disputed);
-   * it cannot answer whether the two sides agree.
-   */
   reportedSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
   triageSeverity?: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null;
   cvssScore?: number | null;
@@ -65,15 +60,8 @@ export type ReportManagementDetail = {
   settledSeverity?: string | null;
   hasSeverityDisagreement?: boolean;
   dispute?: import("@/lib/types/reports/types").DisputeDetail | null;
-  /**
-   * What resolving this report paid, for the review log.
-   *
-   * Awarded once and never recomputed, so these are the record of what
-   * actually happened rather than something derivable from `severity`.
-   */
   reputationPoints?: number | null;
   reputationAwardedAt?: string | null;
-  /** Money the organization paid, itemised. Separate from the reputation. */
   rewards?: { amount: number; note?: string; awardedAt?: string }[];
   weaknessObj?: import("@/lib/types/reports/types").WeaknessSummary | null;
   suggestedWeakness?: string | null;

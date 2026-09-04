@@ -24,7 +24,6 @@ export const SubmitReportFooterNav: React.FC<SubmitReportFooterNavProps> = ({
 
   return (
     <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
-      {/* Back Button */}
       <Button
         type="button"
         variant="outline"
@@ -36,7 +35,6 @@ export const SubmitReportFooterNav: React.FC<SubmitReportFooterNavProps> = ({
         <span>Back</span>
       </Button>
 
-      {/* Progress Dots Indicator */}
       <div className="flex items-center gap-1.5">
         {[1, 2, 3, 4, 5].map((step) => {
           if (step < currentStep) {
@@ -55,7 +53,6 @@ export const SubmitReportFooterNav: React.FC<SubmitReportFooterNavProps> = ({
         })}
       </div>
 
-      {/* Next/Continue Button */}
       <Button
         type="button"
         disabled={isNextDisabled}
@@ -68,5 +65,4 @@ export const SubmitReportFooterNav: React.FC<SubmitReportFooterNavProps> = ({
     </div>
   );
 };
-
 

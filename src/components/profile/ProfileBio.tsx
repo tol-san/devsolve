@@ -32,12 +32,6 @@ function formatDateOfBirth(iso: string) {
   });
 }
 
-// The edit form asks for full URLs (e.g. "https://github.com/username" — see
-// the editor's placeholders), so social links are stored that way. Build the
-// href straight from the stored value instead of re-prefixing a domain onto
-// it, which previously produced broken/duplicated URLs like
-// "github.com/https://github.com/handle" whenever a user followed the form's
-// own placeholder guidance.
 function toHref(value: string): string {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
@@ -46,11 +40,6 @@ function displayUrl(value: string): string {
   return value.replace(/^https?:\/\//i, "").replace(/\/$/, "");
 }
 
-/**
- * Label above value on phones, beside it from `sm` up. A fixed 112px label
- * column left roughly 160px for the value on a 320px screen, which a GitHub
- * URL blows straight through.
- */
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:gap-4">
@@ -101,9 +90,6 @@ export default function ProfileBio({ profile }: ProfileBioProps) {
             {location && (
               <Row label="Country:">
                 <MapPin className={iconClass} />
-                {/* `location` is the profile's `country` field. Usually an ISO
-                    code now; older profiles hold free text, which renders as
-                    written without a flag. */}
                 <CountryDisplay value={location} className="min-w-0" />
               </Row>
             )}
@@ -185,7 +171,6 @@ export default function ProfileBio({ profile }: ProfileBioProps) {
 
           <Row label="Community:">
             <Users className={iconClass} />
-            {/* Wraps rather than truncates — both counts have to stay tappable */}
             <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
               <Link
                 href={`/dashboard/profile/${username}/followers`}
@@ -223,7 +208,6 @@ export default function ProfileBio({ profile }: ProfileBioProps) {
             <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400">
               About
             </p>
-            {/* Wrapping mid-word so an unbroken string can't widen the page */}
             <p className="text-sm leading-relaxed text-slate-700 wrap-break-word dark:text-neutral-300">
               {bio}
             </p>

@@ -72,7 +72,6 @@ export function UserRegisterForm() {
     },
   });
 
-  /* Prefills the picker with a guess. The stored value is the ISO code. */
   const handleCountryDetect = useCallback(
     (code: string) => {
       setValue("country", code, { shouldValidate: true });
@@ -114,7 +113,6 @@ export function UserRegisterForm() {
 
   return (
     <div className="w-full max-w-xl lg:max-w-2xl mx-auto my-auto flex flex-col justify-center">
-      {/* ── Main Title Header ── */}
       <div className="mb-6 text-center sm:text-left">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-foreground">
           {t("auth.userRegister.title")}
@@ -124,9 +122,7 @@ export function UserRegisterForm() {
         </p>
       </div>
 
-      {/* ── Social Sign In Buttons (Google & GitHub) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
-        {/* Google */}
         <Button
           type="button"
           onClick={() => handleSocialSignIn("google")}
@@ -158,7 +154,6 @@ export function UserRegisterForm() {
           <span>Google</span>
         </Button>
 
-        {/* GitHub */}
         <Button
           type="button"
           onClick={() => handleSocialSignIn("github")}
@@ -180,7 +175,6 @@ export function UserRegisterForm() {
         </Button>
       </div>
 
-      {/* ── Divider ── */}
       <div className="relative mb-6 flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-slate-200 dark:border-border/60" />
@@ -190,7 +184,6 @@ export function UserRegisterForm() {
         </span>
       </div>
 
-      {/* ── API Error Banner ── */}
       {apiError && (
         <div className="mb-5 flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-xs sm:text-sm text-destructive font-medium shadow-xs">
           <AlertCircle className="size-5 shrink-0 mt-0.5" />
@@ -198,9 +191,7 @@ export function UserRegisterForm() {
         </div>
       )}
 
-      {/* ── Registration Form ── */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Username */}
         <div>
           <Label
             htmlFor="username"
@@ -234,7 +225,6 @@ export function UserRegisterForm() {
           )}
         </div>
 
-        {/* First & Last Name */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label
@@ -303,7 +293,6 @@ export function UserRegisterForm() {
           </div>
         </div>
 
-        {/* Email & Phone */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label
@@ -361,7 +350,6 @@ export function UserRegisterForm() {
           </div>
         </div>
 
-        {/* Country Selector */}
         <div>
           <Label
             htmlFor="country"
@@ -377,18 +365,12 @@ export function UserRegisterForm() {
               setValue("country", code, { shouldValidate: true })
             }
           />
-          {/* This endpoint has nowhere to put it: the backend's RegisterRequest
-              carries no country, and the direct-Keycloak fallback's profile
-              INSERT has no country column either. Saying so beats a field that
-              looks saved and is not. */}
           <p className="mt-1.5 text-xs text-slate-500 dark:text-muted-foreground">
             {t("auth.userRegister.countryHint")}
           </p>
         </div>
 
-        {/* Password & Confirm Password */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Password */}
           <div>
             <Label
               htmlFor="password"
@@ -439,7 +421,6 @@ export function UserRegisterForm() {
             <PasswordStrengthMeter password={password} />
           </div>
 
-          {/* Confirm Password */}
           <div>
             <Label
               htmlFor="confirmPassword"
@@ -490,12 +471,10 @@ export function UserRegisterForm() {
           </div>
         </div>
 
-        {/* Requirements Hint */}
         <p className="text-xs text-slate-500 dark:text-muted-foreground leading-relaxed">
           {t("auth.userRegister.passwordRequirement")}
         </p>
 
-        {/* Terms Agreement Checkbox */}
         <div className="pt-2">
           <label className="flex items-start gap-2.5 cursor-pointer select-none">
             <input
@@ -528,7 +507,6 @@ export function UserRegisterForm() {
           )}
         </div>
 
-        {/* Submit Button */}
         <Button
           type="submit"
           disabled={isSubmitting || isApiLoading}
@@ -548,7 +526,6 @@ export function UserRegisterForm() {
         </Button>
       </form>
 
-      {/* ── Footer Link ── */}
       <p className="mt-6 text-center text-sm font-medium text-slate-600 dark:text-muted-foreground">
         {t("auth.common.alreadyHaveAccount")}{" "}
         <Link

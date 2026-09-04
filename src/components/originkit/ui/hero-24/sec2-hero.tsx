@@ -1,4 +1,3 @@
-// Delivered by Originkit · stack: nextjs · styling: tailwind
 "use client";
 
 "use client";
@@ -10,19 +9,9 @@ import SectionBackdrop from "@/components/landing/SectionBackdrop";
 import { PillarOrbit } from "@/components/landing/PillarOrbit";
 import { ScaleFrame } from "@/components/originkit/ui/hero-24/scale-frame";
 
-
-/** Entrance stagger — `hero-reveal` (hero-24.css) fades + lifts, and collapses
- *  to a plain fade under prefers-reduced-motion. */
 const REVEAL = "animate-hero-reveal";
 const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
 
-/** The DevSolve mark, sitting at the centre of the globe. It centres itself on
- *  its parent, so callers pass only a size; the parent is the globe's own
- *  clipped circle, which is already the right anchor.
- *
- *  A soft scrim sits behind it: over a field of dots a wordmark loses its
- *  counters, and a blurred disc of the page's own colour lifts it clear
- *  without reading as a plate. */
 const Wordmark = ({ className, step }: { className: string; step: number }) => {
   return (
     <div
@@ -45,9 +34,6 @@ const Wordmark = ({ className, step }: { className: string; step: number }) => {
   );
 };
 
-/** Corner brackets around the accent word — drawn as four L-shaped rules in
- *  the primary, so the two brand colours meet on the one word that carries the
- *  promise. Purely decorative, hence aria-hidden on the marks themselves. */
 const Reticle = ({ children }: { children: ReactNode }) => (
   <span className="relative inline-block px-[0.16em] text-[#10B981]">
     {children}
@@ -78,9 +64,6 @@ const GetStartedButton = ({ className }: { className: string }) => (
   </Link>
 );
 
-/** The "glass" is a 301×166 plate of 10% white with a 2px backdrop-blur, the
- *  whole plate blurred by 20px and clipped by the card — offset exactly as in
- *  Figma, which is what gives each card its uneven, lit-from-one-side look. */
 const GlassCard = ({
   className,
   plate,
@@ -111,7 +94,6 @@ const GlassCard = ({
 const PhoneFrame = () => (
   <div className="relative h-[880px] w-[402px] overflow-clip">
 
-    {/* copy */}
     <div className="absolute left-1/2 top-[84px] flex w-[366px] -translate-x-1/2 flex-col items-center gap-[24px]">
       <div className="relative flex w-full shrink-0 flex-col items-center gap-[8px] text-center text-[#1E293B] dark:text-white">
         <h1
@@ -150,13 +132,11 @@ const PhoneFrame = () => (
       </div>
     </div>
 
-    {/* the four pillars, anchored to the mark */}
     <div style={delay(320)} className={`${REVEAL} absolute left-[calc(50%+0.5px)] top-[436px] h-[356px] w-[356px] -translate-x-1/2`}>
       <PillarOrbit className="h-full w-full" />
       <Wordmark className="h-[48px] w-[178px]" step={420} />
     </div>
 
-    {/* stat card */}
     <GlassCard
       className="left-[12px] top-[398px] w-[136px] gap-[4px] rounded-[6px] border p-[12px]"
       plate="left-[calc(50%-0.5px)] top-[calc(50%+0.5px)]"
@@ -170,7 +150,6 @@ const PhoneFrame = () => (
       </p>
     </GlassCard>
 
-    {/* testimonial */}
     <GlassCard
       className="left-[calc(50%+4px)] top-[812px] w-[212px] -translate-x-1/2 gap-[12px] rounded-[4.729px] border-[0.788px] p-[12px]"
       plate="left-[calc(50%+25.5px)] top-[calc(50%+4.21px)]"
@@ -187,12 +166,9 @@ const PhoneFrame = () => (
   </div>
 );
 
-/* -------------------------------- tablet ------------------------------- */
-
 const TabletFrame = () => (
   <div className="relative h-[994px] w-[744px] overflow-clip">
 
-    {/* copy */}
     <div className="absolute left-[132px] top-[116px] flex w-[480px] flex-col items-center gap-[28px]">
       <div className="relative flex w-full shrink-0 flex-col items-center gap-[16px] text-center text-[#1E293B] dark:text-white">
         <h1
@@ -231,13 +207,11 @@ const TabletFrame = () => (
       </div>
     </div>
 
-    {/* the four pillars, anchored to the mark */}
     <div style={delay(320)} className={`${REVEAL} absolute left-[162px] top-[408px] h-[420px] w-[420px]`}>
       <PillarOrbit className="h-full w-full" />
       <Wordmark className="h-[62px] w-[230px]" step={420} />
     </div>
 
-    {/* stat card */}
     <GlassCard
       className="left-[24px] top-[520px] w-[169px] gap-[4px] rounded-[6px] border p-[16px]"
       plate="left-1/2 top-1/2"
@@ -251,7 +225,6 @@ const TabletFrame = () => (
       </p>
     </GlassCard>
 
-    {/* testimonial */}
     <GlassCard
       className="left-[498px] top-[640px] w-[224px] gap-[16px] rounded-[6px] border p-[14px]"
       plate="left-[calc(50%-0.5px)] top-1/2"
@@ -268,12 +241,9 @@ const TabletFrame = () => (
   </div>
 );
 
-/* ------------------------------- desktop ------------------------------- */
-
 const DesktopFrame = () => (
   <div className="relative h-[913px] w-[1280px] overflow-clip">
 
-    {/* copy */}
     <div className="absolute left-[380px] top-[134px] flex w-[520px] flex-col items-center gap-[28px]">
       <div className="relative flex w-full shrink-0 flex-col items-center gap-[16px] text-center text-[#1E293B] dark:text-white">
         <h1
@@ -312,13 +282,11 @@ const DesktopFrame = () => (
       </div>
     </div>
 
-    {/* the four pillars, anchored to the mark */}
     <div style={delay(320)} className={`${REVEAL} absolute left-[400px] top-[404px] h-[480px] w-[480px]`}>
       <PillarOrbit className="h-full w-full" />
       <Wordmark className="h-[62px] w-[230px]" step={420} />
     </div>
 
-    {/* stat card */}
     <GlassCard
       className="left-[128px] top-[520px] w-[169px] gap-[4px] rounded-[6px] border p-[16px]"
       plate="left-1/2 top-1/2"
@@ -332,7 +300,6 @@ const DesktopFrame = () => (
       </p>
     </GlassCard>
 
-    {/* testimonial */}
     <GlassCard
       className="left-[912px] top-[606px] w-[246px] gap-[16px] rounded-[6px] border p-[14px]"
       plate="left-[calc(50%-0.5px)] top-1/2"
@@ -350,17 +317,9 @@ const DesktopFrame = () => (
 );
 
 export const Sec2Hero = () => (
-  /* A <section>, not <main> — the page already renders one, and nesting them
-     is invalid. The negative margin cancels the layout's navbar padding so the
-     artwork runs to the top of the window and the nav island floats over it. */
-  /* No font-family of its own: the template pinned everything to Helvetica,
-     which is not the site's face. Body copy now inherits Inter from the
-     layout and only the headline takes the display face. */
   <section className="relative -mt-(--navbar-height) w-full overflow-hidden bg-white dark:bg-neutral-950">
     <SectionBackdrop seed={0} gridSize={88} />
 
-
-    {/* `relative` so the frames stack above the absolutely-positioned backdrop */}
     <ScaleFrame frameWidth={402} className="relative w-full overflow-hidden min-[640px]:hidden">
       <PhoneFrame />
     </ScaleFrame>

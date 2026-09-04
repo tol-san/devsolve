@@ -38,7 +38,6 @@ function initialsOf(name: string) {
   );
 }
 
-/** Renders as a link only when there is somewhere real to go. */
 function Noun({
   href,
   className,
@@ -98,7 +97,6 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
 
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 sm:p-5.5 shadow-xs transition-all duration-200 hover:border-border hover:shadow-md">
-      {/* Severity rail indicator */}
       <span
         aria-hidden
         className={cn(
@@ -109,7 +107,6 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
 
       <div className="grid gap-4 pl-2 sm:grid-cols-[1fr_auto] sm:gap-6 sm:pl-3">
         <div className="min-w-0 space-y-3">
-          {/* Researcher & Action Header */}
           <div className="flex items-start gap-3">
             <Avatar className="mt-0.5 size-10 shrink-0 ring-1 ring-border/80 transition-transform group-hover:scale-105">
               <AvatarImage src={researcher.avatarUrl} alt="" />
@@ -203,7 +200,6 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
                 )}
               </div>
 
-              {/* Researcher metadata pills & timestamp */}
               <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
                 {researcher.username ? (
                   <span className="font-medium text-foreground/80">
@@ -236,7 +232,6 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
             </div>
           </div>
 
-          {/* Finding Title, Disclosure State, or Recognition */}
           {activity.disclosureStatus === "DISCLOSED" && activity.title ? (
             <h3 className="text-base sm:text-lg font-bold leading-snug tracking-tight text-foreground text-pretty transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
               {activity.title}
@@ -254,7 +249,6 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
             </div>
           ) : null}
 
-          {/* Recognition Title & Gratitude Note */}
           {recTitle ? (
             <div className="space-y-2">
               <p className="flex items-center gap-1.5 text-sm sm:text-base font-semibold text-foreground">
@@ -270,7 +264,6 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
             </div>
           ) : null}
 
-          {/* Classification Tags & Metadata */}
           <div className="flex flex-wrap items-center gap-2 pt-0.5">
             <span
               title={
@@ -317,7 +310,6 @@ export function HacktivityCard({ activity }: { activity: HacktivityActivity }) {
           </div>
         </div>
 
-        {/* Reward / Outcome Column */}
         <div className="flex items-center justify-between gap-3 border-t border-border/80 pt-3 sm:min-w-[8.5rem] sm:flex-col sm:items-end sm:justify-center sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
           <Reward reward={reward} eventType={activity.eventType} />
         </div>
@@ -380,7 +372,6 @@ function Reward({
   );
 }
 
-/** Matches the refreshed card geometry */
 export function HacktivityCardSkeleton() {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 sm:p-5.5 shadow-xs">

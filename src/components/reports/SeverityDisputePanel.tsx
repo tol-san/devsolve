@@ -39,17 +39,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
-/** The API refuses a longer case, so it is capped where it is typed. */
 const MAX_REASON = 5000;
 
 type SeverityDisputePanelProps = {
   reportId: string;
   dispute: DisputeDetail | null | undefined;
-  /** What the researcher claimed. */
   reportedSeverity?: string | null;
-  /** What the company decided. */
   triageSeverity?: string | null;
-  /** Whether the viewer is the reporter — only they can answer. */
   isReporter: boolean;
   className?: string;
 };
@@ -82,18 +78,6 @@ function SeverityPair({
   );
 }
 
-/**
- * The severity disagreement, in whichever of its four states it is in.
- *
- * The reporter is asked before an administrator ever sees it: a triage rating
- * that differs from what was reported opens the dispute as
- * `AWAITING_REPORTER`, and only a refusal escalates it. Silence settles it at
- * the triage rating, which is stated plainly rather than framed as a loss —
- * the report is fine either way, only the severity settles.
- *
- * Renders nothing when there is no dispute, which is the normal case: triage
- * agreeing with the reporter settles immediately and leaves nothing to show.
- */
 export function SeverityDisputePanel({
   reportId,
   dispute,
@@ -116,8 +100,6 @@ export function SeverityDisputePanel({
 
   const onError = (error: unknown, fallback: string) => {
     const status = apiErrorStatus(error);
-    /* 404 is deliberate upstream for a caller who is not the reporter — the
-       report's existence is not public, so it is reported as not found. */
     if (status === 404) {
       toast.error("Report not found", {
         description: "No report exists at this address, or it is not yours to answer.",
@@ -158,7 +140,6 @@ export function SeverityDisputePanel({
     }
   };
 
-  /* ── Settled ─────────────────────────────────────────────────────────── */
   if (isDisputeSettled(dispute)) {
     return (
       <section
@@ -201,7 +182,6 @@ export function SeverityDisputePanel({
     );
   }
 
-  /* ── With an administrator ───────────────────────────────────────────── */
   if (isWithAdministrator(dispute)) {
     return (
       <section
@@ -234,12 +214,10 @@ export function SeverityDisputePanel({
             {dispute.reason}
           </p>
         )}
-        {/* `respondBy` is null in this state and no deadline is rendered. */}
       </section>
     );
   }
 
-  /* ── Awaiting the reporter, seen by anyone else ──────────────────────── */
   if (isAwaitingReporter(dispute) && !isReporter) {
     return (
       <section
@@ -268,7 +246,6 @@ export function SeverityDisputePanel({
     );
   }
 
-  /* ── Awaiting the reporter, and this is them ─────────────────────────── */
   if (isAwaitingReporter(dispute) && isReporter) {
     const canRefuse = reason.trim().length > 0 && !busy;
 
@@ -301,7 +278,6 @@ export function SeverityDisputePanel({
         {dispute.respondBy && (
           <p className="mt-2 flex items-start gap-1.5 text-sm text-amber-900/90 dark:text-amber-200/90">
             <CalendarClock className="mt-0.5 size-4 shrink-0" />
-            {/* Honest about silence: the rating settles, the report is fine. */}
             <span>
               Confirm by{" "}
               <strong>{formatDate(dispute.respondBy, "the deadline")}</strong>,
@@ -368,7 +344,6 @@ export function SeverityDisputePanel({
           </Button>
         </div>
 
-        {/* Accepting is final, so it is never a tap away from refusing. */}
         <AlertDialog
           open={confirmingAccept}
           onOpenChange={(open) => {
@@ -394,8 +369,6 @@ export function SeverityDisputePanel({
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={(event) => {
-                  /* Held open by hand so a failure leaves the choice on
-                     screen rather than closing as though it worked. */
                   event.preventDefault();
                   void handleAccept();
                 }}

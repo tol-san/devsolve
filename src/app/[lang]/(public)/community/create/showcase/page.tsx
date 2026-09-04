@@ -9,13 +9,6 @@ import { CreateShowcaseForm } from "@/components/showcases/create/CreateShowcase
 
 export default function PublicCreateShowcasePage() {
   return (
-    /* The landing page's section shell — grid paper, drifting aurora, and the
-       same slate ground the showcase section sits on. Motes and scan beams are
-       off: they belong behind a page you read, not one you type into.
-
-       Deliberately no `overflow-hidden`, unlike the landing sections: it would
-       make this element the scroll container and the form's sticky sidebar
-       would scroll away with the page. `SectionBackdrop` clips itself. */
     <section className="relative min-h-[calc(100dvh-var(--navbar-height))] py-10 text-foreground sm:py-14">
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
         <motion.header
@@ -47,8 +40,6 @@ export default function PublicCreateShowcasePage() {
 
           <div className="mt-6 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
             <div>
-              {/* The landing header motif: a hairline rule, an eyebrow, then
-                  the headline closed with a blue full stop. */}
               <div className="mb-4 flex items-center gap-2.5">
                 <span className="h-px w-8 bg-primary" />
                 <span className="text-sm font-bold uppercase tracking-[0.22em] text-primary">
@@ -71,8 +62,6 @@ export default function PublicCreateShowcasePage() {
         </motion.header>
 
         <div className="mt-8">
-          {/* Covers the routes into this page that skip the gated link — a
-              pasted URL, a bookmark, back/forward. */}
           <RequireAuth
             title="Sign in to post a showcase"
             description="Publishing a showcase needs an account, so the project stays attached to your profile. It only takes a moment."

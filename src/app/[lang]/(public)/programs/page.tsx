@@ -7,9 +7,6 @@ import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { listPrograms } from "@/lib/seo/content";
 
-/* Title and description come from the same catalogue the page renders from, so
-   a Khmer URL is described in Khmer in the tab, the share card and the search
-   result — not just in the body copy. */
 export async function generateMetadata({
   params,
 }: {

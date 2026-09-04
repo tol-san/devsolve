@@ -67,7 +67,6 @@ export function ReportConfirmationCard({
     >
       <Card className="rounded-2xl border border-border bg-card shadow-2xs hover:shadow-xs transition">
         <CardContent className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          {/* Main Info */}
           <div className="flex items-start gap-4">
             <div
               className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs ${
@@ -137,7 +136,6 @@ export function ReportConfirmationCard({
             </div>
           </div>
 
-          {/* Action Controls */}
           <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
             {report.status === "PENDING" && onQuickAction && (
               <>

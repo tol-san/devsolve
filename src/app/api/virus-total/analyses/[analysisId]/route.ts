@@ -10,11 +10,6 @@ import {
 
 type Context = { params: Promise<{ analysisId: string }> };
 
-/**
- * GET /api/virus-total/analyses/{analysisId} — poll the status and verdict of a VirusTotal analysis.
- *
- * Backend: GET /api/v1/virus-total/analyses/{analysisId}
- */
 export async function GET(request: NextRequest, context: Context) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

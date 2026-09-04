@@ -36,7 +36,6 @@ function getPaginationRange(currentPage: number, totalPages: number) {
 
   const pages: (number | "ellipsis-left" | "ellipsis-right")[] = [];
 
-  // Always show page 1
   pages.push(1);
 
   if (currentPage > 3) {
@@ -54,7 +53,6 @@ function getPaginationRange(currentPage: number, totalPages: number) {
     pages.push("ellipsis-right");
   }
 
-  // Always show last page
   pages.push(totalPages);
 
   return pages;
@@ -83,7 +81,6 @@ export function ResearcherReportPagination({
         className
       )}
     >
-      {/* Range Info & Page Size */}
       <div className="flex items-center gap-4 text-xs sm:text-sm font-medium text-muted-foreground w-full sm:w-auto justify-between sm:justify-start">
         <span>
           Showing{" "}
@@ -97,7 +94,6 @@ export function ResearcherReportPagination({
           {itemLabel}
         </span>
 
-        {/* Rows Per Page Selector */}
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-xs text-muted-foreground hidden md:inline">
             Per page:
@@ -123,9 +119,7 @@ export function ResearcherReportPagination({
         </div>
       </div>
 
-      {/* Page Navigation Controls */}
       <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-center">
-        {/* First Page Button */}
         <Button
           size="icon"
           variant="outline"
@@ -138,7 +132,6 @@ export function ResearcherReportPagination({
           <ChevronsLeft className="size-4" />
         </Button>
 
-        {/* Previous Page Button */}
         <Button
           size="icon"
           variant="outline"
@@ -151,7 +144,6 @@ export function ResearcherReportPagination({
           <ChevronLeft className="size-4" />
         </Button>
 
-        {/* Numeric Page Buttons & Ellipses */}
         {paginationRange.map((item, idx) => {
           if (typeof item === "string") {
             return (
@@ -186,7 +178,6 @@ export function ResearcherReportPagination({
           );
         })}
 
-        {/* Next Page Button */}
         <Button
           size="icon"
           variant="outline"
@@ -199,7 +190,6 @@ export function ResearcherReportPagination({
           <ChevronRight className="size-4" />
         </Button>
 
-        {/* Last Page Button */}
         <Button
           size="icon"
           variant="outline"

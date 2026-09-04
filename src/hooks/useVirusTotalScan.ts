@@ -78,7 +78,6 @@ function getErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
-/** Global flag to remember 503 unconfigured state across hook instances. */
 let isGloballyConfigured: boolean | null = null;
 
 export function useVirusTotalScan() {
@@ -102,9 +101,6 @@ export function useVirusTotalScan() {
     };
   }, []);
 
-  /**
-   * Polls an analysis ID using backoff schedule: 5s -> 10s -> 20s (max 3 attempts).
-   */
   const pollWithBackoff = useCallback(
     async (
       analysisId: string,
@@ -196,7 +192,6 @@ export function useVirusTotalScan() {
           }
 
           if (status === 429 || status === 502) {
-            // Quota exhausted or upstream unavailable -> treat as unscanned, allow proceed
             return {
               id: analysisId,
               target: targetName,
@@ -223,7 +218,6 @@ export function useVirusTotalScan() {
             };
           }
 
-          // Other unexpected error -> non-blocking fallback
           return {
             id: analysisId,
             target: targetName,
@@ -237,7 +231,6 @@ export function useVirusTotalScan() {
         }
       }
 
-      // Max attempts reached while still PENDING -> treat as timed out (fail-closed)
       return {
         id: analysisId,
         target: targetName,
@@ -252,9 +245,6 @@ export function useVirusTotalScan() {
     [pollAnalysis],
   );
 
-  /**
-   * Scan a standalone file through the explicit VirusTotal endpoint.
-   */
   const scanFile = useCallback(
     async (file: File): Promise<ScanResult> => {
       if (isGloballyConfigured === false) {
@@ -268,7 +258,6 @@ export function useVirusTotalScan() {
         };
       }
 
-      // 1. Client-side pre-validation
       setCurrentResult({
         target: file.name,
         type: "file",
@@ -293,7 +282,6 @@ export function useVirusTotalScan() {
         return errorResult;
       }
 
-      // 2. Submit file
       setIsScanning(true);
       if (abortControllerRef.current) abortControllerRef.current.abort();
       const abortCtrl = new AbortController();
@@ -313,7 +301,6 @@ export function useVirusTotalScan() {
           file,
         ).unwrap();
 
-        // 3. Poll analysis
         const finalResult = await pollWithBackoff(
           submitResponse.analysisId,
           file.name,
@@ -374,9 +361,6 @@ export function useVirusTotalScan() {
     [pollWithBackoff, submitFile],
   );
 
-  /**
-   * Scan a standalone URL through the explicit VirusTotal endpoint.
-   */
   const scanUrl = useCallback(
     async (url: string): Promise<ScanResult> => {
       if (isGloballyConfigured === false) {
@@ -390,7 +374,6 @@ export function useVirusTotalScan() {
         };
       }
 
-      // 1. Client-side pre-validation
       setCurrentResult({
         target: url,
         type: "url",
@@ -415,7 +398,6 @@ export function useVirusTotalScan() {
         return errorResult;
       }
 
-      // 2. Submit URL
       setIsScanning(true);
       if (abortControllerRef.current) abortControllerRef.current.abort();
       const abortCtrl = new AbortController();
@@ -433,7 +415,6 @@ export function useVirusTotalScan() {
       try {
         const submitResponse = await submitUrl({ url }).unwrap();
 
-        // 3. Poll analysis
         const finalResult = await pollWithBackoff(
           submitResponse.analysisId,
           url,
@@ -494,9 +475,6 @@ export function useVirusTotalScan() {
     [pollWithBackoff, submitUrl],
   );
 
-  /**
-   * Scan multiple items sequentially to protect the 4 requests/min public quota.
-   */
   const scanSequence = useCallback(
     async (
       items: Array<{ type: "file"; file: File } | { type: "url"; url: string }>,

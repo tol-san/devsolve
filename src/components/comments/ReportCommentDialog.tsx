@@ -91,7 +91,6 @@ interface ReportContentDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/** A validated report form shared by every flaggable community content type. */
 export function ReportContentDialog({
   contentId,
   contentType,
@@ -268,7 +267,6 @@ export function ReportContentDialog({
   );
 }
 
-/** Compatibility wrapper for the existing comment action. */
 export function ReportCommentDialog({
   commentId,
   authorName,

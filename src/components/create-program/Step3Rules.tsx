@@ -95,7 +95,6 @@ export function Step3Rules({
         Rules & Exclusions
       </h2>
 
-      {/* Rules of Engagement */}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-foreground">
           Rules of Engagement
@@ -111,7 +110,6 @@ export function Step3Rules({
         />
       </div>
 
-      {/* Excluded Vulnerabilities */}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-foreground">
           Excluded Vulnerability Types ({excludedTypes.length})
@@ -162,7 +160,6 @@ export function Step3Rules({
         )}
       </div>
 
-      {/* Proof of Concept Requirements */}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-foreground">
           Proof of Concept (PoC) Requirements

@@ -91,7 +91,6 @@ export function ReportDetailProofOfConcept({
       icon={<FileCode2 className="size-4.5" />}
       contentClassName="space-y-6"
     >
-      {/* 1. HTTP Request / Exploit Code Snippet */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -143,7 +142,6 @@ export function ReportDetailProofOfConcept({
         </div>
       </div>
 
-      {/* 2. Expected vs Actual Result Grid */}
       <div className="grid gap-4 sm:grid-cols-2">
         <ResultCard
           icon={<CheckCircle2 className="size-4" />}
@@ -159,7 +157,6 @@ export function ReportDetailProofOfConcept({
         />
       </div>
 
-      {/* 3. Attached Proof & Evidence with Full Preview Support */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -220,7 +217,6 @@ export function ReportDetailProofOfConcept({
                   </div>
                 </div>
 
-                {/* Interactive Action Buttons */}
                 <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                   <Button
                     type="button"
@@ -257,7 +253,6 @@ export function ReportDetailProofOfConcept({
         )}
       </div>
 
-      {/* 4. Interactive Attachment Preview Modal / Lightbox */}
       <AnimatePresence>
         {previewAttachment && (
           <div
@@ -272,7 +267,6 @@ export function ReportDetailProofOfConcept({
               className="relative w-full max-w-4xl max-h-[90vh] bg-card rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header */}
               <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-3.5">
                 <div className="flex items-center gap-3 min-w-0">
                   <div
@@ -300,7 +294,6 @@ export function ReportDetailProofOfConcept({
                   </div>
                 </div>
 
-                {/* Modal Controls */}
                 <div className="flex items-center gap-1.5">
                   {previewAttachment.kind === "image" && (
                     <>
@@ -383,7 +376,6 @@ export function ReportDetailProofOfConcept({
                 </div>
               </div>
 
-              {/* Modal Content Body */}
               <div className="flex-1 overflow-auto p-5 sm:p-6 bg-muted/20 flex items-center justify-center min-h-[300px] max-h-[75vh]">
                 {previewAttachment.kind === "image" ? (
                   <div className="overflow-auto max-h-full max-w-full flex items-center justify-center p-2">
@@ -409,7 +401,6 @@ export function ReportDetailProofOfConcept({
                 )}
               </div>
 
-              {/* Modal Footer */}
               <div className="flex items-center justify-between border-t border-border bg-card px-5 py-3 text-xs text-muted-foreground">
                 <span>
                   {previewAttachment.kind === "image"

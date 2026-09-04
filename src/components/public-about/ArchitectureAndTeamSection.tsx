@@ -20,7 +20,6 @@ export function ArchitectureAndTeamSection() {
       <SectionBackdrop seed={4} gridSize={88} />
 
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
-        {/* ─── Premium Segmented Capsule Switcher ─── */}
         <div className="mb-12 sm:mb-16 flex items-center justify-center">
           <div className="relative inline-flex items-center gap-1 rounded-full bg-slate-100/90 p-1.5 shadow-xs ring-1 ring-slate-200/80 backdrop-blur-md dark:bg-neutral-900/90 dark:ring-neutral-800">
             <button
@@ -63,7 +62,6 @@ export function ArchitectureAndTeamSection() {
           </div>
         </div>
 
-        {/* ─── Animated Tab Content ─── */}
         <AnimatePresence mode="wait">
           {activeTab === "architecture" ? (
             <motion.div

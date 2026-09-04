@@ -24,7 +24,6 @@ export default function FollowersPage() {
       </div>
     );
   }
-  /* As on the following page: the roster failing is not the profile missing. */
   if (isError || !overview) return notFound();
 
   return (

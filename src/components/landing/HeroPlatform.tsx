@@ -24,14 +24,10 @@ export function HeroPlatform() {
 
   return (
     <section className="relative -mt-(--navbar-height) flex flex-col justify-between overflow-hidden pt-(--navbar-height) pb-8 sm:pb-12">
-      {/* ── Ambient Radial Accent Glow ── */}
       <div className="pointer-events-none absolute top-1/4 left-1/2 -z-10 h-[300px] w-[420px] sm:h-[480px] sm:w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-blue-500/15 via-sky-400/10 to-emerald-400/15 blur-[70px] sm:blur-[140px] dark:from-blue-500/25 dark:via-sky-600/20 dark:to-emerald-400/20" />
 
-      {/* ── Top Headline, Subheadline & CTAs ── */}
       <div className="relative z-10 mx-auto w-full max-w-5xl px-4 sm:px-6 pt-6 sm:pt-10 text-center">
 
-
-        {/* Main Title */}
         <motion.h1
           initial={{ opacity: 0, y: 14 }}
           animate={hydrated ? { opacity: 1, y: 0 } : undefined}
@@ -47,7 +43,6 @@ export function HeroPlatform() {
           </span>
         </motion.h1>
 
-        {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={hydrated ? { opacity: 1, y: 0 } : undefined}
@@ -57,7 +52,6 @@ export function HeroPlatform() {
           {t("hero.platformSubtitle") || "DevSolve helps security researchers find and report vulnerabilities with guaranteed bounty escrow, while helping engineering teams remediate threats with verified code solutions."}
         </motion.p>
 
-        {/* Action CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={hydrated ? { opacity: 1, y: 0 } : undefined}
@@ -93,12 +87,10 @@ export function HeroPlatform() {
         </motion.div>
       </div>
 
-      {/* ── Main Convergence Diagram Centerpiece ── */}
       <div className="relative z-10 mt-8 sm:mt-10">
         <HeroHubDiagram />
       </div>
 
-      {/* ── Bottom Metric Ticker ── */}
       <div className="relative z-10 mx-auto w-full max-w-5xl px-4 pt-6 sm:px-6 sm:pt-8">
         <div className="grid grid-cols-2 gap-4 border-t border-slate-200/90 pt-5 sm:grid-cols-4 sm:gap-6 text-center dark:border-neutral-800">
           <div>

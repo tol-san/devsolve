@@ -10,12 +10,6 @@ interface PageProps {
   params: Promise<{ lang: string; username: string }>;
 }
 
-/**
- * The `username` segment carries a user id — the backend has no lookup by
- * name — with one alias, `me`, which resolves to whoever is signed in. A
- * crawler is nobody, so that alias has no stable page behind it and is kept
- * out of the index; every other id is a real person's public profile.
- */
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {

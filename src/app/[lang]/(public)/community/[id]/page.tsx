@@ -10,12 +10,6 @@ import { describe, humanizeEnum } from "@/lib/seo/text";
 
 type PageProps = { params: Promise<{ lang: string; id: string }> };
 
-/**
- * The problem is fetched twice on paper — once for the title tag, once for the
- * structured data — and once in practice: `getProblem` is memoised for the
- * render, and the client component below fetches its own copy anyway because
- * it needs the viewer's bookmark and vote state, which a crawler must not see.
- */
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -23,9 +17,6 @@ export async function generateMetadata({
   const path = `/community/${id}`;
   const problem = await getProblem(id);
 
-  /* Null covers three cases that all deserve the same answer: no such problem,
-     a draft the backend refused to serve anonymously, and a backend that did
-     not respond. None of them should be indexed under a guessed title. */
   if (!problem?.title) {
     return pageMetadata({
       title: "Problem",
@@ -56,16 +47,6 @@ export async function generateMetadata({
   });
 }
 
-/**
- * One problem. The id is read from the route by the client component itself,
- * which is also what paints the page background — a wrapper painting its own
- * would have to repeat the light and dark halves of it to stay in step.
- *
- * The structured data is emitted here rather than inside that component: it
- * describes the published problem as anyone can see it, so it has to be built
- * from an anonymous read on the server, not from whatever the signed-in viewer
- * happens to have loaded.
- */
 export default async function PublicDiscussionDetailPage({
   params,
 }: PageProps) {

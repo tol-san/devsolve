@@ -30,12 +30,6 @@ interface RejectedReportViewProps {
   onCopyPayload: () => void;
 }
 
-/**
- * Extracts the rejection activity from the timeline — the STATE_CHANGED entry
- * whose `toState` is `REJECTED`. There is at most one per report; if none is
- * found (old reports filed before the activity log shipped) the component
- * degrades gracefully.
- */
 function findRejectionActivity(
   activities: ReportActivity[],
 ): ReportActivity | undefined {
@@ -64,9 +58,6 @@ export function RejectedReportView({
     : null;
   const rejectionDetail = rejectionActivity?.detail ?? null;
 
-  /* The settled severity — what the program or triage assessed, falling back to
-     whatever the reporter claimed. On a rejected report the triage severity is
-     normally the last word, but `settledSeverity` covers a dispute ruling. */
   const displaySeverity =
     report.settledSeverity ??
     report.agreedSeverity ??
@@ -85,7 +76,6 @@ export function RejectedReportView({
 
   return (
     <div className="space-y-6">
-      {/* Report Title & Status Card */}
       <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-4 sm:p-6 space-y-4 shadow-xs">
         <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
           {report.title}
@@ -106,11 +96,8 @@ export function RejectedReportView({
         </div>
       </div>
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Main Content */}
         <main className="lg:col-span-2 space-y-6">
-          {/* Rejection Alert Card */}
           <div className="flex items-start gap-4 p-5 sm:p-6 bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 border-l-4 border-l-rose-500 rounded-2xl text-foreground shadow-2xs">
             <div className="w-8 h-8 rounded-full bg-rose-500 text-white font-bold flex items-center justify-center shrink-0 mt-0.5 text-sm shadow-xs">
               !
@@ -127,7 +114,6 @@ export function RejectedReportView({
             </div>
           </div>
 
-          {/* Rejection Activity Detail — who rejected and when */}
           {rejectionActivity && (
             <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-4 shadow-xs">
               <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
@@ -154,7 +140,6 @@ export function RejectedReportView({
             </div>
           )}
 
-          {/* Description */}
           {hasDescription && (
             <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
               <div className="flex items-center gap-2">
@@ -172,7 +157,6 @@ export function RejectedReportView({
             </div>
           )}
 
-          {/* Impact */}
           {hasImpact && (
             <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
               <div className="flex items-center gap-2">
@@ -188,7 +172,6 @@ export function RejectedReportView({
             </div>
           )}
 
-          {/* Steps to Reproduce */}
           {report.reproduceSteps.length > 0 && (
             <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
               <h3 className="text-lg font-bold text-foreground border-b border-border pb-2">
@@ -212,7 +195,6 @@ export function RejectedReportView({
             </div>
           )}
 
-          {/* Proof of Concept / Payload */}
           {report.proofOfConcept && (
             <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
               <h3 className="text-lg font-bold text-foreground border-b border-border pb-2">
@@ -241,7 +223,6 @@ export function RejectedReportView({
             </div>
           )}
 
-          {/* Suggested Remediation */}
           {report.remediation && (
             <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
               <h3 className="text-lg font-bold text-foreground border-b border-border pb-2">
@@ -256,14 +237,12 @@ export function RejectedReportView({
             </div>
           )}
 
-          {/* Timeline */}
           <ReportTimeline
             activities={activities}
             isLoading={activitiesLoading}
             isError={activitiesError}
           />
 
-          {/* What's Next Card — links built from the report's own program */}
           <div className="bg-blue-600 text-white rounded-2xl p-6 space-y-4 shadow-md relative overflow-hidden">
             <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
 
@@ -305,7 +284,6 @@ export function RejectedReportView({
           </div>
         </main>
 
-        {/* Right Column: Reuse the standard sidebar panels */}
         <ReportSidebarPanels report={report} />
       </div>
     </div>

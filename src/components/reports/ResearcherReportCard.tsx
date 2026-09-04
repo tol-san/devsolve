@@ -47,7 +47,6 @@ export function ResearcherReportCard({
           "ring-1 ring-cyan-500/40 bg-gradient-to-b from-cyan-500/[0.07] via-card to-card"
       )}
     >
-      {/* Top Header: Program info + Quick Preview */}
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -83,14 +82,12 @@ export function ResearcherReportCard({
           </Button>
         </div>
 
-        {/* Title */}
         <Link href={`/dashboard/my-reports/${report.id}`} className="block group">
           <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
             {report.title}
           </h3>
         </Link>
 
-        {/* Severity & Status Row */}
         <div className="flex flex-wrap items-center gap-2 pt-1">
           {report.severity ? (
             <SeverityBadge severity={report.severity} />
@@ -113,10 +110,8 @@ export function ResearcherReportCard({
         </div>
       </div>
 
-      {/* Card Footer: Bounty/Rep + Last Activity + Primary CTA */}
       <div className="mt-5 pt-4 border-t border-border/70 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2 text-xs">
-          {/* Bounty or Reputation Badge */}
           {report.isBountyHighlight ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shadow-2xs">
               <DollarSign className="size-3.5" />
@@ -133,14 +128,12 @@ export function ResearcherReportCard({
             </span>
           )}
 
-          {/* Activity Date */}
           <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
             <Clock className="size-3" />
             <span>{report.lastActivityDate}</span>
           </div>
         </div>
 
-        {/* Action Button */}
         {isRetesting ? (
           <Link href={`/dashboard/my-reports/${report.id}`} className="w-full">
             <Button

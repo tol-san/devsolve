@@ -11,9 +11,6 @@ export const dbPool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
-/**
- * Save custom suggested weakness to reports table.
- */
 export async function saveReportSuggestedWeakness(
   reportId: string,
   suggestedWeakness: string | null,
@@ -48,9 +45,6 @@ export async function saveReportSuggestedWeakness(
   }
 }
 
-/**
- * Save custom suggested weakness to report_drafts table.
- */
 export async function saveDraftSuggestedWeakness(
   draftId: string,
   suggestedWeakness: string | null,
@@ -85,9 +79,6 @@ export async function saveDraftSuggestedWeakness(
   }
 }
 
-/**
- * Get weakness details from reports table by ID.
- */
 export async function getReportWeakness(
   reportId: string
 ): Promise<{ suggestedWeakness: string | null; weaknessId: string | null } | null> {
@@ -108,9 +99,6 @@ export async function getReportWeakness(
   }
 }
 
-/**
- * Enrich single report or array of reports with suggestedWeakness from DB if missing.
- */
 export async function enrichReportsWithWeakness<T extends { id: string; suggestedWeakness?: any; weakness?: any }>(
   reports: T[]
 ): Promise<T[]> {
@@ -149,9 +137,6 @@ export async function enrichReportsWithWeakness<T extends { id: string; suggeste
   return reports;
 }
 
-/**
- * Enrich single draft or array of drafts with suggestedWeakness from DB if missing.
- */
 export async function enrichDraftsWithWeakness<T extends { id: string; suggestedWeakness?: any }>(
   drafts: T[]
 ): Promise<T[]> {
@@ -189,9 +174,6 @@ export async function enrichDraftsWithWeakness<T extends { id: string; suggested
   return drafts;
 }
 
-/**
- * Fetch full problem details directly from database (for moderation / admin preview or fallback).
- */
 export async function getProblemFromDb(id: string): Promise<any | null> {
   if (!id) return null;
   try {
@@ -291,10 +273,6 @@ export async function getProblemFromDb(id: string): Promise<any | null> {
   }
 }
 
-/**
- * Fetch full showcase submission details directly from database as a fallback
- * for pending moderation items and review queues.
- */
 export async function getShowcaseFromDb(id: string): Promise<any | null> {
   if (!id) return null;
   try {
@@ -395,5 +373,4 @@ export async function getShowcaseFromDb(id: string): Promise<any | null> {
     return null;
   }
 }
-
 

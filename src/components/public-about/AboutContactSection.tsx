@@ -91,7 +91,6 @@ export function AboutContactSection() {
         />
 
         <div className="mt-10 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-          {/* Contact Form */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -225,7 +224,6 @@ export function AboutContactSection() {
             </form>
           </motion.div>
 
-          {/* Contact Details & Socials */}
           <div className="space-y-5 lg:col-span-5">
             {CONTACT_DETAILS.map((detail, i) => {
               const Icon = detail.icon;

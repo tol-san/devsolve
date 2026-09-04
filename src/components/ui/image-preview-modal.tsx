@@ -68,7 +68,6 @@ export function ImagePreviewModal({
     setMounted(true);
   }, []);
 
-  // Fetch text content if file is text/code
   useEffect(() => {
     if (isOpen && src && isTextOrCode) {
       setIsLoadingText(true);
@@ -89,7 +88,6 @@ export function ImagePreviewModal({
     }
   }, [isOpen, src, isTextOrCode]);
 
-  // Reset zoom & rotation whenever image source changes or modal opens
   useEffect(() => {
     if (isOpen) {
       setZoom(1);
@@ -98,7 +96,6 @@ export function ImagePreviewModal({
       setCopied(false);
       setIsDownloading(false);
       setTextContent(null);
-      // Prevent background scrolling while modal is active
       const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
@@ -107,7 +104,6 @@ export function ImagePreviewModal({
     }
   }, [isOpen, src]);
 
-  // Keyboard navigation & shortcuts
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!isOpen) return;
@@ -178,7 +174,6 @@ export function ImagePreviewModal({
 
     setIsDownloading(true);
     try {
-      // 1. Try fetching directly as a blob (works for same-origin or CORS-enabled servers)
       let blob: Blob | null = null;
       try {
         const response = await fetch(src, { mode: "cors" });
@@ -189,7 +184,6 @@ export function ImagePreviewModal({
         // Direct fetch failed, try fallback
       }
 
-      // 2. Canvas fallback for CORS-tainted images
       if (!blob) {
         blob = await new Promise<Blob | null>((resolve) => {
           const img = new window.Image();
@@ -212,7 +206,6 @@ export function ImagePreviewModal({
         });
       }
 
-      // Determine appropriate filename
       let fileName = (title || alt || "image")
         .replace(/[/\\?%*:|"<>]/g, "_")
         .trim();
@@ -242,7 +235,6 @@ export function ImagePreviewModal({
         setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
         toast.success("Image downloaded successfully");
       } else {
-        // 3. Fallback: Force anchor download / open
         const link = document.createElement("a");
         link.href = src;
         link.download = fileName;
@@ -278,7 +270,6 @@ export function ImagePreviewModal({
           aria-modal="true"
           aria-label={title || alt || "Image preview"}
         >
-          {/* Top Bar: Title, Metadata, and Quick Actions */}
           <div
             className="mx-auto w-full max-w-5xl flex items-center justify-between gap-4 z-20 rounded-2xl bg-slate-900/80 px-4 py-2.5 backdrop-blur-xl border border-white/15 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
@@ -292,7 +283,6 @@ export function ImagePreviewModal({
               )}
             </div>
 
-            {/* Top Toolbar Actions */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <Button
                 type="button"
@@ -352,7 +342,6 @@ export function ImagePreviewModal({
             </div>
           </div>
 
-          {/* Center Stage: Universal Attachment Viewer */}
           <div
             ref={imageContainerRef}
             className="relative flex flex-1 items-center justify-center overflow-hidden py-4 my-auto w-full max-h-[calc(100vh-160px)]"
@@ -437,7 +426,6 @@ export function ImagePreviewModal({
                 </motion.div>
               </>
             ) : (
-              /* Fallback for other file types */
               <div
                 className="w-full max-w-md rounded-2xl border border-white/20 bg-neutral-900/90 p-8 text-center space-y-4 shadow-2xl backdrop-blur-xl"
                 onClick={(e) => e.stopPropagation()}
@@ -477,7 +465,6 @@ export function ImagePreviewModal({
             )}
           </div>
 
-          {/* Bottom Floating Control Pill (Zoom & Rotate for Images) */}
           {isImage && (
             <div
               className="flex items-center justify-center z-20 pb-2"

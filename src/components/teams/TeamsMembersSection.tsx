@@ -76,15 +76,11 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
-/** The signed-in account, as far as this roster is concerned. */
 type TeamActor = {
   role?: OrganizationInvitationRole;
   isOwner: boolean;
 };
 
-/** The wire values, from the display ones this table carries. */
-/* Base UI renders the value on the trigger unless the root is handed these,
-   which turned "All roles" into a bare "All". */
 const ROLE_FILTER_LABELS: Record<string, string> = {
   All: "All roles",
   Manager: "Manager",
@@ -110,7 +106,6 @@ const ROLE_CHOICES: { value: OrganizationInvitationRole; label: string }[] = [
   { value: "VIEWER", label: "Viewer" },
 ];
 
-/** What the upstream's refusals mean to the person who pressed the button. */
 function memberActionMessage(error: unknown, fallback: string): string {
   const status = apiErrorStatus(error);
 
@@ -143,8 +138,6 @@ function getMemberInitials(name: string) {
     .toUpperCase();
 }
 
-/* A null role is the owner: they hold every permission without holding a rank,
-   so they get their own chip rather than being dressed as the rank below. */
 function getRoleBadgeVariant(role: MemberRole | null) {
   if (role === null) return "default";
   if (role === "Manager") return "default";
@@ -169,19 +162,8 @@ function getRoleBadgeClass(role: MemberRole | null) {
 }
 
 function getMemberPermissions(member: TeamMember, actor: TeamActor) {
-  /* The roster marks its own row, which is the only reliable way to know:
-     the membership record describes the account's place in the organization
-     and carries no user id to compare against. */
   const isCurrentUser = member.isSelf;
 
-  /* An owner may act on anyone but themselves. A manager may act on the ranks
-     below them and never on another manager. Everyone else is here to read.
-     The backend decides the same question again on every request — this only
-     keeps the menu from offering what it would refuse. */
-  /* Nobody acts on the owner — not even a manager. Their role comes back null,
-     which used to read as "Member" and put the owner one rank below a manager
-     in this comparison, offering demote and remove against the one account that
-     cannot lose the organization. */
   const canManageTarget =
     !member.isOwner &&
     (actor.isOwner || (actor.role === "MANAGER" && member.role !== "Manager"));
@@ -189,9 +171,6 @@ function getMemberPermissions(member: TeamMember, actor: TeamActor) {
   return {
     canViewProfile: true,
     canEditRole: !isCurrentUser && canManageTarget,
-    /* Role and permissions are separate PATCHes and separate decisions: the
-       role sets a starting point, the permission set is what actually applies,
-       and an owner may tune one without touching the other. */
     canEditPermissions: !isCurrentUser && canManageTarget,
     canRemove: !isCurrentUser && canManageTarget,
     disableSelfRemoval: isCurrentUser,
@@ -212,16 +191,6 @@ type TeamsMembersSectionProps = {
   setStatusFilter: (filter: StatusFilter) => void;
 };
 
-/**
- * Which menu is open, not merely whose.
- *
- * Every member is rendered twice — as a card below `lg`, as a table row above
- * it — and the switch between the two is `display`, so both copies are always
- * in the DOM. Keying the open menu on the member id alone opened both at once,
- * and since the menu content is portalled to the body it escaped its hidden
- * ancestor and surfaced as a second dropdown anchored to a trigger with no
- * layout box.
- */
 type MemberMenuView = "card" | "row";
 
 function memberMenuKey(view: MemberMenuView, memberId: string) {
@@ -249,9 +218,6 @@ export function TeamsMembersSection({
   const [memberToTune, setMemberToTune] = useState<TeamMember | null>(null);
   const [permissionsError, setPermissionsError] = useState<string | null>(null);
 
-  /* This screen is owner-only — the roster endpoint behind it answers 404 for
-     a member — so the actor is the owner, and the roster's own rows are the
-     people being acted on. */
   const { membership, isOwner } = useCompanyAccess();
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
   const [updateMemberRole] = useUpdateMemberRoleMutation();
@@ -265,8 +231,6 @@ export function TeamsMembersSection({
 
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
-      /* Not while the request is in flight: closing the dialog would leave the
-         person with no idea whether it went through. */
       if (event.key === "Escape" && !isRemoving) {
         setMemberToRemove(null);
       }
@@ -299,9 +263,6 @@ export function TeamsMembersSection({
   function openProfile(member: TeamMember) {
     setOpenMenuKey(null);
 
-    /* `member.id` is the backend `userId`. The profile route takes either a
-       username or a user id and tells the two apart itself, so the id goes
-       straight in — there is no username on a member record to look up. */
     router.push(lp(`/dashboard/profile/${member.id}`));
   }
 
@@ -310,8 +271,6 @@ export function TeamsMembersSection({
     nextRole: OrganizationInvitationRole,
   ) {
     setOpenMenuKey(null);
-    /* The owner has no rank to change, and the menu does not offer it — this is
-       only here so the lookup below cannot be handed a null. */
     if (!member.role || nextRole === API_ROLE[member.role]) return;
 
     const label =
@@ -342,14 +301,6 @@ export function TeamsMembersSection({
     setMemberToTune(member);
   }
 
-  /**
-   * The permission set itself.
-   *
-   * Like the removal dialog, this one stays open on failure — the message
-   * belongs beside the switches it is about. On success the mutation
-   * invalidates `OrganizationMembers`, so the row's Access column refreshes
-   * without anything here tracking it.
-   */
   async function handlePermissionsSave(
     next: OrganizationInvitationPermission[],
   ) {
@@ -383,14 +334,6 @@ export function TeamsMembersSection({
     setMemberToRemove(member);
   }
 
-  /**
-   * The removal itself.
-   *
-   * `removeMember` invalidates `OrganizationMembers`, so the roster refetches
-   * on its own and the row leaves without anything here tracking it. The
-   * dialog stays open on failure: the message belongs next to the name it is
-   * about, not only in a toast that fades.
-   */
   async function handleRemoveConfirmed() {
     if (!memberToRemove) return;
 
@@ -416,10 +359,6 @@ export function TeamsMembersSection({
 
   return (
     <>
-      {/* The bar and the roster it narrows are one block: without a
-          container of their own they sit flush, since `FilterBar` carries
-          no outer margin and the page wraps this whole section in a single
-          animated child. */}
       <div className="space-y-6">
         <FilterBar>
           <FilterRow>
@@ -516,8 +455,6 @@ export function TeamsMembersSection({
           )
         ) : (
           <>
-            {/* Cards below `lg`, where six columns would only mean a sideways
-                scroll and a row nobody can read end to end. */}
             <ul className="grid grid-cols-1 gap-3 lg:hidden">
               {filteredMembers.map((member, index) => (
                 <MemberCard
@@ -700,14 +637,6 @@ export function TeamsMembersSection({
   );
 }
 
-/**
- * The last stop before someone loses their access.
- *
- * It holds while the request is in flight and keeps itself open if the request
- * fails, with the reason under the name it is about — a toast that has already
- * faded is no help to someone deciding whether to press it again.
- */
-/** The wording the invite screen uses for a permission, so both agree. */
 function permissionTitle(permission: OrganizationInvitationPermission): string {
   return (
     INVITE_PERMISSION_OPTIONS.find((option) => option.value === permission)
@@ -783,14 +712,6 @@ function StatusBadge({ status }: { status: TeamMember["status"] }) {
   );
 }
 
-/**
- * What a member may actually do, in two chips and a count.
- *
- * The roster returns the whole list per member and the screen used to show
- * none of it — so a manager could see who was on the team but not what any of
- * them had been given. Two fit without crowding the row; the rest are on the
- * title, and all of them are on the card at small sizes.
- */
 function AccessSummary({
   permissions,
 }: {
@@ -831,7 +752,6 @@ function AccessSummary({
 
 type MemberPermissions = ReturnType<typeof getMemberPermissions>;
 
-/** The row menu, shared by the table and the cards so they cannot drift. */
 function MemberActions({
   member,
   permissions,
@@ -876,10 +796,6 @@ function MemberActions({
           </DropdownMenuItem>
         ) : null}
 
-        {/* The role is changed here rather than behind an "edit" that opened
-            nothing: three values, one PATCH, and the roster refetches itself.
-            There is no status control — the API has no endpoint for it, and an
-            invited member is simply someone who has not accepted yet. */}
         {permissions.canEditRole ? (
           <>
             <DropdownMenuSeparator className="my-1 bg-border" />
@@ -937,7 +853,6 @@ function MemberActions({
   );
 }
 
-/** The same row, for widths where a six-column table is unreadable. */
 function MemberCard({
   member,
   index,
@@ -1025,7 +940,6 @@ function MemberCard({
   );
 }
 
-/** Loading, refused, empty — all three answer in the roster's own shape. */
 function RosterSkeleton() {
   return (
     <div
@@ -1074,14 +988,6 @@ function RosterMessage({
   );
 }
 
-/**
- * The permission set for one member.
- *
- * A role is three coarse presets; this is the set that actually decides what
- * the workspace will let them do, and the two are edited apart because the API
- * keeps them apart — `PATCH .../role` and `PATCH .../permissions` are separate
- * calls, and an owner may tune the set without moving anyone's rank.
- */
 function EditPermissionsDialog({
   member,
   role,
@@ -1091,7 +997,6 @@ function EditPermissionsDialog({
   onSave,
 }: {
   member: TeamMember;
-  /** Narrowed at the call site: the owner has no rank and no ceiling to edit. */
   role: MemberRole;
   isSaving: boolean;
   error: string | null;
@@ -1115,14 +1020,10 @@ function EditPermissionsDialog({
     MAX_PERMISSIONS_BY_ROLE[apiRole] ??
     [];
 
-  /* Granted above their rank — only reachable from before this rule existed, or
-     from a write that did not come through this dialog. Must be removed before saving. */
   const beyondRole = selected.filter(
     (permission) => !roleCeiling.includes(permission),
   );
 
-  /* Order-insensitive: the roster and the defaults list the same set in
-     different orders, and a re-ordered array is not an edit. */
   const isDirty =
     selected.length !== member.permissions.length ||
     selected.some((permission) => !member.permissions.includes(permission));
@@ -1181,8 +1082,6 @@ function EditPermissionsDialog({
               const isOn = selected.includes(option.value);
               const withinRole = roleCeiling.includes(option.value);
 
-              /* Out of reach for this rank, but never locked *on*: an existing
-                 over-grant has to stay switchable off. */
               const isLocked = !withinRole && !isOn;
 
               return (

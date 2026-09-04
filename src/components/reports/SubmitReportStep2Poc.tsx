@@ -22,13 +22,7 @@ interface SubmitReportStep2PocProps {
   isSubmitting: boolean;
   submitError: string | null;
   isDraftSaved: boolean;
-  /**
-   * Whether the company behind the chosen program has cleared this reporter.
-   * Only submission is gated — writing and saving are not — so this disables
-   * the one button and leaves the rest of the step alone.
-   */
   canSubmitReport?: boolean;
-  /** Live autosave state, rendered beside the manual save. */
   draftStatus?: React.ReactNode;
   onAddFiles: (files: AttachedFile[]) => void;
   onRemoveFile: (fileId: string) => void;
@@ -66,7 +60,6 @@ export function SubmitReportStep2Poc({
 }: SubmitReportStep2PocProps) {
   return (
     <div className="space-y-8 font-sans">
-      {/* Section Header */}
       <div className="flex items-start sm:items-center gap-3.5 pb-3 border-b border-border">
         <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs mt-0.5 sm:mt-0">
           <FileText className="w-5 h-5" />
@@ -81,7 +74,6 @@ export function SubmitReportStep2Poc({
         </div>
       </div>
 
-      {/* Description & Summary Markdown Editor */}
       <div className="space-y-2.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <label htmlFor="summaryPoC" className="text-sm font-semibold text-foreground">
@@ -90,7 +82,6 @@ export function SubmitReportStep2Poc({
           <span className="text-xs text-muted-foreground">Supports GitHub Markdown</span>
         </div>
 
-        {/* Quick Insert Template Chips */}
         <PocTemplateToolbar onInsertTemplate={onInsertTemplate} />
 
         <Controller
@@ -109,7 +100,6 @@ export function SubmitReportStep2Poc({
         )}
       </div>
 
-      {/* File & Screenshot Attachments */}
       <div className="space-y-3 pt-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <label className="text-sm font-semibold text-foreground">
@@ -126,7 +116,6 @@ export function SubmitReportStep2Poc({
         />
       </div>
 
-      {/* Reference Links & PoC Media */}
       <div className="space-y-3 pt-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <label className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -199,7 +188,6 @@ export function SubmitReportStep2Poc({
         includesLinks
       />
 
-      {/* Submission Compliance Checkbox */}
       <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
         <label className="flex items-start gap-3 cursor-pointer select-none">
           <input
@@ -213,14 +201,12 @@ export function SubmitReportStep2Poc({
         </label>
       </div>
 
-      {/* Submit Error Callout */}
       {submitError && (
         <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-sm font-medium text-red-700 dark:text-red-300">
           {submitError}
         </div>
       )}
 
-      {/* Footer Navigation & Submit Actions */}
       <div className="pt-6 border-t border-border flex flex-col gap-4">
         {draftStatus && (
           <div className="flex items-center justify-center sm:justify-start">
@@ -252,9 +238,6 @@ export function SubmitReportStep2Poc({
               type="button"
               disabled={isSubmitting || !canSubmitReport}
               onClick={onSubmitReport}
-              /* The notice above carries the reason and the way out; this just
-                 says why the button itself is dead for a pointer that hovers
-                 it. */
               title={
                 canSubmitReport
                   ? undefined

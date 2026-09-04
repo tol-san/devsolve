@@ -21,15 +21,6 @@ import type {
   ReviewDecision,
 } from "@/lib/validations/researcher-access";
 
-/**
- * The company's review queue.
- *
- * Each row offers only the decisions that are legal from its own state — the
- * upstream answers 409 for anything else, and a button that produces a 409 is
- * a button that should never have been drawn. Approve and Reject sit together
- * on a pending request; an approved researcher gets Revoke and nothing else;
- * a rejected or revoked one can be approved outright, with no new request.
- */
 export function ResearcherQueueTable({
   organizationId,
   records,
@@ -101,8 +92,6 @@ export function ResearcherQueueTable({
                   <TableCell className="max-w-md px-4 py-4 whitespace-normal sm:px-6">
                     <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
                       {record.motivation?.trim() || (
-                        /* Pre-approved rather than asked: there was never a
-                           request, so there is no motivation to show. */
                         <span className="text-muted-foreground">
                           Approved without a request
                         </span>

@@ -10,10 +10,6 @@ export * from "@/lib/types/thanks/types";
 
 export const thanksApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    /**
-     * Public Hall of Thanks board for a specific program.
-     * GET /api/v1/programs/{programId}/thanks?page=0&size=20
-     */
     getProgramThanks: builder.query<
       PageThanksResponse,
       { programId: string } & ThanksQueryParams
@@ -25,10 +21,6 @@ export const thanksApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * Public Hall of Thanks board for an organization (all its programs combined).
-     * GET /api/v1/organizations/{organizationId}/thanks?page=0&size=20
-     */
     getOrganizationThanks: builder.query<
       PageThanksResponse,
       { organizationId: string } & ThanksQueryParams
@@ -40,10 +32,6 @@ export const thanksApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * Public recognitions awarded to a researcher on their profile.
-     * GET /api/v1/user-profiles/{userId}/recognitions?page=0&size=10&sort=awardedAt,desc
-     */
     getUserRecognitions: builder.query<
       PageUserRecognitionsResponse,
       UserRecognitionsQueryParams

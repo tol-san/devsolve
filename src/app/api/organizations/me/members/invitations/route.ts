@@ -72,12 +72,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (!upstream.ok) {
-      /* Statuses are relayed as they arrive. A 404 here does not mean the
-         organization is missing — it means the invited address has no
-         DevSolve account yet, which is the whole reason a team invitation can
-         only reach someone who has already registered. Rewriting it to a 400
-         with a message about registering an organization pointed the inviter
-         at their own account instead of at the person they were inviting. */
       const message =
         (body as { message?: string } | null)?.message ??
         "Failed to invite organization member.";

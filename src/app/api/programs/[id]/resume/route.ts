@@ -7,9 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * `PATCH /api/programs/[id]/resume` — Resumes a PAUSED program back to ACTIVE.
- */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

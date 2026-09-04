@@ -1,4 +1,3 @@
-// components/teams/invite-member/InviteMemberHeader.tsx
 
 import Link from "next/link";
 import { ArrowLeft, UserPlus } from "lucide-react";

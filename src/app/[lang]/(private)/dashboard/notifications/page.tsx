@@ -119,10 +119,8 @@ export default function NotificationsPage() {
   const isLastPage = data?.last ?? true;
   const unreadCount = unreadData?.unreadCount ?? 0;
 
-  // Filter & sort notifications client-side
   const filteredNotifications = useMemo(() => {
     const list = allNotifications.filter((item) => {
-      // Category filter
       if (activeCategory === "SECURITY") {
         if (
           item.notifiableType !== "REPORT" &&
@@ -162,7 +160,6 @@ export default function NotificationsPage() {
         }
       }
 
-      // Search query filter
       if (searchTerm.trim().length > 0) {
         const query = searchTerm.toLowerCase();
         const matchesTitle = item.title?.toLowerCase().includes(query);
@@ -188,7 +185,6 @@ export default function NotificationsPage() {
     return list;
   }, [allNotifications, activeCategory, searchTerm, sortOrder]);
 
-  // Compute metric counts
   const securityCount = allNotifications.filter(
     (n) =>
       n.notifiableType === "REPORT" ||
@@ -201,14 +197,12 @@ export default function NotificationsPage() {
       n.notifiableType === "REWARD" || n.notifiableType === "RECOGNITION",
   ).length;
 
-  // Toggle selection of single item
   const handleToggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
 
-  // Select / Deselect all visible
   const handleSelectAllVisible = () => {
     const visibleIds = filteredNotifications
       .map((n) => n.id)
@@ -221,7 +215,6 @@ export default function NotificationsPage() {
     }
   };
 
-  // Mark selected items as read in batch
   const handleMarkSelectedAsRead = async () => {
     if (selectedIds.length === 0) return;
     try {
@@ -247,7 +240,6 @@ export default function NotificationsPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12 min-w-0"
     >
-      {/* 1. Page Header with Breadcrumbs & Actions */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/80">
         <div className="space-y-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium text-muted-foreground min-w-0">
@@ -313,9 +305,7 @@ export default function NotificationsPage() {
         </div>
       </header>
 
-      {/* 2. Overview Metrics Cards Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 min-w-0">
-        {/* Metric 1: Total Alerts */}
         <Card
           onClick={() => {
             setActiveCategory("ALL");
@@ -344,7 +334,6 @@ export default function NotificationsPage() {
           </CardContent>
         </Card>
 
-        {/* Metric 2: Unread Messages */}
         <Card
           onClick={() => {
             setUnreadOnly(true);
@@ -373,7 +362,6 @@ export default function NotificationsPage() {
           </CardContent>
         </Card>
 
-        {/* Metric 3: Bounty Rewards */}
         <Card
           onClick={() => {
             setActiveCategory("REWARDS");
@@ -402,7 +390,6 @@ export default function NotificationsPage() {
           </CardContent>
         </Card>
 
-        {/* Metric 4: Security & Reports */}
         <Card
           onClick={() => {
             setActiveCategory("SECURITY");
@@ -432,11 +419,8 @@ export default function NotificationsPage() {
         </Card>
       </section>
 
-      {/* 3. Interactive Filter & Command Bar */}
       <Card className="rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none shadow-xs p-4 sm:p-5 space-y-4">
-        {/* Top Controls: Search Input + Unread Toggle + Sort + Rows Per Page */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-          {/* Search Box */}
           <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
@@ -458,7 +442,6 @@ export default function NotificationsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Status Tabs (All vs Unread) */}
             <div className="flex items-center p-1 bg-muted rounded-xl border border-border text-xs font-semibold shrink-0">
               <button
                 type="button"
@@ -495,7 +478,6 @@ export default function NotificationsPage() {
               </button>
             </div>
 
-            {/* Sort Order Selector */}
             <div className="flex items-center gap-1">
               <Select
                 value={sortOrder}
@@ -511,7 +493,6 @@ export default function NotificationsPage() {
               </Select>
             </div>
 
-            {/* Rows Per Page Selector (shadcn Select, compliant with Rule 5) */}
             <div className="flex items-center gap-1.5">
               <Select
                 value={String(pageSize)}
@@ -531,7 +512,6 @@ export default function NotificationsPage() {
               </Select>
             </div>
 
-            {/* Batch Selection Mode Toggle */}
             <Button
               type="button"
               variant={isBatchMode ? "secondary" : "outline"}
@@ -552,7 +532,6 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        {/* Category Pill Filters */}
         <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 scrollbar-none pt-1 border-t border-border/60">
           <div className="flex items-center gap-2">
             {[
@@ -602,7 +581,6 @@ export default function NotificationsPage() {
         </div>
       </Card>
 
-      {/* 4. Batch Selection Floating Action Bar */}
       <AnimatePresence>
         {isBatchMode && (
           <motion.div
@@ -645,10 +623,8 @@ export default function NotificationsPage() {
         )}
       </AnimatePresence>
 
-      {/* 5. Main Notification Stream List */}
       <section className="space-y-3">
         {isLoading ? (
-          // Structured Skeleton Pulse Container
           <div className="space-y-3 animate-pulse">
             {[1, 2, 3, 4, 5].map((i) => (
               <div
@@ -733,7 +709,6 @@ export default function NotificationsPage() {
           </div>
         )}
 
-        {/* 6. Pagination Controls Footer */}
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-card border border-border p-4 shadow-xs">
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">

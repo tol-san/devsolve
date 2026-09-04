@@ -35,7 +35,6 @@ export function CompanyRegisterStepper({
   return (
     <div className="mb-8 w-full max-w-md mx-auto">
       <div className="flex items-center justify-between relative">
-        {/* Connector line behind steps */}
         <div className="absolute top-4 left-6 right-6 h-0.5 bg-border -z-0" />
         <div
           className="absolute top-4 left-6 h-0.5 bg-blue-600 dark:bg-blue-500 transition-all duration-500 -z-0"

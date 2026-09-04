@@ -46,11 +46,6 @@ function getDotStyle(tier?: string | null) {
   }
 }
 
-/**
- * While a report is disputed (severity === null), never show a single severity badge.
- * Show both claims side by side, labelled by who made them:
- * "Researcher: HIGH" vs "Organization: LOW".
- */
 export function DisputedSeverityPair({
   reportedSeverity,
   triageSeverity,
@@ -74,7 +69,6 @@ export function DisputedSeverityPair({
         <span className="hidden sm:inline">Disputed</span>
       </div>
 
-      {/* Researcher Claim */}
       <Badge
         variant="outline"
         className={cn(
@@ -91,7 +85,6 @@ export function DisputedSeverityPair({
 
       <span className="text-[11px] font-bold text-muted-foreground">vs</span>
 
-      {/* Organization Triage */}
       <Badge
         variant="outline"
         className={cn(

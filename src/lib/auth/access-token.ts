@@ -1,12 +1,5 @@
 import { authClient } from "./auth-client";
 
-/**
- * The backend expects the Keycloak JWT as a bearer token. better-auth holds it
- * server-side against the session cookie, so it has to be asked for — it is
- * never written to localStorage, and reading it from there yields nothing.
- */
-
-/** better-auth has returned this in a few shapes across versions. */
 interface AccessTokenResponse {
   data?: string | { accessToken?: string; token?: string } | null;
   token?: string;
@@ -14,15 +7,12 @@ interface AccessTokenResponse {
 
 const PROVIDER_ID = "keycloak";
 
-/** Renew a little before the real expiry so a request never races the clock. */
 const EXPIRY_SKEW_MS = 30_000;
 
-/** Fallback lifetime when the token carries no readable `exp`. */
 const FALLBACK_TTL_MS = 60_000;
 
 let cached: { token: string; expiresAt: number } | null = null;
 let inFlight: Promise<string | null> | null = null;
-/** Incremented on every clearAccessToken call; lets in-flight fetches know they are stale. */
 let generation = 0;
 
 function expiryOf(jwt: string): number {
@@ -42,11 +32,6 @@ function expiryOf(jwt: string): number {
   }
 }
 
-/**
- * Current Keycloak access token, or null when signed out. Cached until just
- * before it expires so a page of RTK Query hooks doesn't fan out one
- * better-auth round trip per request, and de-duped while a fetch is in flight.
- */
 export async function getAccessToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
 
@@ -68,7 +53,6 @@ export async function getAccessToken(): Promise<string | null> {
         providerId: PROVIDER_ID,
       })) as AccessTokenResponse;
 
-      // If clearAccessToken() was called while we were awaiting, discard the result.
       if (myGeneration !== generation) {
         cached = null;
         return null;
@@ -97,9 +81,8 @@ export async function getAccessToken(): Promise<string | null> {
   return inFlight;
 }
 
-/** Drop the cached token — call after a 401 or on sign-out. */
 export function clearAccessToken() {
   cached = null;
   inFlight = null;
-  generation += 1; // Poison any in-flight fetch started before this clear.
+  generation += 1; 
 }

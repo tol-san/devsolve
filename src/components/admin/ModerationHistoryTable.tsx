@@ -94,10 +94,8 @@ export function ModerationHistoryTable() {
 
   return (
     <div className="space-y-4">
-      {/* FILTER TOOLBAR */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card p-4 rounded-2xl border border-border shadow-xs">
         <div className="flex flex-wrap items-center gap-3 flex-1">
-          {/* Target ID Search */}
           <div className="relative flex-1 min-w-[200px] max-w-xs">
             <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
             <Input
@@ -111,7 +109,6 @@ export function ModerationHistoryTable() {
             />
           </div>
 
-          {/* Target Type Select Filter */}
           <div className="w-44">
             <Select
               value={targetTypeFilter}
@@ -140,7 +137,6 @@ export function ModerationHistoryTable() {
             </Select>
           </div>
 
-          {/* Action Select Filter */}
           <div className="w-36">
             <Select
               value={actionFilter}
@@ -167,7 +163,6 @@ export function ModerationHistoryTable() {
             </Select>
           </div>
 
-          {/* Reset Filters */}
           {(targetTypeFilter !== "ALL" || actionFilter !== "ALL" || targetIdSearch.trim() !== "") && (
             <Button
               type="button"
@@ -181,13 +176,11 @@ export function ModerationHistoryTable() {
           )}
         </div>
 
-        {/* Total Badge */}
         <div className="text-xs text-muted-foreground font-semibold self-end lg:self-center">
           Total Recorded Actions: <span className="text-foreground font-bold">{totalElements}</span>
         </div>
       </div>
 
-      {/* DATA TABLE */}
       {isLoading || isFetching ? (
         <div className="space-y-3 animate-pulse">
           <div className="h-64 bg-muted/60 rounded-2xl border border-border" />
@@ -280,7 +273,6 @@ export function ModerationHistoryTable() {
             </TableBody>
           </Table>
 
-          {/* PAGINATION FOOTER */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border-t border-border text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <span>Rows per page</span>
@@ -335,7 +327,6 @@ export function ModerationHistoryTable() {
         </div>
       )}
 
-      {/* Moderation Action Detail Modal */}
       <ModerationActionDetailModal
         actionId={selectedActionId}
         isOpen={!!selectedActionId}

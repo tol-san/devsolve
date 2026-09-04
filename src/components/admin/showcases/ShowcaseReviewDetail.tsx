@@ -30,15 +30,6 @@ import { ShowcaseCodeBlock } from "@/components/showcases/detail/ShowcaseCodeBlo
 import { ShowcaseDiagramViewer } from "@/components/showcases/diagram/ShowcaseDiagramViewer";
 import { useGetShowcaseReviewDetailQuery } from "@/lib/redux/services/admin/showcaseReviewApi";
 
-/**
- * One submission under review — `GET /api/v1/admin/showcases/{id}`, decided
- * with `PATCH …/review-status`.
- *
- * Laid out like the public showcase page so approving means approving what a
- * visitor will actually see. For a revision this is the pending copy, not what
- * is currently live.
- */
-
 const CARD =
   "rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs";
 
@@ -127,7 +118,6 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
       </header>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-        {/* ── The submission, as a visitor would read it ── */}
         <div className="space-y-6 lg:col-span-2">
           <section className={`${CARD} overflow-hidden`}>
             <Cover url={submission.coverImageUrl} title={submission.title} />
@@ -228,7 +218,6 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
           </section>
         </div>
 
-        {/* ── Decision ── */}
         <aside className="space-y-5 lg:sticky lg:top-6">
           <section className={`${CARD} space-y-4 p-5`}>
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -298,7 +287,6 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
                   </div>
                 )}
 
-                {/* A decision is not final: the same endpoint takes another. */}
                 <Button
                   type="button"
                   variant="outline"
@@ -345,11 +333,6 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
   );
 }
 
-/**
- * `next/image` only accepts hosts allowed in `next.config.ts`, which covers
- * every `https` host. An author who pasted an `http` or `data:` URL would make
- * it throw during render, so those keep the plain tag.
- */
 function isOptimizable(url: string) {
   return url.startsWith("https://") || url.startsWith("/");
 }
@@ -371,7 +354,6 @@ function Cover({ url, title }: { url?: string; title: string }) {
         {shown ? (
           isOptimizable(shown) ? (
             <>
-              {/* Ambient Blurred Background Fill */}
               <Image
                 src={shown}
                 alt=""
@@ -381,7 +363,6 @@ function Cover({ url, title }: { url?: string; title: string }) {
                 quality={30}
                 className="object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
               />
-              {/* Main Crisp Image */}
               <Image
                 src={shown}
                 alt={`${title} cover`}
@@ -394,14 +375,12 @@ function Cover({ url, title }: { url?: string; title: string }) {
             </>
           ) : (
             <>
-              {/* Ambient Blurred Background Fill */}
               <img
                 src={shown}
                 alt=""
                 aria-hidden="true"
                 className="absolute inset-0 size-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
               />
-              {/* Main Crisp Image */}
               <img
                 src={shown}
                 alt={`${title} cover`}

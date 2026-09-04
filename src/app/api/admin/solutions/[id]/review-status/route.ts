@@ -5,12 +5,6 @@ import { z } from "zod";
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const PROVIDER_ID = "keycloak";
 
-/**
- * Mirrors `UpdateSolutionReviewStatusRequest`. `ACCEPTED` was accepted here
- * once and is not a review status upstream — the asker accepting an answer is
- * `PUT /problems/{id}/accepted-solutions`, a different call by a different
- * person. Sending it here earned a 400 from the backend.
- */
 const reviewStatusSchema = z.object({
   reviewStatus: z.enum(["PENDING", "APPROVED", "REJECTED"]),
   rejectionReason: z

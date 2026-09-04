@@ -51,7 +51,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
   const { handleLogin } = useKeycloakLogin();
 
   const toggleBookmark = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevents triggers if nested inside clickable elements
+    e.preventDefault(); 
     if (!session?.user) {
       void handleLogin(
         typeof window !== "undefined"
@@ -74,22 +74,18 @@ export function ProgramCard({ program }: ProgramCardProps) {
     }
   };
 
-  // Determine if this is a Bounty vs Response program
   const isBounty = program.engagementType
     ? program.engagementType === "BOUNTY"
     : program.offersBounties;
 
-  // Badge Styling: Blue for Bounty, Soft Green for Response
   const badgeStyle = isBounty
     ? "bg-blue-50 text-blue-600 border-blue-100/80 group-hover:border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20 dark:group-hover:border-blue-500/40"
     : "bg-emerald-50 text-emerald-600 border-emerald-100/80 group-hover:border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20 dark:group-hover:border-emerald-500/40";
 
-  // Header Title Color: Blue for Bounty, Neutral Foreground for Response
   const companyTitleColor = isBounty
     ? "text-blue-600 dark:text-blue-400"
     : "text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors";
 
-  // Format Rewards Display
   const renderRewards = () => {
     if (isBounty) {
       const min = program.minimumBounty ?? 0;
@@ -110,8 +106,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
     );
   };
 
-  /* `usePathname` returns the locale-prefixed path (`/km/dashboard/...`), so
-     the locale comes off before the segment is matched. */
   const pathname = usePathname();
   const { rest } = splitLocale(pathname);
   const isDashboard = rest.startsWith("/dashboard");
@@ -120,7 +114,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
   return (
     <div className="group relative bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1.5 hover:ring-blue-500/40 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/40 h-full">
 
-      {/* BOOKMARK BUTTON (Top Right) */}
       <button
         onClick={toggleBookmark}
         type="button"
@@ -143,7 +136,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
       </button>
 
       <div className="space-y-4">
-        {/* HEADER: LOGO, ORGANIZATION & BADGES */}
         <div className="flex items-start gap-3.5 pr-8">
           <Link
             href={companyHref}
@@ -183,7 +175,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
           </Link>
         </div>
 
-        {/* PROGRAM TITLE & DESCRIPTION */}
         <div className="space-y-1.5">
           <h3 className="font-bold text-foreground text-[17px] leading-snug line-clamp-1 transition-colors">
             {program.name}
@@ -193,7 +184,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
           </p>
         </div>
 
-        {/* IN-SCOPE ASSETS SECTION */}
         <div className="space-y-2 pt-1">
           <p className="text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
             {t("programs.card.inScope")}
@@ -229,7 +219,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
         </div>
       </div>
 
-      {/* FOOTER: REWARDS & HOVERABLE SEE DETAILS BUTTON */}
       <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
         <div>
           <p className="text-xs text-muted-foreground font-medium">

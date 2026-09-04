@@ -8,13 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/admin/security/incidents — Next proxy for
- * /api/v1/admin/security/incidents.
- *
- * Requires platform ADMIN role. Returns 403 otherwise from upstream.
- */
-
 const ALLOWED_QUERY = [
   "search",
   "verdict",

@@ -90,7 +90,6 @@ export function AdminDashboardOverview() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* Page Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -120,10 +119,8 @@ export function AdminDashboardOverview() {
         </div>
       </header>
 
-      {/* KPI Stats */}
       <AdminStatGrid stats={adminData.stats} />
 
-      {/* Current platform state and report distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <AdminOverviewSnapshot overview={overview} />
         <AdminReportStatusDonut
@@ -132,7 +129,6 @@ export function AdminDashboardOverview() {
         />
       </div>
 
-      {/* Admin Queue & Quick Links Row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <AdminActionQueueCard
           items={adminData.actionQueue.items}

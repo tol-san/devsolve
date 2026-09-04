@@ -38,8 +38,6 @@ export function NotFoundStage({
 }) {
   return (
     <main className="relative min-h-[100dvh] overflow-hidden">
-      {/* 404 renders outside the route-group layouts, so it carries the shared
-          surface itself rather than inheriting one. */}
       <PageBackdrop seed={11} />
 
       <div className="relative mx-auto flex min-h-[100dvh] max-w-[1280px] items-center px-4 py-12 sm:px-6 lg:px-8">

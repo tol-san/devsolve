@@ -35,25 +35,10 @@ import { cn } from "@/lib/utils";
 
 type RetestHistoryTimelineProps = {
   history: RetestSummary[];
-  /**
-   * Whose screen this is. The reporter is the one under the clock, so they get
-   * "Verdict due in 6 days"; the organization is waiting on someone else and
-   * gets the date — "Awaiting verdict, due 15 Sep".
-   */
   audience?: "reporter" | "organization";
   className?: string;
 };
 
-/**
- * Every retest attempt on a report, oldest first.
- *
- * An attempt has no status field of its own — see `retestAttemptStatus` — and
- * the three it can be in read very differently. Answered attempts show the
- * researcher's verdict and their notes. An attempt closed *without* a verdict
- * is not a researcher decision at all: either triage moved the report on or
- * the window lapsed, and `resultNotes` says which, so it is shown as a note on
- * the attempt rather than under the researcher's name.
- */
 export function RetestHistoryTimeline({
   history,
   audience = "organization",
@@ -154,7 +139,6 @@ export function RetestHistoryTimeline({
                 transition={{ duration: 0.25, delay: index * 0.05 }}
                 className="relative pl-7 pb-4 border-l-2 border-border last:pb-0"
               >
-                {/* Timeline node icon */}
                 <div
                   className={cn(
                     "absolute -left-3.25 top-1 flex size-6 items-center justify-center rounded-full border-2 bg-background shadow-xs",
@@ -177,7 +161,6 @@ export function RetestHistoryTimeline({
                 </div>
 
                 <div className="rounded-2xl border border-border/80 bg-muted/30 hover:bg-muted/40 transition-colors p-4 space-y-3.5 shadow-2xs">
-                  {/* Attempt header */}
                   <div className="flex flex-wrap items-center justify-between gap-2.5">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-bold text-foreground tracking-tight">
@@ -204,7 +187,6 @@ export function RetestHistoryTimeline({
                       )}
                     </div>
 
-                    {/* Status, derived — there is no status field upstream */}
                     {isPassed ? (
                       <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1.5 shadow-2xs">
                         <ShieldCheck className="size-3.5" />
@@ -234,7 +216,6 @@ export function RetestHistoryTimeline({
                     )}
                   </div>
 
-                  {/* The deadline, while there is still one to meet */}
                   {isOpen && deadlineLabel && (
                     <div
                       className={cn(
@@ -251,7 +232,6 @@ export function RetestHistoryTimeline({
                     </div>
                   )}
 
-                  {/* Target endpoint */}
                   {attempt.targetEndpoint && (
                     <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground font-mono bg-background/80 px-3 py-1.5 rounded-xl border border-border/70">
                       <div className="flex items-center gap-2 min-w-0">
@@ -278,7 +258,6 @@ export function RetestHistoryTimeline({
                     </div>
                   )}
 
-                  {/* What was asked, and what came back */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                     <div className="rounded-xl border border-border/60 bg-background/60 p-3 space-y-1.5">
                       <div className="flex items-center justify-between gap-2 text-sm">
@@ -340,8 +319,6 @@ export function RetestHistoryTimeline({
                                 ? "This attempt was closed before a verdict was given."
                                 : "No notes were left.")}
                           </p>
-                          {/* Only an answered attempt has someone to credit —
-                              a lapsed one was closed by the clock. */}
                           {attempt.verdict && attempt.completedBy?.name && (
                             <p className="text-xs text-muted-foreground/80 font-medium">
                               By {attempt.completedBy.name}

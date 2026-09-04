@@ -33,8 +33,6 @@ export interface ReportStatusBreakdown {
   total: number;
 }
 
-// ─── Real API: GET /api/v1/admin/organizations/pending ────────────────────────
-
 export type PendingOrgIndustry =
   | "TECHNOLOGY"
   | "FINANCE"
@@ -147,8 +145,6 @@ export interface OrganizationReviewHistoryItem {
   createdAt?: string;
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-
 export interface CompanyVerificationItem {
   id: string;
   orgCode?: string;
@@ -215,16 +211,6 @@ export interface ReportConfirmationItem {
   reproduceSteps?: string[];
   pocPayload?: string;
   attachments?: { name: string; size?: string; type?: string; previewUrl?: string }[];
-  /**
-   * What the researcher claimed and what the company's triage decided. Two
-   * separate ratings — the whole point of the confirmation screen is that they
-   * can differ, so neither may be derived from the other or from the settled
-   * `severity` above.
-   *
-   * `cvss` and `typicalReward` are optional because the API supplies neither
-   * for most reports; omitted rather than filled with a plausible-looking
-   * constant, which reads as a real score on screen.
-   */
   hackerClaimedSeverity?: {
     tier: "Critical" | "High" | "Medium" | "Low" | null;
     cvss?: string;
@@ -235,7 +221,6 @@ export interface ReportConfirmationItem {
     cvss?: string;
     typicalReward?: string;
   };
-  /** Undefined until triage has rated it — there is nothing to agree with yet. */
   severitiesAgree?: boolean;
   companyReasoning?: string;
   discussionThread?: {
@@ -433,8 +418,6 @@ export interface AdminOverviewResponse {
     contentFlags: number;
   };
 }
-
-// ─── Real API: Moderation Actions & Admin Users ─────────────────────────────
 
 export type ModerationActionTargetType =
   | "PROGRAM"

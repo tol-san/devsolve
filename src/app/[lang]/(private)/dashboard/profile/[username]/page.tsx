@@ -21,12 +21,7 @@ export default function ProfilePage() {
   const { data: session } = authClient.useSession();
   const { data, isLoading, isError, error, refetch } =
     useGetProfileByUsernameQuery(username);
-  /* Cached and shared with every other screen that asks, so this costs one
-     request per session rather than one per profile viewed. */
   const { data: me } = useGetProfileByUsernameQuery("me", { skip: !session });
-  /* `?edit=1` so the control can be reached from anywhere — the sidebar's
-     "Add your research bio", the banner on the public profile — and land in
-     the form rather than on a page the reader then has to find it on. */
   const searchParams = useSearchParams();
   const [isEditing, setIsEditing] = useState(
     () => searchParams.get("edit") === "1",
@@ -52,14 +47,6 @@ export default function ProfilePage() {
   const sessionEmail = session?.user?.email;
   const sessionUsername = sessionEmail ? sessionEmail.split("@")[0].toLowerCase() : "";
 
-  /* Whose profile this is, decided on ids from the same source.
-     `session.user.id` is better-auth's, which is not the id the profile API
-     keys on, and the email-derived name is a guess that stopped agreeing with
-     anything the day the backend began publishing real handles — someone whose
-     handle is not their email's local part failed every check here and lost
-     the edit controls on their own profile. `/user-profiles/me` answers with
-     the same id space as the profile being viewed, so the two can simply be
-     compared. The older guesses stay as a fallback for records with no id. */
   const isOwnProfile = Boolean(
     rawProfile.isOwnProfile ||
     (me?.profile.id && rawProfile.id && me.profile.id === rawProfile.id) ||
@@ -85,7 +72,6 @@ export default function ProfilePage() {
     }
   };
 
-  /* Edit mode — full-page settings form */
   if (isEditing) {
     return (
       <motion.div
@@ -94,7 +80,6 @@ export default function ProfilePage() {
         transition={{ duration: 0.3, ease: "easeOut" }}
         className="w-full space-y-6 pb-20"
       >
-        {/* Top Header & Breadcrumb Bar */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
           <div className="space-y-1">
             <nav
@@ -145,18 +130,14 @@ export default function ProfilePage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="w-full space-y-6 pb-12"
     >
-      {/* ── Top Hero Card / Banner ──────────────────────────────────── */}
       <ProfileHeroBanner
         profile={profile}
         onEdit={() => setIsEditing(true)}
       />
 
-      {/* ── Key Metrics Stat Strip ──────────────────────────────────── */}
       <StatsCards stats={effectiveStats} />
 
-      {/* ── Two-Column Main Content Layout ──────────────────────────── */}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start xl:gap-8">
-        {/* Left Column: About & Network (sticky on desktop) */}
         <div className="w-full shrink-0 lg:sticky lg:top-6 lg:w-80">
           <ProfileSidebar
             profile={profile}
@@ -164,7 +145,6 @@ export default function ProfilePage() {
           />
         </div>
 
-        {/* Right Column: Tabbed Content (Overview, Hacktivity, Community, Thanks) */}
         <div className="min-w-0 flex-1">
           <Suspense fallback={null}>
             <ProfileTabsContainer

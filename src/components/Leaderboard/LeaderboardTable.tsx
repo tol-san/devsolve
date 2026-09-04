@@ -30,7 +30,6 @@ const PAGE_SIZES = [10, 25, 50];
 
 type Props = {
   entries: LeaderboardEntry[];
-  /** Decides what `recognitionCount` means, and so what the badge says. */
   period: LeaderboardPeriod;
   page: number;
   pageSize: number;
@@ -106,7 +105,6 @@ function ResearcherCard({
       }`}
       style={medal ? { borderLeftWidth: "4px", borderLeftColor: medal.ring } : undefined}
     >
-      {/* Left: Rank, Avatar & Researcher Profile */}
       <div className="flex items-center gap-3.5 min-w-0 flex-1">
         <div className="flex items-center gap-1.5 shrink-0">
           <RankBadge rank={entry.rank} />
@@ -155,11 +153,8 @@ function ResearcherCard({
         </Link>
       </div>
 
-      {/* Middle & Right: Metrics, Severity Tag & Reputation */}
       <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-neutral-800">
-        {/* Performance Tags */}
         <div className="flex items-center gap-2">
-          {/* Top Severity Chip */}
           <span
             className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${
               SEVERITY_STYLES[entry.topSeverity].chip
@@ -169,7 +164,6 @@ function ResearcherCard({
             <span>{entry.topSeverity}</span>
           </span>
 
-          {/* Valid Rate Pill - Show only when totalReports & validReports are non-null (Lifetime) */}
           {hasValidReports && (
             <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
               <CheckCircle2 size={12} className="text-emerald-500" />
@@ -180,14 +174,12 @@ function ResearcherCard({
             </span>
           )}
 
-          {/* Critical Count */}
           {entry.criticalReports > 0 && (
             <span className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2 py-1 text-xs font-bold text-rose-700 dark:bg-rose-500/10 dark:text-rose-400">
               <span>{entry.criticalReports} Crit</span>
             </span>
           )}
 
-          {/* Recognitions all-time; findings resolved on a windowed board */}
           {entry.recognitionCount > 0 && (
             <span
               title={`${entry.recognitionCount} ${
@@ -203,7 +195,6 @@ function ResearcherCard({
           )}
         </div>
 
-        {/* Reputation Score & Profile Link */}
         <div className="flex items-center gap-2.5">
           <ReputationPill value={entry.reputation} isCurrentUser={entry.isCurrentUser} />
 
@@ -251,7 +242,6 @@ export default function LeaderboardTable({
 
   return (
     <div className="space-y-4">
-      {/* ── Card List ── */}
       <div className="space-y-3">
         {visible.map((entry, index) => (
           <ResearcherCard
@@ -263,7 +253,6 @@ export default function LeaderboardTable({
         ))}
       </div>
 
-      {/* ── Pagination Bar ── */}
       <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-5 py-3.5 shadow-2xs dark:border-neutral-800 dark:bg-neutral-900 sm:flex-row">
         <div className="flex items-center gap-2.5 text-sm font-medium text-slate-600 dark:text-neutral-400">
           <span>Researchers per page</span>

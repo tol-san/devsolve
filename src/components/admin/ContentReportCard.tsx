@@ -20,7 +20,6 @@ export function ContentReportCard({ report, onAction, onViewDetail }: ContentRep
   return (
     <Card className="rounded-2xl border border-border bg-card text-card-foreground p-6 shadow-xs transition duration-200">
       <CardContent className="p-0 space-y-4">
-        {/* Top Row: Type Badge + Title + Timestamp */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-2.5 flex-wrap min-w-0">
             <Badge
@@ -41,7 +40,6 @@ export function ContentReportCard({ report, onAction, onViewDetail }: ContentRep
           </span>
         </div>
 
-        {/* Optional Content Preview Snippet */}
         {report.snippet && (
           <p
             onClick={() => onViewDetail?.(report.id)}
@@ -51,7 +49,6 @@ export function ContentReportCard({ report, onAction, onViewDetail }: ContentRep
           </p>
         )}
 
-        {/* Metadata Row */}
         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1 font-bold text-foreground bg-muted px-2.5 py-1 rounded-lg">
             <Flag className="size-3.5 text-muted-foreground" />
@@ -92,7 +89,6 @@ export function ContentReportCard({ report, onAction, onViewDetail }: ContentRep
           ) : null}
         </div>
 
-        {/* Action Controls Footer */}
         <div className="border-t border-border pt-3.5 flex items-center justify-between text-xs">
           <Button
             type="button"

@@ -18,7 +18,6 @@ export function SystemArchitectureDiagram() {
 
   useGSAP(
     () => {
-      // Timeline for coordinated entrance on scroll
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
@@ -27,7 +26,6 @@ export function SystemArchitectureDiagram() {
         },
       });
 
-      // 1. Title entrance
       tl.from(".arch-title", {
         opacity: 0,
         x: 30,
@@ -35,7 +33,6 @@ export function SystemArchitectureDiagram() {
         ease: "power3.out",
       });
 
-      // 2. Node staggered entrance with springy elastic feel
       tl.from(
         ".arch-node-user",
         { opacity: 0, scale: 0.5, y: 20, duration: 0.5, ease: "back.out(1.8)" },
@@ -94,7 +91,6 @@ export function SystemArchitectureDiagram() {
           "-=0.3"
         );
 
-      // Continuous animated stream flow along SVG dashed circuits
       gsap.to(".flow-stream", {
         strokeDashoffset: -120,
         duration: 2.4,
@@ -110,16 +106,13 @@ export function SystemArchitectureDiagram() {
       ref={containerRef}
       className="relative w-full overflow-hidden bg-transparent py-6 select-none"
     >
-      {/* ─── Top Header: Clean & Borderless ─── */}
       <div className="flex items-center pb-4 mb-6 sm:mb-10">
         <h2 className="arch-title text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#2563EB] dark:text-blue-400">
           System Architecture
         </h2>
       </div>
 
-      {/* ─── DESKTOP DIAGRAM CANVAS (>= 1024px) ─── */}
       <div className="relative mx-auto hidden lg:block w-full max-w-[1180px] h-[720px]">
-        {/* ─── SVG CONNECTOR PATHS & ARROWS ─── */}
         <svg
           ref={pathsRef}
           className="absolute inset-0 w-full h-full pointer-events-none z-0"
@@ -143,7 +136,6 @@ export function SystemArchitectureDiagram() {
             </marker>
           </defs>
 
-          {/* 1. User -> Reverse Proxy */}
           <path
             d="M 130 95 L 210 95"
             fill="none"
@@ -161,7 +153,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-70"
           />
 
-          {/* 2. Reverse Proxy -> Frontend (Down) */}
           <path
             d="M 290 165 L 290 280"
             fill="none"
@@ -179,7 +170,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-70"
           />
 
-          {/* 3. Reverse Proxy -> Keycloak (Right) */}
           <path
             d="M 370 95 L 480 95"
             fill="none"
@@ -197,7 +187,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-70"
           />
 
-          {/* 4. Frontend -> Keycloak (OAuth / Login) */}
           <path
             d="M 380 310 Q 435 210 490 160"
             fill="none"
@@ -215,7 +204,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-60"
           />
 
-          {/* 5. Frontend -> Spring Boot (REST / HTTPS) */}
           <path
             d="M 380 360 L 480 360"
             fill="none"
@@ -233,7 +221,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-80"
           />
 
-          {/* 6. Keycloak <-> Spring Boot (VALIDATE JWT) */}
           <path
             d="M 630 175 L 630 280"
             fill="none"
@@ -252,7 +239,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-80"
           />
 
-          {/* 7. Spring Boot -> Notification (Events) */}
           <path
             d="M 780 320 Q 825 210 870 140"
             fill="none"
@@ -271,7 +257,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-70"
           />
 
-          {/* 8. Spring Boot <-> PostgreSQL */}
           <path
             d="M 780 360 L 870 360"
             fill="none"
@@ -290,7 +275,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-80"
           />
 
-          {/* 9. Spring Boot -> Meilisearch */}
           <path
             d="M 720 445 Q 760 565 870 565"
             fill="none"
@@ -308,7 +292,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-70"
           />
 
-          {/* 10. Spring Boot -> Redis (Down) */}
           <path
             d="M 630 445 L 630 520"
             fill="none"
@@ -326,7 +309,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-80"
           />
 
-          {/* 11. Spring Boot -> VirusTotal */}
           <path
             d="M 540 445 Q 500 565 460 565"
             fill="none"
@@ -345,7 +327,6 @@ export function SystemArchitectureDiagram() {
             className="flow-stream opacity-70"
           />
 
-          {/* 12. VirusTotal -> MinIO */}
           <path
             d="M 275 575 L 195 575"
             fill="none"
@@ -364,7 +345,6 @@ export function SystemArchitectureDiagram() {
           />
         </svg>
 
-        {/* ─── PATH LABELS (Spaced and Elevated) ─── */}
         <div className="arch-label absolute left-[395px] top-[335px] z-10 flex flex-col items-center bg-card/95 px-3 py-1 rounded-lg text-xs sm:text-sm font-mono font-bold text-slate-800 dark:text-neutral-200 shadow-md backdrop-blur-md">
           <span>REST</span>
           <span>/HTTPS</span>
@@ -378,7 +358,6 @@ export function SystemArchitectureDiagram() {
           Events
         </div>
 
-        {/* ─── NODE 1: USER ─── */}
         <div className="arch-node-user absolute left-[40px] top-[50px] z-20 flex flex-col items-center">
           <div className="flex size-22 items-center justify-center rounded-full bg-slate-100 shadow-lg dark:bg-neutral-800 p-2">
             <div className="flex size-16 items-center justify-center rounded-full bg-[#1e40af] text-white shadow-inner">
@@ -388,7 +367,6 @@ export function SystemArchitectureDiagram() {
           <span className="mt-3 text-lg sm:text-xl font-bold text-foreground tracking-tight">User</span>
         </div>
 
-        {/* ─── NODE 2: REVERSE PROXY (TRAEFIK) ─── */}
         <div className="arch-node-proxy absolute left-[210px] top-[35px] z-20 flex w-40 flex-col items-center rounded-3xl bg-card/95 p-5 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
           <div className="relative h-16 w-20">
             <Image
@@ -404,9 +382,7 @@ export function SystemArchitectureDiagram() {
           </span>
         </div>
 
-        {/* ─── NODE 3: FRONTEND (NEXT.JS + SHADCN + TAILWIND) ─── */}
         <div className="arch-node-frontend absolute left-[40px] top-[280px] z-20 flex w-[340px] flex-col items-center rounded-3xl bg-card/95 p-6 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
-          {/* Next.js Logo */}
           <div className="relative h-9 w-32">
             <Image
               src="/next.svg"
@@ -417,7 +393,6 @@ export function SystemArchitectureDiagram() {
             />
           </div>
 
-          {/* Sub-frameworks */}
           <div className="mt-5 flex items-center justify-center gap-5 text-sm font-semibold text-muted-foreground">
             <span className="flex items-center gap-2 font-mono">
               <div className="relative size-4.5">
@@ -429,7 +404,6 @@ export function SystemArchitectureDiagram() {
                   sizes="18px"
                 />
               </div>
-              // shadcn/ui
             </span>
             <span className="flex items-center gap-2 text-[#06B6D4] font-semibold">
               <SiTailwindcss className="size-4.5" /> tailwindcss
@@ -439,7 +413,6 @@ export function SystemArchitectureDiagram() {
           <span className="mt-4 text-lg sm:text-xl font-bold text-foreground tracking-tight">Frontend</span>
         </div>
 
-        {/* ─── NODE 4: AUTHORIZATION SERVER (KEYCLOAK) ─── */}
         <div className="arch-node-auth absolute left-[480px] top-[30px] z-20 flex w-[300px] flex-col items-center rounded-3xl bg-card/95 p-6 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
           <div className="relative h-14 w-52">
             <Image
@@ -456,7 +429,6 @@ export function SystemArchitectureDiagram() {
           </span>
         </div>
 
-        {/* ─── NODE 5: SPRING BOOT RESTFUL API (CORE HUB) ─── */}
         <div className="arch-node-core absolute left-[480px] top-[280px] z-20 flex w-[300px] flex-col items-center rounded-3xl bg-card/95 p-6 shadow-2xl backdrop-blur-md dark:bg-neutral-900 ring-2 ring-emerald-500/30">
           <div className="relative h-14 w-44">
             <Image
@@ -473,7 +445,6 @@ export function SystemArchitectureDiagram() {
           </span>
         </div>
 
-        {/* ─── NODE 6: SMTP NOTIFICATION ─── */}
         <div className="arch-node-notify absolute left-[870px] top-[40px] z-20 flex w-52 flex-col items-center rounded-3xl bg-card/95 p-5 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
           <div className="relative h-16 w-32">
             <Image
@@ -489,7 +460,6 @@ export function SystemArchitectureDiagram() {
           </span>
         </div>
 
-        {/* ─── NODE 7: POSTGRESQL DATABASE ─── */}
         <div className="arch-node-db absolute left-[870px] top-[285px] z-20 flex w-52 flex-col items-center rounded-3xl bg-card/95 p-5 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
           <div className="relative h-16 w-40">
             <Image
@@ -505,7 +475,6 @@ export function SystemArchitectureDiagram() {
           </span>
         </div>
 
-        {/* ─── NODE 8: MEILISEARCH SEARCH SERVICE ─── */}
         <div className="arch-node-search absolute left-[870px] top-[515px] z-20 flex w-52 flex-col items-center rounded-3xl bg-card/95 p-5 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
           <div className="relative h-12 w-40">
             <Image
@@ -521,7 +490,6 @@ export function SystemArchitectureDiagram() {
           </span>
         </div>
 
-        {/* ─── NODE 9: REDIS (CACHE & QUEUE) ─── */}
         <div className="arch-node-redis absolute left-[510px] top-[520px] z-20 flex w-60 flex-col items-center rounded-3xl bg-card/95 p-5 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
           <div className="relative h-14 w-36">
             <Image
@@ -537,7 +505,6 @@ export function SystemArchitectureDiagram() {
           </span>
         </div>
 
-        {/* ─── NODE 10: VIRUSTOTAL (FILE UPLOAD SCAN) ─── */}
         <div className="arch-node-scan absolute left-[275px] top-[520px] z-20 flex w-48 flex-col items-center rounded-3xl bg-card/95 p-5 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
           <div className="relative h-12 w-40">
             <Image
@@ -553,7 +520,6 @@ export function SystemArchitectureDiagram() {
           </span>
         </div>
 
-        {/* ─── NODE 11: MINIO (FILE STORAGE) ─── */}
         <div className="arch-node-storage absolute left-[40px] top-[520px] z-20 flex w-40 flex-col items-center rounded-3xl bg-card/95 p-5 shadow-lg backdrop-blur-md dark:bg-neutral-900/90">
           <div className="flex items-center justify-center gap-2 text-[#C72C48] py-1">
             <SiMinio className="size-8" />
@@ -565,7 +531,6 @@ export function SystemArchitectureDiagram() {
         </div>
       </div>
 
-      {/* ─── MOBILE & TABLET RESPONSIVE CARDS VIEW (< 1024px) ─── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
         {[
           {

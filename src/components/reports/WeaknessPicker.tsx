@@ -45,10 +45,6 @@ export function WeaknessPicker({
   onWeaknessChange,
   error,
 }: WeaknessPickerProps) {
-  // Derive mode if not controlled:
-  // If weaknessId is populated -> catalog
-  // Else if suggestedWeakness is populated -> custom
-  // Else default to unsure (or controlledMode)
   const activeMode: WeaknessMode =
     controlledMode ??
     (weaknessId
@@ -67,7 +63,6 @@ export function WeaknessPicker({
     onModeChange?.(nextMode);
 
     if (nextMode === "catalog") {
-      // Clear suggestedWeakness
       onWeaknessChange({
         weaknessId: weaknessId ?? null,
         category,
@@ -76,7 +71,6 @@ export function WeaknessPicker({
         mode: "catalog",
       });
     } else if (nextMode === "unsure") {
-      // Clear both
       onWeaknessChange({
         weaknessId: null,
         category: "",
@@ -85,7 +79,6 @@ export function WeaknessPicker({
         mode: "unsure",
       });
     } else if (nextMode === "custom") {
-      // Clear catalog selection
       onWeaknessChange({
         weaknessId: null,
         category: "",
@@ -126,9 +119,7 @@ export function WeaknessPicker({
 
   return (
     <div className="space-y-4">
-      {/* 3-Option Selector Cards with Standard Typography and Best UX */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
-        {/* Option 1: Pick from catalog */}
         <button
           type="button"
           onClick={() => setMode("catalog")}
@@ -171,7 +162,6 @@ export function WeaknessPicker({
           </p>
         </button>
 
-        {/* Option 2: Not sure */}
         <button
           type="button"
           onClick={() => setMode("unsure")}
@@ -214,7 +204,6 @@ export function WeaknessPicker({
           </p>
         </button>
 
-        {/* Option 3: Something else */}
         <button
           type="button"
           onClick={() => setMode("custom")}
@@ -258,7 +247,6 @@ export function WeaknessPicker({
         </button>
       </div>
 
-      {/* Dynamic Sub-Form Card with Standard Font and Clear Visual Hierarchy */}
       <AnimatePresence mode="wait">
         {activeMode === "catalog" && (
           <motion.div

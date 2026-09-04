@@ -8,19 +8,6 @@ type ReputationBadgeProps = {
   className?: string;
 };
 
-/**
- * What a finding earned, for scanning down a list.
- *
- * Renders nothing unless reputation was actually awarded. Three cases have to
- * stay distinguishable and only two of them are visible:
- *
- * - awarded, `> 0` — the badge, with the number the backend recorded
- * - awarded, `0` — an informational finding: credited, scores nothing, and
- *   said in words so it does not read as a missing value
- * - never awarded — unresolved, or resolved before reputation was automatic
- *   and deliberately not backfilled. Nothing is shown, because nothing is
- *   known; a `0` here would be a claim rather than a fact.
- */
 export function ReputationBadge({
   points,
   awardedAt,

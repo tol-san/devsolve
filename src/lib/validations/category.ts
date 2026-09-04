@@ -6,7 +6,6 @@ export const CATEGORY_SCOPES = ["PROBLEM", "SHOWCASE"] as const;
 
 export type CategoryScope = (typeof CATEGORY_SCOPES)[number];
 
-/** Mirrors the backend `CategoryRequest` — `name` and `scope` are required. */
 export const categoryCreateSchema = z.object({
   name: z
     .string()
@@ -36,7 +35,6 @@ export const categoryCreateSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-/** Mirrors `CategoryPatchRequest` — every field optional, plus `slug`. */
 export const categoryPatchSchema = categoryCreateSchema
   .extend({
     slug: z
@@ -51,12 +49,6 @@ export type CategoryCreateInput = z.input<typeof categoryCreateSchema>;
 export type CategoryCreateValues = z.output<typeof categoryCreateSchema>;
 export type CategoryPatchValues = z.output<typeof categoryPatchSchema>;
 
-/* ─── Icon upload ───────────────────────────────────────────────────────
-   `PUT /categories/{id}/icon` takes the file itself. Icons render at ~40px,
-   so the cap is deliberately far below the 5MB used for cover images — a
-   megabyte of icon is a mistake, not a requirement. SVG is allowed here
-   where it is not for covers, since icon sets ship as SVG. */
-
 export const ICON_MAX_BYTES = 1024 * 1024;
 
 export const ICON_ACCEPTED = [
@@ -66,7 +58,6 @@ export const ICON_ACCEPTED = [
   "image/svg+xml",
 ];
 
-/** Null when the file is acceptable, otherwise the reason it is not. */
 export function validateIconFile(file: File): string | null {
   if (!ICON_ACCEPTED.includes(file.type)) {
     return "Icons must be PNG, JPG, WebP, or SVG";

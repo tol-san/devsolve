@@ -10,14 +10,6 @@ import { CreateProblemForm } from "@/components/discussions/create/CreateProblem
 import { useInk } from "@/components/landing/SectionBackdrop";
 import { useGetProblemByIdQuery } from "@/lib/redux/services/problemsApi";
 
-/**
- * Revising a problem, on the create form in edit mode.
- *
- * Whether this problem may be edited at all is the backend's call, carried on
- * the response as `canEdit` — a published problem with answers under it is not
- * the same as an untouched draft. That flag is the gate here, so the reason a
- * form is refused is the same reason the API would refuse the save.
- */
 export function ProblemEditScreen({ problemId }: { problemId: string }) {
   const ink = useInk();
 
@@ -120,8 +112,6 @@ export function ProblemEditScreen({ problemId }: { problemId: string }) {
                 problemId={problemId}
               />
             ) : (
-              /* Covers the routes into this page that skip the gated link — a
-                 pasted URL, a bookmark, back/forward. */
               <RequireAuth
                 title="Sign in to edit this problem"
                 description="Editing needs the account that posted it, so changes stay attached to the right author."

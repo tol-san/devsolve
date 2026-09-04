@@ -1,20 +1,7 @@
-/**
- * CVSS v3.1 base metrics — scoring, parsing and formatting.
- *
- * Implemented from the specification (CVSS v3.1 §7.1, Equations 1–4) rather
- * than pulled in as a dependency: the whole file is a dozen lookups and four
- * equations, and the backend rejects a vector whose score disagrees with it,
- * so the arithmetic has to be exactly right rather than approximately right.
- *
- * Only the Base group is modelled. Temporal and Environmental metrics change
- * the score a triager would compute, not the one a reporter is asked for, and
- * the API's `cvssVector` is documented as a base vector.
- */
 
 export const CVSS_VERSIONS = ["CVSS:3.1", "CVSS:3.0"] as const;
 export type CvssVersion = (typeof CVSS_VERSIONS)[number];
 
-/** The eight base metrics, in the order the specification prints them. */
 export const CVSS_METRIC_ORDER = [
   "AV",
   "AC",
@@ -31,7 +18,6 @@ export type CvssMetric = (typeof CVSS_METRIC_ORDER)[number];
 export interface CvssOption {
   value: string;
   label: string;
-  /** One line on what choosing this actually claims about the finding. */
   hint: string;
 }
 
@@ -124,29 +110,18 @@ export const CVSS_METRICS: CvssMetricSpec[] = [
 ];
 
 export type CvssSelection = Partial<Record<CvssMetric, string>>;
-/** Every metric answered — the only state a vector can be built from. */
 export type CompleteCvss = Record<CvssMetric, string>;
-
-/* ─── Weights (specification §7.4 Table 16) ─────────────────────────────── */
 
 const AV_WEIGHT: Record<string, number> = { N: 0.85, A: 0.62, L: 0.55, P: 0.2 };
 const AC_WEIGHT: Record<string, number> = { L: 0.77, H: 0.44 };
 const UI_WEIGHT: Record<string, number> = { N: 0.85, R: 0.62 };
 const CIA_WEIGHT: Record<string, number> = { H: 0.56, L: 0.22, N: 0 };
 
-/* Privileges Required is the one metric whose weight depends on Scope: a
-   changed scope makes holding privileges worth more to the attacker. */
 const PR_WEIGHT: Record<"U" | "C", Record<string, number>> = {
   U: { N: 0.85, L: 0.62, H: 0.27 },
   C: { N: 0.85, L: 0.68, H: 0.5 },
 };
 
-/**
- * The specification's own rounding (§7.1 Appendix A) — not `Math.ceil` on a
- * float. Working in integers avoids the binary-representation edge cases that
- * make a naive implementation disagree with the reference in the last decimal,
- * which is exactly the disagreement the API would reject.
- */
 export function roundUp1(value: number): number {
   const scaled = Math.round(value * 100_000);
   if (scaled % 10_000 === 0) return scaled / 100_000;
@@ -157,7 +132,6 @@ export function isComplete(selection: CvssSelection): selection is CompleteCvss 
   return CVSS_METRIC_ORDER.every((metric) => Boolean(selection[metric]));
 }
 
-/** The base score for a fully answered selection, to one decimal place. */
 export function baseScore(selection: CompleteCvss): number {
   const scopeChanged = selection.S === "C";
 
@@ -189,7 +163,6 @@ export function baseScore(selection: CompleteCvss): number {
 
 export type CvssRating = "NONE" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
-/** Qualitative rating bands (specification §5, Table 14). */
 export function ratingFor(score: number): CvssRating {
   if (score >= 9) return "CRITICAL";
   if (score >= 7) return "HIGH";
@@ -198,7 +171,6 @@ export function ratingFor(score: number): CvssRating {
   return "NONE";
 }
 
-/** `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H` */
 export function formatVector(
   selection: CompleteCvss,
   version: CvssVersion = "CVSS:3.1",
@@ -214,14 +186,6 @@ export interface ParsedVector {
   selection: CompleteCvss;
 }
 
-/**
- * Reads a pasted vector back into metric choices.
- *
- * Strict on purpose: an unknown metric, a value the metric does not define, a
- * duplicate, or a missing one all return null rather than a partial guess. A
- * vector the parser had to repair is a vector the backend may still refuse, so
- * the reporter is told it is wrong while they can still fix it.
- */
 export function parseVector(input: string): ParsedVector | null {
   const trimmed = input.trim().toUpperCase();
   if (!trimmed) return null;
@@ -249,8 +213,6 @@ export function parseVector(input: string): ParsedVector | null {
     seen.delete(spec.key);
   }
 
-  /* Anything left over is a temporal or environmental metric, or a typo. The
-     API wants a base vector, so neither is passed along silently. */
   if (seen.size > 0) return null;
 
   return { version, selection: selection as CompleteCvss };
@@ -262,7 +224,6 @@ export interface CvssResult {
   rating: CvssRating;
 }
 
-/** Everything the form needs from a complete selection, in one call. */
 export function evaluate(
   selection: CompleteCvss,
   version: CvssVersion = "CVSS:3.1",

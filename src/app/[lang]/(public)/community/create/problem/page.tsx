@@ -77,8 +77,6 @@ export default function PublicCreateProblemPage() {
           </motion.header>
 
           <div className="mt-8">
-            {/* Covers the routes into this page that skip the gated link — a
-                pasted URL, a bookmark, back/forward. */}
             <RequireAuth
               title="Sign in to post a problem"
               description="Posting a problem needs an account, so answers reach you and the thread stays attached to your profile. It only takes a moment."

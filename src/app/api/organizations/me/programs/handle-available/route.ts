@@ -19,17 +19,6 @@ async function bearerTokenFor(request: NextRequest): Promise<string | null> {
   }
 }
 
-/**
- * Whether a program handle is still free.
- *
- * Sits ahead of `[id]` in the route table because the segment is literal, so a
- * program can never be named `handle-available`.
- *
- * The upstream checks every program — draft, private, soft-deleted — through
- * the same repository the write uses, which is why this cannot be answered from
- * `GET /programs/{handle}`: that one resolves published programs only, so a
- * draft sitting on the handle would read as free right up until the save failed.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) {

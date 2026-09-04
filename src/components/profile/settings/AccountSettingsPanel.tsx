@@ -43,7 +43,6 @@ export default function AccountSettingsPanel({
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="grid grid-cols-1 gap-6 lg:grid-cols-2"
     >
-      {/* Security Section */}
       <section className="flex flex-col justify-between space-y-6 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900">
         <div className="space-y-5">
           <div className="flex items-center gap-2.5 border-b border-slate-100 pb-4 text-lg font-bold text-slate-900 dark:border-slate-800/80 dark:text-slate-100">

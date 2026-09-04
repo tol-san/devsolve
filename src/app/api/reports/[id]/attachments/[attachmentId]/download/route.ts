@@ -7,21 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/reports/{id}/attachments/{attachmentId}/download — evidence on a
- * report, streamed back through us.
- *
- * Unlike the problem and solution equivalents this one is never public: a
- * report is confidential, so the upstream wants the caller's token. That is
- * the whole reason attachments are fetched through here rather than from the
- * backend host directly — an `<img src>` cannot carry an Authorization
- * header, and this route can.
- *
- * The upstream answers 307 to a presigned storage URL; `fetch` follows that
- * on its own, so redirects are deliberately left alone. The real content type
- * is passed through, which is what lets an image render inline.
- */
-
 type Context = { params: Promise<{ id: string; attachmentId: string }> };
 
 export async function GET(request: NextRequest, context: Context) {
@@ -47,8 +32,6 @@ export async function GET(request: NextRequest, context: Context) {
       });
     }
 
-    /* Only the headers that decide how the bytes are read. Anything else the
-       storage layer set is its own business, not the browser's. */
     const headers = new Headers();
     for (const name of [
       "content-type",

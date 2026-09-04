@@ -9,8 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/** PATCH /api/showcases/{id}/restore — undoes a soft delete. */
-
 type Context = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, context: Context) {

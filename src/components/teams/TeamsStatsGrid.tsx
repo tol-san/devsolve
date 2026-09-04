@@ -22,9 +22,6 @@ function buildTeamStatCards(counts: TeamCounts): TeamStatCard[] {
     {
       title: "Total Members",
       value: counts.total,
-      /* Pending belongs here rather than under Members: an unaccepted
-         invitation can be for any of the three roles, so subtracting it from
-         one of them was arithmetic that could go negative. */
       meta:
         counts.pending > 0
           ? `${counts.active} active · ${counts.pending} invited`

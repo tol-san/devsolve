@@ -13,19 +13,6 @@ type ResolvedReviewLogProps = {
   detail: ReportManagementDetail;
 };
 
-/**
- * What was decided and what it paid, on a report that is already resolved.
- *
- * Read-only on purpose. The severity form is a triage tool, and neither of the
- * things it does still applies here: the report cannot be approved again, and
- * editing the severity would change a label without changing the payment —
- * reputation is awarded once at resolution and never recomputed, so a
- * correction made now would leave the screen disagreeing with what the
- * researcher was actually given.
- *
- * Correcting a resolved report means reopening it first, which is an action
- * with its own button and its own consequences.
- */
 export function ResolvedReviewLog({ detail }: ResolvedReviewLogProps) {
   const awarded = hasReputationAward({
     reputationPoints: detail.reputationPoints,
@@ -65,9 +52,6 @@ export function ResolvedReviewLog({ detail }: ResolvedReviewLogProps) {
               Reputation
             </p>
             <p className="mt-1 text-lg font-bold text-foreground tabular-nums">
-              {/* Absent on reports resolved before reputation became
-                  automatic — those were deliberately not backfilled, so a
-                  zero here would be a claim rather than a fact. */}
               {!awarded
                 ? "—"
                 : points === 0

@@ -10,8 +10,6 @@ import { useLocalePath } from "@/lib/i18n/I18nProvider";
 
 type Accent = "blue" | "emerald";
 
-/* Flat accents only — the surface stays white and the hue appears as a
-   hairline, a chip and the CTA fill. No gradients, per design.md. */
 const ACCENTS: Record<
   Accent,
   {
@@ -19,7 +17,6 @@ const ACCENTS: Record<
     mark: string;
     cta: string;
     media: string;
-    /** Shadow-as-border in the accent, used on hover. */
     ring: string;
   }
 > = {
@@ -43,12 +40,10 @@ export interface AccountTypeCardProps {
   eyebrow: string;
   title: string;
   description?: string;
-  /** Illustration for the media panel — see AccountTypeArt. */
   art: ReactNode;
   features: FeatureItem[];
   ctaLabel: string;
   href: string;
-  /** What happens after this choice — sets expectations before the form. */
   note?: string;
   accent: Accent;
   variants: Variants;
@@ -70,8 +65,6 @@ export function AccountTypeCard({
 
   return (
     <motion.div variants={variants} className="h-full">
-      {/* The whole card is the target — the CTA below is a visual affordance,
-          not a second link, so there is one tab stop per choice. */}
       <motion.div
         whileHover={{ y: -4 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
@@ -82,7 +75,6 @@ export function AccountTypeCard({
           aria-label={`${title} — ${ctaLabel}`}
           className={`group flex h-full flex-col rounded-2xl bg-card border border-border p-6 sm:p-7 outline-none transition-all duration-200 shadow-2xs ${tone.ring}`}
         >
-          {/* ── Illustration ── */}
           <div
             className={`relative flex h-36 items-end justify-center overflow-hidden rounded-xl bg-muted/40 pb-2.5 pt-8 ring-1 ring-border transition-colors duration-300 ${tone.media}`}
           >
@@ -95,7 +87,6 @@ export function AccountTypeCard({
             </span>
           </div>
 
-          {/* ── Copy ── */}
           <h2 className="mt-6 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             {title}
           </h2>
@@ -115,7 +106,6 @@ export function AccountTypeCard({
             ))}
           </ul>
 
-          {/* ── CTA, pinned to the bottom so both cards align ── */}
           <div className="mt-auto pt-7">
             <span
               className={`flex h-11 sm:h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer ${tone.cta}`}

@@ -337,11 +337,6 @@ function toManagedReport(
     type: toManagedType(report, program),
     status: toManagedStatus(report.state),
     severity: toManagedSeverity(report),
-    /* The two sides of the rating, kept apart. `severity` above is the
-       settled one and collapses `severity ?? triageSeverity ??
-       reportedSeverity` — which is right for a badge, but leaves a screen
-       comparing the researcher's claim with triage's decision no way to tell
-       them apart. Both are passed through as the API sent them. */
     reportedSeverity: report.reportedSeverity ?? null,
     triageSeverity: report.triageSeverity ?? null,
     cvssScore: typeof report.cvssScore === "number" ? report.cvssScore : null,

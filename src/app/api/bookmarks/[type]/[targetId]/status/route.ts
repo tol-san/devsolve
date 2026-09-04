@@ -13,11 +13,6 @@ import {
   type BookmarkTargetType,
 } from "@/lib/validations/engagement";
 
-/**
- * GET /api/bookmarks/{type}/{targetId}/status — whether the caller has
- * bookmarked one thing. Attributed to the session, so it needs one.
- */
-
 type Context = { params: Promise<{ type: string; targetId: string }> };
 
 export async function GET(request: NextRequest, context: Context) {

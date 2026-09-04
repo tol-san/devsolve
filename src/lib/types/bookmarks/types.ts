@@ -7,7 +7,6 @@ export type BookmarkCategory =
 
 export type BookmarkSeverity = "Critical" | "High" | "Medium" | "Low";
 
-// Matches the backend's BookmarkableType enum (GET/PUT/DELETE /bookmarks/{type}/{targetId}).
 export type BookmarkableType = "PROGRAM" | "PROBLEM" | "SOLUTION" | "SHOWCASE";
 
 export interface BookmarkItem {
@@ -21,20 +20,17 @@ export interface BookmarkItem {
   tags: string[];
   url?: string;
   
-  // Program specific
   companyName?: string;
   logoUrl?: string;
   bountyMax?: string;
   programType?: "Bounty" | "Response" | "Vulnerability";
   inScopeCount?: number;
 
-  // Problems specific
   severity?: BookmarkSeverity;
   points?: number;
   submissionsCount?: number;
   status?: "Open" | "Solved" | "In Review";
 
-  // Solutions specific
   authorName?: string;
   authorAvatar?: string;
   readTime?: string;

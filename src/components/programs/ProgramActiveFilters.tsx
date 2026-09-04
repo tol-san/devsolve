@@ -6,8 +6,6 @@ import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/I18nProvider";
 
-/* The filter state stores the API's own vocabulary, so a chip needs the same
-   value-to-key mapping the filter panel uses to label its options. */
 const TYPE_KEYS: Record<string, string> = {
   All: "all",
   Bounty: "bounty",

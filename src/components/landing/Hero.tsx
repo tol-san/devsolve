@@ -7,22 +7,13 @@ import { motion, useReducedMotion } from "motion/react";
 import { AsciiHand } from "./AsciiHand";
 import { PRIMARY } from "./SectionBackdrop";
 
-/* A store that reports `false` to the server and `true` to the client, which
-   is how you ask React "has this hydrated yet?" without a setState in an
-   effect. The subscribe callback is module-level so it stays referentially
-   stable and never resubscribes. */
 const neverChanges = () => () => {};
 const onClient = () => true;
 const onServer = () => false;
 
-/** Whether the first client render is behind us. */
 function useHydrated() {
   return useSyncExternalStore(neverChanges, onClient, onServer);
 }
-
-/* ════════════════════════════════════════════════════════════════════
-   HEADLINE
-   ════════════════════════════════════════════════════════════════════ */
 
 function RevealWords({ text, delay = 0 }: { text: string; delay?: number }) {
   const words = text.split(" ");
@@ -32,8 +23,6 @@ function RevealWords({ text, delay = 0 }: { text: string; delay?: number }) {
         <span key={`${word}-${i}`} className="inline-block overflow-hidden">
           <motion.span
             className="inline-block"
-            /* No blur filter — it settles at blur(0px) and leaves every word
-               on its own raster layer, softening the headline for good. */
             initial={{ opacity: 0, y: "0.9em" }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
@@ -50,10 +39,6 @@ function RevealWords({ text, delay = 0 }: { text: string; delay?: number }) {
     </>
   );
 }
-
-/* ════════════════════════════════════════════════════════════════════
-   THE MARK — the logo the two hands reach toward
-   ════════════════════════════════════════════════════════════════════ */
 
 function CentreMark() {
   return (
@@ -75,26 +60,12 @@ function CentreMark() {
   );
 }
 
-/* ════════════════════════════════════════════════════════════════════
-   HERO
-   Near-white paper, two dot-matrix hands reaching in from the edges, and
-   one quiet column of type between them.
-   ════════════════════════════════════════════════════════════════════ */
-
 export function Hero() {
   const reduce = useReducedMotion();
-  /* The drift is withheld until hydration is done, so the server render and
-     the first client render agree on the markup — `useReducedMotion` already
-     knows the answer on the client's first pass, and the server never can. */
   const drifts = useHydrated() && !reduce;
 
   return (
-    // The negative margin cancels the layout's navbar padding so the paper
-    // runs to the very top and the nav island floats over it.
     <section className="relative -mt-(--navbar-height) flex h-dvh flex-col overflow-hidden bg-[#F7F8FB] dark:bg-neutral-950">
-      {/* ── The hands ──
-          Anchored to the frame edges and vertically centred on the type, so
-          the two of them close in on the mark without ever touching it. */}
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden"
         aria-hidden="true"
@@ -116,18 +87,13 @@ export function Hero() {
         </motion.div>
       </div>
 
-      {/* ── The column ── */}
       <div className="pointer-events-none relative z-10 flex flex-1 flex-col items-center justify-center px-6 pt-(--navbar-height) sm:px-10">
         <CentreMark />
 
         <h1
-          /* Colour is a class, not an inline style, so the dark variant can
-             reach it. #1E293B is the brand secondary. */
           className="mt-6 max-w-3xl text-center font-semibold leading-[1.08] tracking-[-0.035em] text-[#1E293B] sm:mt-8 dark:text-neutral-50"
           style={{ fontSize: "clamp(28px, min(4vw, 6vh), 54px)" }}
         >
-          {/* Two tones, as in the reference: the setup recedes, the promise
-              lands. */}
           <span className="block text-slate-400 dark:text-neutral-500">
             <RevealWords text="Turn Found Bugs" delay={0.35} />
           </span>
@@ -174,7 +140,6 @@ export function Hero() {
         </motion.div>
       </div>
 
-      {/* ── The footline ── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

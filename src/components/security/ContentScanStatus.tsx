@@ -15,19 +15,12 @@ import type { ScanResult, ScanState } from "@/hooks/useVirusTotalScan";
 import { cn } from "@/lib/utils";
 
 interface ContentScanStatusProps {
-  /** When using with useVirusTotalScan hook */
   result?: ScanResult | null;
-  /** Active loading state for standard upload forms */
   active?: boolean;
-  /** Number of files being scanned */
   fileCount?: number;
-  /** Whether links/URLs are included in the scan */
   includesLinks?: boolean;
-  /** Compact card layout */
   compact?: boolean;
-  /** When 503 was detected, allows caller to hide component entirely */
   isConfigured?: boolean;
-  /** Custom className */
   className?: string;
 }
 
@@ -40,12 +33,10 @@ export function ContentScanStatus({
   isConfigured = true,
   className,
 }: ContentScanStatusProps) {
-  // If VirusTotal is explicitly unconfigured (503), degrade silently
   if (!isConfigured || result?.state === "unconfigured") {
     return null;
   }
 
-  // If explicit ScanResult is passed, render specific state
   if (result) {
     return <ScanResultBadge result={result} compact={compact} className={className} />;
   }

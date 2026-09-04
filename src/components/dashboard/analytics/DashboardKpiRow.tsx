@@ -29,7 +29,7 @@ function TrendBadge({
 }: {
   trend: TrendDirection;
   changePercentage: number | null;
-  invertGood?: boolean; // For rejections: down is good, up is bad
+  invertGood?: boolean; 
 }) {
   const isUp = trend === "up";
   const isDown = trend === "down";
@@ -52,7 +52,6 @@ function TrendBadge({
       ) : (
         <Minus className="size-3 stroke-[2.5]" />
       )}
-      {/* Rule 1: Render null as —, never as 0% and never as NaN */}
       <span>
         {changePercentage !== null
           ? `${changePercentage > 0 ? "+" : ""}${changePercentage.toFixed(1)}%`

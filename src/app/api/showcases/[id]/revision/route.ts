@@ -9,16 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET/DELETE /api/showcases/{id}/revision — the author's pending revision of
- * an already-approved showcase.
- *
- * Editing an approved showcase does not change what is live: the upstream
- * stores the edit as a revision awaiting review. `GET` reads that pending copy
- * back, `DELETE` withdraws it and leaves the live version alone. Both are
- * scoped to the caller, so a session is required.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 const badId = () => badRequest("Showcase id must be a UUID");

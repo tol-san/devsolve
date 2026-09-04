@@ -7,10 +7,6 @@ import { use } from "react";
 import { RequireRole } from "@/components/auth/RequireRole";
 import { CompanyAccessDetail } from "@/components/researchers/CompanyAccessDetail";
 
-/**
- * One company on the researcher access list: who they are, where the
- * researcher stands with them, and what has already been filed.
- */
 export default function CompanyAccessPage({
   params,
 }: {

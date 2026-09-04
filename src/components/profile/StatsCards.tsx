@@ -89,7 +89,6 @@ export default function StatsCards({ stats }: StatsCardsProps) {
             whileHover={{ y: -3 }}
             className={`group relative overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-2xs transition-all duration-200 ${card.borderGlow}`}
           >
-            {/* Top row: Icon + Label */}
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {card.label}
@@ -101,7 +100,6 @@ export default function StatsCards({ stats }: StatsCardsProps) {
               </div>
             </div>
 
-            {/* Main Value */}
             <div className="mt-3">
               <p className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${card.color}`}>
                 {card.value}

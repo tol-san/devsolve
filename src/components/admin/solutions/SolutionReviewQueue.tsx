@@ -38,24 +38,12 @@ import { excerptOf } from "@/lib/markdown-excerpt";
 import { APPROACH_LABELS } from "@/lib/validations/solution";
 import { authorNameOf, messageOf } from "@/lib/discussions/format";
 
-/**
- * The solution approval queue — `GET /api/v1/admin/solutions`.
- *
- * A posted answer sits at `PENDING` and stays off the problem it answers until
- * it is approved here, so this is the gate between someone writing an answer
- * and the person who asked being able to read it.
- *
- * Built as a panel rather than a page so it can live as a tab inside the
- * moderation screen, next to the problem and showcase queues.
- */
-
 const STATUS_TABS: { value: SolutionReviewStatus; label: string }[] = [
   { value: "PENDING", label: "Pending" },
   { value: "APPROVED", label: "Approved" },
   { value: "REJECTED", label: "Rejected" },
 ];
 
-/** Where a solution is opened in full. */
 export const solutionReviewHref = (solutionId: string) =>
   `/dashboard/content-moderation/solutions/${solutionId}`;
 
@@ -80,7 +68,6 @@ export function SolutionReviewQueue() {
 
   return (
     <div className="space-y-4">
-      {/* Status tabs */}
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1 rounded-xl bg-muted p-1">
           {STATUS_TABS.map((tab) => (

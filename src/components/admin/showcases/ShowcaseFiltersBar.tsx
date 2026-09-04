@@ -34,8 +34,6 @@ export function ShowcaseFiltersBar({
   onSearchChange,
   onReset,
 }: ShowcaseFiltersBarProps) {
-  /* The queue is where this screen starts, so only the search counts as a
-     filter laid over it. */
   const activeFilters: ActiveFilter[] = searchQuery.trim()
     ? [
         {

@@ -38,7 +38,6 @@ export default function UserRegisterPage() {
 
   return (
     <div className="h-screen max-h-screen w-full grid grid-cols-1 lg:grid-cols-2 overflow-hidden font-sans antialiased">
-      {/* LEFT PANEL - Full-Bleed 3D Hero Section (Hidden on Mobile/Responsive) */}
       <AuthHeroPanel
         imageSrcDark="/researcher-dark.jpg"
         imageSrcLight="/researcher-light.jpg"
@@ -51,7 +50,6 @@ export default function UserRegisterPage() {
         backLabel={t("auth.common.backToAccountType")}
       />
 
-      {/* RIGHT PANEL - User Registration Form */}
       <div className="relative h-screen max-h-screen w-full p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-between items-center overflow-y-auto">
         <div className="w-full flex items-center justify-between mb-4 sm:mb-6">
           <Link

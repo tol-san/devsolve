@@ -51,7 +51,6 @@ export function ReportDetailTargetScope({
         </Badge>
       }
     >
-      {/* 1. Affected URL, Method & Parameter Grid */}
       <div className="grid gap-4 md:grid-cols-[minmax(0,1.8fr)_0.8fr_1fr]">
         <FieldBlock label="Affected Endpoint / URL">
           <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-muted/30 px-3.5 py-2 text-sm text-foreground min-h-10">
@@ -78,8 +77,6 @@ export function ReportDetailTargetScope({
           </div>
         </FieldBlock>
 
-        {/* Only when the report actually carries one. The method the reporter
-            chose lives in the write-up, not in a field of its own. */}
         {detail.httpMethod && (
           <FieldBlock label="HTTP Method">
             <div className="flex items-center min-h-10 px-3.5 rounded-xl border border-border bg-muted/30">
@@ -107,10 +104,6 @@ export function ReportDetailTargetScope({
         </FieldBlock>
       </div>
 
-      {/* 2. Environment callout — only when the report states one. It used to
-             claim Production and "validated against live endpoints" for any
-             report that named no environment, which is a claim about where the
-             finding was proven that nobody made. */}
       {detail.environment && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4">
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
@@ -127,7 +120,6 @@ export function ReportDetailTargetScope({
         </div>
       )}
 
-      {/* 3. In-Scope Asset List */}
       {detail.assets && detail.assets.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">

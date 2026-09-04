@@ -20,17 +20,6 @@ interface AutoApprovalHoldNoticeProps {
   className?: string;
 }
 
-/**
- * Renders the AI auto-approval hold explanation inline on the author's own
- * problem or showcase detail page when the post is pending review.
- *
- * Requirements:
- * 1. Displayed exclusively to the post's author when pending review.
- * 2. Fetches the author's notifications via the standard notification system.
- * 3. Matches title `/^Your (problem|showcase) is waiting for review$/` and `notifiableId`.
- * 4. Displays the most recent notification's `content` verbatim without regexing.
- * 5. Returns null when no notice exists (normal when check was off or model unavailable).
- */
 export function AutoApprovalHoldNotice({
   notifiableId,
   notifiableType,
@@ -58,13 +47,11 @@ export function AutoApprovalHoldNotice({
 
     if (matches.length === 0) return null;
 
-    // Pick the most recent matching notification by createdAt
     return matches.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )[0];
   }, [shouldFetch, notificationPage, notifiableId, notifiableType]);
 
-  // Absence of a notice is normal — post is queued as usual without an auto-approval notice
   if (!holdNotice) return null;
 
   return (
@@ -93,7 +80,6 @@ export function AutoApprovalHoldNotice({
               </span>
             </div>
 
-            {/* Render content as given — do not regex body or invent categories */}
             <p className="text-sm leading-relaxed text-muted-foreground break-words">
               {holdNotice.content}
             </p>

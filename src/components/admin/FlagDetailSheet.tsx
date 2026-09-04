@@ -45,7 +45,6 @@ export function FlagDetailSheet({
   return (
     <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg rounded-2xl bg-card border border-border text-card-foreground p-6 shadow-xl space-y-4">
-        {/* Header */}
         <DialogHeader className="space-y-2 pb-3 border-b border-border">
           <div className="flex items-center justify-between">
             <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold text-xs flex items-center gap-1">
@@ -66,7 +65,6 @@ export function FlagDetailSheet({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Loading / Error / Data */}
         {isLoading ? (
           <div className="space-y-4 animate-pulse py-4">
             <div className="h-16 bg-muted/60 rounded-xl" />
@@ -78,7 +76,6 @@ export function FlagDetailSheet({
           </div>
         ) : detail ? (
           <div className="space-y-4 text-xs text-foreground">
-            {/* Reason & Type Card */}
             <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-muted-foreground uppercase tracking-wider text-[10px]">
@@ -108,7 +105,6 @@ export function FlagDetailSheet({
               </div>
             </div>
 
-            {/* Reporter Info */}
             <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-2">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 font-semibold text-foreground">
@@ -133,7 +129,6 @@ export function FlagDetailSheet({
               </div>
             </div>
 
-            {/* Description / Snippet */}
             {detail.description && (
               <div className="space-y-1.5 p-4 rounded-xl bg-card border border-border">
                 <span className="font-bold text-muted-foreground uppercase tracking-wider text-[10px] flex items-center gap-1">
@@ -147,7 +142,6 @@ export function FlagDetailSheet({
           </div>
         ) : null}
 
-        {/* Footer Actions */}
         <DialogFooter className="pt-2 border-t border-border flex flex-col sm:flex-row gap-2">
           <Button
             type="button"

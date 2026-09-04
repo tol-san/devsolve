@@ -40,7 +40,6 @@ import { DashboardCompanyProgramsTable } from "./DashboardCompanyProgramsTable";
 function CompanyDashboardSkeleton() {
   return (
     <div className="space-y-6 w-full animate-pulse">
-      {/* Controls skeleton */}
       <div className="flex flex-col sm:flex-row justify-between gap-4 pb-4 border-b border-border/60">
         <div className="h-5 w-48 rounded-lg bg-muted/60" />
         <div className="flex gap-2">
@@ -50,7 +49,6 @@ function CompanyDashboardSkeleton() {
         </div>
       </div>
 
-      {/* 5 KPI cards skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {[1, 2, 3, 4, 5].map((i) => (
           <div
@@ -67,25 +65,20 @@ function CompanyDashboardSkeleton() {
         ))}
       </div>
 
-      {/* SLA Strip skeleton */}
       <div className="h-20 rounded-2xl border border-border/60 bg-card/60" />
 
-      {/* Charts row skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="h-88 rounded-2xl border border-border/60 bg-card/60 lg:col-span-7" />
         <div className="h-88 rounded-2xl border border-border/60 bg-card/60 lg:col-span-5" />
       </div>
 
-      {/* CWE + Assets skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="h-72 rounded-2xl border border-border/60 bg-card/60 lg:col-span-6" />
         <div className="h-72 rounded-2xl border border-border/60 bg-card/60 lg:col-span-6" />
       </div>
 
-      {/* Leaderboard skeleton */}
       <div className="h-64 rounded-2xl border border-border/60 bg-card/60" />
 
-      {/* Tables skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="h-80 rounded-2xl border border-border/60 bg-card/60 lg:col-span-6" />
         <div className="h-80 rounded-2xl border border-border/60 bg-card/60 lg:col-span-6" />
@@ -122,18 +115,15 @@ export function CompanyDashboardView() {
     organizationId: selectedOrgId,
   });
 
-  // First load skeleton
   if (isLoading && !analytics) {
     return <CompanyDashboardSkeleton />;
   }
 
-  // Error handling per backend contract
   if (isError && !analytics) {
     const err = error as ApiErrorPayload;
     const status = err?.status;
     const errorDetails = err?.data?.errorDetails;
 
-    // 403: Lacks VIEW_PROGRAMS / not a member
     if (status === 403) {
       return (
         <Card className="mx-auto max-w-lg rounded-2xl text-center border-border bg-card my-12 p-6 space-y-4">
@@ -161,7 +151,6 @@ export function CompanyDashboardView() {
       );
     }
 
-    // 409: Belongs to >1 org and sent no organizationId
     if (status === 409 && errorDetails?.organizationIds?.length) {
       return (
         <Card className="mx-auto max-w-lg rounded-2xl text-center border-border bg-card my-12 p-6 space-y-4">
@@ -208,7 +197,6 @@ export function CompanyDashboardView() {
       );
     }
 
-    // 404: programId isn't a live program of this org -> reset filter
     if (status === 404 && programId) {
       return (
         <Card className="mx-auto max-w-md rounded-2xl text-center border-border bg-card my-12 p-6 space-y-3">
@@ -238,7 +226,6 @@ export function CompanyDashboardView() {
       );
     }
 
-    // 500: Backend-side error — analytics service is temporarily unavailable
     if (status === 500 || status === 502 || status === 503) {
       return (
         <Card className="mx-auto max-w-lg rounded-2xl text-center border-border bg-card my-12 p-6 space-y-3">
@@ -271,7 +258,6 @@ export function CompanyDashboardView() {
       );
     }
 
-    // Generic error fallback
     return (
       <Card className="mx-auto max-w-lg rounded-2xl text-center border-border bg-card my-12 p-6 space-y-3">
         <CardHeader className="justify-items-center">
@@ -304,7 +290,6 @@ export function CompanyDashboardView() {
 
   return (
     <div className="space-y-6 w-full">
-      {/* Enterprise Page Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/80">
         <div className="flex flex-col gap-1.5">
           <nav
@@ -326,7 +311,6 @@ export function CompanyDashboardView() {
         </div>
       </header>
 
-      {/* 1. Header controls: Time range & program selector */}
       <DashboardAnalyticsControls
         timeRange={timeRange}
         onTimeRangeChange={setTimeRange}
@@ -337,19 +321,15 @@ export function CompanyDashboardView() {
         isRefreshing={isFetching}
       />
 
-      {/* Grid container with smooth dimming on filter change */}
       <div
         className={`space-y-6 transition-opacity duration-200 ${
           isFetching ? "opacity-60 pointer-events-none" : "opacity-100"
         }`}
       >
-        {/* 2. Top 5 KPI Cards Row */}
         <DashboardKpiRow kpi={analytics.kpiSummary} />
 
-        {/* 3. SLA Performance Strip */}
         <DashboardSlaStrip sla={analytics.kpiSummary.slaMetrics} />
 
-        {/* 4. Submission Trend & Severity Donut */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-7">
             <DashboardSubmissionTrendChart data={analytics.submissionTrend} />
@@ -361,7 +341,6 @@ export function CompanyDashboardView() {
           </div>
         </div>
 
-        {/* 5. Top CWE Classes & Targeted Assets */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-6">
             <DashboardTopCweBars
@@ -373,12 +352,10 @@ export function CompanyDashboardView() {
           </div>
         </div>
 
-        {/* 6. Researcher Leaderboard */}
         <DashboardResearcherLeaderboard
           researchers={analytics.topResearchers}
         />
 
-        {/* 7. Bottom Supporting Tables: Your Programs + Recent Reports */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-6">
             <DashboardCompanyProgramsTable />

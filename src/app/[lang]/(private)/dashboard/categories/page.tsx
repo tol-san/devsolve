@@ -29,8 +29,6 @@ export default function AdminCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [editing, setEditing] = useState<CategoryResponse | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  /* Keys the dialog body so each open mounts fresh state. Bumped from the
-     click handlers, which keeps it out of an effect. */
   const [session, setSession] = useState(0);
 
   const filtered = useMemo(() => {
@@ -51,8 +49,6 @@ export default function AdminCategoriesPage() {
     });
   }, [categories, scopeFilter, stateFilter, searchQuery]);
 
-  /* Counts describe the whole set, not the filtered view, so the tab badges
-     stay put as the filters move. */
   const counts = useMemo(() => {
     const active = categories.filter((c) => c.isActive).length;
     return {
@@ -81,7 +77,6 @@ export default function AdminCategoriesPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* PAGE HEADER */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
@@ -128,7 +123,6 @@ export default function AdminCategoriesPage() {
         </div>
       </header>
 
-      {/* STAT CARDS */}
       {!isLoading && !isError && <CategoryStatCards categories={categories} />}
       {isLoading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
@@ -141,7 +135,6 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
-      {/* FILTER BAR */}
       {!isError && (
         <CategoryFiltersBar
           stateFilter={stateFilter}
@@ -154,7 +147,6 @@ export default function AdminCategoriesPage() {
         />
       )}
 
-      {/* DATA TABLE */}
       <main className="flex flex-col gap-3">
         {isError ? (
           <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">

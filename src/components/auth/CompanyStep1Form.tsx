@@ -59,7 +59,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
       }}
       className="space-y-4 w-full"
     >
-      {/* Header */}
       <div className="mb-6 text-center sm:text-left">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-foreground">
           {t("auth.companyRegister.step1Title")}
@@ -69,7 +68,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         </p>
       </div>
 
-      {/* Full Name */}
       <div>
         <Label
           htmlFor="fullName"
@@ -103,9 +101,7 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         )}
       </div>
 
-      {/* Job Title & Phone Number */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Job Title Custom Select */}
         <div>
           <Label
             htmlFor="jobTitle"
@@ -131,7 +127,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
           )}
         </div>
 
-        {/* Phone Number */}
         <div>
           <Label
             htmlFor="phone"
@@ -167,7 +162,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         </div>
       </div>
 
-      {/* Work Email */}
       <div>
         <Label
           htmlFor="email"
@@ -201,9 +195,7 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         )}
       </div>
 
-      {/* Password & Confirm Password */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Password */}
         <div>
           <Label
             htmlFor="password"
@@ -254,7 +246,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
           <PasswordStrengthMeter password={password} />
         </div>
 
-        {/* Confirm Password */}
         <div>
           <Label
             htmlFor="confirmPassword"
@@ -305,7 +296,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         </div>
       </div>
 
-      {/* Terms Agreement */}
       <div className="pt-2">
         <label className="flex items-start gap-2.5 cursor-pointer select-none">
           <input
@@ -338,7 +328,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         )}
       </div>
 
-      {/* Continue CTA Button */}
       <Button
         type="submit"
         className="mt-4 flex h-11 sm:h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 dark:bg-blue-600 dark:hover:bg-blue-500 dark:border dark:border-blue-400/30 text-sm sm:text-base font-semibold text-white shadow-md shadow-blue-600/20 dark:shadow-blue-500/15 transition-all active:scale-[0.99]"
@@ -347,7 +336,6 @@ export function CompanyStep1Form({ form, onNext }: CompanyStep1FormProps) {
         <ArrowRight className="size-4" />
       </Button>
 
-      {/* Footer link */}
       <p className="mt-6 text-center text-sm font-medium text-slate-600 dark:text-muted-foreground">
         {t("auth.common.alreadyHaveAccount")}{" "}
         <Link

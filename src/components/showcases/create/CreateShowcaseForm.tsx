@@ -52,7 +52,6 @@ import {
 import type { SaveShowcaseDraftValues } from "@/lib/validations/showcase-draft";
 import { cn } from "@/lib/utils";
 
-/** Pulls something readable out of an RTK Query error. */
 function messageOf(error: unknown, fallback: string): string {
   if (typeof error === "object" && error !== null && "data" in error) {
     const data = (error as { data?: unknown }).data;
@@ -65,12 +64,6 @@ function messageOf(error: unknown, fallback: string): string {
   return fallback;
 }
 
-/* ─── Surface ────────────────────────────────────────────────────────────
-   The landing sections carry their cards on a hairline ring plus a low
-   shadow rather than a border, and lift both toward brand blue on hover.
-   Reusing that treatment is most of what ties this form to the home page;
-   here the lift is on `focus-within`, so the card being typed into is the
-   one that stands up. */
 const CARD =
   "rounded-2xl bg-card text-card-foreground border border-border shadow-xs transition-shadow";
 
@@ -81,9 +74,7 @@ interface FormSectionProps {
   n: string;
   title: string;
   description?: string;
-  /** Ticks the step marker once everything required in the section is filled. */
   done?: boolean;
-  /** Nothing in the section is required, so it never shows an unfilled marker. */
   optional?: boolean;
   delay?: number;
   children: React.ReactNode;
@@ -142,11 +133,6 @@ function FormSection({
   );
 }
 
-/* ─── Readiness ──────────────────────────────────────────────────────────
-   A long form hides how much of it is actually required. This says so up
-   front and keeps saying it while you type, so nobody discovers the missing
-   cover image by pressing Publish. */
-
 type Requirement = { label: string; done: boolean; hint?: string };
 
 function RequirementRow({ label, done, hint }: Requirement) {
@@ -187,10 +173,8 @@ function RequirementRow({ label, done, hint }: Requirement) {
   );
 }
 
-/** What one step of a publish attempt got through, for resuming after a failure. */
 type StepProgress = { id: string; imageDone: boolean; diagramDone: boolean };
 
-/** An existing showcase and its guide, as the form's fields hold them. */
 function toFormValues(
   showcase: ShowcaseResponse,
   steps: ShowcaseStepResponse[],
@@ -203,8 +187,6 @@ function toFormValues(
     title: showcase.title,
     categoryId: showcase.categoryId ?? "",
     overview: showcase.overview,
-    /* The backend stores no tech stack or resource links for a showcase, so
-       there is nothing to load back into those fields. */
     techStack: [],
     resourceLinks: [],
     steps: ordered.length
@@ -228,21 +210,9 @@ function toFormValues(
 }
 
 interface CreateShowcaseFormProps {
-  /** Where to land after a successful publish. */
   successHref?: string;
   cancelHref?: string;
-  /**
-   * Edit an existing showcase rather than create one. The same fields, loaded
-   * with what is stored: on save the showcase is patched, its steps are
-   * reconciled against the guide on screen, and new images are uploaded.
-   */
   showcaseId?: string;
-  /**
-   * Offset the sticky sidebar parks at, which depends on what it sticks
-   * against. The dashboard scrolls inside a `<main>` that already starts
-   * below its header, so the default is a plain gap; a public page sticks
-   * against the viewport and has to clear the fixed navbar itself.
-   */
   stickyTop?: string;
 }
 
@@ -277,7 +247,6 @@ export function CreateShowcaseForm({
   const [uploadStepImage] = useUploadShowcaseStepImageMutation();
   const [uploadStepDiagram] = useUploadShowcaseStepDiagramMutation();
 
-  /* Only fetched when editing; the create form asks for nothing. */
   const { data: existing, isLoading: loadingExisting } = useGetShowcaseByIdQuery(
     showcaseId ?? "",
     { skip: !showcaseId },
@@ -288,21 +257,8 @@ export function CreateShowcaseForm({
 
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  /** Drives the cover field's own overlay, which `submitting` is too coarse for. */
   const [uploadingCover, setUploadingCover] = useState(false);
 
-  /**
-   * Publishing is a sequence, not one request: the showcase, its cover image,
-   * then each step followed by that step's own images. Every image route is
-   * scoped to a row that has to exist first, and the API offers no bulk
-   * variant or transaction.
-   *
-   * This remembers exactly what landed, so retrying after a failure resumes
-   * rather than creating a second showcase or a duplicate step. Steps are keyed
-   * by their stable form key rather than by position: an author who reorders or
-   * deletes a step between attempts would otherwise have the next attempt
-   * attach an image to whichever step slid into that slot.
-   */
   const progress = useRef<{
     showcaseId: string | null;
     coverDone: boolean;
@@ -339,22 +295,13 @@ export function CreateShowcaseForm({
     formState: { errors, isSubmitted },
   } = methods;
 
-  /**
-   * The step ids the server had when the form was loaded. What is missing from
-   * the guide at save time is what the author deleted, and gets deleted
-   * upstream — the API has no bulk replace.
-   */
   const loadedStepIds = useRef<string[]>([]);
   const loaded = useRef(false);
 
-  /* Loading an existing showcase happens once. A later refetch — after the
-     save invalidates its cache — must not overwrite what is being typed. */
   useEffect(() => {
     if (!isEdit || loaded.current || !existing) return;
 
     const steps = existing.steps?.length ? existing.steps : (fetchedSteps ?? []);
-    /* Wait for the guide: resetting without it would show an empty step and
-       then delete every real one on save. */
     if (!existing.steps?.length && !fetchedSteps) return;
 
     loaded.current = true;
@@ -363,8 +310,6 @@ export function CreateShowcaseForm({
     reset(toFormValues(existing, steps));
   }, [isEdit, existing, fetchedSteps, reset]);
 
-  /* `useWatch` rather than `watch`: the latter returns a fresh function every
-     render, which the React Compiler cannot memoize around. */
   const title = useWatch({ control, name: "title" }) ?? "";
   const overview = useWatch({ control, name: "overview" }) ?? "";
   const coverImageUrl = useWatch({ control, name: "coverImageUrl" }) ?? "";
@@ -436,21 +381,12 @@ export function CreateShowcaseForm({
     toast.success("Draft restored from link");
   }, [serverDraft, isEdit, reset]);
 
-  /* A step only counts once it carries both of the fields the schema demands
-     — a titled step with an empty body would fail validation at submit.
-     Left unmemoized on purpose: a guide is a handful of entries, and the
-     `?? []` above hands `useMemo` a fresh array every render anyway. */
   const readySteps = steps.filter(
     (step) => step?.title?.trim() && step?.description?.trim(),
   ).length;
 
-  /* Every step has to be complete, not just one: the schema validates each
-     entry in the array, so a half-filled step 3 fails the publish exactly
-     the way an empty guide would. */
   const guideDone = steps.length > 0 && readySteps === steps.length;
 
-  /* Either half of the cover control satisfies the requirement — see the
-     schema's refine, which is what actually gates the publish. */
   const coverReady = coverImageUrl.trim().length > 0 || Boolean(coverImageFile);
 
   const requirements: Requirement[] = [
@@ -473,16 +409,12 @@ export function CreateShowcaseForm({
   const projectSectionDone =
     coverReady && title.trim().length > 0 && overview.trim().length > 0;
 
-  /* Only after a submit attempt — nagging about incomplete fields on a form
-     nobody has tried to send yet is noise. */
   const blocked = isSubmitted && Object.keys(errors).length > 0;
 
   const onSubmit = async (values: CreateShowcaseSubmitValues) => {
     setSubmitting(true);
     setSubmitError(null);
 
-    /* Named so a failure can say which request it was, since the sequence
-       below spans several of them. */
     let stage = isEdit
       ? "Your changes could not be saved."
       : "The showcase could not be created.";
@@ -502,9 +434,6 @@ export function CreateShowcaseForm({
           },
         }).unwrap();
 
-        /* Steps the author removed from the guide. Deleted first, so a step
-           renumbered into a freed position cannot collide with one on its way
-           out. */
         const kept = new Set(
           values.steps
             .map((step) => step.serverId)
@@ -526,8 +455,6 @@ export function CreateShowcaseForm({
           categoryId: values.categoryId,
           title: values.title,
           overview: values.overview,
-          /* A pasted URL travels in the body; a chosen file goes to the
-             cover-image route below, once there is an id to put it against. */
           coverImageUrl: values.coverImageUrl || undefined,
           repoUrl: values.repoUrl || undefined,
           liveUrl: values.liveUrl || undefined,
@@ -555,8 +482,6 @@ export function CreateShowcaseForm({
         progress.current.coverDone = true;
       }
 
-      /* Sequential, not Promise.all: `stepNumber` carries the order, and each
-         step's images can only be sent after that step exists. */
       for (let i = 0; i < values.steps.length; i++) {
         const step = values.steps[i];
         stage = isEdit
@@ -575,8 +500,6 @@ export function CreateShowcaseForm({
         let posted = progress.current.steps[step.key];
 
         if (!posted && step.serverId) {
-          /* A step that already exists upstream — patched in place, and
-             renumbered by its position the same way a new one is. */
           await updateStep({
             showcaseId: targetId,
             stepId: step.serverId,
@@ -602,8 +525,6 @@ export function CreateShowcaseForm({
           progress.current.steps[step.key] = posted;
         }
 
-        /* Each upload is recorded by replacing the entry rather than mutating
-           it, so a retry reads the same progress the last attempt wrote. */
         if (step.imageFile && !posted.imageDone) {
           stage = `The screenshot on step ${i + 1} could not be uploaded. Saving again retries from there.`;
           await uploadStepImage({
@@ -639,9 +560,6 @@ export function CreateShowcaseForm({
     }
   };
 
-  /* An edit form with nothing in it yet would read as a showcase whose fields
-     were wiped, so the shape of the page is shown until the values land — the
-     guide included, since that is what the save reconciles against. */
   const guideLoaded =
     (existing?.steps?.length ?? 0) > 0 || fetchedSteps !== undefined;
 
@@ -651,15 +569,11 @@ export function CreateShowcaseForm({
 
   return (
     <FormProvider {...methods}>
-      {/* `handleSubmit` is bound inside the event handler rather than during
-          render, so the resume ref `onSubmit` closes over is only ever read
-          on submit. */}
       <form
         onSubmit={(event) => void handleSubmit(onSubmit)(event)}
         className="w-full"
       >
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3 lg:gap-8">
-          {/* ── Main column ── */}
           <div className="space-y-6 lg:col-span-2">
             {availableDraft && (
               <motion.div
@@ -726,9 +640,6 @@ export function CreateShowcaseForm({
               done={projectSectionDone}
             >
               <div className="space-y-6">
-                {/* Two fields behind one control: a pasted URL lands in
-                    `coverImageUrl`, a chosen file waits in `coverImageFile`
-                    until the showcase exists to hang it off. */}
                 <ImageDropField
                   label="Cover image"
                   hint="PNG, JPG or WebP · up to 5MB · shown at 16:9"
@@ -841,10 +752,6 @@ export function CreateShowcaseForm({
             </FormSection>
           </div>
 
-          {/* ── Sidebar ──
-              Category sits above Publish deliberately: it is a required field
-              that lives out here, and burying it under the button is how it
-              gets missed. */}
           <aside
             className="space-y-5 lg:sticky"
             style={{ top: stickyTop } as React.CSSProperties}
@@ -893,9 +800,6 @@ export function CreateShowcaseForm({
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
                         <SelectGroup>
-                          {/* The value is the id, not the name: `categoryId` is
-                              a UUID upstream and the proxy rejects anything
-                              else. */}
                           {categoryItems.map((category) => (
                             <SelectItem
                               key={category.value}
@@ -942,8 +846,6 @@ export function CreateShowcaseForm({
               }}
               className={cn(CARD, "p-5")}
             >
-              {/* The landing page's eyebrow rule, so the panel reads as part
-                  of the same system as the sections behind it. */}
               <div className="mb-3 flex items-center gap-2.5">
                 <span className="h-px w-6 bg-foreground" />
                 <span className="text-sm font-bold uppercase tracking-[0.22em] text-foreground">
@@ -960,8 +862,6 @@ export function CreateShowcaseForm({
                 </span>
               </div>
 
-              {/* Blue→green, the same ramp the landing page's lifecycle rail
-                  runs on: in progress on the left, done on the right. */}
               <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                 <motion.div
                   className="h-full rounded-full bg-primary"
@@ -1024,9 +924,6 @@ export function CreateShowcaseForm({
               )}
 
               <div className="mt-4 space-y-2.5 border-t border-border pt-4">
-                {/* The hero's pill and its brand glow. Never disabled on an
-                    incomplete form — the field-level errors are what explain
-                    the problem, and a dead button explains nothing. */}
                 <motion.div
                   whileHover={submitting ? undefined : { y: -2 }}
                   whileTap={submitting ? undefined : { y: 0, scale: 0.99 }}
@@ -1129,7 +1026,6 @@ export function CreateShowcaseForm({
   );
 }
 
-/** The page's own shape while an existing showcase is being fetched. */
 function EditFormSkeleton({ stickyTop }: { stickyTop: string }) {
   return (
     <div

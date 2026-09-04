@@ -23,14 +23,6 @@ async function bearerTokenFor(request: NextRequest): Promise<string | null> {
 const unauthorized = () =>
   NextResponse.json({ message: "Not authenticated" }, { status: 401 });
 
-/**
- * An empty roster and a refused one look identical to the caller, deliberately:
- * a screen that says "no teammates" beats one that says "403". But the two mean
- * very different things while wiring the member experience up — whether the
- * upstream scopes this to the owner or to anyone on the roster decides whether
- * an invited member sees their team at all — so the real status is relayed in
- * `x-upstream-status` for anyone looking in devtools.
- */
 const softEmpty = (upstreamStatus: number | "unreachable") =>
   NextResponse.json([], {
     status: 200,

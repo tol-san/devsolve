@@ -9,8 +9,6 @@ import {
 } from "./types";
 import { countryLabel } from "@/lib/countries";
 
-/* Deterministic PRNG — the same seed always yields the same board, so the
-   server render and the client render never disagree. */
 function mulberry32(seed: number) {
   let a = seed;
   return () => {
@@ -28,8 +26,6 @@ type Person = {
   country: string;
 };
 
-/** Roster only — every number below is generated, never hand-written, so the
- *  totals stay internally consistent (valid ≤ total, severities sum to valid). */
 const PEOPLE: Person[] = [
   { username: "darkp4tch", displayName: "Amara Diallo", country: "sn" },
   { username: "n1ghtw0lf", displayName: "Ivan Petrov", country: "ru" },
@@ -75,17 +71,14 @@ const PEOPLE: Person[] = [
   { username: "obsidian_q", displayName: "Quang Trần", country: "vn" },
 ];
 
-/** The signed-in researcher, so "your rank" has something to point at. */
 export const CURRENT_USERNAME = "kh4nti";
 
-/** Volume multiplier per window — a week's board is naturally sparse. */
 const PERIOD_SCALE: Record<LeaderboardPeriod, number> = {
   all: 1,
   month: 0.16,
   week: 0.045,
 };
 
-/** Shorter windows shuffle harder: a quiet month can sink a top researcher. */
 const PERIOD_NOISE: Record<LeaderboardPeriod, number> = {
   all: 0.16,
   month: 0.62,
@@ -120,8 +113,6 @@ function buildRawEntry(person: Person, index: number, period: LeaderboardPeriod)
   const rand = mulberry32(index * 7919 + PERIOD_SEED[period]);
   const noise = PERIOD_NOISE[period];
 
-  // Roster order sets baseline strength; noise decides how far a window
-  // can move someone away from it.
   const baseline = 1 - index / PEOPLE.length;
   const factor = Math.max(0.04, baseline * (1 - noise / 2) + rand() * noise);
 
@@ -129,7 +120,7 @@ function buildRawEntry(person: Person, index: number, period: LeaderboardPeriod)
     1,
     Math.round((12 + factor * 168) * PERIOD_SCALE[period]),
   );
-  const validRate = 0.52 + rand() * 0.4; // 52–92% of submissions hold up
+  const validRate = 0.52 + rand() * 0.4; 
   const validReports = Math.max(1, Math.round(totalReports * validRate));
 
   const critical = Math.round(validReports * (0.04 + rand() * 0.13));
@@ -141,10 +132,6 @@ function buildRawEntry(person: Person, index: number, period: LeaderboardPeriod)
     critical * (0.5 + rand() * 0.9) + high * 0.18 + rand() * 2,
   );
 
-  /* Severity alone. Recognition is public credit and pays no reputation, so
-     the term for it was dropped rather than zeroed — this fixture is only a
-     plausible-looking stand-in, and the real board reads `reputation` from
-     the API rather than deriving it from counts. */
   const reputation =
     critical * REPUTATION_POINTS.critical +
     high * REPUTATION_POINTS.high +
@@ -171,7 +158,6 @@ function buildRawEntry(person: Person, index: number, period: LeaderboardPeriod)
 function rankEntries(period: LeaderboardPeriod): LeaderboardEntry[] {
   const raw = PEOPLE.map((person, i) => buildRawEntry(person, i, period));
 
-  // Previous window: the same generator one seed step back, ranked on its own.
   const previous = PEOPLE.map((person, i) =>
     buildRawEntry(person, i, period),
   ).map((entry, i) => ({
@@ -194,7 +180,6 @@ function rankEntries(period: LeaderboardPeriod): LeaderboardEntry[] {
     }));
 }
 
-/** Boards are pure functions of the period, so they are computed once. */
 const BOARDS: Record<LeaderboardPeriod, LeaderboardEntry[]> = {
   all: rankEntries("all"),
   month: rankEntries("month"),

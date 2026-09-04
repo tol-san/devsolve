@@ -9,34 +9,16 @@ import { COUNTRY_OPTIONS, resolveCountry } from "@/lib/countries";
 import { cn } from "@/lib/utils";
 
 type CountrySelectProps = {
-  /**
-   * The stored value: normally a lowercase code. A legacy free-text value is
-   * accepted and shown as written, so opening the editor on an old profile
-   * does not silently blank the field.
-   */
   value: string | null | undefined;
-  /** Called with the **lowercase code** — never the display name. */
   onChange: (code: string) => void;
   id?: string;
   placeholder?: string;
-  /** Spinner in place of the chevron while a country is being guessed. */
   isDetecting?: boolean;
   error?: boolean;
   disabled?: boolean;
   className?: string;
 };
 
-/**
- * The country picker.
- *
- * Shows flag and name, filters by name as you type, and **submits only the
- * lowercase ISO code**. The name is presentation: it is derived from the code
- * on the way in and discarded on the way out, so it is never what gets stored.
- * See `@/lib/countries` for why that direction is the only reliable one.
- *
- * Not a native `<select>` — it needs a flag image and a search field per row,
- * neither of which an `<option>` can hold.
- */
 export function CountrySelect({
   value,
   onChange,
@@ -62,8 +44,6 @@ export function CountrySelect({
         setIsOpen(false);
       }
     };
-    /* Escape closes without picking — a click-outside listener alone leaves
-       someone on a keyboard with no way out. */
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsOpen(false);
     };
@@ -79,8 +59,6 @@ export function CountrySelect({
   const options = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (!needle) return COUNTRY_OPTIONS;
-    /* Name only. Matching the code too would make a two-letter search like
-       "in" surface Andorra and Argentina above India. */
     return COUNTRY_OPTIONS.filter((option) =>
       option.name.toLowerCase().includes(needle),
     );
@@ -176,7 +154,6 @@ export function CountrySelect({
                     role="option"
                     aria-selected={isSelected}
                     onClick={() => {
-                      /* The code, and only the code. */
                       onChange(option.code);
                       setIsOpen(false);
                       setQuery("");

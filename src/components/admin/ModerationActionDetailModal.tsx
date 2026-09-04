@@ -77,7 +77,6 @@ export function ModerationActionDetailModal({
           </div>
         ) : (
           <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300">
-            {/* Details Grid */}
             <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
               <div className="space-y-1">
                 <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
@@ -105,7 +104,6 @@ export function ModerationActionDetailModal({
               </div>
             </div>
 
-            {/* Reason Block */}
             <div className="space-y-1">
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Reason / Rationale
@@ -115,7 +113,6 @@ export function ModerationActionDetailModal({
               </div>
             </div>
 
-            {/* Timestamps */}
             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200/80 dark:border-slate-800">
               <span className="flex items-center gap-1">
                 <Calendar className="size-3.5" /> Created:{" "}

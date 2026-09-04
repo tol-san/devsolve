@@ -13,18 +13,9 @@ import {
 import { useGetMyOrganizationAccessQuery } from "@/lib/redux/services/researcherAccessApi";
 import type { ProgramReportingAccess } from "@/lib/validations/researcher-access";
 
-/**
- * Why the submit button is off, and the one thing that can turn it on.
- *
- * The wording is the backend's, not this component's — from the pre-check
- * before a word is written, or verbatim from the 403 if the reporter got as
- * far as pressing Submit. Either names the company and says what happens
- * next, which is more than anything invented here could say.
- */
 export function ReportingAccessNotice({
   access,
   isLoading,
-  /** The verbatim `message` from a 403 the reporter has already hit. */
   blockedMessage,
   className,
 }: {
@@ -37,34 +28,20 @@ export function ReportingAccessNotice({
   const [session, setSession] = useState(0);
   const panel = useRef<HTMLElement | null>(null);
 
-  /* The eligibility answer says whether and why, but carries no review note —
-     that lives on the access record. Read only when there is a decision to
-     explain, so an approved reporter never pays for the request. */
   const decided = access?.status === "REJECTED" || access?.status === "REVOKED";
   const { data: record } = useGetMyOrganizationAccessQuery(
     access?.organizationId ?? "",
     { skip: !decided || !access?.organizationId },
   );
 
-  /* A 403 arrives from a button at the bottom of a long form, and this panel
-     sits at the top of it — so the refusal would land off screen with nothing
-     to show for the click. Announced by `aria-live` either way; this is for
-     the readers who are looking. */
   useEffect(() => {
     if (blockedMessage) {
       panel.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [blockedMessage]);
 
-  /* No placeholder while the check is in flight. Most reporters are cleared
-     and this renders nothing for them, so a skeleton would be a banner that
-     appears on every load and then admits it had nothing to say. */
   if (isLoading) return null;
 
-  /* Nothing to say when the pre-check is unavailable and nothing has been
-     refused — the form behaves as it always did, and a 403 at submit is still
-     relayed in full. Claiming "we could not check" would stop a reporter who
-     is in fact approved. */
   if (!access && !blockedMessage) return null;
 
   const status = access?.status ?? null;
@@ -73,9 +50,6 @@ export function ReportingAccessNotice({
   const explanation = blockedMessage?.trim() || access?.reason?.trim() || null;
   const reviewNote = decided ? record?.reviewNote?.trim() || null : null;
 
-  /* Without the pre-check there is no organization to address a request to,
-     so the refusal is shown on its own rather than under a button that has
-     nowhere to send anything. */
   const organizationId = access?.organizationId;
   const actionLabel = organizationId ? requestActionLabel(status) : null;
 
@@ -127,12 +101,8 @@ export function ReportingAccessNotice({
               {actionLabel}
             </Button>
           ) : (
-            /* PENDING: the request is already in their queue, and sending a
-               second one is a 409 rather than a reminder. */
             status === "PENDING" && (
               <span className="inline-flex items-center gap-2 text-sm font-semibold text-amber-900 dark:text-amber-200">
-                {/* A wait, not a load — nothing is in flight, someone
-                    has to read it. */}
                 <Clock3 aria-hidden className="size-4" />
                 Waiting on their review
               </span>

@@ -17,39 +17,17 @@ import { apiErrorMessage } from "@/lib/api/error-message";
 const DEBOUNCE_MS = 1500;
 
 export interface ServerDraftState {
-  /** A stored draft found for this program, waiting to be resumed. */
   available: ReportDraftResponse | null;
   savedAt: string | null;
   isSaving: boolean;
   error: string | null;
-  /** Takes the found draft and stops offering it. */
   take: () => ReportDraftResponse | null;
-  /** Deletes it outright — the reporter said they do not want it. */
   discard: () => Promise<void>;
-  /**
-   * Flushes a save immediately rather than waiting out the debounce, and says
-   * whether it landed — the button above it must not claim "Saved" for a
-   * write that failed.
-   */
   saveNow: () => Promise<boolean>;
-  /** Removes the draft after the report it became was accepted. */
   clear: () => Promise<void>;
-  /** The draft's id once one exists, for submitting through it. */
   draftId: string | null;
 }
 
-/**
- * Autosaves the report to the server and offers back anything unfinished.
- *
- * A draft belongs to a program, so the lookup on mount is scoped to the one
- * being reported against — opening a second program must not offer the
- * first's write-up.
- *
- * The first save creates the draft and every later one overwrites it, which
- * is why the id is held in a ref rather than derived from the mutation: two
- * saves racing during the initial create would otherwise both POST and leave
- * the reporter with two drafts.
- */
 export function useServerReportDraft({
   programId,
   values,
@@ -61,14 +39,6 @@ export function useServerReportDraft({
   values: SaveReportDraftValues;
   enabled: boolean;
   isDirty: boolean;
-  /**
-   * A draft opened deliberately, by id, from the saved-drafts list.
-   *
-   * It changes two things: saves go to that draft instead of creating a new
-   * one, and nothing is offered in the banner — the reporter already said
-   * which draft they wanted, and asking again would be asking them to choose
-   * between it and itself.
-   */
   resumeId?: string;
 }): ServerDraftState {
   const [createDraft] = useCreateReportDraftMutation();
@@ -90,8 +60,6 @@ export function useServerReportDraft({
   const [error, setError] = useState<string | null>(null);
 
   const draftId = useRef<string | null>(null);
-  /* Guards the create: without it, two debounced saves landing together
-     during the first write would each POST a new draft. */
   const creating = useRef(false);
   const offered = useRef<string | null>(null);
   const latest = useRef(values);
@@ -99,15 +67,11 @@ export function useServerReportDraft({
   const lastSaved = useRef<string>("");
   const reqSeq = useRef(0);
 
-  /* Offered once per program. Re-offering after the reporter dismissed it
-     would make the banner impossible to get rid of. */
   useEffect(() => {
     if (!programId || offered.current === programId) return;
     const found = drafts[0];
     if (!found) return;
     offered.current = programId;
-    /* Already resumed, already being written to, or opened by id — nothing
-       to offer. */
     if (draftId.current || resumeId) return;
     setAvailable(found);
   }, [drafts, programId, resumeId]);
@@ -121,8 +85,6 @@ export function useServerReportDraft({
     const currentSeq = ++reqSeq.current;
     setIsSaving(true);
     setError(null);
-    /* The draft this form is writing to: one already created or resumed, or
-       one named in the link that opened the form. */
     const existing = draftId.current || resumeId || null;
 
     try {
@@ -153,14 +115,8 @@ export function useServerReportDraft({
         }
       }
 
-      /* A create was already in flight, so this call wrote nothing. The one
-         that is running will. */
       return false;
     } catch (err) {
-      /* Recorded rather than thrown: a failed autosave must not interrupt
-         someone mid-sentence, and the next keystroke retries. The upstream
-         says which field it refused, which is worth more than a generic
-         apology when the reason is a field still on screen. */
       if (currentSeq !== reqSeq.current) return false;
       setError(
         apiErrorMessage(err, "Could not save your draft. Retrying as you type."),
@@ -177,8 +133,6 @@ export function useServerReportDraft({
 
   useEffect(() => {
     if (!enabled || !isDirty || !programId) return;
-    /* An unresumed draft is on offer — saving now would overwrite the thing
-       the reporter has not decided about yet. */
     if (available) return;
 
     const timer = setTimeout(() => void persist(), DEBOUNCE_MS);
@@ -204,14 +158,6 @@ export function useServerReportDraft({
     }
   }, [available, deleteDraft]);
 
-  /**
-   * The explicit "Save Draft" press.
-   *
-   * It answers the banner as a side effect, and has to: autosave stands down
-   * while an unresumed draft is on offer, so a reporter who ignored the banner
-   * and kept typing was getting no autosave at all. Saying "save this" settles
-   * which of the two they meant, and the offer stops standing in the way.
-   */
   const saveNow = useCallback(async () => {
     setAvailable(null);
     return persist();

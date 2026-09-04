@@ -65,7 +65,6 @@ export default function LoginPage() {
 
   return (
     <div className="grid h-screen max-h-screen w-full grid-cols-1 overflow-hidden font-sans antialiased lg:grid-cols-2">
-      {/* ── Left: Full-Bleed 3D Hero Section (Hidden on Mobile/Responsive) ── */}
       <AuthHeroPanel
         imageSrcDark="/researcher-dark.jpg"
         imageSrcLight="/researcher-light.jpg"
@@ -78,7 +77,6 @@ export default function LoginPage() {
         backLabel="Back to home"
       />
 
-      {/* ── Right: Form Panel ── */}
       <div className="relative flex h-screen max-h-screen w-full flex-col items-center justify-between overflow-y-auto p-6 sm:p-10 lg:p-12 xl:p-16">
         <div className="flex w-full items-center justify-between mb-4 sm:mb-6">
           <Link
@@ -103,7 +101,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Social Google / GitHub */}
           <div className="mb-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <Button
               type="button"
@@ -157,7 +154,6 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          {/* Divider */}
           <div className="relative mb-6 flex items-center justify-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200 dark:border-border/60" />

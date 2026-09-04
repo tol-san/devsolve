@@ -36,7 +36,6 @@ import { cn } from "@/lib/utils";
 const handleStyle =
   "!size-3 !border-2 !border-background !bg-primary transition-all hover:!scale-125 hover:!bg-primary/80";
 
-/** Client / Frontend Node */
 export const ClientNode = memo(function ClientNode({
   data,
   selected,
@@ -82,7 +81,6 @@ export const ClientNode = memo(function ClientNode({
   );
 });
 
-/** Server / API Node */
 export const ServerNode = memo(function ServerNode({
   data,
   selected,
@@ -128,7 +126,6 @@ export const ServerNode = memo(function ServerNode({
   );
 });
 
-/** Database / Storage Node */
 export const DatabaseNode = memo(function DatabaseNode({
   data,
   selected,
@@ -174,7 +171,6 @@ export const DatabaseNode = memo(function DatabaseNode({
   );
 });
 
-/** Cloud / Gateway / Queue Node */
 export const CloudNode = memo(function CloudNode({
   data,
   selected,
@@ -220,7 +216,6 @@ export const CloudNode = memo(function CloudNode({
   );
 });
 
-/** Decision / Condition Node */
 export const DecisionNode = memo(function DecisionNode({
   data,
   selected,
@@ -257,7 +252,6 @@ export const DecisionNode = memo(function DecisionNode({
   );
 });
 
-/** Sticky Note / Annotation Node */
 export const NoteNode = memo(function NoteNode({
   data,
   selected,
@@ -290,7 +284,6 @@ export const NoteNode = memo(function NoteNode({
   );
 });
 
-/** ERD Entity / Database Table Node */
 export const TableNode = memo(function TableNode({
   data,
   selected,
@@ -367,11 +360,9 @@ export const TableNode = memo(function TableNode({
           : "border-border hover:border-border/80 hover:shadow-md",
       )}
     >
-      {/* Table-level handles */}
       <Handle type="target" position={Position.Top} className={handleStyle} id="table-top" />
       <Handle type="target" position={Position.Left} className={handleStyle} id="table-left" />
 
-      {/* Table Header */}
       <div
         className={cn(
           "flex items-center justify-between gap-2.5 px-3.5 py-2.5 border-b",
@@ -411,14 +402,12 @@ export const TableNode = memo(function TableNode({
         </div>
       </div>
 
-      {/* Columns List */}
       <div className="divide-y divide-border/50 py-1 bg-card/90">
         {columns.map((col) => (
           <div
             key={col.id}
             className="group/row relative flex items-center justify-between gap-2 px-3.5 py-1.5 text-xs transition-colors hover:bg-muted/40"
           >
-            {/* Field Handle (Left) */}
             <Handle
               type="target"
               position={Position.Left}
@@ -426,7 +415,6 @@ export const TableNode = memo(function TableNode({
               className="!size-2.5 !-left-1.5 !border !border-background !bg-muted-foreground/60 transition-all hover:!scale-150 hover:!bg-primary"
             />
 
-            {/* Field Name & Flags */}
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {col.isPk ? (
                 <span
@@ -458,7 +446,6 @@ export const TableNode = memo(function TableNode({
               </span>
             </div>
 
-            {/* Field Type & Nullable Tag */}
             <div className="flex items-center gap-1.5 shrink-0">
               {col.isNullable && (
                 <span className="text-[9px] font-mono text-muted-foreground/70 uppercase">
@@ -475,7 +462,6 @@ export const TableNode = memo(function TableNode({
               </span>
             </div>
 
-            {/* Field Handle (Right) */}
             <Handle
               type="source"
               position={Position.Right}
@@ -492,14 +478,12 @@ export const TableNode = memo(function TableNode({
         )}
       </div>
 
-      {/* Table-level bottom/right handles */}
       <Handle type="source" position={Position.Bottom} className={handleStyle} id="table-bottom" />
       <Handle type="source" position={Position.Right} className={handleStyle} id="table-right" />
     </div>
   );
 });
 
-/** ── 1. Conceptual & Domain Model Node ── */
 export const ConceptNode = memo(function ConceptNode({
   data,
   selected,
@@ -545,7 +529,6 @@ export const ConceptNode = memo(function ConceptNode({
   );
 });
 
-/** ── 2. Boundary / Domain Group Container Node ── */
 export const GroupNode = memo(function GroupNode({
   data,
   selected,
@@ -563,7 +546,6 @@ export const GroupNode = memo(function GroupNode({
       <Handle type="target" position={Position.Top} className={handleStyle} />
       <Handle type="target" position={Position.Left} className={handleStyle} />
 
-      {/* Group Header Banner */}
       <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-2 mb-3">
         <div className="flex items-center gap-2">
           <Boxes className="size-4 text-primary" />
@@ -590,7 +572,6 @@ export const GroupNode = memo(function GroupNode({
   );
 });
 
-/** ── 3. Flowchart Terminal Node (Start / End) ── */
 export const TerminalNode = memo(function TerminalNode({
   data,
   selected,
@@ -627,7 +608,6 @@ export const TerminalNode = memo(function TerminalNode({
   );
 });
 
-/** ── 4. Flowchart Action / Process Step Node ── */
 export const ActionNode = memo(function ActionNode({
   data,
   selected,
@@ -674,7 +654,6 @@ export const ActionNode = memo(function ActionNode({
   );
 });
 
-/** ── 5. Event / Trigger Node ── */
 export const EventNode = memo(function EventNode({
   data,
   selected,
@@ -711,7 +690,6 @@ export const EventNode = memo(function EventNode({
   );
 });
 
-/** ── 6. Data / I/O Document Node ── */
 export const DataNode = memo(function DataNode({
   data,
   selected,
@@ -755,7 +733,6 @@ export const DataNode = memo(function DataNode({
   );
 });
 
-/** ── 7. UML Class Node ── */
 export const ClassNode = memo(function ClassNode({
   data,
   selected,
@@ -782,7 +759,6 @@ export const ClassNode = memo(function ClassNode({
       <Handle type="target" position={Position.Top} className={handleStyle} />
       <Handle type="target" position={Position.Left} className={handleStyle} />
 
-      {/* Class Name Header */}
       <div className="bg-indigo-500/10 px-3 py-2 border-b border-indigo-500/20 text-center">
         {data.isInterface && (
           <span className="text-[9px] uppercase tracking-widest text-indigo-600 dark:text-indigo-400 block font-semibold">
@@ -794,7 +770,6 @@ export const ClassNode = memo(function ClassNode({
         </h4>
       </div>
 
-      {/* Attributes Section */}
       <div className="divide-y divide-border/30 px-3 py-1.5 bg-card text-[11px]">
         {attributes.map((attr) => (
           <div key={attr.id} className="py-0.5 flex items-center justify-between gap-1">
@@ -810,7 +785,6 @@ export const ClassNode = memo(function ClassNode({
         ))}
       </div>
 
-      {/* Methods Section */}
       <div className="border-t border-border/60 divide-y divide-border/30 px-3 py-1.5 bg-card text-[11px]">
         {methods.map((method) => (
           <div key={method.id} className="py-0.5 flex items-center justify-between gap-1">
@@ -833,25 +807,19 @@ export const ClassNode = memo(function ClassNode({
 });
 
 export const nodeTypes = {
-  // Architecture
   clientNode: ClientNode,
   serverNode: ServerNode,
   databaseNode: DatabaseNode,
   cloudNode: CloudNode,
   decisionNode: DecisionNode,
   noteNode: NoteNode,
-  // Database & ERD
   tableNode: TableNode,
-  // Conceptual & Domain
   conceptNode: ConceptNode,
   groupNode: GroupNode,
-  // Flowchart & Process
   terminalNode: TerminalNode,
   actionNode: ActionNode,
   eventNode: EventNode,
   dataNode: DataNode,
-  // UML
   classNode: ClassNode,
 };
-
 

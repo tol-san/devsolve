@@ -6,8 +6,6 @@ import {
 } from "@/lib/types/dicussion/types";
 import { authorNameOf } from "@/lib/discussions/format";
 
-// ─── Query param types ────────────────────────────────────────────────────────
-
 export interface DiscussionsFilterParams {
   category?: "All" | "Problems" | "Showcase";
   topic?: string | null;
@@ -28,18 +26,10 @@ export interface DiscussionsResponse {
   totalPages: number;
 }
 
-/** Platform totals the list endpoints can actually answer. */
 export interface DiscussionStats {
   problems: number;
   showcases: number;
 }
-
-// ─── Real backend shapes (per devsolve-api.quizzy.it.com/v3/api-docs) ─────────
-// Problems and showcases are two separate REST resources with different
-// response shapes; both get flattened into the shared DiscussionPost shape
-// the UI already renders. Problem rows include vote/solution totals; showcase
-// rows include comment totals, while their vote score is read only when the
-// user explicitly requests the vote-based sort.
 
 interface CategorySummary {
   id: string;
@@ -108,8 +98,6 @@ interface ActiveCategoryApiResponse {
   scope: "PROBLEM" | "SHOWCASE";
 }
 
-// Keep this binding stable across Turbopack hot updates. Older discussion
-// query modules still reference LIST_PAGE_SIZE until the page is refreshed.
 const LIST_PAGE_SIZE = 100;
 
 function toRelativeDate(iso?: string): string {
@@ -203,8 +191,6 @@ function toShowcasePost(
   };
 }
 
-// ─── Sorting helpers ──────────────────────────────────────────────────────────
-
 function createdAtTime(post: DiscussionPost): number {
   const parsed = Date.parse(post.sortTimestamp ?? post.createdAt);
   return Number.isNaN(parsed) ? Date.now() : parsed;
@@ -249,11 +235,8 @@ function apiUrl(path: string, params: Record<string, string | number | undefined
   return encoded ? `${path}?${encoded}` : path;
 }
 
-// ─── API slice ────────────────────────────────────────────────────────────────
-
 export const discussionsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // ── List discussions with filter + pagination ───────────────────────────
     getDiscussions: builder.query<DiscussionsResponse, DiscussionsFilterParams | void>({
       async queryFn(params, _api, _extraOptions, fetchWithBQ) {
         const category = params?.category ?? "All";
@@ -357,8 +340,6 @@ export const discussionsApi = baseApi.injectEndpoints({
           ...showcases.map(toShowcasePost),
         ];
 
-        // The list endpoints own text, category, and tag matching. Keeping the
-        // filtering upstream makes `totalElements` and every page agree.
         if (sort === "top" && showcases.length > 0) {
           const voteResults = await Promise.all(
             showcases.map((showcase) =>
@@ -400,8 +381,6 @@ export const discussionsApi = baseApi.injectEndpoints({
           },
         };
       },
-      /* Tagged against both source caches, so publishing or approving either
-         kind of post refreshes this feed the same way it refreshes theirs. */
       providesTags: (result) =>
         result
           ? [
@@ -414,10 +393,6 @@ export const discussionsApi = baseApi.injectEndpoints({
           : [{ type: "Discussion" as const, id: "LIST" }],
     }),
 
-    // ── Fetch single discussion (problem, falling back to showcase) ─────────
-    // Note: not currently rendered anywhere in the app — the real detail page
-    // (ProblemDetailPage.tsx) still reads from a separate mock system. Wired
-    // for correctness/parity with the list, not because something consumes it.
     getDiscussionById: builder.query<DiscussionPost | null, string>({
       async queryFn(id, _api, _extraOptions, fetchWithBQ) {
         const [problemResult, statusResult, voteResult] = await Promise.all([
@@ -456,7 +431,6 @@ export const discussionsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: "Discussion" as const, id }],
     }),
 
-    // ── Topic list (derived from live category usage on problems+showcases) ─
     getDiscussionTopics: builder.query<TopicCount[], void>({
       async queryFn(_arg, _api, _extraOptions, fetchWithBQ) {
         const [problemCategoriesResult, showcaseCategoriesResult] = await Promise.all([
@@ -529,7 +503,6 @@ export const discussionsApi = baseApi.injectEndpoints({
       providesTags: [{ type: "Discussion" as const, id: "TOPICS" }],
     }),
 
-    // ── Trending tags (problems only — showcases carry no tags) ─────────────
     getTrendingTags: builder.query<string[], void>({
       async queryFn(_arg, _api, _extraOptions, fetchWithBQ) {
         const result = await fetchWithBQ(`/problems?size=${LIST_PAGE_SIZE}`);
@@ -549,11 +522,6 @@ export const discussionsApi = baseApi.injectEndpoints({
       providesTags: [{ type: "Discussion" as const, id: "TAGS" }],
     }),
 
-    // ── Platform stats ──────────────────────────────────────────────────────
-    /**
-     * Both totals are the `totalElements` the list endpoints report, so they
-     * count everything published rather than the page fetched above.
-     */
     getDiscussionStats: builder.query<DiscussionStats, void>({
       async queryFn(_arg, _api, _extraOptions, fetchWithBQ) {
         const [problemsResult, showcasesResult] = await Promise.all([
@@ -570,18 +538,11 @@ export const discussionsApi = baseApi.injectEndpoints({
       providesTags: [{ type: "Discussion" as const, id: "STATS" }],
     }),
 
-    // ── Categories for the create-post topic picker ─────────────────────────
     getDiscussionCategories: builder.query<{ id: string; name: string }[], "PROBLEM" | "SHOWCASE">({
       query: (scope) => `/categories/active?scope=${scope}`,
       providesTags: [{ type: "Discussion" as const, id: "CATEGORIES" }],
     }),
 
-    // ── Vote mutation ───────────────────────────────────────────────────────
-    /**
-     * `PUT /api/v1/votes/{type}/{targetId}` sets the caller's vote; `DELETE`
-     * withdraws it. The card sends where it is moving to, not a toggle, so a
-     * double-tap cannot leave the two out of step.
-     */
     voteDiscussion: builder.mutation<
       { id: string; votes: number; isUpvoted: boolean },
       { id: string; type: "PROBLEM" | "SHOWCASE"; isUpvoted: boolean }
@@ -599,7 +560,6 @@ export const discussionsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [{ type: "Discussion" as const, id }],
     }),
 
-    // ── Create discussion mutation (problem or showcase) ─────────────────────
     createDiscussion: builder.mutation<
       DiscussionPost,
       {

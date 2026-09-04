@@ -1,5 +1,4 @@
 "use client";
-// beui.dev/components/motion/theme-toggle
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -24,17 +23,13 @@ export type RectStart =
 
 export interface ThemeToggleProps
   extends Omit<ComponentPropsWithoutRef<"button">, "children" | "onClick"> {
-  /** Animation variant. Default: "rectangle". */
   variant?: ThemeVariant;
-  /** Origin direction for the reveal. Default: "bottom-up". */
   start?: RectStart;
   iconClassName?: string;
 }
 
 const VT_STYLE_ID = "beui-theme-toggle-vt";
 
-// Duration/easing is component-specific: View Transition API uses CSS, not
-// motion springs. 400ms + ease-out mirrors native OS mode-switch timing.
 const VT_CSS = `
 html[data-beui-vt="rect"]::view-transition-old(root) {
   animation: none;

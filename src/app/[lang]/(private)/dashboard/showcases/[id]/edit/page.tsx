@@ -6,10 +6,6 @@ import { motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { CreateShowcaseForm } from "@/components/showcases/create/CreateShowcaseForm";
 
-/**
- * Edit one of your own showcases. The same form as creating one, loaded with
- * what is stored — see `CreateShowcaseForm`'s `showcaseId` prop.
- */
 export default function EditShowcasePage({
   params,
 }: {

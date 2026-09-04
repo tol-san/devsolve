@@ -6,7 +6,6 @@ import type {
 
 export const virusTotalApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    /** POST /api/virus-total/files -> POST /api/v1/virus-total/files */
     submitFileScan: builder.mutation<VirusTotalAnalysisResponse, File>({
       query: (file) => {
         const body = new FormData();
@@ -20,7 +19,6 @@ export const virusTotalApi = baseApi.injectEndpoints({
       invalidatesTags: ["VirusTotal"],
     }),
 
-    /** POST /api/virus-total/urls -> POST /api/v1/virus-total/urls */
     submitUrlScan: builder.mutation<VirusTotalAnalysisResponse, VirusTotalUrlRequest>({
       query: (body) => ({
         url: "/virus-total/urls",
@@ -30,7 +28,6 @@ export const virusTotalApi = baseApi.injectEndpoints({
       invalidatesTags: ["VirusTotal"],
     }),
 
-    /** GET /api/virus-total/analyses/{analysisId} -> GET /api/v1/virus-total/analyses/{analysisId} */
     getAnalysis: builder.query<VirusTotalAnalysisResponse, string>({
       query: (analysisId) => `/virus-total/analyses/${encodeURIComponent(analysisId)}`,
       providesTags: (_result, _error, analysisId) => [
@@ -38,7 +35,6 @@ export const virusTotalApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** Imperative fetch for poll steps within custom scanning hooks */
     pollAnalysis: builder.mutation<VirusTotalAnalysisResponse, string>({
       query: (analysisId) => ({
         url: `/virus-total/analyses/${encodeURIComponent(analysisId)}`,

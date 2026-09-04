@@ -24,25 +24,15 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface ProblemDuplicatePanelProps {
-  /** Current draft title from the composer */
   title: string;
-  /** Current draft description from the composer */
   description?: string;
-  /** Draft error message / stack trace (high-signal field for duplicate detection) */
   errorMessage?: string;
-  /** Excluded UUID when editing an existing problem so it cannot suggest itself */
   excludeId?: string;
-  /** Optional container class name */
   className?: string;
 }
 
-/** Candidate item for rendering (can be from /related or /duplicate-check) */
 type CandidateItem = RelatedProblem | DuplicateSuggestion;
 
-/**
- * Maps the AI verdict enum to human-friendly advisory labels.
- * The raw enum is never printed directly.
- */
 function verdictLabel(verdict: DuplicateSuggestion["verdict"]): string {
   switch (verdict) {
     case "DUPLICATE":
@@ -56,10 +46,6 @@ function verdictLabel(verdict: DuplicateSuggestion["verdict"]): string {
   }
 }
 
-/**
- * Returns subtle verdict badge styling.
- * Never uses red — this panel guides and helps rather than alarming the user.
- */
 function verdictBadgeClass(verdict: DuplicateSuggestion["verdict"]): string {
   switch (verdict) {
     case "DUPLICATE":
@@ -73,15 +59,6 @@ function verdictBadgeClass(verdict: DuplicateSuggestion["verdict"]): string {
   }
 }
 
-/**
- * "Has someone already asked this?" panel on the problem composer.
- *
- * Professional, compact, non-intrusive design:
- * - Clean divided list (replaces nested box cards)
- * - Clear hierarchy: badge + title + subtle meta
- * - Live keystroke lookup via `/problems/related` (debounced 275ms)
- * - On-demand AI deep check via `/problems/duplicate-check` with cooldown handling
- */
 export function ProblemDuplicatePanel({
   title,
   description,
@@ -89,7 +66,6 @@ export function ProblemDuplicatePanel({
   excludeId,
   className,
 }: ProblemDuplicatePanelProps) {
-  // ── 1. Live keystroke debouncing for /related ─────────────────────────────
   const [debouncedTitle, setDebouncedTitle] = useState(title);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -108,7 +84,6 @@ export function ProblemDuplicatePanel({
     { skip: !shouldQueryRelated },
   );
 
-  // ── 2. On-demand AI duplicate check ──────────────────────────────────────
   const [checkDuplicateProblems, { isLoading: isCheckingAi }] =
     useCheckDuplicateProblemsMutation();
 
@@ -118,7 +93,6 @@ export function ProblemDuplicatePanel({
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [secondsRemaining, setSecondsRemaining] = useState(0);
 
-  // Cooldown countdown timer for 429 rate limit
   useEffect(() => {
     if (!rateLimitedUntil) return;
     const updateCountdown = () => {
@@ -136,7 +110,6 @@ export function ProblemDuplicatePanel({
     return () => clearInterval(interval);
   }, [rateLimitedUntil]);
 
-  // Track draft content signature (title + description + errorMessage)
   const currentSignature = useMemo(
     () => `${title.trim()}:::${(description ?? "").trim()}:::${(errorMessage ?? "").trim()}`,
     [title, description, errorMessage],
@@ -173,7 +146,6 @@ export function ProblemDuplicatePanel({
     }
   };
 
-  // ── 3. Candidate Resolution ──────────────────────────────────────────────
   const activeCandidates: CandidateItem[] = useMemo(() => {
     if (aiResult && aiResult.suggestions.length > 0) {
       return aiResult.suggestions;
@@ -183,7 +155,6 @@ export function ProblemDuplicatePanel({
 
   const isAiActive = Boolean(aiResult?.aiReviewed);
 
-  // Top 3 items displayed by default, or all if expanded
   const visibleCandidates = useMemo(() => {
     if (isExpanded || activeCandidates.length <= 3) {
       return activeCandidates;
@@ -193,7 +164,6 @@ export function ProblemDuplicatePanel({
 
   const hiddenCount = activeCandidates.length - visibleCandidates.length;
 
-  // Don't display anything if title is too short and no items to show
   if (
     debouncedTitle.length < 4 &&
     activeCandidates.length === 0 &&
@@ -202,7 +172,6 @@ export function ProblemDuplicatePanel({
     return null;
   }
 
-  // If search finished and found nothing, collapse cleanly
   if (activeCandidates.length === 0 && !isFetchingRelated && !isCheckingAi) {
     return null;
   }
@@ -221,7 +190,6 @@ export function ProblemDuplicatePanel({
       )}
       aria-label="Similar questions panel"
     >
-      {/* ── Compact Header ── */}
       <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-border/60">
         <div className="flex items-center gap-2 min-w-0">
           <Lightbulb className="size-4 text-amber-500 shrink-0" />
@@ -235,7 +203,6 @@ export function ProblemDuplicatePanel({
           )}
         </div>
 
-        {/* AI Action Area */}
         <div className="flex items-center gap-2 shrink-0">
           {rateLimitedUntil ? (
             <span className="text-[11px] text-muted-foreground font-medium px-2 py-0.5 rounded bg-muted/60">
@@ -269,7 +236,6 @@ export function ProblemDuplicatePanel({
         </div>
       </div>
 
-      {/* ── Loading Skeleton ── */}
       {isCheckingAi && activeCandidates.length === 0 && (
         <div className="mt-2.5 space-y-2 animate-pulse" aria-hidden="true">
           {[1, 2].map((i) => (
@@ -284,7 +250,6 @@ export function ProblemDuplicatePanel({
         </div>
       )}
 
-      {/* ── Unified Divided Candidate List (Professional standard, no nested boxes) ── */}
       <div className="mt-2.5 divide-y divide-border/60 rounded-lg border border-border/70 bg-background/50 overflow-hidden">
         <AnimatePresence initial={false}>
           {visibleCandidates.map((candidate) => {
@@ -318,7 +283,6 @@ export function ProblemDuplicatePanel({
                   className="group/item block p-3 sm:px-3.5 text-foreground visited:text-foreground no-underline hover:bg-muted/40 transition-colors"
                 >
                   <div className="space-y-1">
-                    {/* Badges line: Solved status & AI verdict */}
                     {(acceptedCount > 0 || candidate.solved || (isAiActive && suggestion?.verdict)) && (
                       <div className="flex flex-wrap items-center gap-1.5">
                         {acceptedCount > 0 ? (
@@ -346,7 +310,6 @@ export function ProblemDuplicatePanel({
                       </div>
                     )}
 
-                    {/* Title & external icon */}
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="text-xs sm:text-sm font-medium text-foreground group-hover/item:text-primary transition-colors line-clamp-1 leading-snug">
                         {candidate.title}
@@ -354,14 +317,12 @@ export function ProblemDuplicatePanel({
                       <ArrowUpRight className="size-3.5 text-muted-foreground opacity-30 group-hover/item:opacity-100 group-hover/item:text-primary transition-all shrink-0 mt-0.5" />
                     </div>
 
-                    {/* Plain text excerpt (if present) */}
                     {excerpt && (
                       <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                         {excerpt}
                       </p>
                     )}
 
-                    {/* AI Reason (Model's voice) */}
                     {isAiActive && suggestion?.reason && (
                       <div className="mt-1 flex items-start gap-1.5 rounded border-l-2 border-primary/60 bg-muted/40 px-2 py-1 text-xs text-foreground/85 leading-relaxed">
                         <Sparkles className="size-3 text-primary shrink-0 mt-0.5" />
@@ -369,7 +330,6 @@ export function ProblemDuplicatePanel({
                       </div>
                     )}
 
-                    {/* Compact Meta */}
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-0.5">
                       {candidate.solutionCount > 0 && (
                         <>
@@ -395,7 +355,6 @@ export function ProblemDuplicatePanel({
         </AnimatePresence>
       </div>
 
-      {/* ── Expand / Collapse Toggle (if more than 3 matches) ── */}
       {activeCandidates.length > 3 && (
         <div className="mt-2 flex justify-center">
           <Button
@@ -422,7 +381,6 @@ export function ProblemDuplicatePanel({
         </div>
       )}
 
-      {/* ── Clean Footer ── */}
       <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between text-[11px] text-muted-foreground px-0.5">
         <span>Advisory only — never blocks posting your question.</span>
         <span>Opens in new tab</span>

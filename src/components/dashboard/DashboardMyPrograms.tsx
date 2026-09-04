@@ -52,7 +52,6 @@ export const DashboardMyPrograms: React.FC<DashboardMyProgramsProps> = ({
           </Link>
         </div>
 
-        {/* Column Headers */}
         <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3 border-b border-border/50 px-2.5 select-none">
           <div className="col-span-6">{t("dashboard.myPrograms.colProgram")}</div>
           <div className="col-span-3 text-center">{t("dashboard.myPrograms.colStatus")}</div>
@@ -98,7 +97,6 @@ export const DashboardMyPrograms: React.FC<DashboardMyProgramsProps> = ({
                 href={programHref(program.id)}
                 className="grid grid-cols-12 gap-2 items-center py-3.5 px-2.5 hover:bg-muted/60 rounded-xl transition-colors group"
               >
-                {/* Program Name & Logo */}
                 <div className="col-span-6 flex items-center gap-3 min-w-0">
                   <Avatar className="size-9 shrink-0 rounded-xl border border-border/80 shadow-2xs">
                     {program.logoUrl && (
@@ -122,7 +120,6 @@ export const DashboardMyPrograms: React.FC<DashboardMyProgramsProps> = ({
                   </div>
                 </div>
 
-                {/* Status Badge */}
                 <div className="col-span-3 flex justify-center">
                   {program.status === "Open" ? (
                     <Badge
@@ -154,7 +151,6 @@ export const DashboardMyPrograms: React.FC<DashboardMyProgramsProps> = ({
                   )}
                 </div>
 
-                {/* Reports Count & Link Icon */}
                 <div className="col-span-3 flex items-center justify-end gap-2">
                   <span className="rounded-lg border border-border/80 bg-muted px-2 py-0.5 text-xs font-bold text-foreground tabular-nums">
                     {program.reportCount} {program.reportCount === 1 ? "report" : "reports"}

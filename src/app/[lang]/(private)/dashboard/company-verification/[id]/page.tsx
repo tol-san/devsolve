@@ -54,7 +54,6 @@ interface DetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-/** Quick selectable rejection reason templates for admins */
 const PRESET_REJECTION_REASONS = [
   "Incomplete or unverifiable business registration documents.",
   "Domain ownership could not be verified.",
@@ -62,7 +61,6 @@ const PRESET_REJECTION_REASONS = [
   "Invalid business tax ID or registration credentials.",
 ];
 
-/** Renders a labelled metadata item in the info grid */
 function InfoField({
   icon: Icon,
   label,
@@ -97,7 +95,6 @@ export default function OrganizationVerificationDetailPage({
   const resolvedParams = use(params);
   const companyId = resolvedParams.id;
 
-  // Only query backend API if companyId is a valid UUID format
   const isUuid = useMemo(
     () =>
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -106,7 +103,6 @@ export default function OrganizationVerificationDetailPage({
     [companyId],
   );
 
-  // Real backend queries & mutations (skipped if non-UUID)
   const {
     data: realOrg,
     isLoading: isOrgLoading,
@@ -130,7 +126,6 @@ export default function OrganizationVerificationDetailPage({
 
   const isUpdating = isApproving || isRejecting;
 
-  // Fallback mock company if non-UUID or not present in database
   const mockOrg = useMemo(
     () => MOCK_COMPANY_VERIFICATIONS.find((c) => c.id === companyId),
     [companyId],
@@ -139,7 +134,6 @@ export default function OrganizationVerificationDetailPage({
   const isLoading = isUuid && (isOrgLoading || isOrgFetching);
   const isError = (isUuid && isOrgError && !mockOrg) || (!isUuid && !mockOrg);
 
-  // Unified company data object
   const company = useMemo(() => {
     if (realOrg) {
       return {
@@ -193,14 +187,12 @@ export default function OrganizationVerificationDetailPage({
 
   const reviewHistory = rawReviewHistory;
 
-  // Local state
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionError, setRejectionError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  // Copy helper with feedback
   const handleCopy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(label);
@@ -208,7 +200,6 @@ export default function OrganizationVerificationDetailPage({
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  /* ---- Approval Handler ---- */
   const handleConfirmApprove = async () => {
     if (!company) return;
     try {
@@ -229,7 +220,6 @@ export default function OrganizationVerificationDetailPage({
     }
   };
 
-  /* ---- Rejection Handler ---- */
   const handleConfirmReject = async () => {
     if (!company) return;
     const trimmedReason = rejectionReason.trim();
@@ -273,7 +263,6 @@ export default function OrganizationVerificationDetailPage({
   const displayValue = (val: string | undefined | null, fallback = "—") =>
     val?.trim() || fallback;
 
-  /* ---- Loading skeleton ---- */
   if (isLoading) {
     return (
       <motion.div
@@ -299,7 +288,6 @@ export default function OrganizationVerificationDetailPage({
     );
   }
 
-  /* ---- Error / Not found state ---- */
   if (isError || !company) {
     return (
       <motion.div
@@ -347,7 +335,6 @@ export default function OrganizationVerificationDetailPage({
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* ── BREADCRUMB ──────────────────────────────────────────────── */}
       <nav className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
         <Link
           href="/dashboard/company-verification"
@@ -362,10 +349,8 @@ export default function OrganizationVerificationDetailPage({
         </span>
       </nav>
 
-      {/* ── PAGE HEADER ─────────────────────────────────────────────── */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-start sm:items-center gap-4">
-          {/* Avatar */}
           <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-blue-600 to-indigo-600 border border-border shadow-sm flex items-center justify-center font-bold text-white text-2xl shrink-0">
             {company.companyName.charAt(0)}
           </div>
@@ -418,7 +403,6 @@ export default function OrganizationVerificationDetailPage({
           </div>
         </div>
 
-        {/* Submission date & status indicator */}
         <div className="text-left md:text-right shrink-0 bg-muted/40 p-3 sm:p-0 rounded-xl sm:bg-transparent border border-border sm:border-none">
           <span className="text-xs text-muted-foreground font-medium block">
             Submitted Date
@@ -429,7 +413,6 @@ export default function OrganizationVerificationDetailPage({
         </div>
       </header>
 
-      {/* ── STATUS ALERT BANNERS (IF FINALIZED) ────────────────────── */}
       {company.status === "APPROVED" && (
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
@@ -484,11 +467,8 @@ export default function OrganizationVerificationDetailPage({
         </motion.div>
       )}
 
-      {/* ── ASYMMETRIC GRID ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* ══ MAIN COLUMN (2/3) ══════════════════════════════════════ */}
         <div className="lg:col-span-2 space-y-6">
-          {/* DECISION ACTION CARD */}
           <Card className="bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 shadow-2xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -540,7 +520,6 @@ export default function OrganizationVerificationDetailPage({
             </div>
           </Card>
 
-          {/* COMPANY INFORMATION CARD */}
           <Card className="bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 shadow-2xs space-y-6">
             <h2 className="text-base font-bold text-foreground pb-3 border-b border-border flex items-center justify-between">
               <span>Company Information</span>
@@ -625,7 +604,6 @@ export default function OrganizationVerificationDetailPage({
               )}
             </div>
 
-            {/* Joining Reason */}
             {company.joiningReason && (
               <div className="pt-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
@@ -637,7 +615,6 @@ export default function OrganizationVerificationDetailPage({
               </div>
             )}
 
-            {/* Description */}
             {company.description && (
               <div className="pt-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
@@ -651,9 +628,7 @@ export default function OrganizationVerificationDetailPage({
           </Card>
         </div>
 
-        {/* ══ SIDEBAR COLUMN (1/3) ══════════════════════════════════ */}
         <aside className="space-y-6">
-          {/* VERIFICATION SIGNALS & METADATA */}
           <Card className="bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-5 shadow-2xs space-y-4">
             <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-blue-500" />
@@ -723,7 +698,6 @@ export default function OrganizationVerificationDetailPage({
             </dl>
           </Card>
 
-          {/* REVIEW HISTORY CARD (IF AVAILABLE) */}
           {reviewHistory && reviewHistory.length > 0 && (
             <Card className="bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-5 shadow-2xs space-y-3">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
@@ -777,7 +751,6 @@ export default function OrganizationVerificationDetailPage({
             </Card>
           )}
 
-          {/* QUICK ACTIONS CARD */}
           <Card className="bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-5 shadow-2xs space-y-3">
             <h3 className="text-sm font-bold text-foreground">
               Quick Actions
@@ -825,7 +798,6 @@ export default function OrganizationVerificationDetailPage({
         </aside>
       </div>
 
-      {/* ── APPROVE CONFIRMATION DIALOG ────────────────────────────── */}
       <Dialog open={isApproveModalOpen} onOpenChange={setIsApproveModalOpen}>
         <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl">
           <DialogHeader className="space-y-2">
@@ -874,7 +846,6 @@ export default function OrganizationVerificationDetailPage({
         </DialogContent>
       </Dialog>
 
-      {/* ── REJECT MODAL DIALOG ────────────────────────────────────── */}
       <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
         <DialogContent className="sm:max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
           <DialogHeader className="space-y-2">
@@ -891,7 +862,6 @@ export default function OrganizationVerificationDetailPage({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Quick template chips */}
           <div className="space-y-1.5">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
               Quick Reasons
@@ -913,7 +883,6 @@ export default function OrganizationVerificationDetailPage({
             </div>
           </div>
 
-          {/* Reason Input Area */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label

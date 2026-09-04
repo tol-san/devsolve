@@ -15,8 +15,6 @@ import { useT } from "@/lib/i18n/I18nProvider";
 import type { ProgramType } from "@/lib/types/programs/types";
 import { cn } from "@/lib/utils";
 
-/* The value is what the query is built from and stays English; only the
-   catalogue key travels with it. */
 const PROGRAM_TYPES: Array<{ value: ProgramType; key: string }> = [
   { value: "All", key: "all" },
   { value: "Bounty", key: "bounty" },

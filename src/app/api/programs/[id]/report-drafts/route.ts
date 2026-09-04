@@ -11,13 +11,6 @@ import { saveDraftSuggestedWeakness } from "@/lib/server/db";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * `POST /api/programs/{id}/report-drafts` — start a draft against a program.
- *
- * Called once, the first time autosave fires; every save after that is a PUT
- * to the id this returns. The program is in the path because a draft belongs
- * to one, which is also what scopes the resume lookup on return.
- */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

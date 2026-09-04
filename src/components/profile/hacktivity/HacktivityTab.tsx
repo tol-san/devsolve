@@ -6,7 +6,6 @@ import HacktivityItem from "./HacktivityItem";
 
 interface HacktivityTabProps {
   activities: HacktivityActivity[];
-  /** The feed could not be read. Distinct from having nothing to show. */
   isError?: boolean;
   onRetry?: () => void;
 }
@@ -16,9 +15,6 @@ export default function HacktivityTab({
   isError,
   onRetry,
 }: HacktivityTabProps) {
-  /* "No activity yet" is a claim about the researcher. When the request
-     failed we know nothing about them, so we say that instead — reporting a
-     server fault as an empty profile reads as though they have done nothing. */
   if (isError) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card p-10 text-center">

@@ -75,7 +75,6 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
           </span>
         </div>
       </div>
-      {/* Rule 7: Bounty paid bucketed by submission period */}
       {point?.bountyPaid !== undefined && (
         <div className="pt-2 border-t border-border flex items-center justify-between gap-2 text-foreground font-semibold">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -110,7 +109,6 @@ export function DashboardSubmissionTrendChart({
           </p>
         </div>
 
-        {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 text-sm font-medium">
           <span className="flex items-center gap-1.5 text-muted-foreground">
             <span className="size-3 rounded-full bg-blue-500" />

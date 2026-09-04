@@ -39,13 +39,6 @@ export default async function PublicOrganizationProfilePage({
 
   return (
     <>
-      {/* WebPage + audience schema helps Google surface this page for
-          "bug bounty platform for companies" and similar B2B queries.
-
-          It used to live on an unlocalised copy of this route at the root of
-          `app`, which the locale middleware made unreachable — so none of it
-          ever shipped. The path stays unprefixed here, matching what
-          `collectionSchema` emits for every other localised page. */}
       <JsonLd
         data={{
           "@context": "https://schema.org",

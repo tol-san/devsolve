@@ -112,7 +112,6 @@ export default function ModerationLogPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* 1. Page Header Section */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -153,10 +152,8 @@ export default function ModerationLogPage() {
         </Button>
       </header>
 
-      {/* 2. Filters & Toolbar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
         <div className="flex flex-wrap items-center gap-3">
-          {/* Target Type Picker */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
               Target Type
@@ -186,7 +183,6 @@ export default function ModerationLogPage() {
             </div>
           </div>
 
-          {/* Action Type Picker */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
               Action Type
@@ -216,7 +212,6 @@ export default function ModerationLogPage() {
             </div>
           </div>
 
-          {/* Target ID Search */}
           <div className="space-y-1 flex-1 sm:w-52">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
               Target ID
@@ -249,7 +244,6 @@ export default function ModerationLogPage() {
         )}
       </div>
 
-      {/* 3. Table View */}
       {isLoading ? (
         <div className="space-y-3 animate-pulse">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -337,7 +331,6 @@ export default function ModerationLogPage() {
             </Table>
           </div>
 
-          {/* Pagination Controls */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <span>Rows per page</span>

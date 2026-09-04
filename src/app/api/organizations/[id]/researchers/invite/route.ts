@@ -11,14 +11,6 @@ import {
 } from "@/lib/api/proxy";
 import { inviteResearcherSchema } from "@/lib/validations/researcher-access";
 
-/**
- * `POST /api/organizations/{id}/researchers/invite` — approve without a
- * request.
- *
- * Named "invite" upstream, but nothing is sent anywhere: it links an account
- * that already exists and marks it approved. That is why the body carries a
- * `userId` and not an email — there is no signup to invite someone to.
- */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -50,8 +42,6 @@ export async function POST(
       token,
       {
         method: "POST",
-        /* An empty note is the form saying "none", not an instruction to
-           store a blank one. */
         body: JSON.stringify({ userId, note: note?.trim() || undefined }),
       },
     );

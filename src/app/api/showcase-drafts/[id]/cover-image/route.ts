@@ -11,14 +11,6 @@ import {
 } from "@/lib/api/proxy";
 import { validateImageFile } from "@/lib/validations/showcase";
 
-/**
- * PUT/DELETE /api/showcase-drafts/{id}/cover-image — proxy for the backend's
- * /api/v1/showcase-drafts/{id}/cover-image.
- *
- * The upstream takes `multipart/form-data` with a single `file` part and
- * answers with the whole showcase draft, cover URL included.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 const badId = () => badRequest("Showcase draft id must be a UUID");

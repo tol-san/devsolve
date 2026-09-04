@@ -35,10 +35,6 @@ export const searchModalStore = {
   },
 };
 
-/**
- * Hook for consuming and controlling the global Search modal state.
- * Works uniformly across any trigger button, layout, or keyboard shortcut.
- */
 export function useSearchModal() {
   const isOpen = useSyncExternalStore(
     searchModalStore.subscribe,

@@ -17,9 +17,6 @@ const pool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
-/**
- * Obtain an OAuth2 client credentials token from Keycloak using admin credentials.
- */
 export async function getKeycloakAdminToken(): Promise<string> {
   const tokenEndpoint = `${KEYCLOAK_ISSUER}/protocol/openid-connect/token`;
   const res = await fetch(tokenEndpoint, {
@@ -41,9 +38,6 @@ export async function getKeycloakAdminToken(): Promise<string> {
   return data.access_token;
 }
 
-/**
- * Check if a username or email is already registered in Keycloak or PostgreSQL.
- */
 export async function checkUserConflict(
   username: string,
   email: string,
@@ -60,9 +54,6 @@ export async function checkUserConflict(
   }
 }
 
-/**
- * Directly create a user in Keycloak when upstream backend fails.
- */
 export async function createKeycloakUser(
   token: string,
   user: {
@@ -118,7 +109,6 @@ export async function createKeycloakUser(
     if (id) return id;
   }
 
-  // Fallback: Query by email
   const queryRes = await fetch(
     `${usersUrl}?email=${encodeURIComponent(user.email)}`,
     {
@@ -132,9 +122,6 @@ export async function createKeycloakUser(
   throw new Error("Could not determine created user ID");
 }
 
-/**
- * Assign a realm role (e.g. USER, COMPANY) to a Keycloak user.
- */
 export async function assignRealmRole(
   token: string,
   userId: string,
@@ -172,9 +159,6 @@ export async function assignRealmRole(
   }
 }
 
-/**
- * Provision user record in PostgreSQL user_profiles table.
- */
 export async function provisionUserProfile({
   userId,
   username,

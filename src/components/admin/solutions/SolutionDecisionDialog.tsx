@@ -17,22 +17,12 @@ import {
 import { useUpdateSolutionReviewStatusMutation } from "@/lib/redux/services/admin/solutionAdminApi";
 import { messageOf } from "@/lib/discussions/format";
 
-/**
- * Confirms one review decision — `PATCH /admin/solutions/{id}/review-status`.
- *
- * Unlike a problem decision this one carries a reason: the solution endpoint
- * takes `rejectionReason`, so a rejection here can say why rather than leaving
- * the author to guess. It is required on a rejection for that reason, and has
- * no meaning on an approval, where the field is not shown at all.
- */
-
 export type SolutionDecision = "APPROVED" | "REJECTED";
 
 const MAX_REASON = 2000;
 
 interface SolutionDecisionDialogProps {
   solutionId: string;
-  /** The answer's own summary line, so the reviewer sees what they are deciding. */
   title: string;
   decision: SolutionDecision | null;
   isOpen: boolean;
@@ -52,9 +42,6 @@ export function SolutionDecisionDialog({
   const [error, setError] = useState<string | null>(null);
   const [reason, setReason] = useState("");
 
-  /* A stale error or reason must not greet the next solution opened. Adjusted
-     during render rather than in an effect, so the dialog is already clean on
-     its first paint. */
   const [opened, setOpened] = useState({ isOpen, solutionId, decision });
   if (
     opened.isOpen !== isOpen ||

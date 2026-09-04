@@ -41,17 +41,6 @@ import {
 } from "@/lib/discussions/format";
 import { excerptOf } from "@/lib/markdown-excerpt";
 
-/**
- * One solution under review — read through `GET /admin/solutions/{id}`, decided
- * with `PATCH /admin/solutions/{id}/review-status`.
- *
- * Laid out like the problem review screen so a moderator moving between the
- * queues reads the same page in the same places. The one addition is the
- * problem being answered, fetched alongside: an answer cannot be judged
- * without the question, and asking a reviewer to open a second tab to find it
- * is how wrong calls get made.
- */
-
 const CARD =
   "rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs";
 
@@ -86,8 +75,6 @@ export function SolutionReviewDetail({ id }: { id: string }) {
     title?: string;
   } | null>(null);
 
-  /* The question this answers. Skipped until the solution names it, and its
-     own failure is not fatal — the answer is still reviewable without it. */
   const { data: problem } = useGetProblemByIdQuery(solution?.problemId ?? "", {
     skip: !solution?.problemId,
   });
@@ -117,10 +104,6 @@ export function SolutionReviewDetail({ id }: { id: string }) {
     );
   }
 
-  /* The deployed admin response is intentionally compact and exposes the
-     original solution fields (`description`, `reviewStatus`, ...). Newer
-     responses expose the richer authoring model. Resolve both shapes here so
-     moderators always see the submitted answer rather than an empty shell. */
   const solutionBody =
     solution.bodyMarkdown?.trim() || solution.description?.trim() || "";
   const title =
@@ -196,7 +179,6 @@ export function SolutionReviewDetail({ id }: { id: string }) {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="min-w-0 space-y-6 lg:col-span-2">
-          {/* ── What is being answered ── */}
           {solution.problemId && (
             <section
               className={`${CARD} p-4 sm:p-5`}
@@ -228,7 +210,6 @@ export function SolutionReviewDetail({ id }: { id: string }) {
             </section>
           )}
 
-          {/* ── The answer ── */}
           <section className={`${CARD} p-4 sm:p-6`}>
             <h2 className="mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               The answer
@@ -306,8 +287,6 @@ export function SolutionReviewDetail({ id }: { id: string }) {
               </div>
             )}
 
-            {/* Links go somewhere, so they open in a new tab and are marked
-                as leaving — a reviewer clicking one should not lose the page. */}
             {resources.length > 0 && (
               <div className="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800">
                 <h3 className="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -369,10 +348,6 @@ export function SolutionReviewDetail({ id }: { id: string }) {
                               .join(" · ") || "—"}
                           </p>
                         </div>
-                        {/* Was gated on `startsWith("https://")`, which no
-                            relative `downloadUrl` ever satisfied — so preview
-                            and download were hidden on every attachment the
-                            API returned. */}
                         {fileUrl && (
                           <div className="flex items-center gap-2">
                             {isImg && (
@@ -419,11 +394,7 @@ export function SolutionReviewDetail({ id }: { id: string }) {
           </section>
         </div>
 
-        {/* ── Sidebar ── */}
         <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-          {/* The decision, first thing in the column — it is why this page is
-              open. Non-pending answers keep the panel so the outcome and its
-              reason stay visible after the fact. */}
           <section className={`${CARD} p-4 sm:p-5`}>
             <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Decision

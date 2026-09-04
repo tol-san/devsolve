@@ -13,29 +13,17 @@ export interface GlowingCardProps {
 export interface GlowingCardsProps {
   children: React.ReactNode;
   className?: string;
-  /** Enable the glowing overlay effect */
   enableGlow?: boolean;
-  /** Size of the glow effect radius */
   glowRadius?: number;
-  /** Opacity of the glow effect */
   glowOpacity?: number;
-  /** Animation duration for glow transitions */
   animationDuration?: number;
-  /** Enable hover effects on individual cards */
   enableHover?: boolean;
-  /** Gap between cards */
   gap?: string;
-  /** Maximum width of cards container */
   maxWidth?: string;
-  /** Padding around the container */
   padding?: string;
-  /** Background color for the container */
   backgroundColor?: string;
-  /** Border radius for cards */
   borderRadius?: string;
-  /** Enable responsive layout */
   responsive?: boolean;
-  /** Custom CSS variables for theming */
   customTheme?: {
     cardBg?: string;
     cardBorder?: string;
@@ -103,7 +91,6 @@ export const GlowingCards: React.FC<GlowingCardsProps> = ({
 
       setShowOverlay(true);
 
-      // Using string concatenation for style properties
       overlay.style.setProperty('--x', x + 'px');
       overlay.style.setProperty('--y', y + 'px');
       overlay.style.setProperty('--opacity', glowOpacity.toString());
@@ -146,7 +133,7 @@ export const GlowingCards: React.FC<GlowingCardsProps> = ({
           "relative max-w-[var(--max-width)] mx-auto ",
           "px-6 py-2"
         )}
-        style={{ padding: "var(--padding)" }} // String literal
+        style={{ padding: "var(--padding)" }} 
       >
         <div
           className={cn(
@@ -165,7 +152,6 @@ export const GlowingCards: React.FC<GlowingCardsProps> = ({
               "opacity-0 transition-all duration-[&lsqb;var(--animation-duration)&rsqb;] ease-out"
             )}
             style={{
-              // String concatenation for WebkitMask and mask
               WebkitMask:
                 "radial-gradient(var(--glow-radius) var(--glow-radius) at var(--x, 0) var(--y, 0), #000 1%, transparent 50%)",
               mask:
@@ -178,7 +164,7 @@ export const GlowingCards: React.FC<GlowingCardsProps> = ({
                 "flex items-center justify-center flex-wrap gap-[var(--gap)] max-w-[var(--max-width)] center mx-auto",
                 responsive && "flex-col sm:flex-row"
               )}
-              style={{ padding: "var(--padding)" }} // String literal
+              style={{ padding: "var(--padding)" }} 
             >
               {React.Children.map(children, (child) => {
                 if (React.isValidElement(child) && child.type === GlowingCard) {
@@ -195,7 +181,6 @@ export const GlowingCards: React.FC<GlowingCardsProps> = ({
                     ),
                     style: {
                       ...element.props.style,
-                      // String concatenation for background, border, and boxShadow
                       backgroundColor: cardGlowColor + "15",
                       borderColor: cardGlowColor,
                       boxShadow: "0 0 0 1px inset " + cardGlowColor,

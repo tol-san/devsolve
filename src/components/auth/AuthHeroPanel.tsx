@@ -26,8 +26,6 @@ interface AuthHeroPanelProps {
   description: string;
   glowColor1?: string;
   glowColor2?: string;
-  /** Where the top-left link goes. Defaults to the account-type chooser,
-   *  which is the step the registration screens come from. */
   backHref?: string;
   backLabel?: string;
 }
@@ -57,7 +55,6 @@ export function AuthHeroPanel({
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="relative hidden lg:flex h-screen max-h-screen w-full flex-col justify-between items-start overflow-hidden border-r border-slate-200/80 dark:border-border bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50/60 dark:bg-[#070b14] p-8 sm:p-10 lg:p-12 xl:p-16 text-left shrink-0"
     >
-      {/* ── FULL-BLEED BACKGROUND IMAGES FOR LIGHT & DARK MODES ── */}
       {darkImg && (
         <div className="absolute inset-0 size-full pointer-events-none overflow-hidden z-0 hidden dark:block">
           <Image
@@ -68,7 +65,6 @@ export function AuthHeroPanel({
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-center size-full select-none"
           />
-          {/* Dark Mode Gradient Scrim */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#070b14]/90 via-[#070b14]/20 to-[#070b14]/50" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#070b14]/40 via-transparent to-transparent" />
         </div>
@@ -84,13 +80,11 @@ export function AuthHeroPanel({
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover object-center size-full select-none"
           />
-          {/* Light Mode Gradient Scrim */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-50/95 via-slate-50/25 to-slate-50/40" />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-50/30 via-transparent to-transparent" />
         </div>
       )}
 
-      {/* Lottie Fallback if no image provided */}
       {!darkImg && !lightImg && (
         <>
           <div
@@ -109,7 +103,6 @@ export function AuthHeroPanel({
         </>
       )}
 
-      {/* ── TOP-LEFT: BACK NAVIGATION LINK ── */}
       <div className="relative z-10 w-full flex items-center justify-start">
         <Link
           href={localePath(backHref)}
@@ -120,7 +113,6 @@ export function AuthHeroPanel({
         </Link>
       </div>
 
-      {/* ── OPTIONAL BADGES (if present) ── */}
       {badges && badges.length > 0 && !darkImg && !lightImg && (
         <div className="relative z-10 my-auto flex flex-wrap justify-center gap-2.5">
           {badges.map((badge, idx) => {
@@ -138,7 +130,6 @@ export function AuthHeroPanel({
         </div>
       )}
 
-      {/* ── BOTTOM-LEFT: HEADLINE & DESCRIPTION ── */}
       <div className="relative z-10 w-full max-w-lg mt-auto pt-6 text-left">
         <motion.h1
           initial={{ opacity: 0, y: 10 }}

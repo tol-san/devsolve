@@ -35,7 +35,6 @@ export function SubmitReportPocStep({
 }: SubmitReportPocStepProps) {
   return (
     <div className="space-y-6 font-sans">
-      {/* Section Header */}
       <div className="flex items-center gap-3 pb-2">
         <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
           <Terminal className="w-5 h-5" />
@@ -50,7 +49,6 @@ export function SubmitReportPocStep({
         </div>
       </div>
 
-      {/* Responsible PoC Yellow Callout Banner */}
       <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-sm font-medium text-amber-900 dark:text-amber-300 leading-relaxed">
         <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
         <div>
@@ -58,7 +56,6 @@ export function SubmitReportPocStep({
         </div>
       </div>
 
-      {/* PoC Payload / Code */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <label htmlFor="pocPayload" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -79,7 +76,6 @@ export function SubmitReportPocStep({
         />
       </div>
 
-      {/* 2-Column Row: Expected Result vs Actual Result */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label htmlFor="expectedResult" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -108,7 +104,6 @@ export function SubmitReportPocStep({
         </div>
       </div>
 
-      {/* Attachments Section */}
       <div className="space-y-2 pt-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -124,7 +119,6 @@ export function SubmitReportPocStep({
         />
       </div>
 
-      {/* External Links Section */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">

@@ -26,18 +26,10 @@ import {
   type InviteResearcherValues,
 } from "@/lib/validations/researcher-access";
 
-/**
- * Approving a researcher who never asked.
- *
- * Keyed on the user id and not an email, because that is what the upstream
- * takes: it links an account that already exists rather than sending anyone an
- * invitation, so someone who has not signed up cannot be cleared here.
- */
 export function InviteResearcherDialog({
   open,
   onOpenChange,
   organizationId,
-  /** Bumped by the opener so each open starts from empty fields. */
   session,
 }: {
   open: boolean;

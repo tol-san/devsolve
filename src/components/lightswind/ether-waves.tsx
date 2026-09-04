@@ -23,15 +23,15 @@ export type WavePosition = {
 interface EtherWavesProps {
   linesGradient?: string[];
   enabledWaves?: Array<"top" | "middle" | "bottom">; 
-  lineCount?: number | number[];                     // Represents grid/particle density
+  lineCount?: number | number[];                     
   lineDistance?: number | number[];
   topWavePosition?: WavePosition;
   middleWavePosition?: WavePosition;
   bottomWavePosition?: WavePosition;
   animationSpeed?: number;
   interactive?: boolean;
-  bendRadius?: number;                               // Mouse gravity influence radius
-  bendStrength?: number;                             // Bending multiplier
+  bendRadius?: number;                               
+  bendStrength?: number;                             
   mouseDamping?: number;
   parallax?: boolean;
   parallaxStrength?: number;

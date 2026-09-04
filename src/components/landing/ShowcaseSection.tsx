@@ -8,14 +8,6 @@ import { ArrowUpRight, Award, Flame, ShieldCheck, Trophy, Zap } from "lucide-rea
 import type { LucideIcon } from "lucide-react";
 import SectionBackdrop, { PRIMARY, useInk } from "./SectionBackdrop";
 
-/* Severity is an ordered scale, so the breakdown rides an ink-weight ramp
-   rather than unrelated hues. Each tier is labelled with its count, so the
-   ordering never depends on colour alone.
-
-   The ramp runs heaviest-first on light and lightest-first on dark: what
-   carries the ordering is distance from the surface, not the direction of
-   travel, so it has to flip with the surface — which the tokens do, without
-   a JS branch that the server could not have resolved. */
 const TIER_RAMP = [
   "var(--ds-tier-1)",
   "var(--ds-tier-2)",
@@ -88,7 +80,6 @@ const RESEARCHERS: Researcher[] = [
   },
 ];
 
-/* ─── Severity breakdown — stacked bar, 2px surface gaps ───────────── */
 function SeverityBar({
   data,
   inView,
@@ -121,7 +112,6 @@ function SeverityBar({
   );
 }
 
-/* ─── Section ───────────────────────────────────────────────────────── */
 export function ShowcaseSection() {
   const t = useT();
   const ref = useRef<HTMLElement>(null);
@@ -134,7 +124,6 @@ export function ShowcaseSection() {
       className="relative overflow-hidden py-10 sm:py-14"
     >
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
-        {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -165,7 +154,6 @@ export function ShowcaseSection() {
           </p>
         </motion.div>
 
-        {/* Legend — identity never rests on colour alone */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : undefined}
@@ -190,7 +178,6 @@ export function ShowcaseSection() {
           ))}
         </motion.div>
 
-        {/* ── Profile cards ── */}
         <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
           {RESEARCHERS.map((r, i) => (
             <motion.article
@@ -200,12 +187,8 @@ export function ShowcaseSection() {
               transition={{ duration: 0.55, delay: 0.2 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
               className="group flex flex-col rounded-2xl bg-white p-6 shadow-[0_0_0_1px_rgba(30,41,59,0.08),0_2px_10px_rgba(30,41,59,0.05)] transition-shadow hover:shadow-[0_0_0_1px_rgba(37,99,235,0.35),0_10px_28px_-14px_rgba(30,41,59,0.35)] dark:bg-neutral-900 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_2px_10px_rgba(0,0,0,0.5)] dark:hover:shadow-[0_0_0_1px_rgba(96,165,250,0.45),0_10px_28px_-14px_rgba(0,0,0,0.7)]"
             >
-              {/* identity */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  {/* The rank-1 tile keeps its blue fill in both themes, so it
-                      keeps white type. The rest invert with the surface, and
-                      their type has to invert with them. */}
                   <span
                     className="flex h-11 w-11 items-center justify-center rounded-xl text-base font-bold"
                     style={{
@@ -234,7 +217,6 @@ export function ShowcaseSection() {
                 </span>
               </div>
 
-              {/* reputation */}
               <div className="mt-6">
                 <p className="text-xs uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500">
                   {t("sections.showcase.reputation")}
@@ -247,7 +229,6 @@ export function ShowcaseSection() {
                 </p>
               </div>
 
-              {/* severity breakdown */}
               <div className="mt-6">
                 <SeverityBar data={r} inView={inView} delay={0.35 + i * 0.12} />
                 <dl className="mt-3 flex items-center justify-between text-xs">
@@ -268,7 +249,6 @@ export function ShowcaseSection() {
                 </dl>
               </div>
 
-              {/* badges */}
               <ul className="mt-6 space-y-2 border-t border-slate-200 pt-5 dark:border-neutral-800">
                 {r.badges.map((b) => {
                   const Icon = b.icon;
@@ -299,7 +279,6 @@ export function ShowcaseSection() {
           ))}
         </div>
 
-        {/* ── Footer CTA ── */}
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}

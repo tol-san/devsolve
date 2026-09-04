@@ -40,7 +40,6 @@ const SORT_LABELS: Record<Sort, string> = {
   "severity,ASC": "Least severe",
 };
 
-/** Multi-select toggle helper */
 function toggle<T>(values: T[], value: T): T[] {
   return values.includes(value)
     ? values.filter((entry) => entry !== value)
@@ -146,7 +145,6 @@ export function HacktivityFilters({
 
   return (
     <FilterBar className="space-y-4 border border-border/60 bg-card/95 p-4 sm:p-5 shadow-xs backdrop-blur-xs">
-      {/* Top Search & Sort Row */}
       <FilterRow>
         <FilterSearch
           value={text}
@@ -186,9 +184,7 @@ export function HacktivityFilters({
         </FilterControls>
       </FilterRow>
 
-      {/* Filter Categories: Clean & Structured with dedicated sections */}
       <div className="flex flex-col gap-3 pt-1">
-        {/* Severity filter row */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1.5 min-w-[72px] shrink-0">
             <ShieldAlert className="size-3.5 text-muted-foreground" />
@@ -226,7 +222,6 @@ export function HacktivityFilters({
           </div>
         </div>
 
-        {/* Activity type filter row */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-1.5 min-w-[72px] shrink-0">
             <Award className="size-3.5 text-muted-foreground" />
@@ -272,7 +267,6 @@ export function HacktivityFilters({
         </div>
       </div>
 
-      {/* Active filters bar */}
       {isFiltered ? (
         <ActiveFilters
           filters={active}

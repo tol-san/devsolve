@@ -9,14 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * DELETE /api/problems/{problemId}/accepted-solutions/{solutionId} — the asker
- * withdrawing one accepted answer.
- *
- * The solution is named in the path because a problem may have accepted
- * several, so "un-accept" alone would not say which.
- */
-
 type Context = { params: Promise<{ problemId: string; solutionId: string }> };
 
 export async function DELETE(request: NextRequest, context: Context) {

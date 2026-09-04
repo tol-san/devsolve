@@ -117,7 +117,6 @@ export default function ReportManagementDetailPage() {
     refetch: refetchReport,
   } = useGetReportByIdQuery(reportId, { skip: !reportId });
 
-  /* Fetched once with the report — unpaged, small, and never polled. */
   const {
     data: activities = [],
     isLoading: activitiesLoading,
@@ -142,11 +141,9 @@ export default function ReportManagementDetailPage() {
   if (isReportLoading || (!apiReport && !isError)) {
     return (
       <div className="space-y-6 w-full pb-12 animate-pulse">
-        {/* Skeleton Breadcrumb & Header */}
         <div className="h-6 w-48 bg-muted/60 rounded-xl" />
         <div className="h-36 w-full bg-muted/40 rounded-2xl" />
 
-        {/* Skeleton 2-Column Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           <div className="lg:col-span-2 space-y-6">
             <div className="h-72 w-full bg-muted/40 rounded-2xl" />
@@ -220,7 +217,6 @@ export default function ReportManagementDetailPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* 1. Breadcrumb & Top Actions Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/80">
         <nav
           aria-label="Breadcrumb"
@@ -258,10 +254,8 @@ export default function ReportManagementDetailPage() {
         </div>
       </div>
 
-      {/* 2. Executive Finding Hero Card */}
       <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
         <div className="space-y-2.5">
-          {/* Status & Category Badges */}
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
@@ -293,12 +287,10 @@ export default function ReportManagementDetailPage() {
             )}
           </div>
 
-          {/* Finding Title */}
           <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight break-words">
             {apiReport.title}
           </h1>
 
-          {/* Metadata Row */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs sm:text-sm text-muted-foreground font-medium pt-1">
             <span className="flex items-center gap-1.5">
               <Shield className="size-3.5 text-blue-600 dark:text-blue-400" />
@@ -330,11 +322,9 @@ export default function ReportManagementDetailPage() {
           </div>
         </div>
 
-        {/* Lifecycle Stepper */}
         <ReportStatusTracker status={apiReport.status} />
       </div>
 
-      {/* 3. Actionable Triage Callout Banner (Organization view) */}
       {rawState === "NEW" && (
         <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-start sm:items-center gap-3">
@@ -372,8 +362,6 @@ export default function ReportManagementDetailPage() {
         </div>
       )}
 
-      {/* The company side has no action while the researcher is being asked,
-          but it explains why triage is frozen. */}
       <SeverityDisputePanel
         reportId={reportId}
         dispute={apiReport.dispute}
@@ -382,15 +370,12 @@ export default function ReportManagementDetailPage() {
         isReporter={false}
       />
 
-      {/* The record both sides argue from in a dispute, so it sits in the
-          main flow rather than behind a tab. */}
       <ReportTimeline
         activities={activities}
         isLoading={activitiesLoading}
         isError={activitiesError}
       />
 
-      {/* 4. Navigation Tabs */}
       <div className="flex items-center p-1 bg-muted/60 rounded-xl gap-1 border border-border w-full sm:w-auto self-start">
         <button
           onClick={() => setActiveTab("summary")}
@@ -414,7 +399,6 @@ export default function ReportManagementDetailPage() {
         </button>
       </div>
 
-      {/* 5. Tab Content Render */}
       {activeTab === "summary" ? (
         <ReportSummaryTab
           report={apiReport}

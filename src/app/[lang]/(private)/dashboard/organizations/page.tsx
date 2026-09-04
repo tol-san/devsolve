@@ -37,7 +37,6 @@ export default function MyOrganizationDashboardPage() {
           </div>
         </header>
 
-        {/* Skeleton loading container */}
         <div className="space-y-6 animate-pulse">
           <div className="h-64 bg-muted rounded-xl"></div>
           <div className="h-48 bg-muted rounded-xl"></div>
@@ -126,7 +125,6 @@ export default function MyOrganizationDashboardPage() {
         </div>
       </header>
 
-      {/* Main Content Layout */}
       <div className="space-y-6">
         <MyOrgCard organization={organization} />
         <OrgVerificationPanel />

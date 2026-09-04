@@ -72,15 +72,11 @@ export function DiscussionSidebar({
     [topics],
   );
 
-  // Group and sort topics: active (count > 0 or selected) first, then alphabetical
   const sortedTopics = useMemo(() => {
     return [...topics].sort((a, b) => {
-      // Prioritize active selection
       if (a.name === selectedTopic) return -1;
       if (b.name === selectedTopic) return 1;
-      // Then prioritize populated topics by count descending
       if (b.count !== a.count) return b.count - a.count;
-      // Then alphabetical
       return a.name.localeCompare(b.name);
     });
   }, [topics, selectedTopic]);
@@ -101,7 +97,6 @@ export function DiscussionSidebar({
     if (isExpanded) {
       return sortedTopics;
     }
-    // If no topic has count > 0, show first 5
     return activeTopics.length > 0 ? activeTopics : sortedTopics.slice(0, 5);
   }, [sortedTopics, activeTopics, topicSearch, isExpanded]);
 
@@ -191,7 +186,6 @@ export function DiscussionSidebar({
         )}
 
         <CardContent className={cn("px-4 pb-4", !showExploreHeader && "pt-3")}>
-          {/* Section: Topics */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -206,7 +200,6 @@ export function DiscussionSidebar({
               )}
             </div>
 
-            {/* Quick Topic Search Filter (shown if > 6 topics) */}
             {topics.length > 6 && (
               <div className="relative">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
@@ -230,7 +223,6 @@ export function DiscussionSidebar({
               </div>
             )}
 
-            {/* Topic Buttons List */}
             <div
               className="flex flex-col gap-1 max-h-[360px] overflow-y-auto pr-0.5 custom-scrollbar"
               aria-label={t("community.explore.topics")}
@@ -295,7 +287,6 @@ export function DiscussionSidebar({
               )}
             </div>
 
-            {/* Expand / Collapse Toggle for zero-count topics */}
             {hasHiddenZeroTopics && (
               <Button
                 type="button"
@@ -319,7 +310,6 @@ export function DiscussionSidebar({
             )}
           </div>
 
-          {/* Section: Trending Tags */}
           <Separator className="my-4 bg-border/60" />
 
           <div className="space-y-2.5">
@@ -404,7 +394,6 @@ export function DiscussionSidebar({
         </CardContent>
       </Card>
 
-      {/* Platform Activity Stats Card */}
       {showStats && (
         <div className="hidden lg:block">
           <Card className="gap-0 rounded-2xl py-0 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 bg-card">

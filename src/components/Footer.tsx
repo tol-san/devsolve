@@ -15,18 +15,6 @@ import SectionBackdrop, {
   useIsDark,
 } from "@/components/landing/SectionBackdrop";
 
-/**
- * Site footer for the public pages.
- *
- * Every link here points at a route that exists. The previous version carried
- * five columns of which sixteen entries were `href="#"` — Features,
- * Documentation, Help and most of Company were headings over dead ends — plus
- * a social row aimed at the bare facebook.com / youtube.com / linkedin.com /
- * github.com homepages rather than any DevSolve account. Sections come back
- * when there is something to point them at.
- */
-
-/** Grouped from the public routes the navbar already exposes. */
 const footerNavSections = [
   {
     title: "PLATFORM",
@@ -59,19 +47,6 @@ const footerNavSections = [
   },
 ];
 
-/**
- * The programme's backers, each with its light and dark artwork.
- *
- * Imported rather than referenced by URL so the dimensions come from the files
- * themselves. Next reads them at build time and hands `<Image>` the real
- * width, height and blur data — no numbers to type, and none to get wrong.
- *
- * That mattered here: hand-written sizes had MPTC declared square against a
- * 5.18:1 lockup. With `w-auto`, the browser takes its aspect ratio from those
- * attributes, so a wide wordmark was being fitted into a square box and came
- * out a fraction of its proper size. Re-exported artwork also silently
- * invalidates any figure typed against the previous file.
- */
 const partners = [
   {
     alt: "Ministry of Post and Telecommunications",
@@ -85,12 +60,6 @@ const partners = [
 export default function Footer() {
   const t = useT();
   const lp = useLocalePath();
-  /* The partner artwork is theme-dependent — each backer ships a separate
-     light and dark file — and next-themes only knows the theme after
-     hydration, so the server render has to commit to the light files or the
-     two disagree. `useIsDark` is the codebase's guard for exactly this: it
-     reports `false` for one frame, then the real value. The DevSolve
-     wordmark no longer needs it: it is one file in both themes. */
   const isDarkTheme = useIsDark();
 
   const scrollToTop = () => {
@@ -98,19 +67,8 @@ export default function Footer() {
   };
 
   return (
-    /* The brand rule along the top is the colour: a flat 4px band of the
-       primary, which design.md allows where a gradient would not be. The page
-       itself stays white.
-
-       Everything below is dressed the way the landing sections are — the same
-       grid-paper backdrop, the same rule-and-eyebrow headings, the same easing
-       — so the page does not change language at the fold. The layout is
-       untouched: brand and blurb left, three link columns right, backers, then
-       the legal line. */
     <footer className="relative w-full overflow-hidden border-t border-slate-200/80 font-sans text-slate-700 dark:border-neutral-800 dark:text-neutral-300">
       <div className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-12 sm:px-6 sm:pt-16 lg:px-8">
-        {/* Navigation leads, since that is what a footer is for: brand on the
-            left, links on the right. The backers moved below it. */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -119,22 +77,8 @@ export default function Footer() {
           className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12"
         >
           <div className="flex flex-col items-start gap-5 lg:col-span-5">
-            {/* `/devsolve-logo.png` is the logo as drawn: navy wordmark,
-                #0059FC bulb, transparent background. No blend mode — there is
-                no white box to hide, and multiplying only muddied it against
-                the backdrop.
-
-                Dark mode gets this same file, by choice: one artwork
-                everywhere beats a matched pair that can drift. The cost is
-                stated where it is decided, in `BrandLogo` — the navy sits at
-                about 1.1:1 against the neutral-950 footer, so on dark the blue
-                half of the lockup carries it and the navy half recedes. The
-                remedy, if it is ever wanted, is a light plate behind the mark;
-                a CSS recolour (`brightness-0 invert`) is not one, since it
-                flattens the two blues and the bug into a single white. */}
             <Link href={lp("/")} aria-label={t("footer.home")} className="group block">
               <span className="relative block h-16 w-44 sm:h-20 sm:w-56">
-                {/* Light Mode Logo */}
                 <Image
                   src="/devsolve-logo.png"
                   alt="DevSolve"
@@ -143,7 +87,6 @@ export default function Footer() {
                   sizes="(min-width: 640px) 224px, 176px"
                   className="object-contain object-left transition-transform duration-200 group-hover:scale-[1.03] dark:hidden"
                 />
-                {/* Dark Mode Logo */}
                 <Image
                   src="/devsolve-fulltext-logo-darkmode.png"
                   alt="DevSolve"
@@ -155,8 +98,6 @@ export default function Footer() {
               </span>
             </Link>
 
-            {/* The landing's lede treatment: a size up from small print, with
-                the same slightly tightened tracking its body copy carries. */}
             <p className="max-w-md text-base leading-relaxed tracking-[-0.01em] text-slate-600 dark:text-neutral-400">
               {t("footer.tagline")}
             </p>
@@ -165,9 +106,6 @@ export default function Footer() {
           <div className="grid grid-cols-2 gap-8 text-left sm:grid-cols-3 lg:col-span-7">
             {footerNavSections.map((section) => (
               <div key={section.title} className="flex flex-col gap-4">
-                {/* The landing's section label: a hairline rule, then the word
-                    spaced out in primary. It replaces the upright tick that was
-                    this footer's own invention. */}
                 <h3 className="flex items-center gap-2.5">
                   <span
                     aria-hidden="true"
@@ -180,8 +118,6 @@ export default function Footer() {
                 <ul className="space-y-3">
                   {section.links.map((link) => (
                     <li key={link.name}>
-                      {/* Nudges toward the reader on hover, the way the
-                          landing's list links do. */}
                       {"external" in link && link.external ? (
                         <a
                           href={link.href}
@@ -208,8 +144,6 @@ export default function Footer() {
           </div>
         </motion.div>
 
-        {/* Backers sit under the navigation, near the legal line, instead of
-            heading the whole footer as a banner. */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -217,8 +151,6 @@ export default function Footer() {
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="mt-12 border-t border-slate-200/70 pt-10 dark:border-neutral-800/80"
         >
-          {/* The same eyebrow as the columns, centred — rules on both sides so
-              it reads as a divider rather than a heading with a stray dash. */}
           <h2 className="mb-8 flex items-center justify-center gap-3">
             <span
               aria-hidden="true"
@@ -233,10 +165,6 @@ export default function Footer() {
             />
           </h2>
 
-          {/* Sized by height alone. A `max-w` cap here is what shrank MPTC:
-              its lockup is 5.18:1, so at a 64px row it wants 332px of width,
-              the cap pulled that back to 260px, and the height came down to
-              50px with it while the 2.7:1 logos kept the full 64. */}
           <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-16">
             {partners.map((partner) => {
               const art = isDarkTheme ? partner.dark : partner.light;
@@ -261,7 +189,6 @@ export default function Footer() {
         </motion.section>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-slate-200/70 pt-6 text-sm text-slate-500 sm:flex-row dark:border-neutral-800/80 dark:text-neutral-500">
-          {/* The blue full stop the landing puts after its headings. */}
           <p className="tracking-[-0.01em]">
             © {new Date().getFullYear()} DevSolve
             <span className="text-blue-600 dark:text-blue-400">.</span>{" "}

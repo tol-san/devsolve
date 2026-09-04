@@ -2,7 +2,6 @@
 
 import { motion, useSpring } from "motion/react";
 import { FC, useEffect, useRef, useState } from "react";
-// Utility function 'cn' (classnames) - implemented directly to resolve import error
 function cn(...inputs: (string | undefined | null | boolean)[]) {
   return inputs.filter(Boolean).join(" ");
 }
@@ -186,7 +185,6 @@ export function SmoothCursor({
     const findMagneticElement = (x: number, y: number) => {
       const elements = document.querySelectorAll(magneticElements);
 
-      // Fix: Convert NodeListOf<Element> to an array for reliable iteration
       for (const element of Array.from(elements)) {
         const rect = element.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
@@ -205,7 +203,6 @@ export function SmoothCursor({
     const smoothMouseMove = (e: MouseEvent) => {
       let currentPos = { x: e.clientX, y: e.clientY };
 
-      // Check for magnetic elements
       const magneticTarget = findMagneticElement(currentPos.x, currentPos.y);
       if (magneticTarget) {
         const strength = 1 - (magneticTarget.distance / magneticDistance);
@@ -327,7 +324,6 @@ export function SmoothCursor({
 
   return (
     <>
-      {/* Trail Effect */}
       {showTrail && trail.map(function (pos, index) {
         return (
           <motion.div
@@ -348,7 +344,6 @@ export function SmoothCursor({
         );
       })}
 
-      {/* Main Cursor */}
       <motion.div
         style={{
           position: "fixed",

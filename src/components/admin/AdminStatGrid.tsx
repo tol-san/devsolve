@@ -13,7 +13,6 @@ import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import type { AdminStatMetric } from "@/lib/types/admin/types";
 
-/** Lookup map from stat type → icon — avoids chained conditionals */
 const STAT_ICONS: Record<AdminStatMetric["type"], LucideIcon> = {
   organizations: Building2,
   programs: Globe,

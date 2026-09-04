@@ -28,9 +28,6 @@ export interface ServerShowcaseDraftState {
   draftId: string | null;
 }
 
-/**
- * Autosaves the showcase to the server and offers back anything unfinished.
- */
 export function useServerShowcaseDraft({
   values,
   enabled,

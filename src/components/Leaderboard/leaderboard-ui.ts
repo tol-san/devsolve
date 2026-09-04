@@ -1,18 +1,9 @@
 import { LeaderboardPeriod, SeverityLabel } from "@/lib/types/leaderboard/types";
 
-/* Brand palette — mirrors design.md and the landing page. */
 export const PRIMARY = "#2563EB";
 export const SECONDARY = "#1E293B";
 export const ACCENT = "#10B981";
 
-/** Medal tones for the top three — gold, violet-silver, coral-bronze.
- *
- *  Each place owns one hue across the whole feature: `podium.block` fills the
- *  pedestal, `podium.edge` draws its rim and the avatar ring, `soft` / `ink`
- *  tint the rank chip, and `ring` accents the table row. Saturation is pushed
- *  well past a wash so the board actually reads as a podium, while every ink
- *  pairing below still clears 4.5:1 on its own surface. Rank is stated in text
- *  too, so colour is never the only carrier. */
 export const MEDALS = [
   {
     ring: "#D9A404",
@@ -55,7 +46,6 @@ export const MEDALS = [
   },
 ] as const;
 
-/** Severity ink — text-safe on white (all ≥ 4.5:1). */
 export const SEVERITY_STYLES: Record<
   SeverityLabel,
   { text: string; chip: string }
@@ -84,15 +74,12 @@ export const PERIOD_OPTIONS: { value: LeaderboardPeriod; label: string }[] = [
   { value: "week", label: "This week" },
 ];
 
-/** Compact period wording for eyebrows and inline captions. */
 export const PERIOD_LABEL_SHORT: Record<LeaderboardPeriod, string> = {
   all: "All-time",
   month: "This month's",
   week: "This week's",
 };
 
-/** Points earned inside the window vs. cumulative — worth saying out loud,
- *  because the two answer different questions. */
 export const PERIOD_CAPTION: Record<LeaderboardPeriod, string> = {
   all: "Cumulative reputation points earned since joining.",
   month: "Reputation points earned in the last 30 days.",
@@ -103,7 +90,6 @@ export function formatNumber(n: number) {
   return n.toLocaleString("en-US");
 }
 
-/** Stable tint per researcher so an avatar looks the same everywhere. */
 const AVATAR_TINTS = [
   "bg-blue-50 text-blue-700 ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/20",
   "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20",
@@ -124,7 +110,6 @@ export function profileHref(username: string) {
   return `/profile/${username}`;
 }
 
-/** Rank movement, expressed as a sign so it never depends on colour alone. */
 export function rankDelta(rank: number, previousRank: number | null) {
   if (previousRank == null) return { direction: "new" as const, value: 0 };
   const value = previousRank - rank;
@@ -138,6 +123,4 @@ export function isUuid(val?: string | null): boolean {
   if (!val) return false;
   return UUID_REGEX.test(val.trim());
 }
-
-
 

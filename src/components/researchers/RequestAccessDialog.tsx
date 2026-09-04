@@ -25,20 +25,11 @@ import {
   type RequestResearcherAccessValues,
 } from "@/lib/validations/researcher-access";
 
-/**
- * Asking a company for permission to report to it.
- *
- * One field, because the upstream stores one. The company reads this next to
- * the researcher's name in its queue, and it is the only thing they have to
- * decide on — so the length floor is the upstream's own rather than something
- * softened here.
- */
 export function RequestAccessDialog({
   open,
   onOpenChange,
   organizationId,
   organizationName,
-  /** Bumped by the opener so each open starts from an empty textarea. */
   session,
   onRequested,
 }: {
@@ -102,9 +93,6 @@ function RequestAccessForm({
       toast.success(`Request sent to ${company}.`);
       onDone();
     } catch (error) {
-      /* A 409 here means a request is already pending or already granted —
-         the upstream knows which, and says so more precisely than a guess
-         from the last state this screen happened to load. */
       toast.error(
         apiErrorMessage(error, "Your access request could not be sent."),
       );

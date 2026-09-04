@@ -7,13 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/admin/disputes — fetch the admin dispute queue from the backend.
- *
- * Returns disputes that require administrator ruling (or settled ones),
- * carrying reportedSeverity, triageSeverity, cvssVector, cvssScore, reason,
- * resolvedSeverity, status, and respondBy.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

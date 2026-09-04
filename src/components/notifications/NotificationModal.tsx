@@ -64,7 +64,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   const [markSingleRead] = useMarkAsReadMutation();
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllAsReadMutation();
 
-  // Handle escape key and body scroll lock
   useEffect(() => {
     if (!isOpen || isEmbedded) return;
 
@@ -104,7 +103,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
 
   const allNotifications = data?.content || [];
 
-  // Filter notifications by category client-side
   const filteredNotifications = useMemo(() => {
     if (activeCategory === "all") return allNotifications;
 
@@ -156,7 +154,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           : "rounded-l-2xl border-l border-border",
       )}
     >
-      {/* Minimalist Header Bar */}
       <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-border bg-card/95 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <h2 className="text-base sm:text-lg font-bold text-foreground tracking-tight">
@@ -170,7 +167,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5 text-muted-foreground shrink-0">
-          {/* Mark All Read */}
           <Button
             variant="ghost"
             size="sm"
@@ -183,7 +179,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             <span className="hidden sm:inline">Mark all read</span>
           </Button>
 
-          {/* Refresh Button */}
           <Button
             size="icon"
             variant="ghost"
@@ -225,9 +220,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         </div>
       </div>
 
-      {/* Streamlined Filter Bar */}
       <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-2.5 border-b border-border/70 bg-muted/20 shrink-0 overflow-x-auto scrollbar-none text-xs sm:text-sm">
-        {/* All vs Unread toggle */}
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
@@ -271,7 +264,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           </button>
         </div>
 
-        {/* Minimal Category Tabs */}
         <div className="flex items-center gap-1 shrink-0">
           {[
             { id: "all", label: "All" },
@@ -301,10 +293,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         </div>
       </div>
 
-      {/* Notifications List: Clean Divider List */}
       <div className="flex-1 overflow-y-auto overscroll-contain divide-y divide-border/60">
         {isLoading ? (
-          // Minimal Skeleton Loading State
           <div className="divide-y divide-border/50 animate-pulse">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-start gap-3.5 px-5 sm:px-6 py-4">
@@ -356,7 +346,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
         )}
       </div>
 
-      {/* Footer Bar */}
       <div className="flex items-center justify-between px-5 sm:px-6 py-3 border-t border-border bg-card text-xs sm:text-sm text-muted-foreground shrink-0">
         <Link
           href="/dashboard/notifications"
@@ -404,7 +393,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Smooth Backdrop Fade */}
           <motion.div
             key="notification-backdrop"
             initial={{ opacity: 0 }}
@@ -415,7 +403,6 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             onClick={onClose}
           />
 
-          {/* Ultra-Fast Hardware-Accelerated Right Drawer */}
           <motion.div
             key="notification-panel"
             initial={{ x: "100%" }}

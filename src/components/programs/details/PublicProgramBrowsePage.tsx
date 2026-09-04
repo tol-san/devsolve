@@ -95,7 +95,6 @@ export default function MarketplacePage({
   const filteredPrograms = useMemo(() => {
     let list = rawPrograms;
 
-    // Filter by Type
     if (selectedType === "Bounty") {
       list = list.filter((p) =>
         p.engagementType ? p.engagementType === "BOUNTY" : p.offersBounties,
@@ -106,14 +105,12 @@ export default function MarketplacePage({
       );
     }
 
-    // Filter by Asset Type
     if (selectedAsset !== "All") {
       list = list.filter((p) =>
         p.inScopeAssets?.some((a) => a.assetType === selectedAsset),
       );
     }
 
-    // Filter by Severity
     if (selectedSeverity !== "All") {
       list = list.filter(
         (p) =>
@@ -122,14 +119,12 @@ export default function MarketplacePage({
       );
     }
 
-    // Filter by Industry
     if (selectedIndustry !== "All") {
       list = list.filter(
         (p) => p.organization?.industry === selectedIndustry,
       );
     }
 
-    // Filter by Min/Max Reward
     if (requestedMinimum !== null) {
       list = list.filter((p) => (p.maximumBounty ?? 0) >= requestedMinimum);
     }
@@ -137,7 +132,6 @@ export default function MarketplacePage({
       list = list.filter((p) => (p.minimumBounty ?? 0) <= requestedMaximum);
     }
 
-    // Sort
     if (sort === "reward-high") {
       list = [...list].sort(
         (a, b) => (b.maximumBounty ?? 0) - (a.maximumBounty ?? 0),

@@ -28,15 +28,8 @@ import { cn } from "@/lib/utils";
 
 interface DiscussionsFeedProps {
   defaultCategory: DiscussionCategory;
-  /**
-   * Which branch of `community.pages` names this feed. The three public feeds
-   * share every control on the page and differ only in their masthead, so the
-   * wording travels as one catalogue key rather than six translated props —
-   * a page cannot pass Khmer copy anyway, being a server component.
-   */
   feed: "community" | "problems" | "showcases";
   createHref: string;
-  /** Pre-rendered discussion items from the server to guarantee rich crawlable HTML. */
   initialData?: InitialDiscussionsData | DiscussionsResponse | null;
 }
 
@@ -83,9 +76,6 @@ export function DiscussionsFeed({
   const { data: tags = [], isLoading: isLoadingTags } = tagsResult;
   const { data: stats, isLoading: isLoadingStats } = statsResult;
 
-  /* Answers the reader has posted that are not public yet, so a problem they
-     have already answered says so on its card. Asked once for the whole feed
-     rather than once per card, and not at all for a signed-out visitor. */
   const { data: me } = useGetMyProfileQuery();
   const { unresolvedFor } = useMySolutionStatus({ skip: !me?.id });
 

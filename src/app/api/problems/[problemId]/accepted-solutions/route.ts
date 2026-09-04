@@ -12,21 +12,8 @@ import {
   validationFailed,
 } from "@/lib/api/proxy";
 
-/**
- * PUT /api/problems/{problemId}/accepted-solutions — the asker accepting an
- * answer.
- *
- * Additive rather than exclusive: a problem may carry several accepted
- * answers, so this adds one to the set. Withdrawing one names it in the path,
- * which is why the DELETE lives a segment deeper.
- *
- * Only the problem's author may accept, and the backend is the authority on
- * that: whatever it refuses comes back unchanged.
- */
-
 type Context = { params: Promise<{ problemId: string }> };
 
-/** Mirrors `AcceptedSolutionRequest`. */
 const acceptedSolutionSchema = z.object({
   solutionId: z.uuid("Solution id must be a UUID"),
 });

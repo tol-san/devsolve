@@ -16,7 +16,6 @@ import {
 } from "@/lib/cvss/v3";
 import { cn } from "@/lib/utils";
 
-/** The four the API accepts. `NONE` is rejected with a 400. */
 const SEVERITIES = [
   { value: "LOW", label: "Low", blurb: "Minor or theoretical impact" },
   { value: "MEDIUM", label: "Medium", blurb: "Real impact, limited reach" },
@@ -42,29 +41,9 @@ export interface SeverityCvssValue {
 interface Props {
   value: SeverityCvssValue;
   onChange: (next: SeverityCvssValue) => void;
-  /** Server-side complaint about severity, if the submit came back 400. */
   error?: string;
 }
 
-/**
- * Severity, asked once.
- *
- * The API takes `reportedSeverity`, `cvssScore` and `cvssVector` and rejects
- * the request if they disagree — so the form must never let a reporter build
- * a disagreement in the first place. Two paths, and only one of them is ever
- * editable at a time:
- *
- *   Quick      — pick a severity. No score, no vector, nothing to contradict.
- *   CVSS       — answer the eight base metrics. The vector, the score and the
- *                severity are all *outputs*: derived on every change, never
- *                typed, so they cannot drift apart.
- *
- * Switching to CVSS keeps whatever severity was already picked only until the
- * metrics are complete, at which point the calculator owns it. Switching back
- * to Quick drops the vector and score, because a severity the reporter chose
- * by hand alongside a stale vector is precisely the rejected submission this
- * component exists to prevent.
- */
 export function SeverityCvssField({ value, onChange, error }: Props) {
   const [mode, setMode] = useState<"quick" | "cvss">(
     value.cvssVector ? "cvss" : "quick",
@@ -84,8 +63,6 @@ export function SeverityCvssField({ value, onChange, error }: Props) {
     [selection, version],
   );
 
-  /* The single write point for the derived triple. Everything the calculator
-     produces reaches the form here and nowhere else. */
   useEffect(() => {
     if (mode !== "cvss") return;
     if (!result) return;
@@ -97,9 +74,6 @@ export function SeverityCvssField({ value, onChange, error }: Props) {
       return;
     }
     onChange({
-      /* A 0.0 vector rates NONE, which the API refuses. Rather than send a
-         severity the reporter never chose, the field is left empty and the
-         warning below explains why submit is blocked. */
       severity: result.rating === "NONE" ? "" : (result.rating as Severity),
       cvssVector: result.vector,
       cvssScore: result.score.toFixed(1),
@@ -233,8 +207,6 @@ export function SeverityCvssField({ value, onChange, error }: Props) {
             className="space-y-3"
           >
             <div className="overflow-hidden rounded-2xl border border-border bg-card">
-              {/* Read-out first: the reporter watches the number move as they
-                  answer, which is what makes the metrics feel worth answering. */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-4 py-3">
                 <div className="flex items-center gap-3">
                   <div

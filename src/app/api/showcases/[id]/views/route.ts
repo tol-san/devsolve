@@ -8,12 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * POST /api/showcases/{id}/views — records a read and answers with the new
- * count. Deliberately open to signed-out callers: most showcase traffic is
- * anonymous, and counting only members would make the number meaningless.
- */
-
 type Context = { params: Promise<{ id: string }> };
 
 export async function POST(request: NextRequest, context: Context) {

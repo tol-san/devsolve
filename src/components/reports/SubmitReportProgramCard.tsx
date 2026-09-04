@@ -45,7 +45,6 @@ export const SubmitReportProgramCard: React.FC<SubmitReportProgramCardProps> = (
       transition={{ duration: 0.3 }}
       className="bg-card rounded-2xl border border-border p-5 shadow-xs space-y-4 font-sans"
     >
-      {/* Program Header */}
       <div className="flex items-center gap-3">
         <div className={`w-11 h-11 rounded-xl ${logoBgColor} flex items-center justify-center text-white font-bold text-base shrink-0 shadow-xs`}>
           {initials}

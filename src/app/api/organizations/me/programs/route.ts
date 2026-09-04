@@ -95,9 +95,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  /* `?submit=true` makes creating and entering review one transaction upstream.
-     It has to travel as a query parameter — putting it in the body would just
-     add an unknown field and silently create a draft instead. */
   const submit = request.nextUrl.searchParams.get("submit") === "true";
   const targetUrl = submit
     ? withOrganizationScope(

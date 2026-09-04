@@ -37,8 +37,6 @@ export default function TeamsPage() {
         <TeamsPageHeader />
       </motion.div>
 
-      {/* The shape of the team before the list of it: how many, how many are
-          still only invited, and how the ranks are split. */}
       <motion.div variants={pageEnterItem}>
         <TeamsStatsGrid counts={counts} />
       </motion.div>

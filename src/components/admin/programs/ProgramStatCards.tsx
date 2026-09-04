@@ -11,13 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-/**
- * The four figures at the top of program management, in the same shape as the
- * users dashboard's cards: a neutral icon chip and one number, so the colour
- * on this screen belongs to the status badges in the table rather than being
- * spent on decoration up here.
- */
-
 interface ProgramStatCardsProps {
   total: number;
   pending: number;

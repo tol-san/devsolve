@@ -47,11 +47,6 @@ function errorMessage(error: unknown): string | undefined {
   return undefined;
 }
 
-/* ── The form itself ──────────────────────────────────────────────────
-   Split out and mounted under a per-open key so its state initialises
-   rather than being reset by an effect — reopening the same row after a
-   cancelled edit gets clean fields either way, without a render cascade. */
-
 interface CategoryFormBodyProps {
   category: CategoryResponse | null;
   onClose: () => void;
@@ -77,7 +72,6 @@ function CategoryFormBody({ category, onClose }: CategoryFormBodyProps) {
     formState: { errors },
   } = useForm<CategoryCreateInput, unknown, CategoryCreateValues>({
     resolver: zodResolver(categoryCreateSchema),
-    /* `iconUrl` is absent on purpose — the icon field drives it at submit. */
     defaultValues: category
       ? {
           name: category.name,
@@ -95,12 +89,6 @@ function CategoryFormBody({ category, onClose }: CategoryFormBodyProps) {
         },
   });
 
-  /**
-   * The icon lives behind its own endpoint, so saving is two-phase whenever a
-   * file is involved: the category has to exist before `PUT /{id}/icon` has an
-   * id to address. A URL needs no second call — the backend accepts `iconUrl`
-   * on the category body directly.
-   */
   const applyIcon = async (id: string) => {
     if (icon.kind === "file") {
       await uploadIcon({ id, file: icon.file }).unwrap();
@@ -132,8 +120,6 @@ function CategoryFormBody({ category, onClose }: CategoryFormBodyProps) {
     try {
       await applyIcon(saved.id);
     } catch (error) {
-      // The category itself saved — say so, rather than implying the whole
-      // thing failed and inviting a duplicate.
       toast.warning(
         isEdit
           ? "Category updated, but the icon didn't."
@@ -332,13 +318,7 @@ function CategoryFormBody({ category, onClose }: CategoryFormBodyProps) {
 interface CategoryFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Absent means create; present means edit that row. */
   category?: CategoryResponse | null;
-  /**
-   * Bumped by the caller each time the dialog is opened. Used as the body's
-   * key so every open starts from fresh state — the dialog itself stays
-   * mounted, so the open and close animations still play.
-   */
   session: number;
 }
 

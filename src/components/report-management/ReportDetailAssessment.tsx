@@ -30,7 +30,6 @@ export function ReportDetailAssessment({
       icon={<ClipboardList className="size-4.5" />}
       contentClassName="space-y-6"
     >
-      {/* 1. Assessment Summary */}
       <section className="space-y-2.5">
         <h3 className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
           <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-400" />
@@ -44,7 +43,6 @@ export function ReportDetailAssessment({
         </div>
       </section>
 
-      {/* 2. Steps to Reproduce */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -73,7 +71,6 @@ export function ReportDetailAssessment({
         </div>
       </section>
 
-      {/* 3. Impact & Root Cause Analysis Grid */}
       <div className="grid gap-4 sm:grid-cols-2">
         <InsightCard
           icon={<Flame className="size-4 text-red-600 dark:text-red-400" />}
@@ -89,7 +86,6 @@ export function ReportDetailAssessment({
         />
       </div>
 
-      {/* 4. Remediation Guidance */}
       <section className="space-y-2.5">
         <h3 className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
           <ShieldCheck className="size-4.5 text-emerald-600 dark:text-emerald-400" />
@@ -100,7 +96,6 @@ export function ReportDetailAssessment({
         </div>
       </section>
 
-      {/* 5. Analyst Security Tip */}
       {detail.analystTip && (
         <div className="flex items-start gap-3 rounded-xl border border-blue-500/20 bg-blue-500/10 p-4">
           <Lightbulb className="mt-0.5 size-5 shrink-0 text-blue-600 dark:text-blue-400" />
@@ -115,7 +110,6 @@ export function ReportDetailAssessment({
         </div>
       )}
 
-      {/* 6. Review Action Callout Footer */}
       {!detail.isReviewed && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-muted/40">
           <div>

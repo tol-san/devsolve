@@ -79,8 +79,6 @@ function CompanyProfileSkeleton() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12 animate-pulse"
     >
-      {/* Mirrors the real layout — header, hero, then the 2:1 split — so the
-          page does not rearrange itself the moment the data lands. */}
       <div className="h-20 rounded-2xl bg-muted" />
       <div className="h-80 rounded-2xl bg-muted" />
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
@@ -252,10 +250,7 @@ export default function CompanyProfileView() {
         </Link>
       </header>
 
-      {/* Hero: identity, then the numbers that describe it, then what you can
-          do about them — one card instead of three stacked bands. */}
       <Card className="overflow-hidden">
-        {/* Cover Banner */}
         <div className="relative h-36 sm:h-52 w-full overflow-hidden bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
           {(organization.coverUrl ||
             (organization as { coverImageUrl?: string })?.coverImageUrl) ? (
@@ -314,9 +309,6 @@ export default function CompanyProfileView() {
             </div>
           </div>
         </CardHeader>
-        {/* The metric row the design spec calls for on a detail hero. Separate
-            tiles rather than a divided grid — the hairline rules this had at
-            first drew a hard cross through the middle of the card. */}
         <CardContent>
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {metrics.map((metric) => (
@@ -368,10 +360,6 @@ export default function CompanyProfileView() {
         </CardFooter>
       </Card>
 
-      {/* Asymmetric grid per the design spec: the programs list is the reason
-          to open this page, so it takes the two wide columns; the reference
-          details sit in the aside. `items-start` keeps the shorter column from
-          stretching to match the taller one. */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
         <aside className="space-y-6 lg:order-2">
           <Card>

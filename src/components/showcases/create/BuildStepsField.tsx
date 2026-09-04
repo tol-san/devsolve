@@ -24,13 +24,11 @@ import type { Edge } from "@xyflow/react";
 import type { CreateShowcaseFormValues } from "@/lib/validations/showcase";
 import { cn } from "@/lib/utils";
 
-/** A stable key for React and for tracking which cards are open. */
 const newKey = () =>
   `step-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
 export const createEmptyStep = () => ({
   key: newKey(),
-  /** No server id yet — this step does not exist upstream. */
   serverId: undefined,
   title: "",
   description: "",
@@ -38,17 +36,10 @@ export const createEmptyStep = () => ({
   codeLanguage: "typescript",
   imageUrl: "",
   diagramUrl: "",
-  /* Chosen files wait here: their upload routes are scoped to a step that has
-     to exist first, so the publish sequence sends them. */
   imageFile: undefined,
   diagramFile: undefined,
 });
 
-/**
- * The build guide. Steps are numbered from list position — the author never
- * types a number, so deleting or duplicating can't leave 1, 2, 4 behind.
- * Cards start collapsed because a ten-step guide is unreadable otherwise.
- */
 export function BuildStepsField() {
   const {
     control,
@@ -63,10 +54,6 @@ export function BuildStepsField() {
     name: "steps",
   });
 
-  /* Tracked by each step's own `key`, not by array index or RHF's row id:
-     index shifts when a step is deleted, which would leave the open set
-     pointing at whichever card slid into that slot. Only the first card is
-     open on mount; anything the author just created opens itself. */
   const [open, setOpen] = useState<string[]>(() =>
     fields.length ? [fields[0].key] : [],
   );
@@ -93,9 +80,6 @@ export function BuildStepsField() {
     const copy = {
       ...source,
       key: newKey(),
-      /* A copy is a new step, not a second handle on the original — carrying
-         the source's server id over would edit that step instead of adding
-         one. */
       serverId: undefined,
       title: `${source.title} (copy)`,
     };
@@ -106,17 +90,12 @@ export function BuildStepsField() {
   const steps = watch("steps") ?? [];
   const stepErrors = errors.steps;
 
-  /* Only a step carrying both a title and a body satisfies the schema, so
-     that is what the marker reports — a numbered tile that has not turned
-     green is a step that will fail at publish. */
   const readyCount = steps.filter(
     (step) => step?.title?.trim() && step?.description?.trim(),
   ).length;
 
   return (
     <div className="space-y-4">
-      {/* The section header above already names this, so the toolbar carries
-          progress instead of repeating the title. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Walk through how it was built. At least one step is required.
@@ -164,10 +143,7 @@ export function BuildStepsField() {
                     : "border-border",
               )}
             >
-              {/* ── Card header ── */}
               <div className="flex items-center gap-3 p-3 sm:p-4">
-                {/* The number is the step's identity and stays put — the tick
-                    rides alongside it rather than replacing it. */}
                 <span className="relative shrink-0">
                   <span
                     className={cn(
@@ -218,7 +194,6 @@ export function BuildStepsField() {
                 </button>
 
                 <div className="flex shrink-0 items-center gap-0.5">
-                  {/* Attachment hints, so a collapsed card still says what it holds */}
                   {step?.codeSnippet ? (
                     <Code2 className="hidden size-4 text-muted-foreground sm:block" />
                   ) : null}
@@ -250,7 +225,6 @@ export function BuildStepsField() {
                 </div>
               </div>
 
-              {/* ── Card body ── */}
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <motion.div

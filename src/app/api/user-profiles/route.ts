@@ -7,14 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/user-profiles — paginated public user profile search.
- *
- * Query parameters:
- *  - query: string search term for name/bio
- *  - pageNumber: integer (0-indexed)
- *  - pageSize: integer (default 20, max 100)
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   const query = forwardQuery(request.nextUrl.searchParams, [

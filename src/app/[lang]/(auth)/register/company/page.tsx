@@ -90,7 +90,6 @@ export default function CompanyRegisterPage() {
     }
   };
 
-  // Map UI display labels → backend enum values
   const INDUSTRY_MAP: Record<string, IndustryEnum> = {
     "Software & Technology": "TECHNOLOGY",
     "Financial Services": "FINANCE",
@@ -146,7 +145,6 @@ export default function CompanyRegisterPage() {
 
       let phoneErrorMsg: string | null = null;
 
-      // 1. Bean-validation failure: violations[] with propertyPath === "phone"
       const violations = errData?.violations ?? errData?.details?.violations;
       if (Array.isArray(violations)) {
         const phoneViolation = violations.find(
@@ -159,8 +157,6 @@ export default function CompanyRegisterPage() {
         }
       }
 
-      // 2. Digit-count failure: 400 with message only, no violations
-      // "Phone number must contain between 8 and 15 digits"
       const serverMsg = errData?.message ?? errData?.details?.message;
       if (!phoneErrorMsg && serverMsg) {
         if (
@@ -171,7 +167,6 @@ export default function CompanyRegisterPage() {
         }
       }
 
-      // 3. Fallback to fieldErrors if from proxy validation
       if (!phoneErrorMsg && errData?.fieldErrors?.phone?.[0]) {
         phoneErrorMsg = errData.fieldErrors.phone[0];
       }
@@ -193,7 +188,6 @@ export default function CompanyRegisterPage() {
 
   return (
     <div className="h-screen max-h-screen w-full grid grid-cols-1 lg:grid-cols-2 overflow-hidden font-sans antialiased">
-      {/* LEFT PANEL - Full-Bleed 3D Hero Section (Hidden on Mobile/Responsive) */}
       <AuthHeroPanel
         imageSrcDark="/company-dark.jpg"
         imageSrcLight="/company-light.jpg"
@@ -206,7 +200,6 @@ export default function CompanyRegisterPage() {
         backLabel={t("auth.common.backToAccountType")}
       />
 
-      {/* RIGHT PANEL - Multi-Step Form Container */}
       <div className="relative h-screen max-h-screen w-full p-6 sm:p-10 lg:p-12 xl:p-16 flex flex-col justify-between items-center overflow-y-auto">
         <div className="w-full flex items-center justify-between mb-4 sm:mb-6">
           <Link
@@ -222,10 +215,8 @@ export default function CompanyRegisterPage() {
         </div>
 
         <div className="w-full max-w-xl lg:max-w-2xl mx-auto my-auto flex flex-col justify-center">
-          {/* Stepper Header (only visible on steps 1 & 2) */}
           {currentStep < 3 && <CompanyRegisterStepper currentStep={currentStep} />}
 
-          {/* Animated Step Transitions */}
           <AnimatePresence mode="wait">
             {currentStep === 1 && (
               <CompanyStep1Form form={form} onNext={handleNextStep} />

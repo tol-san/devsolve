@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 export function ThanksSkeleton() {
   return (
     <div className="space-y-6 w-full animate-pulse" aria-label="Loading Hall of Thanks">
-      {/* Header Metric Cards Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
           <div
@@ -19,7 +18,6 @@ export function ThanksSkeleton() {
         ))}
       </div>
 
-      {/* Table Skeleton */}
       <Card className="rounded-2xl border border-border bg-card overflow-hidden">
         <CardContent className="p-0">
           <div className="divide-y divide-border">

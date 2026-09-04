@@ -30,7 +30,6 @@ export function SubmitReportDetailsStep({
 }: SubmitReportDetailsStepProps) {
   return (
     <div className="space-y-6 font-sans">
-      {/* Section Header */}
       <div className="flex items-center gap-3 pb-2">
         <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
           <FileText className="w-5 h-5" />
@@ -45,7 +44,6 @@ export function SubmitReportDetailsStep({
         </div>
       </div>
 
-      {/* Description & Summary */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label htmlFor="summaryPoC" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -71,7 +69,6 @@ export function SubmitReportDetailsStep({
         )}
       </div>
 
-      {/* Steps to Reproduce */}
       <div className="space-y-3 pt-1">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -114,7 +111,6 @@ export function SubmitReportDetailsStep({
         </div>
       </div>
 
-      {/* Impact Explanation */}
       <div className="space-y-1.5 pt-2">
         <label htmlFor="impact" className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           Impact Explanation <span className="text-red-500">*</span>
@@ -128,7 +124,6 @@ export function SubmitReportDetailsStep({
         />
       </div>
 
-      {/* Suggested Remediation */}
       <div className="space-y-1.5 pt-1">
         <div className="flex items-center justify-between">
           <label htmlFor="remediation" className="text-sm font-semibold text-slate-900 dark:text-slate-100">

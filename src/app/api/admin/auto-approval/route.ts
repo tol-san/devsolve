@@ -7,10 +7,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/admin/auto-approval — retrieves the current AI auto-approval configuration
- * for both PROBLEM and SHOWCASE content kinds.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

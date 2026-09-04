@@ -1,11 +1,5 @@
 import { baseApi } from "./baseApi";
 
-// ── Request / Response shapes ──────────────────────────────────────────────
-
-/**
- * POST /api/v1/auth/register — request body.
- * Matches the backend RegisterRequest exactly.
- */
 export interface RegisterUserRequest {
   username: string;
   password: string;
@@ -17,10 +11,6 @@ export interface RegisterUserRequest {
   accountType?: "USER" | "COMPANY" | "ADMIN";
 }
 
-/**
- * POST /api/v1/auth/social/sync — response body.
- * `created` is true only on the sign-up that actually made the row.
- */
 export interface SocialSyncResponse {
   created: boolean;
   profile: {
@@ -34,9 +24,6 @@ export interface SocialSyncResponse {
   };
 }
 
-/**
- * POST /api/v1/auth/register — 201 response body.
- */
 export interface RegisterUserResponse {
   userId: string;
   username: string;
@@ -47,9 +34,6 @@ export interface RegisterUserResponse {
   accountType: "USER" | "COMPANY" | "ADMIN";
 }
 
-// ── Legacy interfaces kept for backward-compat with existing UI forms ──────
-
-/** @deprecated Use RegisterUserRequest directly */
 export interface RegisterUserFormData {
   username: string;
   fullName: string;
@@ -70,9 +54,6 @@ export interface RegisterUserResponse {
   };
 }
 
-// Real response shape of POST /api/v1/auth/register (per the live OpenAPI spec).
-// Note: `country` isn't accepted by this endpoint — the backend's RegisterRequest
-// has no such field, so it's dropped here (settable later via profile edit).
 export interface RegisterApiResponse {
   userId: string;
   username: string;
@@ -115,7 +96,6 @@ export interface RegisterCompanyRequest {
   joiningReason: string;
 }
 
-/** Shape returned by POST /api/v1/organizations/register (OrganizationResponse schema) */
 export interface RegisterCompanyApiResponse {
   id: string;
   ownerId: string;
@@ -128,7 +108,6 @@ export interface RegisterCompanyApiResponse {
   industry: IndustryEnum;
   companySize: string;
   country: string;
-  /** API returns ACTIVE (not APPROVED) once approved */
   status: "PENDING" | "ACTIVE" | "REJECTED";
   submissionVersion: number;
   rejectionReason: string | null;
@@ -146,10 +125,6 @@ export interface RegisterCompanyResponse {
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    /**
-     * Register a new user account.
-     * POST /api/v1/auth/register
-     */
     registerUser: builder.mutation<RegisterUserResponse, RegisterUserRequest>({
       query: (body) => ({
         url: `/auth/register`,
@@ -159,16 +134,6 @@ export const authApi = baseApi.injectEndpoints({
       invalidatesTags: ["User"],
     }),
 
-    /**
-     * Create the local profile for a social sign-up.
-     * POST /api/v1/auth/social/sync
-     *
-     * Google/GitHub users never reach `/auth/register` — the OIDC redirect is
-     * the whole flow — so this is the only thing that provisions them. It
-     * takes no body: the backend identifies them from the bearer token.
-     * `created` is true the first time, false for a returning user, which
-     * makes it safe to call more than once.
-     */
     syncSocialAccount: builder.mutation<SocialSyncResponse, void>({
       query: () => ({
         url: `/auth/social/sync`,

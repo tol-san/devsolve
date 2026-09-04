@@ -36,8 +36,6 @@ import BioMarkdownEditor from "./BioMarkdownEditor";
 import SocialLinksSection from "./SocialLinksSection";
 import PersonalDetailsSection from "./PersonalDetailsSection";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
 const API_FIELD_TO_FORM: Record<string, string> = {
   firstName: "fullName",
   lastName: "fullName",
@@ -76,7 +74,6 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
     setForm((prev) => ({ ...(prev ?? initialData!), ...next }));
   }, [initialData]);
 
-  // Check if form has unsaved modifications
   const isDirty = Boolean(
     initialData &&
     values &&
@@ -117,7 +114,6 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
     return undefined;
   };
 
-  // Avatar Upload Handlers
   const handleAvatarPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -148,7 +144,6 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
     }
   };
 
-  // Cover Image Upload Handlers
   const handleCoverUploadFile = async (file: File) => {
     const reason = validateAvatarFile(file);
     if (reason) {
@@ -185,7 +180,6 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
     }
   };
 
-  // Save Profile Handler
   const handleSave = useCallback(async () => {
     if (!values) return;
     setSaveError(null);
@@ -200,7 +194,6 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
     }
   }, [values, updateProfile, onDone]);
 
-  // Global Keyboard Shortcuts (Ctrl+S / Cmd+S to save, Esc to exit)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
@@ -240,7 +233,6 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
       transition={{ duration: 0.25, ease: "easeOut" }}
       className="relative w-full space-y-8"
     >
-      {/* Save Error Alert Banner */}
       <AnimatePresence>
         {saveError && (
           <motion.div
@@ -270,17 +262,13 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
         )}
       </AnimatePresence>
 
-      {/* Main Two-Column Layout */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] lg:items-start">
-        {/* Left Column: Structured Form Sections */}
         <div className="space-y-8 min-w-0">
-          {/* Profile Strength & Completion Progress Meter */}
           <ProfileCompletionMeter
             values={values}
             onFocusSection={scrollToSection}
           />
 
-          {/* Media & Branding Studio (Cover + Avatar) */}
           <MediaBrandingSection
             avatarUrl={values.avatarUrl}
             avatarInitials={values.avatarInitials}
@@ -296,21 +284,18 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
             onCoverDrop={handleCoverUploadFile}
           />
 
-          {/* Identity & Personal Details */}
           <PersonalDetailsSection
             values={values}
             onChange={patch}
             fieldError={fieldError}
           />
 
-          {/* Markdown Biography Editor */}
           <BioMarkdownEditor
             value={values.bio}
             onChange={(bio) => patch({ bio })}
             error={fieldError("bio")}
           />
 
-          {/* Social Profiles & Web */}
           <SocialLinksSection
             socialLinks={values.socialLinks}
             onChange={(socialLinks: SocialLinksForm) => patch({ socialLinks })}
@@ -318,12 +303,9 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
           />
         </div>
 
-        {/* Right Column: Sticky Live Preview Card & Helper Panel */}
         <div className="space-y-6 lg:sticky lg:top-6">
-          {/* Live Preview Card */}
           <LiveProfilePreviewCard values={values} />
 
-          {/* Quick Shortcuts & Navigation Card */}
           <div className="rounded-2xl border border-border bg-card p-5 shadow-xs space-y-4">
             <div className="flex items-center gap-2">
               <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -397,7 +379,6 @@ export default function ProfileEditPanel({ onDone }: ProfileEditPanelProps) {
         </div>
       </div>
 
-      {/* Floating Smart Action Bar (Sticky at screen bottom) */}
       <AnimatePresence>
         {(isDirty || isSaving) && (
           <motion.div

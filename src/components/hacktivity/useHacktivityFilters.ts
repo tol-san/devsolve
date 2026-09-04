@@ -11,19 +11,6 @@ import {
   type Sort,
 } from "@/lib/types/hacktivity/types";
 
-/**
- * The feed's filters, synchronized with the URL.
- *
- * A filtered feed is something people send each other — "look at this week's
- * criticals" is a link, not a description of which chips to press. Holding the
- * state here also means reload, back and forward all land where the reader
- * was.
- *
- * We synchronize with the URL via `window.history` and `popstate` on the client,
- * avoiding Next.js `useSearchParams()` which causes the entire static page
- * to bail out to a blank client-side render and triggers Soft 404s for search crawlers.
- */
-
 export const DEFAULT_SORT: Sort = "createdAt,DESC";
 
 export interface HacktivityFilterState {
@@ -31,7 +18,6 @@ export interface HacktivityFilterState {
   severity: Severity[];
   eventType: EventType[];
   sort: Sort;
-  /** 1-based, matching what the URL shows. The API pages from zero. */
   page: number;
 }
 
@@ -51,7 +37,6 @@ export const INITIAL_HACKTIVITY_FILTERS: HacktivityFilterState = {
   page: 1,
 };
 
-/** Anything the API would refuse is dropped rather than sent. */
 export function parse(params: URLSearchParams): HacktivityFilterState {
   const severity = params
     .getAll(PARAM.severity)
@@ -75,7 +60,6 @@ export function parse(params: URLSearchParams): HacktivityFilterState {
   };
 }
 
-/** Defaults are left out, so an unfiltered feed keeps a clean URL. */
 export function serialise(state: HacktivityFilterState): string {
   const params = new URLSearchParams();
 
@@ -92,7 +76,6 @@ export function useHacktivityFilters() {
   const pathname = usePathname();
   const [state, setState] = useState<HacktivityFilterState>(INITIAL_HACKTIVITY_FILTERS);
 
-  // Sync state from URL query on client mount and listen for back/forward navigation
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -122,10 +105,6 @@ export function useHacktivityFilters() {
     [pathname],
   );
 
-  /**
-   * Narrowing the feed sends the reader back to the first page — page 4 of the
-   * old result set says nothing about the new one.
-   */
   const setFilters = useCallback(
     (patch: Partial<HacktivityFilterState>) => {
       setState((prev) => {
@@ -149,7 +128,6 @@ export function useHacktivityFilters() {
     }
   }, [pathname]);
 
-  /** Sort is a view of the feed, not something hiding rows from it. */
   const isFiltered =
     state.q !== "" || state.severity.length > 0 || state.eventType.length > 0;
 

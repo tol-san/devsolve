@@ -19,17 +19,11 @@ import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 interface LoginRequiredDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Where Keycloak returns the visitor once they are signed in. */
   redirectTo: string;
   title?: string;
   description?: string;
 }
 
-/**
- * The prompt an anonymous visitor gets when they reach for something that
- * needs an account. Signing in carries `redirectTo` through Keycloak, so the
- * round trip ends on the page they were already trying to open.
- */
 export function LoginRequiredDialog({
   open,
   onOpenChange,

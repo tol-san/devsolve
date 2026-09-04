@@ -5,10 +5,6 @@ export const dynamic = "force-dynamic";
 import { RequireRole } from "@/components/auth/RequireRole";
 import { MyAccessView } from "@/components/researchers/MyAccessView";
 
-/**
- * Researcher-only. A company account has no access records of its own to
- * read here — the queue it cares about is the other side of the same gate.
- */
 export default function MyAccessPage() {
   return (
     <RequireRole

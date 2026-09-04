@@ -9,7 +9,6 @@ interface DashboardTopCweBarsProps {
 }
 
 export function DashboardTopCweBars({ categories }: DashboardTopCweBarsProps) {
-  // Sort descending by count
   const sorted = [...categories].sort((a, b) => b.count - a.count);
 
   return (
@@ -63,7 +62,6 @@ export function DashboardTopCweBars({ categories }: DashboardTopCweBarsProps) {
                 </div>
               </div>
 
-              {/* Progress bar representing share of all reports */}
               <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full bg-primary transition-all duration-500"

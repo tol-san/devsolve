@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import SectionBackdrop, { ACCENT, PRIMARY, useInk } from "./SectionBackdrop";
 
-/* ─── The worked example: one problem, one accepted solution ────────── */
 const PROBLEM = {
   title: "SSRF filter keeps getting bypassed on the IMDSv2 redirect chain",
   tags: ["AWS", "SSRF", "Go"],
@@ -31,7 +30,6 @@ const SOLUTION = {
   snippet: "transport.DialContext = pinnedDialer(allowedIPs)",
 };
 
-/* ─── The queue underneath it ──────────────────────────────────────── */
 type Thread = {
   title: string;
   tags: string[];
@@ -71,11 +69,6 @@ const MINI_STATS = [
   { value: "128", label: "Regular contributors" },
 ];
 
-/* ─── Where the threads actually live ───────────────────────────────────
-   Counts sum to the 1,340 quoted above, so the breakdown and the headline
-   figure can never drift apart. Emerald-600 clears 3:1 as a fill, and every
-   bar carries its count in text beside it.
-   ──────────────────────────────────────────────────────────────────── */
 const TOPIC_MARK = "#059669";
 
 const TOPICS = [
@@ -89,11 +82,8 @@ const TOPICS = [
 
 const TOPIC_MAX = Math.max(...TOPICS.map((t) => t.count));
 
-/* ─── State pill — icon + word, never colour alone ─────────────────── */
 function StatePill({ solved }: { solved: boolean }) {
   return solved ? (
-    /* emerald-700 is the #047857 that was checked against white; on the dark
-       surface it lifts to emerald-400 to hold the same text contrast. */
     <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
       <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
       Solved
@@ -106,7 +96,6 @@ function StatePill({ solved }: { solved: boolean }) {
   );
 }
 
-/* ─── Section ───────────────────────────────────────────────────────── */
 export function ProblemsSolutions() {
   const t = useT();
   const ref = useRef<HTMLElement>(null);
@@ -119,7 +108,6 @@ export function ProblemsSolutions() {
       className="relative overflow-hidden py-10 sm:py-14"
     >
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
-        {/* ── Header ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -148,7 +136,6 @@ export function ProblemsSolutions() {
         </motion.div>
 
         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
-          {/* ── LEFT: narrative + numbers ── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -182,9 +169,6 @@ export function ProblemsSolutions() {
               ))}
             </dl>
 
-            {/* Fills with the brand secondary on light; on the near-black
-                surface it inverts to light-on-dark so it still reads as the
-                primary action. */}
             <Link
               href="/problems"
               className="group mt-8 inline-flex items-center gap-2 rounded-full bg-[#1E293B] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white"
@@ -193,7 +177,6 @@ export function ProblemsSolutions() {
               <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
 
-            {/* Topic breakdown — runs alongside the recent queue on the right */}
             <div className="mt-10 border-t border-slate-200 pt-8 dark:border-neutral-800">
               <div className="flex items-baseline justify-between border-b border-slate-200 pb-3 dark:border-neutral-800">
                 <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-neutral-500">
@@ -263,10 +246,8 @@ export function ProblemsSolutions() {
             </div>
           </motion.div>
 
-          {/* ── RIGHT: the worked thread, then the queue ── */}
           <div className="lg:col-span-8">
             <div className="relative">
-              {/* connector that draws from problem down into the solution */}
               <motion.span
                 className="absolute left-6 top-[7.5rem] w-px origin-top"
                 style={{ backgroundColor: ACCENT }}
@@ -276,7 +257,6 @@ export function ProblemsSolutions() {
                 aria-hidden
               />
 
-              {/* Problem */}
               <motion.article
                 initial={{ opacity: 0, y: 22 }}
                 animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -316,8 +296,6 @@ export function ProblemsSolutions() {
 
                 <div className="mt-5 flex items-center gap-4 text-xs text-slate-400 dark:text-neutral-500">
                   <span className="flex items-center gap-1.5">
-                    {/* Lifts off the near-black card in dark; the brand
-                        secondary would all but vanish against it. */}
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#1E293B] text-xs font-bold text-white dark:bg-neutral-700">
                       {PROBLEM.author.slice(2, 3).toUpperCase()}
                     </span>
@@ -330,7 +308,6 @@ export function ProblemsSolutions() {
                 </div>
               </motion.article>
 
-              {/* Accepted solution */}
               <motion.article
                 initial={{ opacity: 0, y: 22 }}
                 animate={inView ? { opacity: 1, y: 0 } : undefined}
@@ -376,7 +353,6 @@ export function ProblemsSolutions() {
                 </div>
               </motion.article>
             </div>
-            {/* The queue */}
             <div className="mt-10">
               <div className="flex items-baseline justify-between border-b border-slate-200 pb-3 dark:border-neutral-800">
                 <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-neutral-500">

@@ -40,11 +40,9 @@ export default function FollowButton({
   const [followTarget, { isLoading: isFollowingLoading }] = useFollowTargetMutation();
   const [unfollowTarget, { isLoading: isUnfollowingLoading }] = useUnfollowTargetMutation();
 
-  // Fallback mode when no targetId is provided.
   const [fallbackFollowing, setFallbackFollowing] = useState(initialFollowing);
   const isFollowing = targetId ? (summary?.following ?? initialFollowing) : fallbackFollowing;
 
-  // Never show follow button for self
   const isSelf = Boolean(
     type === "USER" &&
     session?.user &&

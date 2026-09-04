@@ -11,13 +11,6 @@ import { useInk } from "@/components/landing/SectionBackdrop";
 import { useGetProblemByIdQuery } from "@/lib/redux/services/problemsApi";
 import { useGetMyProfileQuery } from "@/lib/redux/services/solutionsApi";
 
-/**
- * The page around the answer form: breadcrumb, title, and the two gates.
- *
- * A problem's author cannot answer their own problem, so that case is caught
- * here rather than letting someone write a solution the proxy will refuse on
- * submit. The proxy still refuses it — this only saves the wasted typing.
- */
 export function SolutionCreateScreen({ problemId }: { problemId: string }) {
   const ink = useInk();
 
@@ -119,8 +112,6 @@ export function SolutionCreateScreen({ problemId }: { problemId: string }) {
                 problemId={problemId}
               />
             ) : (
-              /* Covers the routes into this page that skip the gated link — a
-                 pasted URL, a bookmark, back/forward. */
               <RequireAuth
                 title="Sign in to post a solution"
                 description="Answering needs an account, so the author can reach you and the solution stays attached to your profile."

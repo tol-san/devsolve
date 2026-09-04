@@ -52,10 +52,8 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<AttachedFile | null>(null);
 
-  // Maintain object URLs for local image preview thumbnails
   const objectUrlsRef = useRef<Map<string, string>>(new Map());
 
-  // Clean up object URLs on unmount
   useEffect(() => {
     const urls = objectUrlsRef.current;
     return () => {
@@ -156,7 +154,6 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
         <span className="text-xs sm:text-sm text-muted-foreground font-medium">PDF, Word, images, TXT, LOG · 10 MiB each</span>
       </div>
 
-      {/* Hidden File Input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -167,7 +164,6 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
         className="hidden"
       />
 
-      {/* Dropzone Container */}
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
@@ -188,7 +184,6 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
         </div>
       </div>
 
-      {/* Uploaded File List */}
       {activeFiles.length > 0 && (
         <div className="space-y-2 mt-3">
           <div className="flex items-center justify-between">
@@ -209,9 +204,7 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
                   onClick={() => setPreviewFile(file)}
                   className="group flex items-center justify-between p-2.5 rounded-xl border border-border bg-card text-sm font-medium text-foreground hover:border-primary/50 hover:bg-accent/40 transition-all cursor-pointer shadow-2xs"
                 >
-                  {/* Left: Thumbnail / Icon + Name & Size */}
                   <div className="flex items-center gap-3 min-w-0 pr-2">
-                    {/* Visual Preview Thumbnail or Icon Block */}
                     <div className="relative size-10 rounded-lg overflow-hidden bg-muted/60 border border-border/80 flex items-center justify-center shrink-0">
                       {isImg && previewSrc ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -225,7 +218,6 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
                       )}
                     </div>
 
-                    {/* File Details */}
                     <div className="min-w-0 space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="truncate font-semibold text-foreground text-xs sm:text-sm">
@@ -240,7 +232,6 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
                     </div>
                   </div>
 
-                  {/* Right Actions */}
                   <div className="flex items-center gap-1 shrink-0">
                     <Button
                       type="button"
@@ -285,7 +276,6 @@ export const FileUploadDropzone: React.FC<FileUploadDropzoneProps> = ({
         </p>
       )}
 
-      {/* Full Preview Modal */}
       <AttachmentPreviewModal
         attachedFile={previewFile}
         isOpen={Boolean(previewFile)}

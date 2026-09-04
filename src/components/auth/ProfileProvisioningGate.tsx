@@ -18,40 +18,17 @@ function isNotFound(error: unknown): boolean {
   );
 }
 
-/**
- * Makes sure the signed-in user has a local profile row before the app tries to
- * read one.
- *
- * Email/password sign-ups get their row from `/auth/register`. Social sign-ups
- * never touch that endpoint — the OIDC redirect is the entire flow — so the
- * backend only learns about them when `/auth/social/sync` is called. Nothing
- * was calling it, which is why a Google account could authenticate perfectly
- * and still have no profile behind it.
- *
- * So a 404 here is not necessarily a failure: for a first-time social user it
- * is the expected state, and the fix is to sync and look again. Only a 404 that
- * survives that is a real misconfiguration worth stopping for. Everything else
- * falls through to the app — a slow or briefly unreachable backend is not a
- * provisioning failure, and locking someone out of the dashboard over one is
- * worse than the pages showing their own empty states.
- */
 export function ProfileProvisioningGate({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Wait until the Keycloak token is confirmed before firing any API calls.
-  // If roles haven't resolved yet the token may not be ready, and the
-  // provisioning query would race it and get a 401.
   const { areRolesResolved } = useSidebarAuth();
   const { error, isFetching, refetch } = useGetProfileProvisioningStatusQuery(undefined, {
     skip: !areRolesResolved,
   });
   const [syncSocialAccount, syncState] = useSyncSocialAccountMutation();
 
-  // One automatic attempt per mount, so a backend that keeps answering 404
-  // isn't synced again on every render. Touched only inside the effect — the
-  // render below reads the mutation's own state instead.
   const hasAutoSynced = useRef(false);
 
   const needsProfile = isNotFound(error);
@@ -74,10 +51,6 @@ export function ProfileProvisioningGate({
     return <>{children}</>;
   }
 
-  /* The sync is normal first-run setup, not an error, so it reads as setting
-     up rather than failing — until it has actually run and the profile is
-     still missing. `isUninitialized` covers the gap between the 404 landing
-     and the effect firing. */
   if (isWorking || syncState.isUninitialized) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center">

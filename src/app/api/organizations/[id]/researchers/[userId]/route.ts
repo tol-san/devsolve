@@ -11,14 +11,6 @@ import {
 } from "@/lib/api/proxy";
 import { reviewResearcherAccessSchema } from "@/lib/validations/researcher-access";
 
-/**
- * `PATCH /api/organizations/{id}/researchers/{userId}` — approve, reject or
- * revoke one researcher.
- *
- * The screen only offers the decisions that are legal from the row's current
- * state, so a 409 here means the row was stale — someone else reviewed it
- * first. The upstream's message says so and is relayed unchanged.
- */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; userId: string }> },

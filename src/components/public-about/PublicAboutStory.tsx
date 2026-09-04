@@ -197,9 +197,6 @@ export function PublicAboutStory() {
                   <span className="size-2 rounded-full bg-emerald-400" />
                 </div>
                 <div className="rounded-[24px] border border-slate-100 bg-slate-50 px-6 py-10 text-center dark:border-white/6 dark:bg-slate-950">
-                  {/* On a surface that flips with the theme, so it takes the
-                      pair rather than one file: the navy wordmark is roughly
-                      1.1:1 against the dark version of this panel. */}
                   <BrandLogo
                     align="center"
                     className="mx-auto h-[72px] w-[180px]"

@@ -1,15 +1,6 @@
 import { baseApi } from "./baseApi";
 import { excerptOf } from "@/lib/markdown-excerpt";
 
-/**
- * Everything the signed-in author has posted, for the dashboard's My Community
- * page: `/problems/mine`, `/solutions/mine` and `/showcases/mine`.
- *
- * Deliberately the "mine" endpoints rather than the public portfolio ones — a
- * showcase awaiting review, a rejected one, and a problem still in draft are
- * invisible on a profile but are exactly what an author comes here to find.
- */
-
 export type MyPostKind = "Problem" | "Solution" | "Showcase";
 
 export interface MyPost {
@@ -17,25 +8,18 @@ export interface MyPost {
   kind: MyPostKind;
   title: string;
   excerpt: string;
-  /** Where the post can be read, when it is readable at all. */
   href?: string;
-  /** Where it can be edited, for the kinds this app can edit yet. */
   editHref?: string;
   createdAt: string;
   views?: number;
   coverImageUrl?: string;
-  /** The workflow state, in the author's words. */
   state: {
     label: string;
     tone: "live" | "pending" | "blocked" | "draft";
   };
-  /** What a reviewer asked for, when something was sent back. */
   note?: string;
-  /** A showcase with an edit queued behind the live version. */
   hasPendingEdit?: boolean;
-  /** A draft problem, which the author still has to send to review. */
   canSubmit?: boolean;
-  /** For a solution, the problem it answers — needed to delete it cleanly. */
   problemId?: string;
   isDraft?: boolean;
 }
@@ -57,22 +41,11 @@ interface MyProblem {
     | "CLOSED"
     | "REJECTED";
   viewCount?: number;
-  /**
-   * Whether this problem may still be revised — but do not gate the edit link
-   * on it. `/problems/mine` answers `false` for problems that `/problems/{id}`
-   * answers `true` for, so trusting it here hides the button on posts the
-   * author can in fact edit. See `editHref` below.
-   */
   canEdit?: boolean;
   publishedAt?: string;
   createdAt?: string;
 }
 
-/**
- * `SolutionResponse`, trimmed to what a row here shows. Acceptance and review
- * are two separate things upstream: `isAccepted` is the asker picking this
- * answer, `moderation.status` is a moderator letting it be seen at all.
- */
 interface MySolution {
   id: string;
   problemId?: string;
@@ -127,7 +100,6 @@ const PROBLEM_STATE: Record<MyProblem["status"], MyPost["state"]> = {
   REJECTED: { label: "Rejected", tone: "blocked" },
 };
 
-/** The opening sentence, for content that has no title of its own. */
 function firstLine(text: string, max = 90): string {
   const opening = text.split(/(?<=[.!?])\s/)[0] ?? text;
   return opening.length > max ? `${opening.slice(0, max).trimEnd()}…` : opening;
@@ -151,8 +123,6 @@ export const myCommunityApi = baseApi.injectEndpoints({
           fetchWithBQ(`/solution-drafts?size=${PAGE_SIZE}`),
         ]);
 
-        /* One list failing leaves the others usable — the lists are separate
-           upstream, so partial answers still work cleanly. */
         if (
           problemsResult.error &&
           solutionsResult.error &&
@@ -172,7 +142,6 @@ export const myCommunityApi = baseApi.injectEndpoints({
             kind: "Problem",
             title: problem.title,
             excerpt: excerptOf(problem.description ?? "", 200),
-            /* A draft has no public page to open. */
             href:
               problem.status === "DRAFT" || problem.status === "PENDING_APPROVAL"
                 ? undefined
@@ -181,14 +150,7 @@ export const myCommunityApi = baseApi.injectEndpoints({
               problem.publishedAt ||
               problem.createdAt ||
               new Date().toISOString(),
-            /* Always linked, deliberately. Every problem in this list belongs
-               to the caller, and the edit screen re-reads `canEdit` off the
-               detail response before it shows a form — which is the copy of
-               the flag that is right. Gating here on the list's copy meant a
-               problem the author could edit showed a dead, greyed-out button
-               with no reason given. */
             editHref: `/community/${problem.id}/edit`,
-            /* Only a draft has somewhere to be submitted to. */
             canSubmit: problem.status === "DRAFT",
             isDraft: problem.status === "DRAFT",
             views: problem.viewCount ?? 0,
@@ -199,8 +161,6 @@ export const myCommunityApi = baseApi.injectEndpoints({
         const solutions = contentOf<MySolution>(solutionsResult).map(
           (solution): MyPost => {
             const body = excerptOf(solution.bodyMarkdown ?? "", 200);
-            /* The summary is written to be the title. Falling back to the
-               first line of the body covers answers posted before it existed. */
             const review = solution.moderation?.status;
             return {
               id: solution.id,
@@ -210,8 +170,6 @@ export const myCommunityApi = baseApi.injectEndpoints({
               href: solution.problemId
                 ? `/community/${solution.problemId}`
                 : undefined,
-              /* The edit route is nested under the problem, so an answer that
-                 does not name one cannot be edited from here. */
               editHref: solution.problemId
                 ? `/community/${solution.problemId}/solutions/${solution.id}/edit`
                 : undefined,
@@ -298,8 +256,6 @@ export const myCommunityApi = baseApi.injectEndpoints({
           ),
         };
       },
-      /* One tag per source list, so deleting a post of any kind refreshes this
-         page without the others being refetched for nothing. */
       providesTags: [
         { type: "Showcase", id: "MINE" },
         { type: "Problem", id: "MINE" },

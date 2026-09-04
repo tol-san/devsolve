@@ -6,13 +6,6 @@ import { useTheme } from "next-themes";
 import "@uiw/react-markdown-preview/markdown.css";
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 
-/**
- * Read-only markdown, for the overview and the step bodies authors write in
- * `MarkdownEditor`. Same renderer as that editor's preview pane, so what was
- * written is what shows.
- *
- * Loaded on the client only: the underlying preview reaches for `window`.
- */
 const MarkdownPreview = dynamic(
   async () => (await import("@uiw/react-md-editor")).default.Markdown,
   {
@@ -67,8 +60,6 @@ export function MarkdownView({ source, className }: MarkdownViewProps) {
       >
         <MarkdownPreview
           source={source}
-          /* The renderer paints its own surface; the page's card is the surface
-             here, so it is made transparent and only the type is inherited. */
           style={{ background: "transparent" }}
           className="!bg-transparent [&.wmde-markdown]:!text-[17px] [&.wmde-markdown]:!leading-relaxed [&.wmde-markdown_img]:cursor-pointer [&.wmde-markdown_img]:transition-transform hover:[&.wmde-markdown_img]:scale-[1.01] hover:[&.wmde-markdown_img]:opacity-95 [&.wmde-markdown_img]:rounded-xl"
         />

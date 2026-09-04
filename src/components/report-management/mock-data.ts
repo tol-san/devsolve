@@ -435,9 +435,6 @@ export function buildReportManagementDetailFromApiReport(
     type: report.type || "Bounty",
     status,
     isReviewed,
-    /* The backend's own state, not the collapsed UI status: the retest gates
-       turn on `RESOLVED` and `VALID_CONFIRMED` exactly, and `status` folds
-       several states into one label. */
     rawStatus: report.rawStatus || report.status,
     severity,
     reportedSeverity: report.reportedSeverity,
@@ -457,17 +454,8 @@ export function buildReportManagementDetailFromApiReport(
     summary: report.description || "",
     assets: report.targetEndpoint ? [report.targetEndpoint] : (report.program ? [report.program] : []),
     affectedUrl: report.targetEndpoint || "",
-    /* `ReportResponse` carries no HTTP method — the submit form folds the
-       reporter's choice into the write-up instead, since the API has no field
-       for it. This used to fall back to "GET", which meant every report on
-       this screen claimed GET regardless of what was actually reported, and
-       contradicted the description whenever it was not. Empty now, and the
-       screens omit the row rather than guess. */
     httpMethod: (report as any).httpMethod || "",
     parameter: (report as any).vulnerableParameter || "",
-    /* Empty when unreported. Defaulting to "Production" told the triager a
-       finding was live when the reporter never said so — and a production
-       finding reads as more urgent than a staging one. */
     environment: report.environment || "",
     environmentNote:
       report.environment === "PRODUCTION"

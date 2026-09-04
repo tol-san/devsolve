@@ -11,14 +11,6 @@ interface ProblemsOverviewProps {
   id?: string;
 }
 
-/**
- * Durable page content for the public discussion directories.
- *
- * The actual feed remains interactive and loads through RTK Query, but this
- * explanation is present in the first HTML response even when the public API
- * is slow or currently has no rows. That makes an empty listing useful rather
- * than a 200 response containing only loading placeholders.
- */
 export function ProblemsOverview({
   title,
   description,

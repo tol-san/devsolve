@@ -12,19 +12,9 @@ import AdminProfileView from "@/components/profile/admin/AdminProfileView";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useSidebarAuth } from "@/hooks/useSidebarAuth";
 
-/**
- * /dashboard/profile — "my profile".
- *
- * Supports all 3 profile types in DevSolve:
- * 1. Admin: renders AdminProfileView
- * 2. Company: renders CompanyProfileView
- * 3. User: redirects to canonical /dashboard/profile/${username}
- */
 export default function MyProfilePage() {
   const router = useRouter();
   const { user, areRolesResolved } = useSidebarAuth();
-  /* The company profile is the *organization's* record, which only its owner
-     can read or edit — a member's profile here is their own account. */
   const { isOwner: isCompany } = useCompanyAccess();
   const isAdmin = user?.roles?.includes("ADMIN") ?? false;
   const { data, isError } = useGetEditProfileFormQuery(undefined, {
@@ -32,11 +22,6 @@ export default function MyProfilePage() {
   });
   const username = data?.username;
 
-  /* `/dashboard/profile` is a shorthand that resolves to the canonical
-     username URL, so anything asking it for something — `?edit=1` from an
-     edit control that had no handle to build a direct link with — has to
-     survive the hop. Dropping it landed the reader on their profile instead
-     of the form they asked for. */
   const search = useSearchParams().toString();
 
   useEffect(() => {
@@ -88,8 +73,6 @@ export default function MyProfilePage() {
     );
   }
 
-  // Covers both the fetch and the moment between resolving and the redirect
-  // committing, so there is never a blank frame.
   return <ProfileSkeleton />;
 }
 

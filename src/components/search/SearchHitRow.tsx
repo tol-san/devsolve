@@ -23,7 +23,6 @@ import { SearchSnippet } from "@/components/search/SearchSnippet";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
-/** A stand-in when a hit has no image, which is common on problems. */
 const FALLBACK_ICON: Record<SearchType, typeof User> = {
   programs: ShieldCheck,
   showcases: LayoutPanelTop,
@@ -32,9 +31,6 @@ const FALLBACK_ICON: Record<SearchType, typeof User> = {
   users: User,
 };
 
-/**
- * The one or two facts worth showing beside a hit, chosen per index.
- */
 function factsFor(hit: SearchHit): string[] {
   const doc = hit.document;
 
@@ -85,9 +81,6 @@ type SearchHitRowProps = {
   onNavigate?: () => void;
 };
 
-/**
- * One search result, in the dropdown or on the results page.
- */
 export function SearchHitRow({
   hit,
   compact,
@@ -192,7 +185,6 @@ export function SearchHitRow({
         )}
       </span>
 
-      {/* Right side indicator */}
       <span className="flex items-center shrink-0">
         {isSelected ? (
           <kbd className="hidden sm:inline-flex items-center rounded border border-border/80 bg-background px-1.5 py-0.5 font-mono text-[10px] font-semibold text-foreground shadow-2xs">

@@ -88,8 +88,6 @@ export function SubmitReportTargetSection({
     ? selectedProgram.organizationName.substring(0, 2).toUpperCase()
     : "CV";
 
-  /* Only assets the API can be given an id for. The scope display below also
-     accepts bare strings, which cannot be submitted as `assetId`. */
   type SelectableAsset = {
     id: string;
     identifier?: string;
@@ -126,9 +124,6 @@ export function SubmitReportTargetSection({
           "*.nexacloud.com (excluding out-of-scope)",
         ];
 
-  // Program (list-shape) carries no exclusions/rules data — that only exists
-  // on ProgramDetail, which this multi-program picker doesn't fetch — so this
-  // section stays a placeholder until that's wired through.
   const outOfScopeList = [
     "cdn.nexacloud.com",
     "status.nexacloud.com",
@@ -138,7 +133,6 @@ export function SubmitReportTargetSection({
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Section Header */}
       <div className="flex items-center gap-3 pb-2">
         <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
           <Target className="w-5 h-5" />
@@ -154,7 +148,6 @@ export function SubmitReportTargetSection({
         </div>
       </div>
 
-      {/* Dynamic Program Header Banner */}
       <div className="bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-base shrink-0 shadow-xs">
@@ -188,7 +181,6 @@ export function SubmitReportTargetSection({
         </div>
       </div>
 
-      {/* Dynamic In-Scope Targets Section */}
       <div className="space-y-3">
         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
           In-Scope Targets ({inScopeList.length})
@@ -207,7 +199,6 @@ export function SubmitReportTargetSection({
         </div>
       </div>
 
-      {/* Dynamic Out-of-Scope Targets / Exclusions Section */}
       <div className="space-y-3 pt-2">
         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
           Out-of-Scope Rules & Exclusions
@@ -226,13 +217,7 @@ export function SubmitReportTargetSection({
         </div>
       </div>
 
-      {/* Inputs Form Section */}
       <div className="space-y-5 pt-4 border-t border-slate-200 dark:border-slate-800">
-        {/* Which in-scope asset this is on. The report used to be filed
-            against the program's first asset whatever the finding was, which
-            is stored data a triager acts on — and each asset carries its own
-            severity ceiling. Only shown when the program publishes assets we
-            can reference by id. */}
         {selectableAssets.length > 0 && (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -265,7 +250,6 @@ export function SubmitReportTargetSection({
                 <SelectValue placeholder="Not specified" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg p-1.5">
-                {/* Leaving it unset is a real answer — better than guessing. */}
                 <SelectItem value="__none" className="rounded-xl py-2 px-3 text-sm">
                   Not specified
                 </SelectItem>
@@ -284,7 +268,6 @@ export function SubmitReportTargetSection({
           </div>
         )}
 
-        {/* Affected URL / Endpoint */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label
@@ -303,10 +286,6 @@ export function SubmitReportTargetSection({
             {...register("targetAsset")}
             className="bg-white dark:bg-slate-900 h-11 text-sm border-slate-300 dark:border-slate-700"
           />
-          {/* The method and vulnerable parameter used to be their own controls.
-              Neither had a field upstream, so both ended up as a `## Request`
-              heading inside the reporter's own write-up — a line here says the
-              same thing in words they chose. */}
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Include the HTTP method and the vulnerable parameter here when they
             are part of the finding.
@@ -318,14 +297,11 @@ export function SubmitReportTargetSection({
           )}
         </div>
 
-        {/* Environment Selection */}
         <div className="space-y-2 pt-1">
           <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Environment <span className="text-red-500">*</span>
           </label>
 
-          {/* Five now, matching the API's enum, so they wrap at two rows on a
-              narrow screen rather than being squeezed into three columns. */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {ENVIRONMENTS.map((env) => {
               const isSelected = selectedEnvironment === env.value;
@@ -356,7 +332,6 @@ export function SubmitReportTargetSection({
           </div>
         </div>
 
-        {/* Discovery date */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <label
@@ -389,7 +364,6 @@ export function SubmitReportTargetSection({
           )}
         </div>
 
-        {/* Production Warning Callout */}
         {selectedEnvironment === "PRODUCTION" && (
           <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-sm font-medium text-amber-900 dark:text-amber-300 leading-relaxed">
             <AlertTriangle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />

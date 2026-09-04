@@ -12,17 +12,8 @@ import {
 } from "@/lib/api/proxy";
 import { showcaseStepUpdateSchema } from "@/lib/validations/showcase";
 
-/**
- * GET/PATCH/DELETE /api/showcase-steps/{showcaseId}/{stepId} — proxy for the
- * backend's /api/v1/showcase-steps/{showcaseId}/{stepId}.
- *
- * Both ids are in the path upstream: the step is addressed through the
- * showcase that owns it, so a step id from another showcase cannot be reached.
- */
-
 type Context = { params: Promise<{ showcaseId: string; stepId: string }> };
 
-/** Both path ids, or null when either is malformed. */
 async function resolveIds(context: Context) {
   const { showcaseId, stepId } = await context.params;
   const showcase = asUuid(showcaseId);

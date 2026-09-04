@@ -8,10 +8,7 @@ export const makeStore = () => {
   const store = configureStore({
     reducer: {
       [baseApi.reducerPath]: baseApi.reducer,
-      // Endpoints that route through the Next handlers in `src/app/api/*`.
       [proxyApi.reducerPath]: proxyApi.reducer,
-      // Which organization the company screens are showing, for accounts on
-      // more than one.
       activeOrganization: activeOrganizationReducer,
     },
     middleware: (getDefaultMiddleware) =>

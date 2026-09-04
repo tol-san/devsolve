@@ -13,11 +13,6 @@ import {
 
 import type { ProblemStatus } from "@/lib/validations/problem";
 
-/**
- * Where a problem stands in its lifecycle. Shared so the queue row and the
- * detail header cannot label the same problem differently.
- */
-
 const CHIP =
   "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold";
 

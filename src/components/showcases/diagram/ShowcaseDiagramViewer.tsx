@@ -40,9 +40,6 @@ interface ShowcaseDiagramViewerProps {
   className?: string;
 }
 
-/**
- * Inner React Flow Canvas component that accesses ReactFlow instance hooks
- */
 function DiagramFlowCanvas({
   nodes,
   edges,
@@ -125,7 +122,6 @@ export function ShowcaseDiagramViewer({
   const [showMinimap, setShowMinimap] = useState(true);
   const [imageFailed, setImageFailed] = useState(false);
 
-  // Fetch and extract React Flow nodes & edges from diagram PNG or legacy fallbacks
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -158,7 +154,6 @@ export function ShowcaseDiagramViewer({
 
   const hasReactFlow = Boolean(diagramData?.nodes && diagramData.nodes.length > 0);
 
-  // Skeleton loading state matching container shape
   if (loading) {
     return (
       <div
@@ -187,7 +182,6 @@ export function ShowcaseDiagramViewer({
         className,
       )}
     >
-      {/* ── Top Header / Control Toolbar ── */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card/95 px-3 py-2.5 sm:px-4 backdrop-blur-md">
         <div className="flex items-center gap-2">
           {hasReactFlow && (
@@ -230,7 +224,6 @@ export function ShowcaseDiagramViewer({
           )}
         </div>
 
-        {/* Right Toolbar Actions */}
         <div className="flex items-center gap-1.5">
           {viewMode === "flow" && hasReactFlow && (
             <Button
@@ -263,7 +256,6 @@ export function ShowcaseDiagramViewer({
         </div>
       </div>
 
-      {/* ── Main Display Viewport ── */}
       <div className="relative h-72 sm:h-96 lg:h-[420px] w-full overflow-hidden bg-background">
         {viewMode === "flow" && hasReactFlow && diagramData ? (
           <ReactFlowProvider>
@@ -275,7 +267,6 @@ export function ShowcaseDiagramViewer({
             />
           </ReactFlowProvider>
         ) : (
-          /* Static Image View */
           <div className="relative flex size-full items-center justify-center overflow-hidden bg-background p-2">
             {!imageFailed ? (
               <Image
@@ -296,12 +287,10 @@ export function ShowcaseDiagramViewer({
         )}
       </div>
 
-      {/* ── Fullscreen Interactive Modal ── */}
       <DialogPrimitive.Root open={isFullscreen} onOpenChange={setIsFullscreen}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Backdrop className="fixed inset-0 z-[240] bg-black/70 backdrop-blur-xs duration-150 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
           <DialogPrimitive.Popup className="fixed inset-0 z-[250] flex h-screen w-screen flex-col overflow-hidden bg-background p-0 text-foreground outline-none duration-150 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0">
-            {/* Modal Header */}
             <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-5 sm:px-6">
               <div className="flex items-center gap-3">
                 <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -364,7 +353,6 @@ export function ShowcaseDiagramViewer({
               </div>
             </div>
 
-            {/* Modal Canvas Edge-to-Edge */}
             <div className="relative size-full flex-1 overflow-hidden bg-background">
               {viewMode === "flow" && hasReactFlow && diagramData ? (
                 <ReactFlowProvider>

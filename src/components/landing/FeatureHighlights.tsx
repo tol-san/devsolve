@@ -19,13 +19,9 @@ import SectionBackdrop, {
   useIsDark,
 } from "./SectionBackdrop";
 
-/* The Showcase act's accent is the near-black brand secondary, which vanishes
-   against a dark surface. It flips to a light neutral there; the blue and
-   green accents carry on unchanged, since both read on either surface. */
 const accentFor = (act: Act, dark: boolean) =>
   dark && act.accent === SECONDARY ? "#E5E5E5" : act.accent;
 
-/* ─── Content ──────────────────────────────────────────────────────── */
 type Step = { n: string; title: string; role: string; body: string };
 
 type Act = {
@@ -139,22 +135,13 @@ const ACTS: Act[] = [
   },
 ];
 
-/* ─── Radar geometry ────────────────────────────────────────────────────
-   The dial replaces the old scroll-scrubbed arc: nothing here is driven by
-   scroll position. One sweep rotates at a constant rate, and whichever step
-   it is passing over is the step the copy shows. */
 const DIAL = { cx: 200, cy: 200, r: 176 };
 const RINGS = [0.28, 0.52, 0.76, 1];
-const SWEEP_SPAN = 104; // degrees of trailing tail behind the leading edge
+const SWEEP_SPAN = 104; 
 const SWEEP_SLICES = 14;
-/** How long the sweep dwells on each step — the revolution scales with it. */
 const SECONDS_PER_STEP = 4.5;
-/** Markers start at twelve o'clock, so the first step reads as the start. */
 const START_DEG = -90;
 
-/* Rounded, because `Math.sin`/`Math.cos` are implementation-defined in their
-   last digit: Node and the browser disagree by an ULP, and React compares the
-   serialised attribute, so an unrounded coordinate is a hydration mismatch. */
 const round = (v: number) => Math.round(v * 1000) / 1000;
 
 function polar(deg: number, radius: number) {
@@ -165,7 +152,6 @@ function polar(deg: number, radius: number) {
   };
 }
 
-/** Markers march outward as the lifecycle advances, evenly spaced by angle. */
 function markerAt(index: number, total: number) {
   const deg = START_DEG + (index * 360) / total;
   const radius =
@@ -173,9 +159,6 @@ function markerAt(index: number, total: number) {
   return { deg, radius, ...polar(deg, radius) };
 }
 
-/* The tail is built from flat slices rather than a gradient: an SVG gradient
-   would have to be re-projected every frame as the wedge turns, while stacked
-   slices rotate with the group for free. */
 const SWEEP_PATHS = Array.from({ length: SWEEP_SLICES }, (_, k) => {
   const a = polar(-(k * SWEEP_SPAN) / SWEEP_SLICES, DIAL.r);
   const b = polar(-((k + 1) * SWEEP_SPAN) / SWEEP_SLICES, DIAL.r);
@@ -195,21 +178,17 @@ const TICKS = Array.from({ length: 72 }, (_, i) => {
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-/* ─── Component ────────────────────────────────────────────────────── */
 export function FeatureHighlights() {
   const t = useT();
   const locale = useLocale();
   const sectionRef = useRef<HTMLElement>(null);
   const sweepRef = useRef<SVGGElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
-  /* Current sweep bearing, in degrees. Kept in a ref rather than state — it
-     changes every frame, and only the step it lands on is worth a render. */
   const angleRef = useRef(START_DEG);
   const stepRef = useRef(0);
 
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const reduce = useReducedMotion();
-  /* Off-screen the loop idles: no attribute writes, no wasted frames. */
   const inView = useInView(sectionRef, { margin: "-10% 0px -10% 0px" });
   const isDark = useIsDark();
 
@@ -223,8 +202,6 @@ export function FeatureHighlights() {
   const line = isDark ? "#FFFFFF" : SECONDARY;
   const muted = isDark ? "#A3A3A3" : "#94A3B8";
 
-  /* Writes a frame straight to the DOM. The sweep is one attribute and the
-     dwell bar one transform, so neither needs React inside the loop. */
   const paint = useCallback((deg: number, total: number) => {
     sweepRef.current?.setAttribute(
       "transform",
@@ -253,7 +230,6 @@ export function FeatureHighlights() {
     }
   });
 
-  /* Clicking a step — in the rail or on the dial — parks the sweep on it. */
   const jumpTo = useCallback(
     (i: number) => {
       angleRef.current = START_DEG + (i * 360) / steps.length + 0.01;
@@ -284,7 +260,6 @@ export function FeatureHighlights() {
       className="relative overflow-hidden py-10 sm:py-16"
     >
       <div className="relative z-10 mx-auto w-full max-w-7xl px-6 sm:px-12">
-        {/* ── Masthead ── */}
         <header className="flex flex-col gap-6 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between dark:border-neutral-800">
           <div>
             <p className="text-xl font-bold tracking-tight text-[#1E293B] sm:text-2xl dark:text-neutral-100">
@@ -295,7 +270,6 @@ export function FeatureHighlights() {
             </p>
           </div>
 
-          {/* Act tabs — the active one fills dark (and inverts in dark mode) */}
           <nav
             role="tablist"
             aria-label="Platform pillars"
@@ -334,9 +308,7 @@ export function FeatureHighlights() {
           </nav>
         </header>
 
-        {/* ── Stage ── */}
         <div className="mt-12 grid grid-cols-1 items-center gap-12 lg:mt-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16">
-          {/* LEFT — act title and the step the sweep is currently over */}
           <div>
             <div className="mb-4 flex items-center gap-2.5">
               <span className="h-px w-8" style={{ backgroundColor: accent }} />
@@ -398,7 +370,6 @@ export function FeatureHighlights() {
               </motion.h2>
             </AnimatePresence>
 
-            {/* The step under the sweep — swapped in place, never scrolled */}
             <div className="relative mt-8 min-h-70 sm:min-h-56">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -440,7 +411,6 @@ export function FeatureHighlights() {
               </AnimatePresence>
             </div>
 
-            {/* Step rail — the bar under the active chip tracks the sweep */}
             <div className="mt-8 flex flex-wrap gap-2">
               {steps.map((s, si) => {
                 const on = si === stepIndex;
@@ -512,7 +482,6 @@ export function FeatureHighlights() {
             </div>
           </div>
 
-          {/* RIGHT — the scanning dial */}
           <div className="relative mx-auto w-full max-w-136">
             <div className="pointer-events-none absolute inset-x-0 -top-1 flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-600">
               <span>[ {t("common.scanning")} ]</span>
@@ -541,7 +510,6 @@ export function FeatureHighlights() {
                 fill={`url(#${uid}-core)`}
               />
 
-              {/* Rings and crosshair */}
               {RINGS.map((f) => (
                 <circle
                   key={f}
@@ -573,7 +541,6 @@ export function FeatureHighlights() {
                 );
               })}
 
-              {/* Rim ticks */}
               {TICKS.map((t, i) => (
                 <line
                   key={i}
@@ -588,7 +555,6 @@ export function FeatureHighlights() {
                 />
               ))}
 
-              {/* The sweep — one rotate attribute, rewritten each frame */}
               <g
                 ref={sweepRef}
                 transform={`rotate(${START_DEG} ${DIAL.cx} ${DIAL.cy})`}
@@ -608,7 +574,6 @@ export function FeatureHighlights() {
                 />
               </g>
 
-              {/* Step markers */}
               {steps.map((s, si) => {
                 const m = markerAt(si, steps.length);
                 const on = si === stepIndex;
@@ -677,7 +642,6 @@ export function FeatureHighlights() {
                 );
               })}
 
-              {/* Contact ping — remounts each time the sweep reaches a marker */}
               {!reduce && (
                 <motion.circle
                   key={`${act.id}-${stepIndex}`}
@@ -705,7 +669,6 @@ export function FeatureHighlights() {
           </div>
         </div>
 
-        {/* ── Footer readout ── */}
         <footer className="mt-14 flex items-center justify-between gap-4 border-t border-slate-200 pt-5 dark:border-neutral-800">
           <span className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500">
             <span className="relative flex h-1.5 w-1.5">

@@ -8,14 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * POST /api/problems/{problemId}/views — records one problem-detail view.
- *
- * This stays open to signed-out readers, matching the public problem detail
- * endpoint. When a session exists its bearer token is still relayed so the
- * backend can apply any viewer-aware deduplication it supports.
- */
-
 type Context = { params: Promise<{ problemId: string }> };
 
 export async function POST(request: NextRequest, context: Context) {

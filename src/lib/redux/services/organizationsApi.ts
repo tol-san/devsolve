@@ -105,11 +105,6 @@ export type OrganizationInvitationPermission =
   | "MANAGE_RESEARCHERS"
   | "MANAGE_MEMBERS";
 
-/**
- * `ACTIVE` for somebody on the team, `SUSPENDED` for an invitation nobody has
- * accepted yet. `REMOVED` is documented but never listed, so the roster only
- * ever shows the first two.
- */
 export type OrganizationMemberInvitationStatus =
   | "ACTIVE"
   | "SUSPENDED"
@@ -144,25 +139,14 @@ export type RemoveMemberRequest = {
 
 export type OrganizationInvitationMember = {
   userId: string;
-  /** Stable handle, for profile links that read as a name rather than a UUID. */
   username?: string | null;
   name: string;
   email: string;
-  /**
-   * Null for the owner, who holds every permission without holding a role.
-   * Also the ceiling: a member may not be granted more than the role allows.
-   */
   role: OrganizationInvitationRole | null;
   permissions: OrganizationInvitationPermission[];
   status: OrganizationMemberInvitationStatus;
   invitationPending: boolean;
-  /**
-   * This row is the caller. The roster is the only place that can say so —
-   * `GET /organizations/me/memberships` describes the account's relationship to
-   * the organization and carries no user id to match a row against.
-   */
   self?: boolean;
-  /** Registered the company, rather than being invited into it. */
   owner?: boolean;
   joinedAt: string;
 };
@@ -178,16 +162,6 @@ export type AcceptOrganizationInvitationRequest = {
   token: string;
 };
 
-/**
- * An invitation as the *invitee* sees it, from
- * `GET /organizations/invitations/me`.
- *
- * A different shape from `OrganizationInvitationMember`, which is the company
- * looking at its own roster. This one carries the `invitationToken` — the only
- * place in the API a signed-in invitee can get it, since the token reaches
- * them otherwise only by email. The INVITATION notification does not have it:
- * its `notifiableId` is the organization's id.
- */
 export type MyOrganizationInvitation = {
   invitationToken: string;
   organizationId: string;
@@ -200,27 +174,14 @@ export type MyOrganizationInvitation = {
   expiresAt: string;
 };
 
-/**
- * One organization this account belongs to, from
- * `GET /organizations/me/memberships`.
- *
- * The answer to "does this account have a company workspace", which the
- * Keycloak `COMPANY` realm role cannot give: that role is granted for
- * *registering* a company, so an invited member never has it no matter what
- * the roster says. Owners appear here too — `owner: true`, `role: null`, all
- * ten permissions — so one call covers both, owned entries first.
- */
 export type OrganizationMembership = {
   organizationId: string;
   organizationName: string;
   organizationSlug?: string | null;
   organizationLogoUrl?: string | null;
   organizationStatus: OrganizationStatus;
-  /** True when this account registered the company rather than joining it. */
   owner: boolean;
-  /** Null for the owner: the three ranks describe invited members only. */
   role?: OrganizationInvitationRole | null;
-  /** What this account may do here. The only thing worth gating UI on. */
   permissions: OrganizationInvitationPermission[];
   joinedAt?: string;
 };
@@ -423,13 +384,6 @@ export const organizationsApi = proxyApi.injectEndpoints({
         "OrganizationInvitations",
       ],
     }),
-    /**
-     * Every organization this account belongs to.
-     *
-     * Cheap, cached and asked for every signed-in account, because it is what
-     * decides whether there is a company workspace at all. An account on no
-     * team gets `[]`, which is an answer rather than an error.
-     */
     getMyMemberships: builder.query<OrganizationMembership[], void>({
       query: () => ({
         url: "/organizations/me/memberships",
@@ -447,15 +401,6 @@ export const organizationsApi = proxyApi.injectEndpoints({
       providesTags: ["OrganizationMemberships"],
     }),
 
-    /**
-     * Invitations waiting for the signed-in account.
-     *
-     * Server-side this is already filtered to invitations that would succeed
-     * if accepted right now and ordered soonest-to-expire first, so the rows
-     * are rendered in the order they arrive — no client-side pruning, and no
-     * bookkeeping after an accept either: `acceptOrganizationInvitation`
-     * invalidates this tag and the accepted row leaves on the refetch.
-     */
     getMyInvitations: builder.query<MyOrganizationInvitation[], void>({
       query: () => ({
         url: "/organizations/invitations/me",
@@ -483,9 +428,6 @@ export const organizationsApi = proxyApi.injectEndpoints({
         url: `/organizations/invitations/${token}/accept`,
         method: "POST",
       }),
-      /* An invitation is not access; accepting it is. The new membership shows
-         up only in `/organizations/me/memberships`, so that is what has to be
-         re-read — the workspace appears on the strength of it. */
       invalidatesTags: [
         "OrganizationMembers",
         "OrganizationMemberships",

@@ -98,13 +98,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
   const lastRetest = detail.retestHistory && detail.retestHistory.length > 0
     ? detail.retestHistory[detail.retestHistory.length - 1]
     : null;
-  /* The attempt the researcher still owes an answer on, which is the one with
-     a deadline worth showing. */
-  /* A severity the reporter accepted, or an administrator ruled on, is final:
-     the reporter cannot change their mind and the company cannot re-triage
-     around it. Offering "adjust severity" there is offering a call the
-     backend refuses — and on an accepted rating it would also reopen a
-     negotiation both sides have already closed. */
   const isSeverityFinal = isDisputeSettled(detail.dispute);
 
   const openRetest = openRetestAttempt(detail.retestHistory);
@@ -139,16 +132,7 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
     }
   };
 
-  /**
-   * Reopening a resolved report without going through a retest.
-   *
-   * `PATCH /triage` from `RESOLVED` accepts `VALID_CONFIRMED` and nothing
-   * else, so the mutation fixes the state and only the severity travels — it
-   * is required by the request and is kept at what triage already decided.
-   */
   const handleReopen = async () => {
-    /* Converted, not cast: `triageSeverity` is required on every triage and
-       a label the enum does not contain comes back as an unreadable body. */
     const severity = toApiSeverity(detail.severity);
     if (!severity) {
       toast.error("Report could not be reopened", {
@@ -194,7 +178,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
   return (
     <>
       <aside className="space-y-5 lg:sticky lg:top-6 min-w-0">
-        {/* 1. Moderation & Triage Actions */}
         <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0 p-0 py-0 gap-0">
           <CardHeader className="bg-muted/40 border-b border-border/70 px-4 py-3 sm:px-5 sm:py-3.5 [.border-b]:pb-3 sm:[.border-b]:pb-3.5">
             <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -218,7 +201,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                     : ""}.
                 </p>
 
-                {/* Resolved is the only state a retest can be asked for from */}
                 <div className="space-y-2 pt-1">
                   {canRequestRetest && (
                     <Button
@@ -270,8 +252,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                   is nothing for them to accept first.
                 </p>
 
-                {/* The deadline. An unanswered attempt lapses on it and the
-                    report returns to resolved on its own. */}
                 <div
                   className={cn(
                     "flex items-center gap-2 rounded-lg border px-2.5 py-2 text-sm font-semibold",
@@ -291,8 +271,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                 )}
 
                 <div className="space-y-2 pt-1">
-                  {/* Deliberately dead while an attempt is open: the backend
-                      answers "A retest is already awaiting the researcher". */}
                   {canRequestRetest && (
                     <Button
                       type="button"
@@ -395,7 +373,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                     : ""}.
                 </p>
 
-                {/* Organization Post-Triage Lifecycle Actions */}
                 <div className="space-y-2 pt-1">
                   <Button
                     type="button"
@@ -412,9 +389,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                     </p>
                   )}
 
-                  {/* Gone once the rating is settled — resolving is the only
-                      step left. A note stands in for the control so the
-                      absence reads as a decision rather than an omission. */}
                   {isSeverityFinal ? (
                     <p className="text-xs leading-relaxed text-muted-foreground">
                       The severity is settled and can no longer be changed.
@@ -486,7 +460,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
           </CardContent>
         </Card>
 
-      {/* 2. Vulnerability Classification Snapshot */}
       <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0 p-0 py-0 gap-0">
         <CardHeader className="bg-muted/40 border-b border-border/70 px-4 py-3 sm:px-5 sm:py-3.5 [.border-b]:pb-3 sm:[.border-b]:pb-3.5">
           <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -555,7 +528,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
         </CardContent>
       </Card>
 
-      {/* 3. Researcher Profile */}
       <Card className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden min-w-0 p-0 py-0 gap-0">
         <CardHeader className="bg-muted/40 border-b border-border/70 px-4 py-3 sm:px-5 sm:py-3.5 [.border-b]:pb-3 sm:[.border-b]:pb-3.5 flex flex-row items-center justify-between">
           <CardTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -572,7 +544,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
         </CardHeader>
 
         <CardContent className="p-4 sm:p-5 space-y-4 min-w-0">
-          {/* Avatar & Info Row */}
           <div className="flex items-start justify-between gap-3 min-w-0">
             <div className="flex items-center gap-3 min-w-0">
               <div className="relative shrink-0">
@@ -611,7 +582,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
               </div>
             </div>
 
-            {/* Quick email / contact actions */}
             {contactEmail && (
               <div className="flex items-center gap-1 shrink-0">
                 <Button
@@ -639,14 +609,12 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
             )}
           </div>
 
-          {/* Bio */}
           {biography && (
             <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 break-words">
               {biography}
             </p>
           )}
 
-          {/* Stats row */}
           {stats && (
             <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-muted/30 p-2 text-center">
               <div className="space-y-0.5 min-w-0">
@@ -673,7 +641,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
             </div>
           )}
 
-          {/* Meta row */}
           <div className="space-y-1.5 text-xs text-muted-foreground">
             {country && (
               <div className="flex items-center gap-1.5 truncate">
@@ -693,7 +660,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
             </div>
           </div>
 
-          {/* Program / Status row */}
           <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Program Scope</span>
@@ -714,7 +680,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
             </div>
           </div>
 
-          {/* CTA */}
           <Link href={profileHref} className="block pt-1">
             <Button
               variant="outline"
@@ -728,7 +693,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
         </CardContent>
       </Card>
 
-      {/* Resolution Confirmation Modal */}
       <ResolveReportDialog
         isOpen={showResolveDialog}
         onOpenChange={setShowResolveDialog}
@@ -739,7 +703,6 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
         onSuccess={onRefresh}
       />
 
-      {/* Retest Request Modal */}
       <RetestRequestDialog
         isOpen={showRetestDialog}
         onOpenChange={setShowRetestDialog}

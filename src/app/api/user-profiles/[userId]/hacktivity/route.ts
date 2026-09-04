@@ -9,15 +9,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/user-profiles/{userId}/hacktivity — one researcher's public
- * activity, the feed behind the Hacktivity tab on a profile.
- *
- * Public, like the profile it hangs off. A signed-in caller still sends their
- * token: the upstream decides what each viewer may see, and an undisclosed
- * report's title is withheld there rather than here.
- */
-
 const ALLOWED_QUERY = [
   "q",
   "severity",
@@ -28,7 +19,6 @@ const ALLOWED_QUERY = [
   "sort",
 ] as const;
 
-/** The upstream reads both as repeatable lists, not comma-joined values. */
 const REPEATABLE = ["severity", "eventType"] as const;
 
 type Context = { params: Promise<{ userId: string }> };

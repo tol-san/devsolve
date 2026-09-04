@@ -6,13 +6,6 @@ import type {
 } from "@/lib/validations/showcase-draft";
 import type { ShowcaseResponse } from "./showcasesApi";
 
-/**
- * Server-side showcase drafts.
- *
- * Autosave writes without invalidating the list query to prevent form
- * re-renders while typing, but updates the individual draft cache via
- * `cacheWhatWasStored`.
- */
 export const showcaseDraftsApi = proxyApi.injectEndpoints({
   endpoints: (builder) => ({
     getShowcaseDrafts: builder.query<ShowcaseDraftResponse[], { page?: number; size?: number } | void>({

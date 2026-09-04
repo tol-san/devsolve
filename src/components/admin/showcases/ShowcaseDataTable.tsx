@@ -102,7 +102,6 @@ export function ShowcaseDataTable({
 
   return (
     <div className="space-y-4">
-      {/* Table Container */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs">
         <Table className="text-foreground">
           <TableHeader>
@@ -121,7 +120,6 @@ export function ShowcaseDataTable({
           <TableBody>
             {paginatedItems.map((item) => (
               <TableRow key={item.showcaseId}>
-                {/* Title & Overview */}
                 <TableCell className="py-4 px-4 max-w-xs whitespace-normal sm:max-w-md">
                   <div className="space-y-1">
                     <p className="font-bold text-sm text-foreground line-clamp-1">
@@ -133,7 +131,6 @@ export function ShowcaseDataTable({
                   </div>
                 </TableCell>
 
-                {/* Author */}
                 <TableCell className="py-4 px-4">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <User className="size-3.5 text-muted-foreground" />
@@ -141,7 +138,6 @@ export function ShowcaseDataTable({
                   </div>
                 </TableCell>
 
-                {/* Category */}
                 <TableCell className="py-4 px-4">
                   {item.categoryName ? (
                     <Badge
@@ -156,19 +152,16 @@ export function ShowcaseDataTable({
                   )}
                 </TableCell>
 
-                {/* Type */}
                 <TableCell className="py-4 px-4">
                   <span className="text-xs font-semibold text-muted-foreground">
                     {item.submissionType}
                   </span>
                 </TableCell>
 
-                {/* Status */}
                 <TableCell className="py-4 px-4">
                   {getStatusBadge(item.reviewStatus)}
                 </TableCell>
 
-                {/* Submitted At */}
                 <TableCell className="py-4 px-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="size-3.5 text-muted-foreground" />
@@ -182,7 +175,6 @@ export function ShowcaseDataTable({
                   </div>
                 </TableCell>
 
-                {/* Action */}
                 <TableCell className="py-4 px-4 text-right">
                   <Button
                     type="button"
@@ -200,7 +192,6 @@ export function ShowcaseDataTable({
         </Table>
       </div>
 
-      {/* Pagination Footer */}
       {totalItems > 0 && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">

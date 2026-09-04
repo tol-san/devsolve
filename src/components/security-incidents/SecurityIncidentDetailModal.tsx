@@ -118,7 +118,6 @@ export function SecurityIncidentDetailModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl max-h-[92vh] overflow-y-auto p-0 gap-0 rounded-2xl border-border bg-card shadow-2xl">
-        {/* Header with Danger/Warning Banner */}
         <div
           className={cn(
             "p-6 sm:p-7 border-b flex items-start gap-4 sm:gap-5",
@@ -168,9 +167,7 @@ export function SecurityIncidentDetailModal({
           </div>
         </div>
 
-        {/* Content Body */}
         <div className="p-6 sm:p-7 space-y-6 sm:space-y-7">
-          {/* Security Summary Alert */}
           <div className="p-5 sm:p-6 rounded-2xl border border-border/80 bg-muted/30 text-sm space-y-3">
             <div className="flex items-center gap-2.5 font-bold text-base sm:text-lg text-foreground">
               <Shield className="size-5 text-primary" />
@@ -181,7 +178,6 @@ export function SecurityIncidentDetailModal({
               The file was blocked and rolling back the transaction ensured no malicious bytes were retained.
             </p>
 
-            {/* Detections Ratio Bar */}
             <div className="space-y-2 pt-2">
               <div className="flex items-center justify-between text-sm font-bold flex-wrap gap-2">
                 <span className="text-red-600 dark:text-red-400">
@@ -213,7 +209,6 @@ export function SecurityIncidentDetailModal({
             </div>
           </div>
 
-          {/* Hash & External Lookup Card */}
           <div className="space-y-2.5">
             <label className="text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
               SHA-256 Cryptographic Hash
@@ -254,9 +249,7 @@ export function SecurityIncidentDetailModal({
             </div>
           </div>
 
-          {/* Metadata Grid (Spacious 2-column layout) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-            {/* File Info */}
             <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-xs space-y-3.5">
               <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
                 <FileWarning className="size-4 text-primary" />
@@ -278,7 +271,6 @@ export function SecurityIncidentDetailModal({
               </div>
             </div>
 
-            {/* Uploader Details */}
             {(() => {
               const resolvedStatus =
                 uploaderStatus || incident.uploader.status || "ACTIVE";
@@ -326,7 +318,6 @@ export function SecurityIncidentDetailModal({
               );
             })()}
 
-            {/* Target Scope */}
             <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-xs space-y-3.5">
               <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
                 <Building className="size-4 text-primary" />
@@ -348,7 +339,6 @@ export function SecurityIncidentDetailModal({
               </div>
             </div>
 
-            {/* Related Report */}
             <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-xs space-y-3.5">
               <div className="flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-muted-foreground">
                 <FileText className="size-4 text-primary" />
@@ -376,7 +366,6 @@ export function SecurityIncidentDetailModal({
           </div>
         </div>
 
-        {/* Footer Actions */}
         <DialogFooter className="p-5 sm:p-6 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-2">
           <a
             href={vtLookupUrl}

@@ -82,20 +82,6 @@ import {
 } from "@/hooks/useMySolutionStatus";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 
-/**
- * One problem, read from the API — `GET /api/v1/problems/{id}` for the post,
- * `/problems/{id}/solutions` for the answers, `/comments` for the thread, and
- * the vote and bookmark endpoints for the two buttons.
- *
- * A problem carries far more than a title and a description: what was expected
- * against what happened, the steps to reproduce it, the environment it broke
- * in, what the author already tried. Each is rendered only when present, so a
- * one-line question stays one line and a fully filled report reads as a report.
- *
- * Only problems reach this route: a showcase card links to `/showcases/{id}`,
- * which has its own page. That is why nothing here branches on the two.
- */
-
 const CARD =
   "rounded-2xl border border-border bg-card shadow-xs";
 
@@ -156,7 +142,6 @@ export default function ProblemDetailPage() {
   );
 }
 
-/** Split out so the hooks below only run once a problem is actually loaded. */
 function Loaded({
   id,
   problem,
@@ -173,9 +158,6 @@ function Loaded({
   const [incrementViews] = useIncrementProblemViewsMutation();
   const countedProblemId = useRef<string | null>(null);
 
-  /* Record a view only after the problem has loaded successfully. Tracking the
-     id (rather than a boolean) also handles client navigation between problem
-     detail routes without double-counting effect replays in development. */
   useEffect(() => {
     if (countedProblemId.current === id) return;
     countedProblemId.current = id;
@@ -188,16 +170,12 @@ function Loaded({
       pageSize: SOLUTION_PAGE_SIZE,
     });
 
-  /* Who is reading. A signed-out visitor gets a 401 here, which is the answer
-     rather than an error: they cannot post either way. */
   const { data: me } = useGetMyProfileQuery();
   const isSignedIn = Boolean(me?.id);
   const isOwnProblem = Boolean(me?.id && problem.author?.id === me.id);
   const isPending = problem.status === "PENDING_APPROVAL";
   const canAnswer = isSignedIn && !isOwnProblem && !isPending;
   const [reportingProblem, setReportingProblem] = useState(false);
-  /* The backend decides who may accept; `canAcceptSolution` is that decision.
-     Ownership is the fallback for a response that predates the field. */
   const canAccept = problem.canAcceptSolution ?? isOwnProblem;
 
   const { data: votes } = useGetVoteSummaryQuery({
@@ -234,9 +212,6 @@ function Loaded({
     mimeType?: string;
   } | null>(null);
 
-  /* The problem owns the list of accepted answers, so it is the authority when
-     it and a solution's own `isAccepted` disagree — which they do between a
-     click and the refetch that follows it. */
   const acceptedIds = useMemo(
     () => new Set(problem.acceptedSolutionIds ?? []),
     [problem.acceptedSolutionIds],
@@ -245,11 +220,8 @@ function Loaded({
   const isAcceptedSolution = (solutionId: string, flag?: boolean) =>
     acceptedIds.size > 0 ? acceptedIds.has(solutionId) : Boolean(flag);
 
-  /* What the reader has already posted here. Only worth asking once they are
-     signed in — a visitor has nothing of their own to be told about. */
   const { forProblem } = useMySolutionStatus({ skip: !isSignedIn });
   const myAnswers = forProblem(id);
-  /* Solutions publish immediately now; only rejected answers needing revision are shown here. */
   const unpublished = myAnswers.filter((mine) => mine.review === "REJECTED");
 
   const solutions = useMemo(() => {
@@ -259,9 +231,6 @@ function Loaded({
 
     if (sortOrder === "newest") return list.sort(newest);
 
-    /* Accepted first, then by score — the order someone scanning for the
-       answer wants. Several may be accepted, so this groups rather than
-       lifting a single winner. */
     const accepted = (solution: (typeof list)[number]) =>
       Number(
         acceptedIds.size > 0
@@ -373,9 +342,7 @@ function Loaded({
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4">
           <div className="min-w-0 space-y-6 lg:col-span-2 xl:col-span-3">
-            {/* ── The problem ── */}
             <section className={`${CARD} p-4 sm:p-6`}>
-              {/* Inline AI auto-approval hold explanation (author-only when pending) */}
               <AutoApprovalHoldNotice
                 notifiableId={id}
                 notifiableType="PROBLEM"
@@ -483,7 +450,6 @@ function Loaded({
                 )}
               </Section>
 
-              {/* ── Expected against actual, side by side where there is room ── */}
               {(problem.expectedBehavior || problem.actualBehavior) && (
                 <Section
                   title="Expected vs actual"
@@ -541,8 +507,6 @@ function Loaded({
                     <TerminalSquare aria-hidden="true" className="size-3.5" />
                   }
                 >
-                  {/* The one place a horizontal scrollbar is right: wrapping a
-                      stack trace destroys the thing being read. */}
                   <pre className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900 p-4 text-xs leading-relaxed text-slate-100 dark:border-neutral-700 dark:bg-neutral-950">
                     <code>{problem.errorMessage}</code>
                   </pre>
@@ -604,7 +568,6 @@ function Loaded({
                           className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3.5 transition-all hover:border-border/80 shadow-2xs"
                         >
                           <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                            {/* Visual Thumbnail or File Icon */}
                             {fileUrl ? (
                               <button
                                 type="button"
@@ -725,9 +688,6 @@ function Loaded({
                   {isBookmarked ? "Bookmarked" : "Bookmark"}
                 </button>
 
-                {/* Whether this problem may be edited is the backend's call,
-                    carried on the response — a published problem with answers
-                    under it is not the same as an untouched draft. */}
                 {problem.canEdit && (
                   <Link
                     href={`/community/${id}/edit`}
@@ -773,7 +733,6 @@ function Loaded({
               </div>
             </section>
 
-            {/* ── Answers ── */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="text-lg font-bold tracking-tight text-foreground">
@@ -824,17 +783,10 @@ function Loaded({
               ) : null}
             </div>
 
-            {/* ── The reader's own answers on this problem ──
-                A posted answer is held for review, so it is absent from the
-                list below until a moderator approves it. Without this the
-                author sees no trace of what they just wrote and assumes it
-                failed to send. */}
             {unpublished.map((mine) => (
               <MyAnswerNotice key={mine.solutionId} answer={mine} problemId={id} />
             ))}
 
-            {/* Why the composer is absent, when it is. Silence would read as a
-                bug to whoever came here to answer. */}
             {isOwnProblem && (
               <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
                 This is your problem, so you cannot answer it yourself. You can
@@ -909,9 +861,7 @@ function Loaded({
             />
           </div>
 
-          {/* ── Sidebar ── */}
           <aside className="space-y-6 lg:sticky lg:top-6 lg:self-start">
-            {/* The figures, as tiles — quicker to read than a list of rows. */}
             <section className={`${CARD} p-4 sm:p-5`}>
               <div className="grid grid-cols-2 gap-2 text-center">
                 <Stat label="Answers" value={answerCount.toLocaleString()} />
@@ -994,14 +944,6 @@ function Loaded({
   );
 }
 
-/**
- * One of the reader's own answers that is not on the page yet — waiting on a
- * moderator, or turned away by one.
- *
- * It links to their dashboard rather than offering an action here: this page
- * shows a problem, and everything they can do about the answer itself (read
- * the rejection, delete it, post a replacement) lives under My Community.
- */
 function MyAnswerNotice({
   answer,
   problemId,
@@ -1058,16 +1000,6 @@ function MyAnswerNotice({
   );
 }
 
-/** A titled block inside the problem card, with its own rule above it. */
-/**
- * The author card in the sidebar.
- *
- * It leads to the poster's profile, which is where a reader decides how much
- * weight to give an answer — who they are, what else they have solved, what
- * their reputation was earned on. The card falls back to plain markup when the
- * response carries no author id: `/profile` is keyed by user id, so a link
- * without one would land on a page that cannot resolve.
- */
 function PostedBy({ author }: { author?: AuthorSummary }) {
   const lp = useLocalePath();
   const name = authorNameOf(author);

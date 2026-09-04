@@ -14,7 +14,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import type { AdminActionQueueItem } from "@/lib/types/admin/types";
 
-/** Lookup map from action type → icon */
 const ACTION_ICONS: Record<AdminActionQueueItem["type"], LucideIcon> = {
   verification: Building2,
   report_confirmation: FileCheck,

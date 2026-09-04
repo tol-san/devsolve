@@ -8,9 +8,6 @@ import type {
 } from "@/lib/validations/showcase";
 import type * as z from "zod";
 
-/* ── Request / response shapes, mirroring the backend schemas ──────────── */
-
-/** Spring's `Page<T>`, trimmed to the fields the UI reads. */
 export interface Page<T> {
   content: T[];
   totalElements: number;
@@ -23,26 +20,18 @@ export interface Page<T> {
   empty: boolean;
 }
 
-/* The request bodies are the proxy schemas' own output, so a field added to a
-   schema cannot drift from the type callers pass. */
-
-/** `CreateShowCasesRequest`. Only `title` and `overview` are required. */
 export type CreateShowcaseRequest = z.output<typeof showcaseCreateSchema>;
 
-/** `UpdateShowCasesRequest` — every field optional. */
 export type UpdateShowcaseRequest = z.output<typeof showcaseUpdateSchema>;
 
-/** `CreateShowcaseStepRequest`. `stepNumber` is 1-based and set by position. */
 export type CreateShowcaseStepRequest = z.output<
   typeof showcaseStepCreateSchema
 >;
 
-/** `UpdateShowcaseStepRequest` — every field optional. */
 export type UpdateShowcaseStepRequest = z.output<
   typeof showcaseStepUpdateSchema
 >;
 
-/** `ShowcaseStepResponse`. */
 export interface ShowcaseStepResponse {
   id: string;
   stepNumber: number;
@@ -55,7 +44,6 @@ export interface ShowcaseStepResponse {
   updatedAt: string;
 }
 
-/** `ShowcaseTagResponse`. */
 export interface ShowcaseTagResponse {
   id?: string;
   name?: string;
@@ -70,7 +58,6 @@ export interface ShowcaseAuthorResponse {
   reputation?: number;
 }
 
-/** `ShowCasesResponse`. */
 export interface ShowcaseResponse {
   id: string;
   authorId?: string;
@@ -92,22 +79,12 @@ export interface ShowcaseResponse {
   steps?: ShowcaseStepResponse[];
 }
 
-/**
- * `ShowCasesSummaryResponse` — the list row. Carries no steps, and adds the
- * two fields only an author sees: whether an edit is queued for review, and
- * why the last submission was turned down.
- */
 export interface ShowcaseSummaryResponse
   extends Omit<ShowcaseResponse, "steps"> {
   hasUnpublishedRevision?: boolean;
   rejectionReason?: string;
 }
 
-/**
- * `ShowcaseReviewDetailResponse` — a submission as the reviewer (and the
- * author, via `/revision`) sees it. `submissionType` separates a first publish
- * from an edit to something already approved.
- */
 export interface ShowcaseReviewDetailResponse {
   showcaseId: string;
   revisionId?: string;
@@ -130,13 +107,11 @@ export interface ShowcaseReviewDetailResponse {
   steps?: ShowcaseStepResponse[];
 }
 
-/** `ShowcaseViewCountResponse`. */
 export interface ShowcaseViewCountResponse {
   showcaseId: string;
   viewCount: number;
 }
 
-/** `GET /showcases` query parameters. */
 export interface ShowcaseListParams {
   query?: string;
   categoryId?: string;
@@ -151,7 +126,6 @@ export interface PageParams {
   pageSize?: number;
 }
 
-/** Drops undefined entries so RTK Query's cache keys stay stable. */
 function params(source: object): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(source)) {
@@ -160,12 +134,9 @@ function params(source: object): Record<string, string> {
   return out;
 }
 
-/** One `file` part, the shape all four image routes take. */
 function filePart(file: File): FormData {
   const body = new FormData();
   body.append("file", file);
-  // No explicit Content-Type: the browser has to set the multipart boundary
-  // itself, and naming the header here would strip it.
   return body;
 }
 
@@ -173,9 +144,7 @@ const LIST = "LIST";
 
 export const showcasesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    /* ── Reading ──────────────────────────────────────────────────────── */
 
-    /** GET /api/v1/showcases — the public index. */
     getShowcases: builder.query<
       Page<ShowcaseResponse>,
       ShowcaseListParams | void
@@ -190,13 +159,11 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** GET /api/v1/showcases/{id} — one showcase with its build guide. */
     getShowcaseById: builder.query<ShowcaseResponse, string>({
       query: (id) => `/showcases/${id}`,
       providesTags: (_result, _error, id) => [{ type: "Showcase", id }],
     }),
 
-    /** GET /api/v1/showcases/mine — the caller's own, review status included. */
     getMyShowcases: builder.query<
       Page<ShowcaseSummaryResponse>,
       PageParams | void
@@ -208,7 +175,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       providesTags: [{ type: "Showcase", id: "MINE" }],
     }),
 
-    /** GET /api/v1/user-profiles/{userId}/showcases — a public portfolio. */
     getUserShowcases: builder.query<
       Page<ShowcaseSummaryResponse>,
       { userId: string } & PageParams
@@ -222,15 +188,11 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** GET /api/v1/showcases/{id}/revision — the author's pending edit. */
     getMyShowcaseRevision: builder.query<ShowcaseReviewDetailResponse, string>({
       query: (id) => `/showcases/${id}/revision`,
       providesTags: (_result, _error, id) => [{ type: "ShowcaseRevision", id }],
     }),
 
-    /* ── Writing ──────────────────────────────────────────────────────── */
-
-    /** POST /api/v1/showcases — creates the showcase shell, without steps. */
     createShowcase: builder.mutation<ShowcaseResponse, CreateShowcaseRequest>({
       query: (body) => ({ url: "/showcases", method: "POST", body }),
       invalidatesTags: [
@@ -239,11 +201,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * PATCH /api/v1/showcases/{id}. On an approved showcase the upstream files
-     * this as a revision awaiting review rather than changing what is live, so
-     * the pending-revision cache is invalidated alongside the showcase.
-     */
     updateShowcase: builder.mutation<
       ShowcaseResponse,
       { id: string; body: UpdateShowcaseRequest }
@@ -261,7 +218,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** DELETE /api/v1/showcases/{id} — unrecoverable. */
     deleteShowcase: builder.mutation<void, string>({
       query: (id) => ({ url: `/showcases/${id}`, method: "DELETE" }),
       invalidatesTags: (_result, _error, id) => [
@@ -271,7 +227,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** PATCH /api/v1/showcases/{id}/soft-delete — reversible via `restore`. */
     softDeleteShowcase: builder.mutation<void, string>({
       query: (id) => ({
         url: `/showcases/${id}/soft-delete`,
@@ -284,7 +239,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** PATCH /api/v1/showcases/{id}/restore. */
     restoreShowcase: builder.mutation<void, string>({
       query: (id) => ({ url: `/showcases/${id}/restore`, method: "PATCH" }),
       invalidatesTags: (_result, _error, id) => [
@@ -294,7 +248,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** DELETE /api/v1/showcases/{id}/revision — withdraws a pending edit. */
     cancelShowcaseRevision: builder.mutation<void, string>({
       query: (id) => ({ url: `/showcases/${id}/revision`, method: "DELETE" }),
       invalidatesTags: (_result, _error, id) => [
@@ -304,22 +257,12 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * POST /api/v1/showcases/{id}/views. Deliberately invalidates nothing: a
-     * view count that refetched the page it was recorded from would loop.
-     */
     incrementShowcaseViews: builder.mutation<ShowcaseViewCountResponse, string>(
       {
         query: (id) => ({ url: `/showcases/${id}/views`, method: "POST" }),
       },
     ),
 
-    /* ── Cover image ──────────────────────────────────────────────────── */
-
-    /**
-     * PUT /api/v1/showcases/{id}/cover-image. Scoped to an existing showcase,
-     * so the create form uploads straight after the showcase is created.
-     */
     uploadShowcaseCover: builder.mutation<
       ShowcaseResponse,
       { id: string; file: File }
@@ -336,7 +279,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** DELETE /api/v1/showcases/{id}/cover-image. */
     removeShowcaseCover: builder.mutation<ShowcaseResponse, string>({
       query: (id) => ({
         url: `/showcases/${id}/cover-image`,
@@ -349,9 +291,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /* ── Build steps ──────────────────────────────────────────────────── */
-
-    /** GET /api/v1/showcase-steps/{showcaseId} — the guide, in order. */
     getShowcaseSteps: builder.query<ShowcaseStepResponse[], string>({
       query: (showcaseId) => `/showcase-steps/${showcaseId}`,
       providesTags: (_result, _error, showcaseId) => [
@@ -359,7 +298,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** GET /api/v1/showcase-steps/{showcaseId}/{stepId}. */
     getShowcaseStep: builder.query<
       ShowcaseStepResponse,
       { showcaseId: string; stepId: string }
@@ -371,11 +309,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /**
-     * POST /api/v1/showcase-steps/{showcaseId} — one call per step. The API
-     * takes no bulk variant, so the form posts these in order after the
-     * showcase itself exists.
-     */
     createShowcaseStep: builder.mutation<
       ShowcaseStepResponse,
       { showcaseId: string; body: CreateShowcaseStepRequest }
@@ -391,7 +324,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** PATCH /api/v1/showcase-steps/{showcaseId}/{stepId}. */
     updateShowcaseStep: builder.mutation<
       ShowcaseStepResponse,
       {
@@ -412,7 +344,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** DELETE /api/v1/showcase-steps/{showcaseId}/{stepId}. */
     deleteShowcaseStep: builder.mutation<
       void,
       { showcaseId: string; stepId: string }
@@ -428,9 +359,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /* ── Step images ──────────────────────────────────────────────────── */
-
-    /** PUT /api/v1/showcase-steps/{showcaseId}/{stepId}/image. */
     uploadShowcaseStepImage: builder.mutation<
       ShowcaseStepResponse,
       { showcaseId: string; stepId: string; file: File }
@@ -446,7 +374,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** DELETE /api/v1/showcase-steps/{showcaseId}/{stepId}/image. */
     removeShowcaseStepImage: builder.mutation<
       ShowcaseStepResponse,
       { showcaseId: string; stepId: string }
@@ -461,7 +388,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** PUT /api/v1/showcase-steps/{showcaseId}/{stepId}/diagram. */
     uploadShowcaseStepDiagram: builder.mutation<
       ShowcaseStepResponse,
       { showcaseId: string; stepId: string; file: File }
@@ -477,7 +403,6 @@ export const showcasesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    /** DELETE /api/v1/showcase-steps/{showcaseId}/{stepId}/diagram. */
     removeShowcaseStepDiagram: builder.mutation<
       ShowcaseStepResponse,
       { showcaseId: string; stepId: string }

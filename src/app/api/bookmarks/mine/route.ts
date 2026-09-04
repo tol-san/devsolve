@@ -8,10 +8,6 @@ import {
   upstreamFetch,
 } from "@/lib/api/proxy";
 
-/**
- * GET /api/bookmarks/mine — proxy for backend's /api/v1/bookmarks/mine.
- * Returns paginated user bookmarks.
- */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();

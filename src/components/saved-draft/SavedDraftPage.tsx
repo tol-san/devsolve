@@ -111,35 +111,30 @@ export function SavedDraftPage() {
     [membership],
   );
 
-  // Fetch real company programs (filter by state: DRAFT)
   const { data: companyProgramsData, isLoading: isCompanyProgramsLoading } =
     useGetMyCompanyProgramsQuery(
       { size: 100 },
       { skip: !isCompany, refetchOnMountOrArgChange: true },
     );
 
-  // Fetch caller's problem drafts
   const { data: myProblemsData, isLoading: isProblemsLoading } =
     useGetMyProblemsQuery(
       { size: 100 },
       { skip: !isUser, refetchOnMountOrArgChange: true },
     );
 
-  // Fetch caller's showcase drafts
   const { data: showcaseDrafts, isLoading: isShowcaseDraftsLoading } =
     useGetShowcaseDraftsQuery(
       { size: 100 },
       { skip: !isUser, refetchOnMountOrArgChange: true },
     );
 
-  // Fetch caller's solution drafts
   const { data: solutionDrafts, isLoading: isSolutionDraftsLoading } =
     useGetSolutionDraftsQuery(
       { size: 100 },
       { skip: !isUser, refetchOnMountOrArgChange: true },
     );
 
-  // Fetch report drafts
   const { data: reportDrafts, isLoading: isReportDraftsLoading } =
     useGetReportDraftsQuery(
       {},
@@ -178,7 +173,6 @@ export function SavedDraftPage() {
     return byId;
   }, [programsData]);
 
-  // Convert real backend DRAFT items to SavedDraftItem format
   const draftItems = useMemo<SavedDraftItem[]>(() => {
     const items: SavedDraftItem[] = [];
 
@@ -501,7 +495,6 @@ export function SavedDraftPage() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      {/* HEADER WITH SEARCH & CATEGORY PILLS */}
       <SavedDraftHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -517,7 +510,6 @@ export function SavedDraftPage() {
         visibleTabs={visibleTabs}
       />
 
-      {/* UNDER REVIEW BANNER */}
       {!isLoading && underReviewCount > 0 ? (
         <div className="flex items-start gap-3 rounded-2xl bg-card p-4 ring-1 ring-foreground/5 dark:ring-foreground/10 sm:items-center">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
@@ -538,10 +530,8 @@ export function SavedDraftPage() {
         </div>
       ) : null}
 
-      {/* MAIN CONTENT AREA */}
       <main className="pt-2">
         {isLoading ? (
-          /* SKELETON LOADING STATE */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
@@ -562,7 +552,6 @@ export function SavedDraftPage() {
             ))}
           </div>
         ) : filteredItems.length === 0 ? (
-          /* EMPTY STATE */
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -593,7 +582,6 @@ export function SavedDraftPage() {
             )}
           </motion.div>
         ) : activeTab === "all" ? (
-          /* ALL CATEGORIES (GROUPED BY CATEGORY) */
           <div className="space-y-10">
             {groupedDrafts.map((group) => (
               <section key={group.category} className="space-y-4">
@@ -624,7 +612,6 @@ export function SavedDraftPage() {
             ))}
           </div>
         ) : (
-          /* SPECIFIC CATEGORY GRID */
           <motion.div
             layout
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"

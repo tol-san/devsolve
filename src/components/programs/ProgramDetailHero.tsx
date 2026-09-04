@@ -43,15 +43,6 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
       .join("")
       .toUpperCase() || "OR";
 
-  /* Saving is for programs a researcher can come back to. A draft has no
-     public page to return to — this hero is also what the owner previews from
-     Saved drafts — so the control is left out rather than shown against
-     something nobody else can open. The status request goes with it.
-
-     One under review is excluded on top of that, and needs saying separately:
-     `state` and `submissionState` move independently, so a program that was
-     published and then resubmitted sits at `ACTIVE` with `PENDING_REVIEW`, and
-     the published check alone let Save through on it. */
   const canBookmark = isPublished(program) && !isUnderReview(program);
 
   const { data: isSaved } = useGetBookmarkStatusQuery(
@@ -144,7 +135,6 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
   return (
     <div className="relative bg-card rounded-xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-sm overflow-hidden">
       <div className="p-4 sm:p-6 space-y-4">
-        {/* TOP HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
             <Link
@@ -186,7 +176,6 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
               </div>
             </Link>
 
-            {/* Mobile badges & Save button row */}
             <div className="flex sm:hidden items-center justify-between w-full pt-2">
               <div className="flex items-center gap-2">
                 {badgesElement}
@@ -195,7 +184,6 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
             </div>
           </div>
 
-          {/* Desktop Save button */}
           {saveButton && (
             <div className="hidden sm:flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
               {saveButton}
@@ -203,21 +191,18 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
           )}
         </div>
 
-        {/* PROGRAM NAME – responsive size */}
         {program.description && (
           <p className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground leading-snug w-full line-clamp-2">
             {program.name}
           </p>
         )}
 
-        {/* PROGRAM DESCRIPTION – responsive */}
         {program.description && (
           <p className="text-sm sm:text-base text-muted-foreground leading-relaxed w-full line-clamp-2">
             {program.description}
           </p>
         )}
 
-        {/* ASSET TYPE BADGES */}
         {assetTypes.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {assetTypes.map((type, i) => (
@@ -231,9 +216,7 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
           </div>
         )}
 
-        {/* STATS ROW – responsive grid with proper gaps */}
         <div className="pt-3 border-t border-border grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-          {/* MIN REWARD */}
           <div className="space-y-0.5">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Award className="w-3.5 h-3.5" />
@@ -246,7 +229,6 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
             </p>
           </div>
 
-          {/* MAX REWARD */}
           <div className="space-y-0.5">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Trophy className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
@@ -259,7 +241,6 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
             </p>
           </div>
 
-          {/* TOTAL ASSETS */}
           <div className="space-y-0.5">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Layers className="w-3.5 h-3.5" />
@@ -272,7 +253,6 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
             </p>
           </div>
 
-          {/* CREATED DATE */}
           <div className="space-y-0.5">
             <div className="flex items-center gap-1 text-muted-foreground">
               <Calendar className="w-3.5 h-3.5" />

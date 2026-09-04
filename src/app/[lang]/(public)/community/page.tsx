@@ -1,7 +1,6 @@
 import { permanentRedirect } from "next/navigation";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 
-/** The public listing moved to the descriptive `/discussions` URL. */
 export default async function LegacyCommunityPage({
   params,
 }: {
