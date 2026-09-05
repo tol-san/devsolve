@@ -105,7 +105,18 @@ const DiscussionBookmarkCard: React.FC<{ item: BookmarkItem }> = ({ item }) => {
     };
   }, [discussionPost, item]);
 
-  return <DiscussionCard post={post} />;
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="h-full"
+    >
+      <DiscussionCard post={post} variant="card" />
+    </motion.div>
+  );
 };
 
 export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) => {

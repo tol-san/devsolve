@@ -77,6 +77,13 @@
     "opening": "Opening…"
   },
   "hero": {
+    "titleBounty": "BUG BOUNTY",
+    "titlePlatform": "PLATFORM",
+    "titleDev": "DEVELOPER",
+    "titleCommunity": "COMMUNITY",
+    "subtitle": "DevSolve bridges security researchers and engineering teams — offering guaranteed bounty escrow for hunters, and verified code solutions for developers.",
+    "explorePrograms": "Explore Programs",
+    "devCommunity": "Developer Community",
     "kicker": "DevSolve Platform",
     "kickerSub": "Unified Bug Bounty & Developer Hub",
     "titleLine1": "Turn Found Vulnerabilities",
@@ -153,14 +160,7 @@
         "blurb": "Every accepted report and marked solution lands on your profile with the severity, the programme and the date attached. One link, nothing to explain.",
         "link": "See the showcases"
       }
-    },
-    "titleBounty": "BUG BOUNTY",
-    "titlePlatform": "PLATFORM",
-    "titleDev": "DEVELOPER",
-    "titleCommunity": "COMMUNITY",
-    "subtitle": "DevSolve bridges security researchers and engineering teams — offering guaranteed bounty escrow for hunters, and verified code solutions for developers.",
-    "explorePrograms": "Explore Programs",
-    "devCommunity": "Developer Community"
+    }
   },
   "footer": {
     "tagline": "Bug bounty and vulnerability disclosure platform for developers, security engineers, and organizations. Built to find vulnerabilities before attackers do.",

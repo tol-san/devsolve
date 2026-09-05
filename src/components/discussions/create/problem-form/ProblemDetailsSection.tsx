@@ -3,13 +3,12 @@
 import React from "react";
 import { motion } from "motion/react";
 import { Control, Controller, FieldErrors, UseFormRegister } from "react-hook-form";
+import { Columns2, FileText, ListOrdered, Terminal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Field,
@@ -21,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { MarkdownEditor } from "@/components/reports/MarkdownEditor";
 import { ProblemDuplicatePanel } from "@/components/discussions/create/ProblemDuplicatePanel";
+import { cn } from "@/lib/utils";
 import {
   CARD_CLASS,
   CONTROL_CLASS,
@@ -50,31 +50,47 @@ export function ProblemDetailsSection({
   problemId,
   onInsertTemplate,
 }: ProblemDetailsSectionProps) {
+  const isTitleValid = title.trim().length >= 10 && title.trim().length <= 180;
+  const isDescValid = description.trim().length >= 30;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
     >
-      <Card className={CARD_CLASS} aria-labelledby="problem-details-heading">
+      <Card
+        id="section-details"
+        className={CARD_CLASS}
+        aria-labelledby="problem-details-heading"
+      >
         <CardHeader className="border-b border-border/70 pb-4">
-          <div className="flex items-start gap-3">
-            <Badge variant="outline" className="mt-0.5 font-mono text-xs">
-              01
-            </Badge>
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <CardTitle>
-                <h2
-                  id="problem-details-heading"
-                  className="text-lg font-bold tracking-tight text-foreground"
-                >
-                  Problem details
-                </h2>
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-muted-foreground">
-                Give the community enough context to understand, diagnose, and reproduce what is going wrong.
-              </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+                <FileText className="size-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-muted-foreground font-bold">01.</span>
+                  <h2
+                    id="problem-details-heading"
+                    className="text-lg font-bold tracking-tight text-foreground"
+                  >
+                    Problem Details
+                  </h2>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  Give the community enough context to understand, diagnose, and reproduce what is going wrong.
+                </p>
+              </div>
             </div>
+            <Badge
+              variant="outline"
+              className="self-start sm:self-auto shrink-0 border-primary/25 bg-primary/10 text-primary text-xs font-semibold"
+            >
+              Required
+            </Badge>
           </div>
         </CardHeader>
 
@@ -99,8 +115,15 @@ export function ProblemDetailsSection({
                   <span className="sr-only"> (required)</span>
                 </FieldLabel>
 
-                <span className="text-xs text-muted-foreground font-mono tabular-nums">
-                  {title.length} / 180
+                <span
+                  className={cn(
+                    "text-xs font-mono tabular-nums transition-colors",
+                    isTitleValid
+                      ? "text-emerald-600 dark:text-emerald-400 font-medium"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {title.length} / 180 {title.length < 10 && "(min 10)"}
                 </span>
               </div>
 
@@ -156,43 +179,48 @@ export function ProblemDetailsSection({
                   <span className="sr-only"> (required)</span>
                 </FieldLabel>
 
-                <span className="text-xs text-muted-foreground font-mono tabular-nums">
-                  {description.length.toLocaleString()} / 20,000
+                <span
+                  className={cn(
+                    "text-xs font-mono tabular-nums transition-colors",
+                    isDescValid
+                      ? "text-emerald-600 dark:text-emerald-400 font-medium"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {description.length.toLocaleString()} / 20,000 {description.length < 30 && "(min 30)"}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 py-0.5 text-xs text-muted-foreground">
-                <span className="font-medium text-foreground/80">
+              {/* Template Insertion Chips */}
+              <div className="flex flex-wrap items-center gap-2 py-1">
+                <span className="text-xs font-medium text-muted-foreground mr-1">
                   Insert template:
                 </span>
                 <button
                   type="button"
                   onClick={() => onInsertTemplate("expected")}
                   disabled={submitting}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer hover:underline underline-offset-2"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 hover:bg-muted px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-border cursor-pointer disabled:opacity-50"
                 >
+                  <Columns2 className="size-3 text-primary" />
                   Expected vs Actual
                 </button>
-                <span aria-hidden="true" className="opacity-40">
-                  ·
-                </span>
                 <button
                   type="button"
                   onClick={() => onInsertTemplate("steps")}
                   disabled={submitting}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer hover:underline underline-offset-2"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 hover:bg-muted px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-border cursor-pointer disabled:opacity-50"
                 >
+                  <ListOrdered className="size-3 text-primary" />
                   Steps to Reproduce
                 </button>
-                <span aria-hidden="true" className="opacity-40">
-                  ·
-                </span>
                 <button
                   type="button"
                   onClick={() => onInsertTemplate("logs")}
                   disabled={submitting}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer hover:underline underline-offset-2"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 hover:bg-muted px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-border cursor-pointer disabled:opacity-50"
                 >
+                  <Terminal className="size-3 text-primary" />
                   Error / Stack Trace
                 </button>
               </div>

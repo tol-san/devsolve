@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import { useT } from "@/lib/i18n/I18nProvider";
 
 export function AdminDashboardOverview() {
   const t = useT();
+  const [mounted, setMounted] = useState(false);
   const {
     overview,
     adminData,
@@ -33,7 +34,13 @@ export function AdminDashboardOverview() {
     pieData,
   } = useAdminOverview();
 
-  if (isLoading) {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Always show skeleton until hydrated — prevents SSR/client mismatch
+  // where server sees isLoading=true but client already has RTK Query cache
+  if (!mounted || isLoading) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 12 }}

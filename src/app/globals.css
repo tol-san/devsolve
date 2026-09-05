@@ -632,7 +632,39 @@ html .wmde-markdown pre,
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Angkor';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Angkor'),
+       url('/fonts/Angkor-Regular.ttf') format('truetype'),
+       url('https://fonts.gstatic.com/s/angkor/v35/H4cmBXyAlsPdnlb-8g.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'KhBaphnom';
+  src: local('Kh Baphnom 020 MengSotin'),
+       local('Kh-Baphnom-020-MengSotin'),
+       local('Kh Baphnom 020'),
+       local('Kh Baphnom'),
+       url('/fonts/Kh-Baphnom-020-MengSotin.ttf') format('truetype'),
+       url('/fonts/KhBaphnom.ttf') format('truetype'),
+       local('Kh Digital Thom'),
+       local('KH MPS Jrung');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 .font-cyber {
   font-family: var(--font-cyber), 'Hackdaddy', monospace !important;
 }
+
+:lang(km) .font-cyber,
+html[lang^="km"] .font-cyber,
+[lang^="km"] .font-cyber {
+  font-family: var(--font-angkor), 'Angkor', 'KhBaphnom', 'Kh Baphnom 020 MengSotin', var(--font-khmer), 'Kantumruy Pro', sans-serif !important;
+}
+
 

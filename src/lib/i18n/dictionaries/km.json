@@ -77,6 +77,13 @@
     "opening": "កំពុងបើក…"
   },
   "hero": {
+    "titleBounty": "វេទិកាផ្តល់រង្វាន់",
+    "titlePlatform": "សម្រាប់ការរកឃើញចន្លោះប្រហោង",
+    "titleDev": "និង សហគមន៍អ្នកសរសេរកូដ",
+    "titleCommunity": "",
+    "subtitle": "DevSolve តភ្ជាប់អ្នកស្រាវជ្រាវសុវត្ថិភាព និងក្រុមវិស្វកម្ម — ធានាប្រាក់រង្វាន់កក់ទុកសម្រាប់ Hunters និងផ្តល់ដំណោះស្រាយកូដដែលបានផ្ទៀងផ្ទាត់សម្រាប់ Developers។",
+    "explorePrograms": "ស្វែងរក Programs",
+    "devCommunity": "សហគមន៍អ្នកសរសេរកូដ",
     "kicker": "DevSolve Platform",
     "kickerSub": "មជ្ឈមណ្ឌល Bug Bounty និង Dev Hub រួមតែមួយ",
     "titleLine1": "បង្វែរចន្លោះប្រហោងសុវត្ថិភាព",
@@ -153,14 +160,7 @@
         "blurb": "រាល់ Report ដែលបាន Approve និងដំណោះស្រាយដែលគេរើស នឹងលោតឡើងលើ Profile របស់អ្នកភ្លាមៗ ភ្ជាប់ជាមួយ Severity ឈ្មោះ Program និងកាលបរិច្ឆេទច្បាស់ៗ។",
         "link": "ចូលមើល Showcase"
       }
-    },
-    "titleBounty": "BUG BOUNTY",
-    "titlePlatform": "PLATFORM",
-    "titleDev": "DEVELOPER",
-    "titleCommunity": "COMMUNITY",
-    "subtitle": "DevSolve ភ្ជាប់ទំនាក់ទំនងរវាងអ្នកស្រាវជ្រាវសន្តិសុខ និងក្រុមវិស្វកម្ម — ធានាប្រាក់រង្វាន់ Bounty សម្រាប់ Hunters និងផ្តល់ដំណោះស្រាយកូដដែលបានផ្ទៀងផ្ទាត់សម្រាប់ Developers។",
-    "explorePrograms": "ស្វែងរក Programs",
-    "devCommunity": "សហគមន៍ Developers"
+    }
   },
   "footer": {
     "tagline": "Platform ប្រមាញ់ Bug Bounty និងរាយការណ៍ចន្លោះប្រហោងសុវត្ថិភាពសម្រាប់ Devs, Security Engineers និងក្រុមហ៊ុននានា។ បង្កើតឡើងដើម្បីស្វែងរក Bug មុនពេល Hacker វាយលុក។",

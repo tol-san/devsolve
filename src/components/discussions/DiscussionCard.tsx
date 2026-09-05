@@ -64,6 +64,8 @@ interface DiscussionCardProps {
   post: DiscussionPost;
   index?: number;
   myAnswer?: MySolutionStatus;
+  variant?: "feed" | "card";
+  className?: string;
 }
 
 function getInitials(name: string) {
@@ -80,6 +82,8 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   post,
   index = 0,
   myAnswer,
+  variant = "feed",
+  className,
 }) => {
   const [previewImage, setPreviewImage] = useState<{
     src: string;
@@ -262,7 +266,12 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
       role="article"
       aria-labelledby={titleId}
       onClick={handleCardClick}
-      className="group relative border-b border-border/60 last:border-b-0 p-4 sm:p-6 transition-colors hover:bg-muted/30 cursor-pointer"
+      className={cn(
+        variant === "card"
+          ? "group relative flex flex-col justify-between rounded-2xl bg-card text-card-foreground p-5 sm:p-6 ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-2xs hover:shadow-md hover:ring-foreground/15 transition-all duration-200 cursor-pointer h-full border-0"
+          : "group relative border-b border-border/60 last:border-b-0 p-4 sm:p-6 transition-colors hover:bg-muted/30 cursor-pointer",
+        className,
+      )}
     >
       <Link
         href={targetHref}
@@ -271,7 +280,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative pointer-events-none flex flex-col gap-3 sm:gap-3.5">
+      <div className={cn("relative pointer-events-none flex flex-col gap-3 sm:gap-3.5", variant === "card" && "h-full justify-between")}>
         {/* Top Header: Author info, Topic & Badges on left; Owner affordances & Bookmark on right */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pointer-events-auto">
@@ -537,7 +546,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
         )}
 
         {/* Bottom Action Bar */}
-        <div className="flex items-center justify-between gap-3 pt-2.5 sm:pt-3 border-t border-border/40 text-muted-foreground">
+        <div className={cn("flex items-center justify-between gap-3 pt-2.5 sm:pt-3 border-t border-border/40 text-muted-foreground", variant === "card" && "mt-auto")}>
           {isShowcase ? (
             /* Showcase Card Footer: Vote buttons + score · bookmarks · comments · views */
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap pointer-events-auto">
