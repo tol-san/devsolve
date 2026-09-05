@@ -125,6 +125,8 @@ export default function DiscussionsPage() {
           isLoadingTopics={isLoadingTopics}
           isLoadingTags={isLoadingTags}
           isLoadingStats={isLoadingStats}
+          createHref="/dashboard/discussions/create"
+          createLabel="Start New Discussion"
         />
 
         <section
@@ -151,7 +153,7 @@ export default function DiscussionsPage() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="flex flex-col gap-5"
+                      className="flex flex-col border-t border-border/70"
                     >
                       {discussions.data.map((post, index) => (
                         <DiscussionCard

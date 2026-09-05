@@ -9,49 +9,42 @@ export function DiscussionSkeleton() {
     <div
       role="status"
       aria-label="Loading discussions"
-      className="flex animate-pulse flex-col gap-5"
+      className="flex animate-pulse flex-col border-t border-border/70"
     >
       <span className="sr-only">Loading discussions…</span>
 
-      {Array.from({ length: 4 }).map((_, index) => (
+      {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className="flex flex-col gap-4 rounded-2xl bg-card p-5 shadow-xs ring-1 ring-foreground/5 sm:p-6"
+          className="flex flex-col gap-3 border-b border-border/70 py-4 sm:py-5 px-2 sm:px-3.5 sm:flex-row sm:items-start sm:gap-4.5"
         >
-          <div className="flex gap-2">
-            <div className={`h-6 w-18 ${BLOCK_CLASS}`} />
-            <div className={`h-6 w-28 ${BLOCK_CLASS}`} />
-            <div className={`h-6 w-20 ${BLOCK_CLASS}`} />
-          </div>
+          {/* Avatar Skeleton */}
+          <div className="size-11 rounded-full bg-muted shrink-0" />
 
-          <div className="flex flex-col gap-2.5">
-            <div className={`h-6 w-4/5 ${BLOCK_CLASS}`} />
-            <div className="flex flex-col gap-2">
-              <div className={`h-4 w-full ${BLOCK_CLASS}`} />
-              <div className={`h-4 w-3/4 ${BLOCK_CLASS}`} />
+          {/* Body Skeleton */}
+          <div className="min-w-0 flex-1 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <div className={`h-5 w-24 rounded-full ${BLOCK_CLASS}`} />
+              <div className={`h-3 w-16 ${BLOCK_CLASS}`} />
+            </div>
+            <div className={`h-6 w-3/4 ${BLOCK_CLASS}`} />
+            <div className={`h-4 w-full ${BLOCK_CLASS}`} />
+            <div className="flex gap-2 pt-1">
+              <div className={`h-6 w-14 ${BLOCK_CLASS}`} />
+              <div className={`h-6 w-16 ${BLOCK_CLASS}`} />
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {Array.from({ length: 4 }).map((_, tagIndex) => (
-              <div
-                key={tagIndex}
-                className={`h-7 w-16 ${BLOCK_CLASS}`}
-              />
-            ))}
-          </div>
-
-          <div className="h-px bg-border/50" />
-
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-2.5">
-              <div className={`size-6 rounded-full bg-muted`} />
-              <div className={`h-4 w-28 ${BLOCK_CLASS}`} />
+          {/* Right actions skeleton */}
+          <div className="flex shrink-0 sm:flex-col sm:items-end justify-between items-center gap-3">
+            <div className="flex -space-x-2">
+              <div className="size-6 rounded-full bg-muted" />
+              <div className="size-6 rounded-full bg-muted" />
             </div>
-            <div className="flex items-center gap-3">
-              <div className={`h-4 w-16 ${BLOCK_CLASS}`} />
-              <div className={`h-4 w-16 ${BLOCK_CLASS}`} />
-              <div className={`h-8 w-16 rounded-xl bg-muted`} />
+            <div className={`h-4 w-20 ${BLOCK_CLASS}`} />
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-16 rounded-xl bg-muted" />
+              <div className="size-8 rounded-xl bg-muted" />
             </div>
           </div>
         </div>

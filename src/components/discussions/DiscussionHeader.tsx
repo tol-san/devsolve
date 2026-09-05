@@ -11,13 +11,11 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   ChevronRight,
   Command,
-  Plus,
   Search,
   X,
 } from "lucide-react";
 
-import { AuthGatedLink } from "@/components/auth/AuthGatedLink";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
@@ -32,15 +30,13 @@ interface DiscussionSearchProps {
 interface DiscussionHeaderProps {
   breadcrumbLabel: string;
   title: string;
-  createHref: string;
+  createHref?: string;
   createLabel?: string;
 }
 
 export function DiscussionHeader({
   breadcrumbLabel,
   title,
-  createHref,
-  createLabel,
 }: DiscussionHeaderProps) {
   const t = useT();
   const lp = useLocalePath();
@@ -68,23 +64,6 @@ export function DiscussionHeader({
           {title}
         </h1>
       </div>
-
-      <motion.div
-        className="w-full shrink-0 sm:w-auto"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
-      >
-        <AuthGatedLink
-          href={createHref}
-          className={cn(
-            buttonVariants({ size: "lg" }),
-            "w-full rounded-xl bg-blue-600 px-5 font-semibold text-white shadow-xs hover:bg-blue-700 sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-700",
-          )}
-        >
-          <Plus data-icon="inline-start" aria-hidden="true" />
-          {createLabel ?? t("community.pages.community.createLabel")}
-        </AuthGatedLink>
-      </motion.div>
     </header>
   );
 }
