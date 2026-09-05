@@ -246,9 +246,17 @@ export const Navbar = () => {
     handleSignOut,
   } = useSidebarAuth();
 
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const activeUser = hasMounted ? sessionUser : undefined;
+
   const visibleNavLinks = useMemo(
-    () => navLinks.filter((link) => !(link.guestOnly && sessionUser)),
-    [sessionUser],
+    () => navLinks.filter((link) => !(link.guestOnly && activeUser)),
+    [activeUser],
   );
 
   const {
@@ -278,8 +286,8 @@ export const Navbar = () => {
     : {
       isCompany: false,
       name: displayName,
-      detail: sessionUser?.email || undefined,
-      image: sessionUser?.image,
+      detail: activeUser?.email || undefined,
+      image: activeUser?.image,
       profileHref: "/dashboard/profile",
       profileLabel: "My profile",
       settingsHref: "/dashboard/profile/settings",
@@ -287,8 +295,9 @@ export const Navbar = () => {
     };
 
   const isNavbarIdentityPending =
+    !hasMounted ||
     isSessionPending ||
-    (Boolean(sessionUser) && !areRolesResolved) ||
+    (Boolean(activeUser) && !areRolesResolved) ||
     isMembershipLoading;
 
   const headerRef = useRef<HTMLElement>(null);
@@ -734,11 +743,11 @@ export const Navbar = () => {
             </nav>
 
             <div className="hidden lg:flex shrink-0 items-center justify-end gap-2">
-              {sessionUser && <NotificationTrigger />}
+              {activeUser && <NotificationTrigger />}
 
               <NavbarSearch variant="icon" />
 
-              {!sessionUser && (
+              {!activeUser && (
                 <>
                   <Button
                     size="icon"
@@ -783,7 +792,7 @@ export const Navbar = () => {
               <NavbarUserMenu
                 onLogin={handleLogin}
                 isLoggingIn={isLoggingIn}
-                user={sessionUser}
+                user={activeUser}
                 identity={navbarIdentity}
                 isIdentityPending={isNavbarIdentityPending}
                 onSignOut={handleSignOut}
@@ -791,7 +800,7 @@ export const Navbar = () => {
             </div>
 
             <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
-              {sessionUser && <NotificationTrigger className="size-9" />}
+              {activeUser && <NotificationTrigger className="size-9" />}
 
               <NavbarSearch variant="icon" className="size-9" />
 
@@ -1015,7 +1024,7 @@ export const Navbar = () => {
                 </nav>
 
                 <div className="space-y-2.5 border-t border-border/70 pt-2.5">
-                  {sessionUser ? (
+                  {activeUser ? (
                     <>
                       {isNavbarIdentityPending ? (
                         <div
