@@ -62,8 +62,8 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
   return (
     <div className="flex flex-col justify-between h-full rounded-2xl border border-border/80 bg-card/80 p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10">
       <div>
-        <div className="flex items-center justify-between pb-4 border-b border-border/70">
-          <div className="flex items-center gap-2.5">
+        <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-border/70">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <h2 className="text-base font-semibold text-foreground">
               {t("dashboard.actionQueue.title")}
             </h2>
@@ -71,7 +71,7 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
               <Badge
                 variant="outline"
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-2xs",
+                  "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-2xs shrink-0 whitespace-nowrap",
                   hasUrgent
                     ? "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400"
                     : "border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400",
@@ -85,7 +85,7 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
             ) : (
               <Badge
                 variant="outline"
-                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-medium px-2 py-0.5 rounded-full"
+                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-medium px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap"
               >
                 Clear
               </Badge>
@@ -94,7 +94,7 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
 
           <Link
             href="/dashboard/my-reports"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
           >
             View reports
           </Link>

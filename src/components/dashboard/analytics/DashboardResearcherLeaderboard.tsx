@@ -28,17 +28,17 @@ export function DashboardResearcherLeaderboard({
 }: DashboardResearcherLeaderboardProps) {
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-2xs space-y-5">
-      <div className="flex items-center justify-between gap-2">
-        <div>
-          <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Trophy className="size-5 text-primary" />
+      <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="w-full sm:w-auto">
+          <h3 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+            <Trophy className="size-5 text-primary shrink-0" />
             <span>Top Security Researchers</span>
           </h3>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Key contributors ranked by valid vulnerabilities and impact
           </p>
         </div>
-        <span className="text-xs font-semibold text-muted-foreground bg-muted px-3 py-1 rounded-full border border-border">
+        <span className="text-xs font-semibold text-muted-foreground bg-muted px-3 py-1 rounded-full border border-border shrink-0 whitespace-nowrap">
           {researchers.length} hackers
         </span>
       </div>

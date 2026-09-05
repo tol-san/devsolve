@@ -50,19 +50,19 @@ export function DashboardRecentReportsTable({
 
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-2xs space-y-5">
-      <div className="flex items-center justify-between pb-2 border-b border-border/70">
-        <div>
-          <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <FileText className="size-5 text-primary" />
+      <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-3 sm:pb-2 border-b border-border/70">
+        <div className="w-full sm:w-auto">
+          <h3 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
+            <FileText className="size-5 text-primary shrink-0" />
             <span>Recent Vulnerability Reports</span>
           </h3>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Latest submissions waiting for triage or resolution
           </p>
         </div>
         <Link
           href="/dashboard/report-management"
-          className="group inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+          className="group inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-primary hover:text-primary/80 transition-colors shrink-0 whitespace-nowrap"
         >
           <span>View all reports</span>
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
