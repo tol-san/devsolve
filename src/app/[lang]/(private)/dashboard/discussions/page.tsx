@@ -76,8 +76,6 @@ export default function DiscussionsPage() {
       <DiscussionHeader
         breadcrumbLabel="Community"
         title="Community"
-        badgeLabel="Problems · Solutions · Showcases"
-        description="Ask focused questions, share practical solutions, and showcase what you are building with other developers."
         createHref="/dashboard/discussions/create"
         createLabel="Start a discussion"
       />

@@ -11,14 +11,12 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   ChevronRight,
   Command,
-  MessagesSquare,
   Plus,
   Search,
   X,
 } from "lucide-react";
 
 import { AuthGatedLink } from "@/components/auth/AuthGatedLink";
-import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
@@ -34,8 +32,6 @@ interface DiscussionSearchProps {
 interface DiscussionHeaderProps {
   breadcrumbLabel: string;
   title: string;
-  badgeLabel: string;
-  description: string;
   createHref: string;
   createLabel?: string;
 }
@@ -43,8 +39,6 @@ interface DiscussionHeaderProps {
 export function DiscussionHeader({
   breadcrumbLabel,
   title,
-  badgeLabel,
-  description,
   createHref,
   createLabel,
 }: DiscussionHeaderProps) {
@@ -70,19 +64,9 @@ export function DiscussionHeader({
           </span>
         </nav>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
-            {title}
-          </h1>
-          <Badge variant="tag" className="h-6 rounded-lg px-2.5 text-sm">
-            <MessagesSquare data-icon="inline-start" aria-hidden="true" />
-            {badgeLabel}
-          </Badge>
-        </div>
-
-        <p className="text-base leading-relaxed text-muted-foreground">
-          {description}
-        </p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
+          {title}
+        </h1>
       </div>
 
       <motion.div

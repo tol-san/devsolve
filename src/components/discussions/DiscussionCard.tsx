@@ -224,7 +224,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
               {post.title}
             </h3>
           </CardTitle>
-          <CardDescription className="mt-1.5 line-clamp-2 text-base leading-relaxed text-muted-foreground break-words [word-break:break-word]">
+          <CardDescription className="mt-1.5 line-clamp-2 text-base leading-relaxed text-foreground/80 break-words [word-break:break-word]">
             {post.description}
           </CardDescription>
         </CardHeader>

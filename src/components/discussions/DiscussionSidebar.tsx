@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  BarChart3,
   ChevronDown,
   ChevronUp,
   Hash,
@@ -97,11 +96,12 @@ export function DiscussionSidebar({
     if (isExpanded) {
       return sortedTopics;
     }
-    return activeTopics.length > 0 ? activeTopics : sortedTopics.slice(0, 5);
+    const baseList = activeTopics.length > 0 ? activeTopics : sortedTopics;
+    return baseList.slice(0, 3);
   }, [sortedTopics, activeTopics, topicSearch, isExpanded]);
 
-  const hasHiddenZeroTopics =
-    !topicSearch && sortedTopics.length > activeTopics.length && activeTopics.length > 0;
+  const hasHiddenTopics =
+    !topicSearch && sortedTopics.length > 3;
 
   const visibleTags = useMemo(() => {
     if (isTagsExpanded || tags.length <= 10) return tags;
@@ -115,19 +115,12 @@ export function DiscussionSidebar({
     onSelectTag(null);
   };
 
-  const metrics = [
-    { key: "problems", label: t("community.stats.problems"), value: stats?.problems ?? 0 },
-    { key: "showcases", label: t("community.stats.showcases"), value: stats?.showcases ?? 0 },
-  ];
-
   return (
     <motion.aside
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: "easeOut", delay: 0.08 }}
-      aria-label={t(
-        showStats ? "community.explore.regionWithStats" : "community.explore.region",
-      )}
+      aria-label={t("community.explore.region")}
       className={cn(
         "flex flex-col gap-5 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start",
         className,
@@ -287,7 +280,7 @@ export function DiscussionSidebar({
               )}
             </div>
 
-            {hasHiddenZeroTopics && (
+            {hasHiddenTopics && (
               <Button
                 type="button"
                 variant="ghost"
@@ -298,7 +291,7 @@ export function DiscussionSidebar({
                 {isExpanded ? (
                   <>
                     <ChevronUp className="size-3.5 mr-1.5" />
-                    Show active topics only ({activeTopics.length})
+                    Show top 3 topics
                   </>
                 ) : (
                   <>
@@ -393,51 +386,6 @@ export function DiscussionSidebar({
           </div>
         </CardContent>
       </Card>
-
-      {showStats && (
-        <div className="hidden lg:block">
-          <Card className="gap-0 rounded-2xl py-0 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 bg-card">
-            <CardHeader className="px-5 pt-5 pb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                  <BarChart3 aria-hidden="true" className="size-4" />
-                </span>
-                <div>
-                  <CardTitle className="text-sm font-bold tracking-tight">
-                    {t("community.stats.title")}
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {t("community.stats.subtitle")}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2.5 px-5 pb-4">
-              <dl className="flex flex-col gap-2.5">
-                {metrics.map(({ key, label, value }) => (
-                  <div
-                    key={key}
-                    className="flex items-center justify-between gap-3 text-xs"
-                  >
-                    <dt className="font-medium text-muted-foreground">
-                      {label}
-                    </dt>
-                    <dd>
-                      {isLoadingStats ? (
-                        <div className="h-4 w-10 animate-pulse rounded bg-muted" />
-                      ) : (
-                        <span className="font-bold tabular-nums text-foreground">
-                          {value.toLocaleString()}
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </motion.aside>
   );
 }
