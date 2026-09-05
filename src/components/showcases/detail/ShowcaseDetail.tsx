@@ -239,6 +239,21 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
     }
   };
 
+  const isOwner = Boolean(showcase?.viewer?.owner);
+  const isPending = showcase?.reviewStatus === "PENDING";
+
+  const outline = useMemo(() => {
+    const items = [{ id: "overview", label: "Overview" }];
+    if (showcase?.steps && showcase.steps.length > 0) {
+      items.push({ id: "walkthrough", label: "Walkthrough" });
+    }
+    items.push({ id: "comments-section", label: "Discussion" });
+    if (showcase?.related && showcase.related.length > 0) {
+      items.push({ id: "related-showcases", label: "More Like This" });
+    }
+    return items;
+  }, [showcase?.steps, showcase?.related]);
+
   if (isLoading) {
     return (
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -268,21 +283,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
       </main>
     );
   }
-
-  const isOwner = Boolean(showcase.viewer?.owner);
-  const isPending = showcase.reviewStatus === "PENDING";
-
-  const outline = useMemo(() => {
-    const items = [{ id: "overview", label: "Overview" }];
-    if (showcase.steps && showcase.steps.length > 0) {
-      items.push({ id: "walkthrough", label: "Walkthrough" });
-    }
-    items.push({ id: "comments-section", label: "Discussion" });
-    if (showcase.related && showcase.related.length > 0) {
-      items.push({ id: "related-showcases", label: "More Like This" });
-    }
-    return items;
-  }, [showcase.steps, showcase.related]);
 
   return (
     <motion.div
