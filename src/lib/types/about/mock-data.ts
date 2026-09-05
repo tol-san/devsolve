@@ -52,41 +52,40 @@ export const STUDENT_DEVELOPERS: TeamMember[] = [
     telegram: "https://t.me",
   },
   {
-    name: "Lor VengRoth",
+    name: "Lor Vengroth",
     badge: "Sub Leader",
     badgeColor: "purple",
     subRole: "Full Stack",
     quote: '"Architecting the backbone of security."',
-    image: "/teams/Sub Leader Lor VengRoth.jpg",
+    image: "/teams/Lor Vengroth.JPG",
     github: "https://github.com",
     linkedin: "https://linkedin.com",
     telegram: "https://t.me",
   },
-   {
+  {
     name: "San Tol",
     badge: "Member",
     badgeColor: "blue",
     subRole: "Full Stack",
     quote: '"Visualizing threats for better protection."',
-    image: "/teams/San Tol.jpg",
+    image: "/teams/San Tol.JPG",
     github: "https://github.com",
     linkedin: "https://linkedin.com",
     telegram: "https://t.me",
   },
-    {
+  {
     name: "Ky Reaksa",
-   badge: "Member",
+    badge: "Member",
     badgeColor: "blue",
     subRole: "Full Stack",
     quote: '"Innovation through collaborative logic."',
-    image: "/teams/ky raxsa.jpg",
+    image: "/teams/Ky Reaksa.JPG",
     github: "https://github.com",
     linkedin: "https://linkedin.com",
     telegram: "https://t.me",
   },
-   
   {
-    name: "ChamreunMolikatevy",
+    name: "Chamreun Molikatevy",
     badge: "Member",
     badgeColor: "blue",
     subRole: "Full Stack",
@@ -98,7 +97,7 @@ export const STUDENT_DEVELOPERS: TeamMember[] = [
   },
   {
     name: "Dim Pathea",
-   badge: "Member",
+    badge: "Member",
     badgeColor: "blue",
     subRole: "Full Stack",
     quote: '"Design with security in mind from day one."',
@@ -118,30 +117,28 @@ export const STUDENT_DEVELOPERS: TeamMember[] = [
     linkedin: "https://linkedin.com",
     telegram: "https://t.me",
   },
- 
   {
     name: "Bun Raksa",
     badge: "Member",
     badgeColor: "blue",
     subRole: "Full Stack",
     quote: '"Securing the future, one line of code at a time."',
-    image: "/teams/raksa.JPEG",
+    image: "/teams/Bun Raksa.JPG",
     github: "https://github.com",
     linkedin: "https://linkedin.com",
     telegram: "https://t.me",
   },
   {
     name: "Seu Narong",
-   badge: "Member",
+    badge: "Member",
     badgeColor: "blue",
     subRole: "Full Stack",
     quote: '"Innovation through collaborative logic."',
-    image: "/teams/Seu Narong.jpg",
+    image: "/teams/Seu Narong.JPG",
     github: "https://github.com",
     linkedin: "https://linkedin.com",
     telegram: "https://t.me",
   },
-
 ];
 
 export const TECHNOLOGIES: Technology[] = [
@@ -217,6 +214,4 @@ export const OFFERINGS: Offering[] = [
     accentText: "text-purple-600",
     borderColor: "border-purple-100 hover:border-purple-200",
   },
-  // 2 more.
 ];
-

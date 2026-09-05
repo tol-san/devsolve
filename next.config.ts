@@ -27,8 +27,8 @@ const nextConfig: NextConfig = {
     ],
     // Next only serves the qualities listed here — anything else is a 400 from
     // /_next/image. 75 is the default; 90 is for screenshots and diagrams,
-    // where compression artefacts land on text.
-    qualities: [75, 90],
+    // where compression artefacts land on text; 100 is for maximum-fidelity team photos.
+    qualities: [75, 90, 100],
   },
   // images: {
   //   dangerouslyAllowSVG: true,

@@ -899,5 +899,40 @@
       "successDescription": "Please check your inbox to verify your email. Once verified, you can access your company workspace.",
       "goToDashboard": "Go to Dashboard"
     }
+  },
+  "aboutPage": {
+    "architecture": {
+      "kicker": "System Architecture",
+      "title": "Engineered for High-Throughput Security & Scale",
+      "lede": "A modular architecture separating presentation, federated identity, core business logic, and distributed datastores.",
+      "inspectHint": "Select any service to inspect technical specifications and protocol layers",
+      "tierPresentation": "Client & Gateway",
+      "tierCore": "Identity & Core Engine",
+      "tierData": "Distributed Datastores",
+      "tierSecurity": "Security & Auxiliary",
+      "specsLabel": "Technical Specifications",
+      "overviewLabel": "Services Overview",
+      "statusOperational": "Operational",
+      "statusHealthy": "Healthy / Active"
+    },
+    "team": {
+      "kicker": "Core Team",
+      "title": "Meet the People Behind DevSolve",
+      "lede": "Guided by senior security educators and built by dedicated student engineers passionate about cybersecurity and software resilience.",
+      "supervisorsLabel": "Supervisors & Mentors",
+      "developersLabel": "Engineering Team",
+      "memberCount": "Members",
+      "roles": {
+        "mentor": "Supervisor",
+        "leader": "Team Leader",
+        "subLeader": "Sub Leader",
+        "fullStack": "Full Stack Developer"
+      }
+    },
+    "integrations": {
+      "kicker": "Platform Technology",
+      "title": "Engineered with High-Performance Tech",
+      "lede": "A resilient microservice architecture powered by modern edge routing, federated identity, high-throughput datastores, and an automated security pipeline."
+    }
   }
 }

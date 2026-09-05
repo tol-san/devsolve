@@ -1,5 +1,6 @@
 import { AboutHero } from "@/components/public-about/AboutHero";
-import { ArchitectureAndTeamSection } from "@/components/public-about/ArchitectureAndTeamSection";
+import { AboutIntegrationsSection } from "@/components/public-about/AboutIntegrationsSection";
+import { AboutTeamSection } from "@/components/public-about/AboutTeamSection";
 import { AboutContactSection } from "@/components/public-about/AboutContactSection";
 import { JsonLd } from "@/lib/seo/jsonld";
 import { DEFAULT_LOCALE, LOCALE_TAGS, isLocale, localise } from "@/lib/i18n/config";
@@ -41,7 +42,8 @@ export default async function AboutPage({
         actionLabel={copy.actionLabel}
         imageAlt={copy.imageAlt}
       />
-      <ArchitectureAndTeamSection />
+      <AboutIntegrationsSection />
+      <AboutTeamSection />
       <AboutContactSection />
     </main>
   );
