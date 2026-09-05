@@ -33,24 +33,29 @@ export function ShowcaseWalkthrough({ steps = [] }: ShowcaseWalkthroughProps) {
 
   return (
     <section id="walkthrough" className="space-y-6 pt-4 scroll-mt-24">
-      <div className="flex items-center justify-between gap-3 pb-2 border-b border-border/80">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
-            <Layers className="size-4.5" />
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/80">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-2xs">
+            <Layers className="size-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
               Implementation Walkthrough
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 sm:line-clamp-none">
               Step-by-step breakdown and technical documentation
             </p>
           </div>
         </div>
 
-        <span className="text-xs font-semibold text-muted-foreground bg-muted px-3 py-1 rounded-full border border-border">
-          {steps.length} {steps.length === 1 ? "step" : "steps"}
-        </span>
+        <div className="inline-flex items-center rounded-full border border-border/80 bg-background/90 p-0.5 sm:p-1 shadow-2xs shrink-0 whitespace-nowrap">
+          <span className="flex size-6 sm:size-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-black shadow-xs">
+            {steps.length}
+          </span>
+          <span className="px-2 sm:px-2.5 text-xs sm:text-sm font-bold text-foreground">
+            {steps.length === 1 ? "Step" : "Steps"}
+          </span>
+        </div>
       </div>
 
       {/* Numbered vertical timeline */}
