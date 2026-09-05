@@ -19,8 +19,8 @@ export function AuthHeaderActions({ className }: AuthHeaderActionsProps) {
     >
       <LanguageSwitcher />
       <ThemeToggle
-        className="size-9 xl:size-10 rounded-full border border-slate-200/80 dark:border-neutral-800 bg-white dark:bg-neutral-900/80 text-slate-700 dark:text-neutral-100 shadow-[0_2px_10px_rgba(15,23,42,0.05)] hover:border-blue-200 dark:hover:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-neutral-800 hover:text-blue-700 dark:hover:text-blue-300 transition-all cursor-pointer"
-        iconClassName="size-4"
+        className="size-9 xl:size-10 rounded-full border-0 bg-transparent text-foreground shadow-none hover:bg-muted/70 transition-all cursor-pointer"
+        iconClassName="size-4.5 text-muted-foreground hover:text-foreground transition-colors"
       />
     </div>
   );
