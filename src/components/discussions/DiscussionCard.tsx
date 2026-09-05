@@ -168,7 +168,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
       role="article"
       aria-labelledby={titleId}
       onClick={handleCardClick}
-      className="group relative border-b border-border/70 py-4 sm:py-5 px-2 sm:px-3.5 transition-colors hover:bg-muted/30 cursor-pointer"
+      className="group relative border-b border-border/60 last:border-b-0 p-5 sm:p-6 transition-colors hover:bg-muted/40 cursor-pointer"
     >
       <Link
         href={targetHref}

@@ -195,7 +195,7 @@ export function DiscussionsFeed({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="flex flex-col border-t border-border/70"
+                        className="flex flex-col rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs overflow-hidden ring-1 ring-foreground/5"
                       >
                         {discussions.data.map((post, index) => (
                           <DiscussionCard

@@ -9,14 +9,14 @@ export function DiscussionSkeleton() {
     <div
       role="status"
       aria-label="Loading discussions"
-      className="flex animate-pulse flex-col border-t border-border/70"
+      className="flex animate-pulse flex-col rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs overflow-hidden ring-1 ring-foreground/5"
     >
       <span className="sr-only">Loading discussions…</span>
 
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className="flex flex-col gap-3 border-b border-border/70 py-4 sm:py-5 px-2 sm:px-3.5 sm:flex-row sm:items-start sm:gap-4.5"
+          className="flex flex-col gap-3 border-b border-border/60 last:border-b-0 p-5 sm:p-6 sm:flex-row sm:items-start sm:gap-4.5"
         >
           {/* Avatar Skeleton */}
           <div className="size-11 rounded-full bg-muted shrink-0" />
