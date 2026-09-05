@@ -93,12 +93,12 @@ export function DashboardSeverityDonut({
 
   return (
     <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-2xs space-y-5 flex flex-col justify-between">
-      <div>
-        <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-          <ShieldAlert className="size-5 text-primary" />
+      <div className="min-w-0">
+        <h3 className="text-base sm:text-lg font-bold text-foreground flex items-start sm:items-center gap-2">
+          <ShieldAlert className="size-5 text-primary shrink-0 mt-0.5 sm:mt-0" />
           <span>Severity Distribution</span>
         </h3>
-        <p className="text-sm text-muted-foreground mt-0.5">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
           Vulnerability breakdown by severity rating
         </p>
       </div>
