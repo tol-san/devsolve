@@ -531,7 +531,7 @@ export const Navbar = () => {
                 }}
                 className="flex items-center"
               >
-                <span className="relative block h-[38px] w-[92px] sm:h-[44px] sm:w-[104px] lg:h-[48px] lg:w-[114px] xl:h-[52px] xl:w-[124px]">
+                <span className="relative block h-[32px] w-[76px] sm:h-[36px] sm:w-[86px] lg:h-[38px] lg:w-[92px] xl:h-[42px] xl:w-[100px]">
                   <Image
                     src="/devsolve-logo.png"
                     alt="DevSolve"
