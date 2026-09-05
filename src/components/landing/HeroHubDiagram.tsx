@@ -372,20 +372,12 @@ export function HeroHubDiagram({ className = "" }: HeroHubDiagramProps) {
               >
                 <div className="relative h-15 w-15 sm:h-18 sm:w-18 md:h-22 md:w-22">
                   <Image
-                    src="/devsolvewithouttext-lightmode.png"
+                    src="/devsolve-icon.png"
                     alt="DevSolve"
                     fill
                     priority
                     sizes="120px"
-                    className="object-contain drop-shadow-[0_4px_12px_rgba(37,99,235,0.25)] dark:hidden"
-                  />
-                  <Image
-                    src="/only-devsolve-logo-notext-darkmode.png"
-                    alt="DevSolve"
-                    fill
-                    priority
-                    sizes="120px"
-                    className="hidden object-contain drop-shadow-[0_4px_16px_rgba(56,189,248,0.35)] dark:block"
+                    className="object-contain drop-shadow-[0_4px_12px_rgba(37,99,235,0.25)]"
                   />
                 </div>
               </div>

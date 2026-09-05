@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["developer", "productivity", "education"],
     icons: [
       {
-        src: "/icon.png",
+        src: "/devsolve-icon.png",
         sizes: "any",
         type: "image/png",
         purpose: "any",

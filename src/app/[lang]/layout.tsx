@@ -77,11 +77,11 @@ export const metadata: Metadata = {
   robots: INDEX_RICH,
   icons: {
     icon: [
+      { url: "/devsolve-icon.png", type: "image/png" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png", type: "image/png" },
     ],
-    apple: [{ url: "/icon.png" }],
-    shortcut: ["/favicon.ico"],
+    apple: [{ url: "/devsolve-icon.png" }],
+    shortcut: ["/devsolve-icon.png"],
   },
   manifest: "/manifest.webmanifest",
   formatDetection: { telephone: false, address: false, email: false },

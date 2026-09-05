@@ -19,10 +19,10 @@ export function BrandLogo({
   const isIcon = variant === "badge" || variant === "icon";
 
   const lightSrc = isIcon
-    ? "/devsolvewithouttext-lightmode.png"
+    ? "/devsolve-icon.png"
     : "/devsolve-logo.png";
   const darkSrc = isIcon
-    ? "/only-devsolve-logo-notext-darkmode.png"
+    ? "/devsolve-icon.png"
     : "/devsolve-fulltext-logo-darkmode.png";
 
   return (
