@@ -3,12 +3,17 @@
 import React, { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useInk } from "@/components/landing/SectionBackdrop";
 import { MemberCard, GroupLabel } from "@/components/public-about/MemberCard";
 import {
   SUPERVISORS,
   STUDENT_DEVELOPERS,
 } from "@/lib/types/about/mock-data";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export function TeamTabContent() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,7 +26,14 @@ export function TeamTabContent() {
       gsap.set(".mentor-card-wrapper", { opacity: 0, y: 45, scale: 0.92 });
       gsap.set(".dev-card-wrapper", { opacity: 0, y: 55, scale: 0.92 });
 
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      const tl = gsap.timeline({
+        defaults: { ease: "power3.out" },
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 80%",
+          toggleActions: "play none none none",
+        },
+      });
 
       tl.to(".team-intro-block", {
         opacity: 1,
@@ -92,7 +104,7 @@ export function TeamTabContent() {
       </div>
 
       <div className="mt-20">
-        <GroupLabel label="Developers" count={STUDENT_DEVELOPERS.length} />
+        <GroupLabel label="Our Team" count={STUDENT_DEVELOPERS.length} />
 
         <div className="mt-8 grid grid-cols-1 justify-items-center gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-3">
           {STUDENT_DEVELOPERS.map((member) => (

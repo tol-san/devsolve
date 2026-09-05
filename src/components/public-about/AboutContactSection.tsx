@@ -8,7 +8,7 @@ import {
   FaLinkedin,
   FaXTwitter,
 } from "react-icons/fa6";
-import { useInk } from "@/components/landing/SectionBackdrop";
+import SectionBackdrop, { useInk } from "@/components/landing/SectionBackdrop";
 import { SectionHeading } from "@/components/public-about/SectionHeading";
 import { CARD } from "@/components/public-about/MemberCard";
 
@@ -79,8 +79,9 @@ export function AboutContactSection() {
     <section
       id="contact"
       ref={ref}
-      className="relative overflow-hidden py-10 sm:py-16"
+      className="relative overflow-hidden py-20 sm:py-24 border-t border-slate-200 bg-white dark:border-neutral-800 dark:bg-neutral-950"
     >
+      <SectionBackdrop seed={6} gridSize={88} />
       <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
         <SectionHeading
           kicker="Contact"

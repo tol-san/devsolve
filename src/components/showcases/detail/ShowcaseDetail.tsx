@@ -144,7 +144,10 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
 
   if (!showcase) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-slate-800 dark:text-neutral-100">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center text-slate-800 dark:text-neutral-100 font-sans"
+        style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}
+      >
         <h1 className="text-2xl font-bold mb-2">Showcase Not Found</h1>
         <p className="text-slate-500 dark:text-neutral-400 mb-4">
           It may have been removed, or it is still waiting on review.
@@ -166,6 +169,7 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="min-h-screen text-slate-800 dark:text-neutral-100 font-sans pb-16"
+      style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}
     >
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <Link
@@ -606,7 +610,10 @@ function ShowcaseImage({
 
 function DetailSkeleton() {
   return (
-    <div className="min-h-screen pb-16">
+    <div
+      className="min-h-screen pb-16 font-sans"
+      style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}
+    >
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div
           role="status"

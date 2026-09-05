@@ -1,25 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
-import { Mail } from "lucide-react";
+import { Mail, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import {
-  FaGithub,
-  FaLinkedin,
-  FaTelegram,
-} from "react-icons/fa6";
+import { FaGithub, FaLinkedin, FaTelegram } from "react-icons/fa6";
 import type { IconType } from "react-icons";
-import { useInk } from "@/components/landing/SectionBackdrop";
+import SectionBackdrop, { useInk } from "@/components/landing/SectionBackdrop";
+import { useT } from "@/lib/i18n/I18nProvider";
+import {
+  SUPERVISORS,
+  STUDENT_DEVELOPERS,
+} from "@/lib/types/about/mock-data";
 import type { TeamMember } from "@/lib/types/about/type";
 import { cn } from "@/lib/utils";
-
-export const CARD =
-  "rounded-2xl bg-white shadow-[0_0_0_1px_rgba(30,41,59,0.08),0_2px_10px_rgba(30,41,59,0.05)] dark:bg-neutral-900 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_2px_10px_rgba(0,0,0,0.5)]";
-
-export const CARD_HOVER =
-  "transition-shadow hover:shadow-[0_0_0_1px_rgba(37,99,235,0.35),0_10px_28px_-14px_rgba(30,41,59,0.35)] dark:hover:shadow-[0_0_0_1px_rgba(96,165,250,0.45),0_10px_28px_-14px_rgba(0,0,0,0.7)]";
 
 type SocialLink = { href: string; icon: IconType | LucideIcon; label: string };
 
@@ -58,14 +53,15 @@ function socialsFor(member: TeamMember): SocialLink[] {
   return links.filter((link): link is SocialLink => link !== null);
 }
 
+// Compact Member Card with full 6/7 portrait display, role pill, badge, and quote
 export function MemberCard({
   member,
   badgeLabel,
   roleLabel,
 }: {
   member: TeamMember;
-  badgeLabel?: string;
-  roleLabel?: string;
+  badgeLabel: string;
+  roleLabel: string;
 }) {
   const ink = useInk();
   const socials = socialsFor(member);
@@ -91,6 +87,7 @@ export function MemberCard({
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl bg-card/90 border border-border/80 shadow-xs backdrop-blur-md transition-all duration-300 hover:shadow-md hover:border-blue-500/35"
     >
+      {/* 6/7 aspect ratio shows full portrait without cutting off */}
       <div
         className="relative aspect-[6/7] w-full overflow-hidden bg-slate-100 dark:bg-neutral-800"
         style={{ aspectRatio: "6 / 7" }}
@@ -105,6 +102,7 @@ export function MemberCard({
         />
       </div>
 
+      {/* Card Details */}
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <h4
@@ -120,7 +118,7 @@ export function MemberCard({
               chipStyle
             )}
           >
-            {badgeLabel || member.badge || "Member"}
+            {badgeLabel}
           </span>
         </div>
 
@@ -156,7 +154,7 @@ export function MemberCard({
   );
 }
 
-export function GroupLabel({ label, count }: { label: string; count: number }) {
+function GroupLabel({ label, count }: { label: string; count: number }) {
   const ink = useInk();
 
   return (
@@ -175,3 +173,112 @@ export function GroupLabel({ label, count }: { label: string; count: number }) {
     </div>
   );
 }
+
+export function TeamSection() {
+  const ref = useRef<HTMLElement>(null);
+  const ink = useInk();
+  const t = useT();
+
+  const kicker = t("aboutPage.team.kicker") || "Core Team";
+  const title = t("aboutPage.team.title") || "Meet the people behind Devsolve";
+  const lede =
+    t("aboutPage.team.lede") ||
+    "Guided by senior security educators and built by dedicated student engineers passionate about cybersecurity and software resilience.";
+  const developersLabel =
+    t("aboutPage.team.developersLabel") || "Our Team";
+
+  const getBadgeLabel = (badge: string) => {
+    switch (badge) {
+      case "Mentor":
+        return t("aboutPage.team.roles.mentor") || "Mentor";
+      case "Leader":
+        return t("aboutPage.team.roles.leader") || "Leader";
+      case "Sub Leader":
+        return t("aboutPage.team.roles.subLeader") || "Sub Leader";
+      case "Full Stack":
+      case "Member":
+      default:
+        return t("aboutPage.team.roles.fullStack") || "Full Stack";
+    }
+  };
+
+  const getSubRoleLabel = (subRole?: string, isMentor?: boolean) => {
+    if (isMentor) {
+      return t("aboutPage.team.roles.mentor") || "Mentor";
+    }
+    return subRole || "Full Stack";
+  };
+
+  return (
+    <section
+      id="team"
+      ref={ref}
+      className="relative overflow-hidden py-16 sm:py-24 border-t border-slate-200 bg-white dark:border-neutral-800 dark:bg-neutral-950"
+    >
+      <SectionBackdrop seed={5} gridSize={88} />
+
+      <div className="relative mx-auto w-full max-w-7xl px-6 sm:px-12">
+        {/* 1. Intro Block + Supervisors (3-column layout) */}
+        <div className="grid grid-cols-1 items-start justify-items-center gap-6 sm:grid-cols-2 sm:gap-7 lg:grid-cols-3">
+          {/* Team Intro Block */}
+          <div className="team-intro-block flex h-full w-full max-w-[340px] flex-col justify-center py-2 sm:py-4">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                <Users className="size-3.5" />
+                <span>{kicker}</span>
+              </div>
+
+              <h2
+                className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl leading-[1.12]"
+                style={{ color: ink }}
+              >
+                {title}
+                <span className="text-[#2563EB] dark:text-blue-400">.</span>
+              </h2>
+
+              <p className="mt-4 text-sm leading-relaxed text-slate-600 dark:text-neutral-400">
+                {lede}
+              </p>
+            </div>
+          </div>
+
+          {/* Supervisor Cards */}
+          {SUPERVISORS.map((mentor) => (
+            <div
+              key={mentor.name}
+              className="w-full max-w-[340px]"
+            >
+              <MemberCard
+                member={mentor}
+                badgeLabel={getBadgeLabel(mentor.badge ?? "Mentor")}
+                roleLabel={getSubRoleLabel(mentor.subRole, true)}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* 2. Group Divider & Developers Grid */}
+        <div className="mt-16">
+          <GroupLabel label={developersLabel} count={STUDENT_DEVELOPERS.length} />
+
+          <div className="mt-8 grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 sm:gap-7 lg:grid-cols-3">
+            {STUDENT_DEVELOPERS.map((member) => (
+              <div
+                key={member.name}
+                className="w-full max-w-[340px]"
+              >
+                <MemberCard
+                  member={member}
+                  badgeLabel={getBadgeLabel(member.badge ?? "Member")}
+                  roleLabel={getSubRoleLabel(member.subRole, false)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default TeamSection;

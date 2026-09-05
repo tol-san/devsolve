@@ -195,7 +195,7 @@ export function AboutTeamSection() {
     t("aboutPage.team.lede") ||
     "Guided by senior security educators and built by dedicated student engineers passionate about cybersecurity and software resilience.";
   const developersLabel =
-    t("aboutPage.team.developersLabel") || "Developers";
+    t("aboutPage.team.developersLabel") || "Our Team";
 
   // Localized role labels
   const getBadgeLabel = (badge: string) => {
@@ -206,15 +206,16 @@ export function AboutTeamSection() {
         return t("aboutPage.team.roles.leader") || "Leader";
       case "Sub Leader":
         return t("aboutPage.team.roles.subLeader") || "Sub Leader";
+      case "Full Stack":
       case "Member":
       default:
-        return t("aboutPage.team.roles.fullStack") || "Member";
+        return t("aboutPage.team.roles.fullStack") || "Full Stack";
     }
   };
 
   const getSubRoleLabel = (subRole?: string, isMentor?: boolean) => {
     if (isMentor) {
-      return t("aboutPage.team.roles.mentor") || "Supervisor";
+      return t("aboutPage.team.roles.mentor") || "Mentor";
     }
     return subRole || "Full Stack";
   };

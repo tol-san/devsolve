@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import "@uiw/react-markdown-preview/markdown.css";
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
+import { cn } from "@/lib/utils";
 
 const MarkdownPreview = dynamic(
   async () => (await import("@uiw/react-md-editor")).default.Markdown,
@@ -56,12 +57,16 @@ export function MarkdownView({ source, className }: MarkdownViewProps) {
               : "auto"
         }
         onClick={handleContainerClick}
-        className={className}
+        className={cn("font-sans", className)}
+        style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}
       >
         <MarkdownPreview
           source={source}
-          style={{ background: "transparent" }}
-          className="!bg-transparent [&.wmde-markdown]:!text-[17px] [&.wmde-markdown]:!leading-relaxed [&.wmde-markdown_img]:cursor-pointer [&.wmde-markdown_img]:transition-transform hover:[&.wmde-markdown_img]:scale-[1.01] hover:[&.wmde-markdown_img]:opacity-95 [&.wmde-markdown_img]:rounded-xl"
+          style={{
+            background: "transparent",
+            fontFamily: "'Inter', var(--font-sans), sans-serif",
+          }}
+          className="!bg-transparent [&.wmde-markdown]:font-sans! [&.wmde-markdown]:!text-[17px] [&.wmde-markdown]:!leading-relaxed [&.wmde-markdown_img]:cursor-pointer [&.wmde-markdown_img]:transition-transform hover:[&.wmde-markdown_img]:scale-[1.01] hover:[&.wmde-markdown_img]:opacity-95 [&.wmde-markdown_img]:rounded-xl"
         />
       </div>
 

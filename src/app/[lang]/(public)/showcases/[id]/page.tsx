@@ -7,6 +7,7 @@ import { pageMetadata } from "@/lib/seo/metadata";
 import { SITE_NAME } from "@/lib/seo/site";
 import { describe } from "@/lib/seo/text";
 
+
 interface PageProps {
   params: Promise<{ lang: string; id: string }>;
 }
@@ -66,7 +67,9 @@ export default async function PublicShowcaseDetailPage({ params }: PageProps) {
         />
       ) : null}
 
-      <ShowcaseDetail id={id} />
+      <div className="font-sans" style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}>
+        <ShowcaseDetail id={id} />
+      </div>
     </>
   );
 }
