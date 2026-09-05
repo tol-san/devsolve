@@ -15,11 +15,11 @@ export function PublicAboutHero() {
     <section className="relative overflow-hidden border-b border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] dark:border-white/10 dark:bg-[linear-gradient(180deg,#020617_0%,#0b1120_100%)]">
       <div className="absolute inset-0">
         <HoleBackground
-          strokeColor={isDark ? "rgba(96,165,250,0.16)" : "rgba(37,99,235,0.14)"}
+          strokeColor={isDark ? "rgba(96,165,250,0.18)" : "rgba(37,99,235,0.14)"}
           particleRGBColor={isDark ? [191, 219, 254] : [59, 130, 246]}
-          numberOfLines={42}
-          numberOfDiscs={34}
-          className="absolute inset-0 bg-transparent dark:bg-transparent opacity-80"
+          numberOfLines={44}
+          numberOfDiscs={42}
+          className="absolute inset-0 bg-transparent dark:bg-transparent opacity-85"
         />
       </div>
 

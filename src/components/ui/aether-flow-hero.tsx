@@ -84,13 +84,13 @@ export function AetherFlowHero({ className = "" }: AetherFlowHeroProps) {
         } else if (this.colorType === "secondary") {
           // DevSolve Secondary: Dark Slate (#1E293B) / Slate-300 in dark
           ctx.fillStyle = isDarkRef.current
-            ? "rgba(203, 213, 225, 0.70)" // Slate-300
-            : "rgba(30, 41, 59, 0.60)"; // Slate-800
+            ? "rgba(203, 213, 225, 0.65)" // Slate-300
+            : "rgba(71, 85, 105, 0.55)"; // Slate-600
         } else {
           // DevSolve Primary: Electric Blue (#2563EB)
           ctx.fillStyle = isDarkRef.current
             ? "rgba(96, 165, 250, 0.85)" // Blue-400
-            : "rgba(37, 99, 235, 0.72)"; // Blue-600
+            : "rgba(37, 99, 235, 0.75)"; // Blue-600
         }
         ctx.fill();
       }
@@ -127,14 +127,18 @@ export function AetherFlowHero({ className = "" }: AetherFlowHeroProps) {
     function init() {
       if (!canvas) return;
       particles = [];
-      // Richer network: more particles for abundant geometric lines
-      const numberOfParticles = Math.floor((canvas.height * canvas.width) / 5500);
+      // Richer constellation particle density
+      const numberOfParticles = Math.min(
+        190,
+        Math.max(70, Math.floor((canvas.height * canvas.width) / 7500))
+      );
       for (let i = 0; i < numberOfParticles; i++) {
-        const size = Math.random() * 2.2 + 1.2;
+        // Prominent node size between 1.8px and 3.6px
+        const size = Math.random() * 1.8 + 1.8;
         const x = Math.random() * (canvas.width - size * 4) + size * 2;
         const y = Math.random() * (canvas.height - size * 4) + size * 2;
-        const directionX = Math.random() * 0.44 - 0.22;
-        const directionY = Math.random() * 0.44 - 0.22;
+        const directionX = Math.random() * 0.40 - 0.20;
+        const directionY = Math.random() * 0.40 - 0.20;
         
         // Balanced triad distribution: 55% Primary Blue, 25% Accent Emerald, 20% Secondary Slate
         const rand = Math.random();
@@ -158,17 +162,29 @@ export function AetherFlowHero({ className = "" }: AetherFlowHeroProps) {
 
     const connect = () => {
       if (!ctx || !canvas) return;
-      // Wider reach distance to form significantly more interconnecting lines
-      const maxDistance = 32000;
+      // Richer connection reach (~155px) with up to 5 connections per particle
+      const maxDistance = 24000;
+      const connectionCounts = new Uint8Array(particles.length);
+      const MAX_CONNECTIONS_PER_PARTICLE = 5;
 
       for (let a = 0; a < particles.length; a++) {
         for (let b = a + 1; b < particles.length; b++) {
+          if (
+            connectionCounts[a] >= MAX_CONNECTIONS_PER_PARTICLE ||
+            connectionCounts[b] >= MAX_CONNECTIONS_PER_PARTICLE
+          ) {
+            continue;
+          }
+
           const dx = particles[a].x - particles[b].x;
           const dy = particles[a].y - particles[b].y;
           const distance = dx * dx + dy * dy;
 
           if (distance < maxDistance) {
-            const opacityValue = Math.max(0, 1 - distance / 32000);
+            connectionCounts[a]++;
+            connectionCounts[b]++;
+
+            const opacityValue = Math.max(0, 1 - distance / maxDistance);
             const isDark = isDarkRef.current;
 
             let isNearMouse = false;
@@ -178,18 +194,18 @@ export function AetherFlowHero({ className = "" }: AetherFlowHeroProps) {
               isNearMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse) < mouse.radius;
             }
 
-            // Connection lines use DevSolve PRIMARY blue & ACCENT emerald with high clarity
+            // Crisp, prominent connection lines with rich network presence
             if (isDark) {
               ctx.strokeStyle = isNearMouse
-                ? `rgba(52, 211, 153, ${opacityValue * 0.95})` // Vibrant emerald near mouse
-                : `rgba(59, 130, 246, ${opacityValue * 0.68})`; // Crisp electric blue
+                ? `rgba(52, 211, 153, ${opacityValue * 0.70})` // Emerald glow near mouse
+                : `rgba(96, 165, 250, ${opacityValue * 0.38})`; // Electric blue
             } else {
               ctx.strokeStyle = isNearMouse
-                ? `rgba(16, 185, 129, ${opacityValue * 0.92})` // Emerald near mouse
-                : `rgba(37, 99, 235, ${opacityValue * 0.62})`; // Primary blue in light
+                ? `rgba(16, 185, 129, ${opacityValue * 0.58})` // Emerald near mouse
+                : `rgba(37, 99, 235, ${opacityValue * 0.28})`; // Primary blue in light
             }
 
-            ctx.lineWidth = isNearMouse ? 1.8 : 1.15;
+            ctx.lineWidth = isNearMouse ? 1.35 : 0.95;
             ctx.beginPath();
             ctx.moveTo(particles[a].x, particles[a].y);
             ctx.lineTo(particles[b].x, particles[b].y);
