@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ShieldCheck, Code2, ArrowRight, Sparkles } from "lucide-react";
+import { ShieldCheck, Code2, ArrowRight } from "lucide-react";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { useIsDark } from "@/components/landing/SectionBackdrop";
 
@@ -297,18 +297,18 @@ export function AetherFlowHero({ className = "" }: AetherFlowHeroProps) {
         >
           {/* Line 1: BUG BOUNTY PLATFORM */}
           <span className="text-[#2563EB] dark:text-blue-400 drop-shadow-[0_0_24px_rgba(37,99,235,0.35)]">
-            BUG BOUNTY
+            {t("hero.titleBounty") || "BUG BOUNTY"}
           </span>{" "}
           <span className="text-[#1E293B] dark:text-white">
-            PLATFORM
+            {t("hero.titlePlatform") || "PLATFORM"}
           </span>
           <br />
           {/* Line 2: DEVELOPER COMMUNITY */}
           <span className="text-[#10B981] dark:text-emerald-400 drop-shadow-[0_0_24px_rgba(16,185,129,0.35)]">
-            DEVELOPER
+            {t("hero.titleDev") || "DEVELOPER"}
           </span>{" "}
           <span className="text-[#1E293B] dark:text-white">
-            COMMUNITY
+            {t("hero.titleCommunity") || "COMMUNITY"}
           </span>
         </motion.h1>
 
@@ -320,10 +320,10 @@ export function AetherFlowHero({ className = "" }: AetherFlowHeroProps) {
           animate="visible"
           className="mx-auto mt-6 sm:mt-8 max-w-2xl text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed text-slate-600 dark:text-slate-300 font-normal text-balance tracking-normal"
         >
-          DevSolve bridges security researchers and engineering teams — offering guaranteed bounty escrow for hunters, and verified code solutions for developers.
+          {t("hero.subtitle") || "DevSolve bridges security researchers and engineering teams — offering guaranteed bounty escrow for hunters, and verified code solutions for developers."}
         </motion.p>
 
-        {/* Consistent 3-Button Pill Action System */}
+        {/* Balanced Dual-Pillar Action System matching Landing Page Buttons */}
         <motion.div
           custom={2}
           variants={fadeUpVariants}
@@ -331,34 +331,26 @@ export function AetherFlowHero({ className = "" }: AetherFlowHeroProps) {
           animate="visible"
           className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-3.5 sm:gap-4"
         >
-          {/* Button 1 (Primary Brand Action): Explore Programs */}
+          {/* Pillar 1: Bug Bounty Platform (Electric Blue PRIMARY) */}
           <Link
             href={lp("/programs")}
-            className="group inline-flex items-center justify-center gap-2.5 rounded-xl px-6 sm:px-7 py-3 sm:py-3.5 font-sans text-sm sm:text-base font-semibold text-white bg-[#2563EB] hover:bg-blue-600 shadow-[0_4px_16px_-2px_rgba(37,99,235,0.4)] hover:shadow-[0_8px_20px_-2px_rgba(37,99,235,0.5)] border border-blue-500/80 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+            className="group inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm sm:text-base font-semibold text-white shadow-[0_10px_25px_-8px_rgba(37,99,235,0.75)] hover:shadow-[0_14px_30px_-8px_rgba(37,99,235,0.9)] hover:brightness-110 active:scale-[0.98] transition-all duration-200"
+            style={{ backgroundColor: "#2563EB" }}
           >
             <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-white shrink-0" />
-            <span>Explore Programs</span>
+            <span>{t("hero.explorePrograms") || t("hero.exploreBounties") || "Explore Programs"}</span>
             <ArrowRight className="h-4 w-4 text-white/90 transition-transform group-hover:translate-x-0.5 shrink-0" />
           </Link>
 
-          {/* Button 2 (Refined Frosted Surface with Emerald Accent): Developer Community */}
+          {/* Pillar 2: Developer Community (Cyber Emerald ACCENT) */}
           <Link
-            href={lp("/community")}
-            className="group inline-flex items-center justify-center gap-2.5 rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md px-6 sm:px-7 py-3 sm:py-3.5 font-sans text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-200 hover:border-emerald-500/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 hover:text-emerald-700 dark:hover:text-emerald-400 shadow-2xs hover:shadow-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+            href={lp("/discussions")}
+            className="group inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm sm:text-base font-semibold text-white shadow-[0_10px_25px_-8px_rgba(16,185,129,0.75)] hover:shadow-[0_14px_30px_-8px_rgba(16,185,129,0.9)] hover:brightness-110 active:scale-[0.98] transition-all duration-200"
+            style={{ backgroundColor: "#10B981" }}
           >
-            <Code2 className="h-4 w-4 sm:h-5 sm:w-5 text-[#10B981] dark:text-emerald-400 shrink-0 transition-transform group-hover:rotate-12" />
-            <span>Developer Community</span>
-            <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-transform group-hover:translate-x-0.5 shrink-0" />
-          </Link>
-
-          {/* Button 3 (Refined Frosted Surface): Get Started Free */}
-          <Link
-            href={lp("/account-type")}
-            className="group inline-flex items-center justify-center gap-2.5 rounded-xl border border-slate-200/90 dark:border-slate-800/90 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md px-6 sm:px-7 py-3 sm:py-3.5 font-sans text-sm sm:text-base font-semibold text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100/60 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white shadow-2xs hover:shadow-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
-          >
-            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400 dark:text-slate-500 shrink-0 group-hover:rotate-12 transition-transform" />
-            <span>Get Started Free</span>
-            <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-transform group-hover:translate-x-0.5 shrink-0" />
+            <Code2 className="h-4 w-4 sm:h-5 sm:w-5 text-white shrink-0 transition-transform group-hover:rotate-12" />
+            <span>{t("hero.devCommunity") || "Developer Community"}</span>
+            <ArrowRight className="h-4 w-4 text-white/90 transition-transform group-hover:translate-x-0.5 shrink-0" />
           </Link>
         </motion.div>
 

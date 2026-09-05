@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useT } from "@/lib/i18n/I18nProvider";
+import Link from "next/link";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { motion, useInView, useReducedMotion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
-import SectionBackdrop, { SURFACE } from "./SectionBackdrop";
+import SectionBackdrop, { ACCENT, PRIMARY, SECONDARY, SURFACE } from "./SectionBackdrop";
 
 const TONE = {
   deemphasis: "var(--ds-deemphasis)",
@@ -21,6 +22,7 @@ type Stat = {
   unitKey: string;
   series: number[];
   format: (n: number) => string;
+  color?: string;
 };
 
 const HERO: Stat = {
@@ -30,6 +32,7 @@ const HERO: Stat = {
   unitKey: "stats.bountiesUnit",
   series: [2.1, 2.4, 2.6, 3.0, 3.2, 3.5, 3.9, 4.1, 4.4, 4.7, 4.9, 5.24],
   format: (n) => `$${n.toFixed(2)}M`,
+  color: PRIMARY,
 };
 
 const STATS: Stat[] = [
@@ -40,6 +43,7 @@ const STATS: Stat[] = [
     unitKey: "stats.researchersUnit",
     series: [1180, 1290, 1400, 1520, 1660, 1790, 1900, 2020, 2140, 2240, 2330, 2412],
     format: (n) => Math.round(n).toLocaleString(),
+    color: ACCENT, // Cyber Emerald for Community & Researchers
   },
   {
     label: "Live programs",
@@ -48,6 +52,7 @@ const STATS: Stat[] = [
     unitKey: "stats.liveUnit",
     series: [72, 80, 86, 95, 101, 108, 114, 122, 131, 138, 145, 152],
     format: (n) => String(Math.round(n)),
+    color: PRIMARY, // Electric Blue for Live Programs
   },
   {
     label: "Reports validated",
@@ -56,6 +61,7 @@ const STATS: Stat[] = [
     unitKey: "stats.reportsUnit",
     series: [14200, 16100, 18000, 19800, 21600, 23400, 25100, 27000, 28600, 30200, 31400, 32400],
     format: (n) => `${(n / 1000).toFixed(1)}K`,
+    color: SECONDARY, // Charcoal / Dark Slate for Proof of Work
   },
 ];
 
@@ -112,6 +118,7 @@ function Sparkline({
   height = 36,
   inView,
   delay = 0,
+  color,
 }: {
   series: number[];
   label: string;
@@ -119,6 +126,7 @@ function Sparkline({
   height?: number;
   inView: boolean;
   delay?: number;
+  color?: string;
 }) {
   const reduce = useReducedMotion();
   const tone = TONE;
@@ -138,6 +146,7 @@ function Sparkline({
   const last = points[points.length - 1];
   const prev = points[points.length - 2];
   const current = `M ${prev.x.toFixed(2)} ${prev.y.toFixed(2)} L ${last.x.toFixed(2)} ${last.y.toFixed(2)}`;
+  const trendColor = color || tone.trend;
 
   return (
     <svg
@@ -165,7 +174,7 @@ function Sparkline({
       <motion.path
         d={current}
         fill="none"
-        stroke={tone.trend}
+        stroke={trendColor}
         strokeWidth={2}
         strokeLinecap="round"
         initial={{ pathLength: reduce ? 1 : 0 }}
@@ -177,7 +186,7 @@ function Sparkline({
         cx={last.x}
         cy={last.y}
         r={4}
-        fill={tone.trend}
+        fill={trendColor}
         stroke={tone.dotRing}
         strokeWidth={2}
         initial={{ scale: reduce ? 1 : 0, opacity: reduce ? 1 : 0 }}
@@ -195,17 +204,18 @@ function Sparkline({
   );
 }
 
-function Delta({ value }: { value: number }) {
+function Delta({ value, color }: { value: number; color?: string }) {
+  const t = useT();
   const tone = TONE;
   return (
     <span
       className="inline-flex items-baseline gap-1.5 text-sm font-semibold"
-      style={{ color: tone.deltaInk }}
+      style={{ color: color || tone.deltaInk }}
     >
       <ArrowUpRight className="h-3.5 w-3.5 self-center" aria-hidden />
       {`+${value.toFixed(1)}%`}
       <span className="text-xs font-medium text-slate-400 dark:text-neutral-500">
-        vs. 3 months ago
+        {t("stats.vsQuarter") || "vs. 3 months ago"}
       </span>
     </span>
   );
@@ -213,6 +223,7 @@ function Delta({ value }: { value: number }) {
 
 export function StatsSection() {
   const t = useT();
+  const lp = useLocalePath();
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const tone = TONE;
@@ -254,9 +265,19 @@ export function StatsSection() {
             </h2>
           </div>
 
-          <p className="max-w-sm text-sm leading-relaxed text-slate-500 dark:text-neutral-400">
-            {t("stats.lede")}
-          </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+            <p className="max-w-sm text-sm leading-relaxed text-slate-500 dark:text-neutral-400">
+              {t("stats.lede")}
+            </p>
+            <Link
+              href={lp("/programs")}
+              className="group inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 active:scale-[0.98]"
+              style={{ backgroundColor: PRIMARY }}
+            >
+              <span>{t("stats.exploreStats") || "Explore Programs"}</span>
+              <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 gap-x-12 lg:grid-cols-12">
@@ -286,6 +307,7 @@ export function StatsSection() {
                 width={200}
                 height={52}
                 inView={inView}
+                color={PRIMARY}
               />
               <span className="text-xs font-medium uppercase leading-relaxed tracking-[0.16em] text-slate-400 dark:text-neutral-500">
                 {t("common.last12")}
@@ -295,7 +317,7 @@ export function StatsSection() {
             </div>
 
             <div className="mt-6">
-              <Delta value={heroDelta} />
+              <Delta value={heroDelta} color={PRIMARY} />
             </div>
           </motion.div>
 
@@ -317,14 +339,23 @@ export function StatsSection() {
                   }`}
                 >
                   <div className="min-w-0">
-                    <p className="text-base font-medium text-slate-500 dark:text-neutral-400">
-                      {t(stat.labelKey) || stat.label}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      {stat.color && (
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ backgroundColor: stat.color }}
+                          aria-hidden
+                        />
+                      )}
+                      <p className="text-base font-medium text-slate-500 dark:text-neutral-400">
+                        {t(stat.labelKey) || stat.label}
+                      </p>
+                    </div>
                     <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-neutral-500">
                       {t(stat.unitKey) || stat.unit}
                     </p>
                     <div className="mt-3">
-                      <Delta value={delta} />
+                      <Delta value={delta} color={stat.color} />
                     </div>
                   </div>
 
@@ -337,6 +368,7 @@ export function StatsSection() {
                         )} rising to ${stat.format(target)}`}
                         inView={inView}
                         delay={0.15 + i * 0.1}
+                        color={stat.color}
                       />
                     </div>
 

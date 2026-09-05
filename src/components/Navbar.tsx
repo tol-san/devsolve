@@ -482,36 +482,31 @@ export const Navbar = () => {
             : { type: "spring", stiffness: 380, damping: 34, mass: 0.9 }
         }
         ref={headerRef}
-        className="fixed inset-x-0 top-0 z-[100] w-full"
+        className={cn(
+          "fixed inset-x-0 top-0 z-[100] w-full border-b transition-all duration-300 backdrop-blur-xl",
+          scrolled
+            ? "border-border/80 bg-background/85 dark:bg-background/90 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+            : "border-border/50 bg-background/70 dark:bg-background/80",
+        )}
       >
-        <div className="pointer-events-none isolate">
-          <AnimatePresence>
-            {mobileMenuOpen && (
-              <motion.button
-                type="button"
-                aria-label="Close navigation menu"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: reduce ? 0 : 0.2 }}
-                onClick={closeAllMenus}
-                className="pointer-events-auto fixed inset-0 z-0 h-dvh w-full cursor-default bg-slate-950/30 backdrop-blur-xs lg:hidden"
-              />
-            )}
-          </AnimatePresence>
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.button
+              type="button"
+              aria-label="Close navigation menu"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.2 }}
+              onClick={closeAllMenus}
+              className="fixed inset-0 top-[var(--navbar-height)] z-0 h-[calc(100dvh-var(--navbar-height))] w-full cursor-default bg-slate-950/40 backdrop-blur-xs lg:hidden"
+            />
+          )}
+        </AnimatePresence>
 
-          <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-3 sm:px-6">
-            <div
-              className={cn(
-                "pointer-events-auto flex min-h-16 items-center rounded-2xl border px-3.5 sm:px-5 backdrop-blur-xl transition-all duration-300",
-                "border-border/80 bg-card/90 dark:bg-card/95",
-                scrolled
-                  ? "shadow-[0_10px_25px_-5px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.03)] dark:shadow-[0_16px_38px_rgba(0,0,0,0.5)]"
-                  : "shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
-              )}
-            >
-              <div className="flex w-full items-center justify-between gap-3 lg:gap-4 xl:gap-6">
-                <Link
+        <div className="mx-auto flex h-[var(--navbar-height)] w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex w-full items-center justify-between gap-3 lg:gap-4 xl:gap-6">
+            <Link
                   href={lp("/")}
                   aria-label="Go to DevSolve homepage"
                   className="group flex shrink-0 items-center"
@@ -527,22 +522,22 @@ export const Navbar = () => {
                     }}
                     className="flex items-center"
                   >
-                    <span className="relative block h-9 w-32 sm:h-10 sm:w-36 xl:h-11 xl:w-40">
+                    <span className="relative block h-[50px] w-[118px] sm:h-[56px] sm:w-[132px] lg:h-[60px] lg:w-[142px] xl:h-[64px] xl:w-[152px]">
                       <Image
                         src="/devsolve-logo.png"
                         alt="DevSolve"
                         fill
                         priority
-                        sizes="(min-width: 1280px) 160px, 144px"
-                        className="origin-left object-contain object-left scale-[1.12] dark:hidden"
+                        sizes="(min-width: 1280px) 220px, 180px"
+                        className="origin-left object-contain object-left scale-[1.08] dark:hidden"
                       />
                       <Image
                         src="/devsolve-fulltext-logo-darkmode.png"
                         alt="DevSolve"
                         fill
                         priority
-                        sizes="(min-width: 1280px) 160px, 144px"
-                        className="hidden origin-left object-contain object-left scale-[1.12] dark:block"
+                        sizes="(min-width: 1280px) 220px, 180px"
+                        className="hidden origin-left object-contain object-left scale-[1.08] dark:block"
                       />
                     </span>
                   </motion.div>
@@ -758,7 +753,7 @@ export const Navbar = () => {
                             ? "Switch to light mode"
                             : "Switch to dark mode"
                         }
-                        className="size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-all hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-foreground shadow-none transition-all hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         {mounted && isDark ? (
                           <Sun className="size-4.5 text-amber-500" />
@@ -767,9 +762,8 @@ export const Navbar = () => {
                         )}
                       </Button>
 
-                      <Button
-                        size="icon"
-                        variant="ghost"
+                      <button
+                        type="button"
                         onClick={() => {
                           const nextLocale: Locale = locale === "en" ? "km" : "en";
                           rememberLocale(nextLocale);
@@ -778,10 +772,10 @@ export const Navbar = () => {
                         }}
                         aria-label={`Switch language (current: ${LOCALE_SHORT[locale]})`}
                         title={`Switch language (current: ${LOCALE_SHORT[locale]})`}
-                        className="size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-all hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="flex h-9 shrink-0 cursor-pointer items-center justify-center px-1 border-0 bg-transparent shadow-none transition-transform duration-150 hover:scale-110 active:scale-95 focus-visible:outline-none"
                       >
-                        <CurrentFlag className="h-3.5 w-5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
-                      </Button>
+                        <CurrentFlag className="h-5 w-7.5 shrink-0 object-cover" />
+                      </button>
                     </>
                   )}
 
@@ -822,7 +816,6 @@ export const Navbar = () => {
                 </div>
               </div>
             </div>
-          </div>
 
           <AnimatePresence>
             {mobileMenuOpen && (
@@ -847,7 +840,7 @@ export const Navbar = () => {
                       }
                 }
                 style={{ transformOrigin: "top center" }}
-                className="pointer-events-auto relative z-10 px-4 pb-5 sm:px-6 lg:hidden"
+                className="relative z-10 px-4 pb-5 pt-2 sm:px-6 lg:hidden"
               >
                 <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-card/98 p-3.5 sm:p-4 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 backdrop-blur-2xl">
                   <nav
@@ -1177,7 +1170,7 @@ export const Navbar = () => {
                         aria-label={`Switch language (current: ${LOCALE_SHORT[locale]})`}
                         className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/80 bg-card px-3 text-xs font-semibold text-foreground shadow-2xs transition-all hover:bg-muted active:scale-[0.99]"
                       >
-                        <CurrentFlag className="h-3.5 w-5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+                        <CurrentFlag className="h-4 w-6 shrink-0 object-cover" />
                         <span>{LOCALE_SHORT[locale]}</span>
                       </button>
                     </div>
@@ -1186,7 +1179,6 @@ export const Navbar = () => {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
       </motion.header>
     </NotificationProvider>
   );

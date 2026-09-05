@@ -2,36 +2,38 @@
 
 import React, { useRef } from "react";
 import Link from "next/link";
-import { useT } from "@/lib/i18n/I18nProvider";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { motion, useInView } from "motion/react";
 import { ArrowUpRight, Award, Flame, ShieldCheck, Trophy, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import SectionBackdrop, { PRIMARY, useInk } from "./SectionBackdrop";
-
-const TIER_RAMP = [
-  "var(--ds-tier-1)",
-  "var(--ds-tier-2)",
-  "var(--ds-tier-3)",
-] as const;
+import SectionBackdrop, { ACCENT, PRIMARY, SECONDARY, useInk } from "./SectionBackdrop";
 
 const TIER_LABELS = [
-  { key: "critical", label: "Critical", tKey: "common.critical" },
-  { key: "high", label: "High", tKey: "common.high" },
-  { key: "medium", label: "Medium", tKey: "common.medium" },
+  { key: "critical", label: "Critical", tKey: "common.critical", color: PRIMARY },
+  { key: "high", label: "High", tKey: "common.high", color: ACCENT },
+  { key: "medium", label: "Medium", tKey: "common.medium", color: SECONDARY },
 ] as const;
 
-const TIERS = TIER_LABELS.map((tier, i) => ({ ...tier, color: TIER_RAMP[i] }));
+const TIERS = TIER_LABELS;
+
+type Badge = {
+  icon: LucideIcon;
+  label: string;
+  badgeKey?: string;
+  count?: number;
+};
 
 type Researcher = {
   handle: string;
   rank: number;
   title: string;
+  roleKey?: string;
   points: number;
   critical: number;
   high: number;
   medium: number;
   solved: number;
-  badges: { icon: LucideIcon; label: string }[];
+  badges: Badge[];
 };
 
 const RESEARCHERS: Researcher[] = [
@@ -39,43 +41,46 @@ const RESEARCHERS: Researcher[] = [
     handle: "0xShadow",
     rank: 1,
     title: "Application security · Go, Rust",
+    roleKey: "appSec",
     points: 12400,
     critical: 9,
     high: 21,
     medium: 34,
     solved: 118,
     badges: [
-      { icon: Trophy, label: "Top of the board" },
-      { icon: ShieldCheck, label: "12 critical findings" },
-      { icon: Flame, label: "40-week streak" },
+      { icon: Trophy, label: "Top of the board", badgeKey: "topBoard" },
+      { icon: ShieldCheck, label: "12 critical findings", badgeKey: "criticalFindings", count: 12 },
+      { icon: Flame, label: "40-week streak", badgeKey: "streak", count: 40 },
     ],
   },
   {
     handle: "kmartens",
     rank: 2,
     title: "Cloud & infrastructure · AWS",
+    roleKey: "cloud",
     points: 9870,
     critical: 6,
     high: 18,
     medium: 41,
     solved: 204,
     badges: [
-      { icon: Award, label: "Most accepted answers" },
-      { icon: ShieldCheck, label: "Verified researcher" },
+      { icon: Award, label: "Most accepted answers", badgeKey: "mostAccepted" },
+      { icon: ShieldCheck, label: "Verified researcher", badgeKey: "verifiedResearcher" },
     ],
   },
   {
     handle: "h4xor99",
     rank: 3,
     title: "Mobile & API · Android, Kotlin",
+    roleKey: "mobile",
     points: 7210,
     critical: 4,
     high: 12,
     medium: 28,
     solved: 76,
     badges: [
-      { icon: Zap, label: "Fastest first report" },
-      { icon: Flame, label: "18-week streak" },
+      { icon: Zap, label: "Fastest first report", badgeKey: "fastestReport" },
+      { icon: Flame, label: "18-week streak", badgeKey: "streak", count: 18 },
     ],
   },
 ];
@@ -114,6 +119,7 @@ function SeverityBar({
 
 export function ShowcaseSection() {
   const t = useT();
+  const lp = useLocalePath();
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const ink = useInk();
@@ -132,10 +138,9 @@ export function ShowcaseSection() {
         >
           <div>
             <div className="mb-4 flex items-center gap-2.5">
-              <span className="h-px w-8" style={{ backgroundColor: ink }} />
+              <span className="h-px w-8" style={{ backgroundColor: PRIMARY }} />
               <span
-                className="text-xs font-bold uppercase tracking-[0.22em]"
-                style={{ color: ink }}
+                className="text-xs font-bold uppercase tracking-[0.22em] text-[#2563EB] dark:text-blue-400"
               >
                 {t("sections.showcase.kicker")}
               </span>
@@ -145,7 +150,7 @@ export function ShowcaseSection() {
               style={{ color: ink }}
             >
               {t("sections.showcase.title")}
-              <span className="text-[#2563EB] dark:text-blue-400">.</span>
+              <span style={{ color: ACCENT }}>.</span>
             </h2>
           </div>
 
@@ -193,8 +198,8 @@ export function ShowcaseSection() {
                     className="flex h-11 w-11 items-center justify-center rounded-xl text-base font-bold"
                     style={{
                       backgroundColor:
-                        i === 0 ? PRIMARY : "var(--ds-tile-bg)",
-                      color: i === 0 ? "#FFFFFF" : "var(--ds-tile-ink)",
+                        i === 0 ? PRIMARY : i === 1 ? ACCENT : SECONDARY,
+                      color: "#FFFFFF",
                     }}
                   >
                     {r.handle.replace(/^0x/, "").slice(0, 1).toUpperCase()}
@@ -207,12 +212,28 @@ export function ShowcaseSection() {
                       {r.handle}
                     </h3>
                     <p className="mt-0.5 truncate text-xs text-slate-400 dark:text-neutral-500">
-                      {r.title}
+                      {(r.roleKey ? t(`sections.showcase.roles.${r.roleKey}`) : null) || r.title}
                     </p>
                   </div>
                 </div>
 
-                <span className="shrink-0 rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold text-slate-500 dark:bg-neutral-800 dark:text-neutral-300">
+                <span
+                  className="shrink-0 rounded-lg px-2 py-1 text-xs font-bold"
+                  style={{
+                    backgroundColor:
+                      i === 0
+                        ? "rgba(37,99,235,0.12)"
+                        : i === 1
+                        ? "rgba(16,185,129,0.12)"
+                        : "rgba(30,41,59,0.08)",
+                    color:
+                      i === 0
+                        ? PRIMARY
+                        : i === 1
+                        ? ACCENT
+                        : SECONDARY,
+                  }}
+                >
                   #{r.rank}
                 </span>
               </div>
@@ -252,6 +273,11 @@ export function ShowcaseSection() {
               <ul className="mt-6 space-y-2 border-t border-slate-200 pt-5 dark:border-neutral-800">
                 {r.badges.map((b) => {
                   const Icon = b.icon;
+                  const badgeLabel = b.badgeKey
+                    ? b.count != null
+                      ? `${b.count} ${t(`sections.showcase.badges.${b.badgeKey}`) || b.label}`
+                      : t(`sections.showcase.badges.${b.badgeKey}`) || b.label
+                    : b.label;
                   return (
                     <li
                       key={b.label}
@@ -263,7 +289,7 @@ export function ShowcaseSection() {
                           aria-hidden
                         />
                       </span>
-                      {b.label}
+                      {badgeLabel}
                     </li>
                   );
                 })}
@@ -273,7 +299,7 @@ export function ShowcaseSection() {
                 <span className="font-bold" style={{ color: ink }}>
                   {r.solved}
                 </span>{" "}
-                accepted solutions
+                {t("sections.showcase.acceptedSolutions") || "accepted solutions"}
               </p>
             </motion.article>
           ))}
@@ -289,8 +315,9 @@ export function ShowcaseSection() {
             {t("sections.showcase.weighted")}
           </p>
           <Link
-            href="/leaderboard"
-            className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-[#1E293B] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white"
+            href={lp("/leaderboard")}
+            className="group inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(30,41,59,0.30)] transition-all hover:brightness-110 active:scale-[0.98] dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white"
+            style={{ backgroundColor: SECONDARY }}
           >
             {t("sections.showcase.leaderboard")}
             <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

@@ -64,11 +64,11 @@
 }
 
 :root {
-  /* Total height of the floating public navbar: gutter (2 x 0.75rem) + pill
-     (4rem). The navbar is fixed and takes no space of its own, so anything
+  /* Total height of the full-width public navbar.
+     The navbar is fixed and takes no space of its own, so anything
      that offsets, sticks or sizes against it reads this instead of
      hard-coding a number. */
-  --navbar-height: 5.5rem;
+  --navbar-height: 4.5rem;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);

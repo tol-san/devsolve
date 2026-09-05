@@ -10,7 +10,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
-import { useLocale, useT } from "@/lib/i18n/I18nProvider";
+import { useLocale, useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 import SectionBackdrop, {
   ACCENT,
@@ -181,6 +181,7 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 export function FeatureHighlights() {
   const t = useT();
   const locale = useLocale();
+  const lp = useLocalePath();
   const sectionRef = useRef<HTMLElement>(null);
   const sweepRef = useRef<SVGGElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
@@ -284,9 +285,10 @@ export function FeatureHighlights() {
                   role="tab"
                   aria-selected={on}
                   onClick={() => selectAct(ai)}
-                  className={`flex min-w-26 flex-col justify-center px-3 py-2.5 text-center transition-colors duration-200 sm:min-w-37.5 sm:px-4 ${
+                  style={on ? { backgroundColor: a.accent, color: "#ffffff" } : undefined}
+                  className={`flex min-w-26 flex-col justify-center px-3 py-2.5 text-center transition-all duration-200 sm:min-w-37.5 sm:px-4 ${
                     on
-                      ? "bg-[#1E293B] text-white dark:bg-neutral-200 dark:text-neutral-900"
+                      ? "text-white shadow-xs"
                       : "bg-white text-slate-700 hover:text-slate-900 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:text-white"
                   }`}
                 >
@@ -296,7 +298,7 @@ export function FeatureHighlights() {
                   <span
                     className={`mt-0.5 hidden text-xs font-medium sm:block ${
                       on
-                        ? "text-slate-300 dark:text-neutral-700"
+                        ? "text-white/80"
                         : "text-slate-600 dark:text-neutral-400"
                     }`}
                   >
@@ -472,9 +474,9 @@ export function FeatureHighlights() {
               </div>
 
               <Link
-                href={act.href}
-                className="group inline-flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-70"
-                style={{ color: accent }}
+                href={lp(act.href)}
+                className="group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 active:scale-[0.98]"
+                style={{ backgroundColor: accent }}
               >
                 {t(`lifecycle.acts.${act.id}.hrefLabel`) || act.hrefLabel}
                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

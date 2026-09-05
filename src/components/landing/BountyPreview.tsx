@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import Link from "next/link";
-import { useT } from "@/lib/i18n/I18nProvider";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { motion, useInView } from "motion/react";
 import { ArrowUpRight, Bug, Clock3, Cpu, Globe, Shield, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -81,9 +81,8 @@ const money = (n: number) => `$${n.toLocaleString()}`;
 
 const SEVERITY_CHIP: Record<Severity, string> = {
   Critical: "bg-[#1E293B] text-white dark:bg-neutral-100 dark:text-neutral-900",
-  High: "bg-slate-200 text-slate-700 dark:bg-neutral-700 dark:text-neutral-100",
-  Medium:
-    "border border-slate-200 text-slate-500 dark:border-neutral-700 dark:text-neutral-400",
+  High: "bg-blue-500/15 text-[#2563EB] dark:text-blue-300 border border-blue-500/25",
+  Medium: "bg-emerald-500/15 text-[#10B981] dark:text-emerald-300 border border-emerald-500/25",
 };
 
 function RewardBar({ max, delay = 0 }: { max: number; delay?: number }) {
@@ -125,6 +124,7 @@ function LivePill() {
 
 export function BountyPreview() {
   const t = useT();
+  const lp = useLocalePath();
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const ink = useInk();
@@ -161,8 +161,8 @@ export function BountyPreview() {
           </div>
 
           <Link
-            href="/programs"
-            className="group inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-white px-5 py-2.5 text-sm font-semibold shadow-[0_0_0_1px_rgba(30,41,59,0.12)] transition-colors hover:bg-slate-100 sm:self-auto dark:bg-neutral-900 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] dark:hover:bg-neutral-800"
+            href={lp("/programs")}
+            className="group inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-slate-200/90 bg-white/90 px-5 py-2.5 text-sm font-semibold shadow-xs backdrop-blur-md transition-all hover:bg-blue-50 hover:text-[#2563EB] hover:border-blue-200 sm:self-auto dark:border-neutral-700 dark:bg-neutral-900/80 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:hover:text-blue-400"
             style={{ color: ink }}
           >
             {t("sections.bounty.allPrograms")}
@@ -221,7 +221,7 @@ export function BountyPreview() {
                 {money(FEATURED.max)}
               </p>
               <p className="mt-2 text-sm text-slate-400 dark:text-neutral-500">
-                Range {money(FEATURED.min)} – {money(FEATURED.max)}
+                {t("sections.bounty.range") || "Range"} {money(FEATURED.min)} – {money(FEATURED.max)}
               </p>
               <div className="mt-4">
                 <RewardBar max={FEATURED.max} delay={0.35} />
@@ -246,7 +246,7 @@ export function BountyPreview() {
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500">
-                  Triage
+                  {t("sections.bounty.triage") || "Triage"}
                 </dt>
                 <dd
                   className="mt-1.5 flex items-center gap-1.5 text-lg font-bold"
@@ -267,7 +267,7 @@ export function BountyPreview() {
                   <span
                     className={`inline-block rounded-lg px-2.5 py-1 text-xs font-bold ${SEVERITY_CHIP[FEATURED.severity]}`}
                   >
-                    {FEATURED.severity}
+                    {t(`sections.bounty.severity.${FEATURED.severity}`) || FEATURED.severity}
                   </span>
                 </dd>
               </div>
@@ -276,7 +276,7 @@ export function BountyPreview() {
             <div className="mt-7 flex items-center justify-between gap-4 border-t border-slate-200 pt-6 dark:border-neutral-800">
               <LivePill />
               <Link
-                href="/programs"
+                href={lp("/programs")}
                 className="group inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110"
                 style={{ backgroundColor: PRIMARY }}
               >
@@ -292,7 +292,7 @@ export function BountyPreview() {
                 {t("sections.bounty.alsoAccepting")}
               </span>
               <span className="text-xs font-medium text-slate-400 dark:text-neutral-500">
-                Reward reach vs. {money(CEILING)}
+                {t("sections.bounty.rewardReach") || "Reward reach vs."} {money(CEILING)}
               </span>
             </div>
 
@@ -307,7 +307,7 @@ export function BountyPreview() {
                   className="border-b border-slate-200 dark:border-neutral-800"
                 >
                   <Link
-                    href="/programs"
+                    href={lp("/programs")}
                     className="group -mx-4 block rounded-xl px-4 py-6 transition-colors hover:bg-white dark:hover:bg-neutral-900"
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -337,7 +337,7 @@ export function BountyPreview() {
                         <span
                           className={`hidden rounded-lg px-2.5 py-1 text-xs font-bold sm:inline-block ${SEVERITY_CHIP[p.severity]}`}
                         >
-                          {p.severity}
+                          {t(`sections.bounty.severity.${p.severity}`) || p.severity}
                         </span>
                         <span className="hidden items-center gap-1.5 text-sm font-semibold text-slate-500 sm:inline-flex dark:text-neutral-400">
                           <Bug
@@ -375,8 +375,8 @@ export function BountyPreview() {
           style={{ backgroundColor: SECONDARY }}
         >
           <div className="flex items-center gap-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10">
-              <Bug className="h-5 w-5 text-white" aria-hidden />
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20">
+              <Bug className="h-5 w-5 text-emerald-400" aria-hidden />
             </span>
             <div>
               <p className="text-base font-bold text-white">{t("sections.bounty.inHouse")}</p>
@@ -387,8 +387,8 @@ export function BountyPreview() {
           </div>
 
           <Link
-            href="/account-type"
-            className="group inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110"
+            href={lp("/account-type")}
+            className="group inline-flex shrink-0 items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(37,99,235,0.45)] transition-all hover:brightness-110 active:scale-[0.98]"
             style={{ backgroundColor: PRIMARY }}
           >
             {t("sections.bounty.launch")}

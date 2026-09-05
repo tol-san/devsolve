@@ -420,7 +420,7 @@ const Sidebar = () => {
           aria-label="DevSolve dashboard"
           className="flex items-center shrink-0"
         >
-          <BrandLogo priority className="h-9 w-32 sm:h-10 sm:w-36" sizes="(max-width: 640px) 128px, 144px" />
+          <BrandLogo priority className="h-10 w-40 sm:h-11 sm:w-44" sizes="(max-width: 640px) 160px, 176px" />
         </Link>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">

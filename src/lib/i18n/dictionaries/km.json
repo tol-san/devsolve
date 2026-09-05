@@ -10,8 +10,8 @@
     "problemDesc": "ផុសពីបញ្ហាកូដ Bug និងសំណួរសុវត្ថិភាពផ្សេងៗ។",
     "showcase": "Showcase ស្នាដៃ",
     "showcaseDesc": "ចែករំលែកស្នាដៃផលិតផល Demo និងគម្រោងដែលបានបង្កើត។",
-    "leaderboard": "តារាង Top Dev",
-    "docs": "Docs",
+    "leaderboard": "តារាងចំណាត់ថ្នាក់",
+    "docs": "ឯកសារ",
     "about": "អំពីពួកយើង",
     "login": "ចូលគណនី",
     "getStarted": "ចាប់ផ្ដើមឥឡូវនេះ",
@@ -153,7 +153,14 @@
         "blurb": "រាល់ Report ដែលបាន Approve និងដំណោះស្រាយដែលគេរើស នឹងលោតឡើងលើ Profile របស់អ្នកភ្លាមៗ ភ្ជាប់ជាមួយ Severity ឈ្មោះ Program និងកាលបរិច្ឆេទច្បាស់ៗ។",
         "link": "ចូលមើល Showcase"
       }
-    }
+    },
+    "titleBounty": "BUG BOUNTY",
+    "titlePlatform": "PLATFORM",
+    "titleDev": "DEVELOPER",
+    "titleCommunity": "COMMUNITY",
+    "subtitle": "DevSolve ភ្ជាប់ទំនាក់ទំនងរវាងអ្នកស្រាវជ្រាវសន្តិសុខ និងក្រុមវិស្វកម្ម — ធានាប្រាក់រង្វាន់ Bounty សម្រាប់ Hunters និងផ្តល់ដំណោះស្រាយកូដដែលបានផ្ទៀងផ្ទាត់សម្រាប់ Developers។",
+    "explorePrograms": "ស្វែងរក Programs",
+    "devCommunity": "សហគមន៍ Developers"
   },
   "footer": {
     "tagline": "Platform ប្រមាញ់ Bug Bounty និងរាយការណ៍ចន្លោះប្រហោងសុវត្ថិភាពសម្រាប់ Devs, Security Engineers និងក្រុមហ៊ុននានា។ បង្កើតឡើងដើម្បីស្វែងរក Bug មុនពេល Hacker វាយលុក។",
@@ -172,9 +179,9 @@
       "showcases": "Showcases",
       "community": "សហគមន៍",
       "hacktivity": "Hacktivity",
-      "leaderboard": "តារាង Top Dev",
+      "leaderboard": "តារាងចំណាត់ថ្នាក់",
       "company": "សម្រាប់អង្គភាព",
-      "docs": "ឯកសារជំនួយ (Docs)",
+      "docs": "ឯកសារជំនួយ",
       "about": "អំពីពួកយើង",
       "signIn": "ចូលគណនី",
       "createAccount": "បង្កើតគណនីថ្មី"
@@ -206,7 +213,9 @@
     "livePrograms": "Programs កំពុងដំណើរការ",
     "liveUnit": "កំពុងទទួល Report",
     "reports": "Reports ដែលបានផ្ទៀងផ្ទាត់រួច",
-    "reportsUnit": "បានពិនិត្យនិងបិទរួចរាល់"
+    "reportsUnit": "បានពិនិត្យនិងបិទរួចរាល់",
+    "exploreStats": "ស្វែងរក Programs",
+    "vsQuarter": "ធៀបនឹង ៣ ខែមុន"
   },
   "lifecycle": {
     "kicker": "របៀបដំណើរការ",
@@ -271,7 +280,7 @@
         "tabSub": "[ Proof of Work ]",
         "title1": "Proof ភស្តុតាង",
         "title2": "នៃស្នាដៃជាក់ស្ដែង",
-        "hrefLabel": "មើលតារាង Top Dev",
+        "hrefLabel": "មើលតារាងចំណាត់ថ្នាក់",
         "steps": {
           "01": {
             "title": "សន្សំពិន្ទុ",
@@ -285,8 +294,8 @@
           },
           "03": {
             "title": "ឡើង Rank",
-            "role": "Leaderboard",
-            "body": "Leaderboard កម្រិត Global ផ្ដោតលើគុណភាពនៃការជួយ Contribution ពិតប្រាកដ មិនមែនលេងបរិមាណឡើយ។ Filter តាម Program, តាម Tech Stack ឬតាមចន្លោះពេល ដើម្បីដឹងថាអ្នកណាជា Real Pro។"
+            "role": "តារាងចំណាត់ថ្នាក់",
+            "body": "តារាងចំណាត់ថ្នាក់ កម្រិត Global ផ្ដោតលើគុណភាពនៃការជួយ Contribution ពិតប្រាកដ មិនមែនលេងបរិមាណឡើយ។ Filter តាម Program, តាម Tech Stack ឬតាមចន្លោះពេល ដើម្បីដឹងថាអ្នកណាជា Real Pro។"
           }
         }
       }
@@ -306,18 +315,47 @@
       "topTier": "Top-tier កំពូល",
       "viewProgram": "ចូលមើល Program",
       "inHouse": "ចង់ Manage សុវត្ថិភាពដោយខ្លួនឯងមែនទេ?",
-      "inHouseBody": "Launch កម្មវិធីផ្ទាល់ខ្លួន កំណត់កម្រិត Bounty តាមចិត្ត ហើយទុកឱ្យ Community ជួយ Review និងវាយតម្លៃ Report ជូន។"
+      "inHouseBody": "Launch កម្មវិធីផ្ទាល់ខ្លួន កំណត់កម្រិត Bounty តាមចិត្ត ហើយទុកឱ្យ Community ជួយ Review និងវាយតម្លៃ Report ជូន។",
+      "range": "ចន្លោះពី",
+      "triage": "វាយតម្លៃ",
+      "rewardReach": "ទំហំរង្វាន់ធៀបនឹង",
+      "severity": {
+        "Critical": "ធ្ងន់ធ្ងរខ្លាំង",
+        "High": "ខ្ពស់",
+        "Medium": "មធ្យម"
+      }
     },
     "problems": {
       "kicker": "ប្រធានបទពិភាក្សា",
       "title1": "សួរមួយដង ចម្លើយនៅរហូត",
       "lede": "រាល់ Topic ដែលបាន Fix រួច គឺអាច Search រកឃើញរហូត ដូច្នេះអ្នកជំនាន់ក្រោយដែលជួប Error ដូចគ្នា អាចឃើញដំណោះស្រាយភ្លាមៗ មិនបាច់ចំណាយពេលសួរឡើងវិញ។",
-      "body": "សរសេរបញ្ហាឱ្យចំៗជាមួយ Error, Tech Stack និងអ្វីដែលបានសាករួច។ នរណាក៏អាចចូលឆ្លើយបានដែរ។ ម្ចាស់សំណួរជាអ្នករើសយកចម្លើយដែល Work ពិតប្រាកដ ហើយវានឹងក្លាយជាកំណត់ត្រាអចិន្ត្រៃយ៍។",
+      "body": "បង្ហោះបញ្ហាជាមួយនឹងសារ Error បច្ចេកវិទ្យាដែលប្រើ និងអ្វីដែលអ្នកបានសាកល្បងរួច។ អ្នកណាក៏អាចឆ្លើយបាន ហើយម្ចាស់សំណួរជាអ្នកជ្រើសរើសចម្លើយដែលដោះស្រាយបានពិតប្រាកដ ដើម្បីទុកជាឯកសារយោងអចិន្ត្រៃយ៍។",
       "openFeed": "ឆែកមើល List បញ្ហាទាំងអស់",
       "whereTheyLand": "កន្លែងដែល Post នឹងទៅដល់",
       "tagged": "Topic ត្រូវបាន Tag ត្រឹមត្រូវតាំងពីពេល Post ដូច្នេះទោះចូលមើលតាមច្រកណាក៏ Search ឃើញដែរ។",
       "recentlyPosted": "ទើប Post ថ្មីៗ",
-      "seeAll": "មើលទាំងអស់"
+      "seeAll": "មើលទាំងអស់",
+      "kickerLabel": "បញ្ហា និងដំណោះស្រាយ",
+      "solved": "ដោះស្រាយរួចរាល់",
+      "open": "បើកចំហ",
+      "replies": "ការឆ្លើយតប",
+      "answers": "ចម្លើយ",
+      "miniStats": {
+        "posted": "បញ្ហាដែលបានបង្ហោះ",
+        "accepted": "ទទួលបានចម្លើយត្រឹមត្រូវ",
+        "medianTime": "រយៈពេលមធ្យមនៃចម្លើយដំបូង",
+        "contributors": "អ្នកចូលរួមទៀងទាត់"
+      },
+      "topics": {
+        "web": "សុវត្ថិភាព Web & API",
+        "cloud": "Cloud & Infrastructure",
+        "auth": "Auth & Sessions",
+        "mobile": "Mobile",
+        "payments": "Payments & Webhooks",
+        "build": "Build & CI"
+      },
+      "problemBadge": "បញ្ហា",
+      "acceptedBy": "ទទួលស្គាល់ដោយ"
     },
     "showcase": {
       "kicker": "Showcase ស្នាដៃ",
@@ -326,7 +364,21 @@
       "bySeverity": "ការរកឃើញតាមកម្រិត Severity",
       "reputation": "Reputation ពិន្ទុកេរ្តិ៍ឈ្មោះ",
       "weighted": "ចំណាត់ថ្នាក់ត្រូវបានថ្លឹងតាមកម្រិត Severity និងចំនួនដងដែលចម្លើយត្រូវគេយកទៅប្រើ មិនមែនចេះតែរាប់ចំនួន Post នោះទេ។",
-      "leaderboard": "មើល Leaderboard ពេញលេញ"
+      "leaderboard": "មើលតារាងចំណាត់ថ្នាក់ពេញលេញ",
+      "acceptedSolutions": "ដំណោះស្រាយដែលបានទទួលស្គាល់",
+      "badges": {
+        "topBoard": "ចំណាត់ថ្នាក់កំពូល",
+        "criticalFindings": "ការរកឃើញកម្រិត Critical",
+        "streak": "សប្តាហ៍ជាប់ៗគ្នា",
+        "mostAccepted": "ចម្លើយត្រូវទទួលស្គាល់ច្រើនបំផុត",
+        "verifiedResearcher": "អ្នកស្រាវជ្រាវបានផ្ទៀងផ្ទាត់",
+        "fastestReport": "របាយការណ៍ដំបូងលឿនបំផុត"
+      },
+      "roles": {
+        "appSec": "សុវត្ថិភាពកម្មវិធី · Go, Rust",
+        "cloud": "Cloud & Infrastructure · AWS",
+        "mobile": "Mobile & API · Android, Kotlin"
+      }
     }
   },
   "programs": {
@@ -642,7 +694,7 @@
       "programs": "កម្មវិធី",
       "community": "សហគមន៍",
       "my community": "សហគមន៍របស់ខ្ញុំ",
-      "leaderboard": "តារាង Top Dev",
+      "leaderboard": "តារាងចំណាត់ថ្នាក់",
       "invitations": "ការអញ្ជើញ",
       "my team": "ក្រុមរបស់ខ្ញុំ",
       "reports": "របាយការណ៍",

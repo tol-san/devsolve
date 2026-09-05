@@ -27,7 +27,7 @@ export function BrandLogo({
 
   return (
     <span
-      className={cn("relative block", isIcon ? "size-10" : "h-10 w-36", className)}
+      className={cn("relative block", isIcon ? "size-11 sm:size-12" : "h-11 w-44 sm:h-12 sm:w-48", className)}
     >
       <Image
         src={lightSrc}

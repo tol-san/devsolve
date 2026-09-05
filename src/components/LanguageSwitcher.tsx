@@ -79,13 +79,13 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             type="button"
             aria-label={`Language selector (current: ${LOCALE_NAMES[locale]})`}
             className={cn(
-              "group inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border/80 bg-card px-2.5 text-xs font-semibold text-foreground shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              "group inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-none border border-border/80 bg-card px-2.5 text-xs font-semibold text-foreground shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
               className,
             )}
           />
         }
       >
-        <CurrentFlag className="h-3.5 w-5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+        <CurrentFlag className="h-3.5 w-5 shrink-0 object-cover" />
         <span className="font-semibold tracking-wide tabular-nums text-foreground">
           {LOCALE_SHORT[locale]}
         </span>
@@ -113,7 +113,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
               )}
             >
               <div className="flex items-center gap-2">
-                <Flag className="h-3.5 w-5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+                <Flag className="h-3.5 w-5 shrink-0 object-cover" />
                 <span>{LOCALE_NAMES[code]}</span>
               </div>
               {isSelected && <Check className="size-3.5 text-primary" />}

@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import Link from "next/link";
-import { useT } from "@/lib/i18n/I18nProvider";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { motion, useInView } from "motion/react";
 import {
   ArrowUpRight,
@@ -83,24 +83,42 @@ const TOPICS = [
 const TOPIC_MAX = Math.max(...TOPICS.map((t) => t.count));
 
 function StatePill({ solved }: { solved: boolean }) {
+  const t = useT();
   return solved ? (
     <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
       <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-      Solved
+      {t("sections.problems.solved") || "Solved"}
     </span>
   ) : (
     <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-bold text-slate-500 dark:border-neutral-700 dark:text-neutral-400">
       <CircleDot className="h-3.5 w-3.5" aria-hidden />
-      Open
+      {t("sections.problems.open") || "Open"}
     </span>
   );
 }
 
 export function ProblemsSolutions() {
   const t = useT();
+  const lp = useLocalePath();
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const ink = useInk();
+
+  const miniStats = [
+    { value: "1,340", label: t("sections.problems.miniStats.posted") || "Problems posted" },
+    { value: "91%", label: t("sections.problems.miniStats.accepted") || "Reach an accepted answer" },
+    { value: "3.4h", label: t("sections.problems.miniStats.medianTime") || "Median time to first answer" },
+    { value: "128", label: t("sections.problems.miniStats.contributors") || "Regular contributors" },
+  ];
+
+  const topics = [
+    { label: t("sections.problems.topics.web") || "Web & API security", count: 412 },
+    { label: t("sections.problems.topics.cloud") || "Cloud & infrastructure", count: 318 },
+    { label: t("sections.problems.topics.auth") || "Auth & sessions", count: 246 },
+    { label: t("sections.problems.topics.mobile") || "Mobile", count: 174 },
+    { label: t("sections.problems.topics.payments") || "Payments & webhooks", count: 121 },
+    { label: t("sections.problems.topics.build") || "Build & CI", count: 69 },
+  ];
 
   return (
     <section
@@ -118,7 +136,7 @@ export function ProblemsSolutions() {
             <div className="mb-4 flex items-center gap-2.5">
               <span className="h-px w-8" style={{ backgroundColor: ACCENT }} />
               <span className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700 dark:text-emerald-400">
-                Problems &amp; solutions
+                {t("sections.problems.kickerLabel") || "Problems & solutions"}
               </span>
             </div>
             <h2
@@ -147,14 +165,11 @@ export function ProblemsSolutions() {
             className="lg:col-span-4"
           >
             <p className="text-base leading-relaxed text-slate-500 dark:text-neutral-400">
-              Post the problem with the error, the stack and what you already
-              ruled out. Anyone can answer; the author marks what actually
-              worked, and that answer becomes the thread&apos;s permanent
-              record.
+              {t("sections.problems.body") || "Post the problem with the error, the stack and what you already ruled out. Anyone can answer; the author marks what actually worked, and that answer becomes the thread's permanent record."}
             </p>
 
             <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-slate-200 pt-8 dark:border-neutral-800">
-              {MINI_STATS.map((s) => (
+              {miniStats.map((s) => (
                 <div key={s.label}>
                   <dt className="text-xs uppercase tracking-[0.14em] text-slate-400 dark:text-neutral-500">
                     {s.label}
@@ -170,8 +185,8 @@ export function ProblemsSolutions() {
             </dl>
 
             <Link
-              href="/problems"
-              className="group mt-8 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:brightness-110 shadow-[0_4px_16px_rgba(16,185,129,0.35)]"
+              href={lp("/problems")}
+              className="group mt-8 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-[0_4px_16px_rgba(16,185,129,0.35)]"
               style={{ backgroundColor: ACCENT }}
             >
               {t("sections.problems.openFeed")}
@@ -189,7 +204,7 @@ export function ProblemsSolutions() {
               </div>
 
               <ul className="mt-5 space-y-4">
-                {TOPICS.map((t, i) => (
+                {topics.map((t, i) => (
                   <motion.li
                     key={t.label}
                     initial={{ opacity: 0, y: 12 }}
@@ -200,7 +215,7 @@ export function ProblemsSolutions() {
                       ease: [0.22, 1, 0.36, 1],
                     }}
                   >
-                    <Link href="/problems" className="group block">
+                    <Link href={lp("/problems")} className="group block">
                       <div className="flex items-baseline justify-between gap-3">
                         <span
                           className="text-sm font-semibold transition-colors group-hover:text-emerald-700 dark:group-hover:text-emerald-400"
@@ -249,14 +264,6 @@ export function ProblemsSolutions() {
 
           <div className="lg:col-span-8">
             <div className="relative">
-              <motion.span
-                className="absolute left-6 top-[7.5rem] w-px origin-top"
-                style={{ backgroundColor: ACCENT }}
-                initial={{ height: 0, opacity: 0 }}
-                animate={inView ? { height: 88, opacity: 0.45 } : undefined}
-                transition={{ duration: 0.7, delay: 0.55, ease: "easeOut" }}
-                aria-hidden
-              />
 
               <motion.article
                 initial={{ opacity: 0, y: 22 }}
@@ -269,8 +276,8 @@ export function ProblemsSolutions() {
                 className="rounded-2xl bg-white p-6 shadow-[0_0_0_1px_rgba(30,41,59,0.08),0_2px_10px_rgba(30,41,59,0.05)] dark:bg-neutral-900 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_2px_10px_rgba(0,0,0,0.5)]"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-[0.14em] text-slate-500 dark:bg-neutral-800 dark:text-neutral-300">
-                    Problem
+                  <span className="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[#2563EB] border border-blue-200/50 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/25">
+                    {t("sections.problems.problemBadge") || "Problem"}
                   </span>
                   {PROBLEM.tags.map((t) => (
                     <span
@@ -304,7 +311,7 @@ export function ProblemsSolutions() {
                   </span>
                   <span className="flex items-center gap-1.5">
                     <MessageSquare className="h-3.5 w-3.5" aria-hidden />
-                    {PROBLEM.replies} replies
+                    {PROBLEM.replies} {t("sections.problems.replies") || "replies"}
                   </span>
                 </div>
               </motion.article>
@@ -322,7 +329,7 @@ export function ProblemsSolutions() {
                 <div className="flex flex-wrap items-center gap-2">
                   <StatePill solved />
                   <span className="text-xs font-medium text-slate-400 dark:text-neutral-500">
-                    accepted by {PROBLEM.author}
+                    {t("sections.problems.acceptedBy") || "accepted by"} {PROBLEM.author}
                   </span>
                   <span className="ml-auto text-xs text-slate-400 dark:text-neutral-500">
                     {SOLUTION.timeAgo}
@@ -360,16 +367,16 @@ export function ProblemsSolutions() {
                   {t("sections.problems.recentlyPosted")}
                 </span>
                 <Link
-                  href="/problems"
+                  href={lp("/problems")}
                   className="text-xs font-semibold text-slate-400 transition-colors hover:text-slate-700 dark:text-neutral-500 dark:hover:text-neutral-200"
                 >
                   {t("sections.problems.seeAll")}
                 </Link>
               </div>
 
-              {THREADS.map((t, i) => (
+              {THREADS.map((tItem, i) => (
                 <motion.div
-                  key={t.title}
+                  key={tItem.title}
                   initial={{ opacity: 0, y: 16 }}
                   animate={inView ? { opacity: 1, y: 0 } : undefined}
                   transition={{
@@ -380,7 +387,7 @@ export function ProblemsSolutions() {
                   className="border-b border-slate-200 dark:border-neutral-800"
                 >
                   <Link
-                    href="/problems"
+                    href={lp("/problems")}
                     className="group -mx-4 flex items-start justify-between gap-4 rounded-xl px-4 py-5 transition-colors hover:bg-slate-50 dark:hover:bg-neutral-900"
                   >
                     <div className="min-w-0">
@@ -388,10 +395,10 @@ export function ProblemsSolutions() {
                         className="text-base font-semibold leading-snug tracking-tight"
                         style={{ color: ink }}
                       >
-                        {t.title}
+                        {tItem.title}
                       </p>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400 dark:text-neutral-500">
-                        {t.tags.map((tag) => (
+                        {tItem.tags.map((tag) => (
                           <span
                             key={tag}
                             className="rounded-md bg-slate-100 px-2 py-0.5 text-slate-500 dark:bg-neutral-800 dark:text-neutral-300"
@@ -400,14 +407,14 @@ export function ProblemsSolutions() {
                           </span>
                         ))}
                         <span>·</span>
-                        <span>{t.answers} answers</span>
+                        <span>{tItem.answers} {t("sections.problems.answers") || "answers"}</span>
                         <span>·</span>
-                        <span>{t.timeAgo}</span>
+                        <span>{tItem.timeAgo}</span>
                       </div>
                     </div>
 
                     <div className="flex shrink-0 items-center gap-3">
-                      <StatePill solved={t.solved} />
+                      <StatePill solved={tItem.solved} />
                       <ArrowUpRight className="h-4 w-4 text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-slate-600 dark:text-neutral-600 dark:group-hover:text-neutral-300" />
                     </div>
                   </Link>

@@ -153,7 +153,14 @@
         "blurb": "Every accepted report and marked solution lands on your profile with the severity, the programme and the date attached. One link, nothing to explain.",
         "link": "See the showcases"
       }
-    }
+    },
+    "titleBounty": "BUG BOUNTY",
+    "titlePlatform": "PLATFORM",
+    "titleDev": "DEVELOPER",
+    "titleCommunity": "COMMUNITY",
+    "subtitle": "DevSolve bridges security researchers and engineering teams — offering guaranteed bounty escrow for hunters, and verified code solutions for developers.",
+    "explorePrograms": "Explore Programs",
+    "devCommunity": "Developer Community"
   },
   "footer": {
     "tagline": "Bug bounty and vulnerability disclosure platform for developers, security engineers, and organizations. Built to find vulnerabilities before attackers do.",
@@ -206,7 +213,9 @@
     "livePrograms": "Live programs",
     "liveUnit": "accepting reports",
     "reports": "Reports validated",
-    "reportsUnit": "triaged and closed"
+    "reportsUnit": "triaged and closed",
+    "exploreStats": "Explore Programs",
+    "vsQuarter": "vs. 3 months ago"
   },
   "lifecycle": {
     "kicker": "How it works",
@@ -306,7 +315,15 @@
       "topTier": "Top tier",
       "viewProgram": "View program",
       "inHouse": "Running security in-house?",
-      "inHouseBody": "Publish a program, set your own tiers, and let the board do the triage queue."
+      "inHouseBody": "Publish a program, set your own tiers, and let the board do the triage queue.",
+      "range": "Range",
+      "triage": "Triage",
+      "rewardReach": "Reward reach vs.",
+      "severity": {
+        "Critical": "Critical",
+        "High": "High",
+        "Medium": "Medium"
+      }
     },
     "problems": {
       "kicker": "Threads",
@@ -317,7 +334,28 @@
       "whereTheyLand": "Where they land",
       "tagged": "Threads are tagged on post, so an answer stays findable from any angle someone might come at it.",
       "recentlyPosted": "Recently posted",
-      "seeAll": "See all"
+      "seeAll": "See all",
+      "kickerLabel": "Problems & solutions",
+      "solved": "Solved",
+      "open": "Open",
+      "replies": "replies",
+      "answers": "answers",
+      "miniStats": {
+        "posted": "Problems posted",
+        "accepted": "Reach an accepted answer",
+        "medianTime": "Median time to first answer",
+        "contributors": "Regular contributors"
+      },
+      "topics": {
+        "web": "Web & API security",
+        "cloud": "Cloud & infrastructure",
+        "auth": "Auth & sessions",
+        "mobile": "Mobile",
+        "payments": "Payments & webhooks",
+        "build": "Build & CI"
+      },
+      "problemBadge": "Problem",
+      "acceptedBy": "accepted by"
     },
     "showcase": {
       "kicker": "Showcase",
@@ -326,7 +364,21 @@
       "bySeverity": "Findings by severity",
       "reputation": "Reputation",
       "weighted": "Rankings are weighted by severity and by how often an answer gets reused, not by raw volume.",
-      "leaderboard": "See the full leaderboard"
+      "leaderboard": "See the full leaderboard",
+      "acceptedSolutions": "accepted solutions",
+      "badges": {
+        "topBoard": "Top of the board",
+        "criticalFindings": "critical findings",
+        "streak": "streak",
+        "mostAccepted": "Most accepted answers",
+        "verifiedResearcher": "Verified researcher",
+        "fastestReport": "Fastest first report"
+      },
+      "roles": {
+        "appSec": "Application security · Go, Rust",
+        "cloud": "Cloud & infrastructure · AWS",
+        "mobile": "Mobile & API · Android, Kotlin"
+      }
     }
   },
   "programs": {

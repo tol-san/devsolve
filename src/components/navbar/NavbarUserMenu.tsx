@@ -420,7 +420,7 @@ export function NavbarUserMenu({
                       <span className="font-semibold">{t("nav.language") || "Language"}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <CurrentFlag className="h-3 w-4.5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+                      <CurrentFlag className="h-3 w-4.5 shrink-0 object-cover" />
                       <span className="text-[11px] font-semibold text-muted-foreground">
                         {LOCALE_SHORT[locale]}
                       </span>
@@ -582,7 +582,7 @@ export function NavbarUserMenu({
               <span className="font-semibold">{t("nav.language") || "Language"}</span>
             </div>
             <div className="flex items-center gap-1 rounded border border-border/80 bg-background/80 px-1.5 py-0.5 shadow-2xs">
-              <CurrentFlag className="h-3 w-4.5 shrink-0 rounded-xs shadow-[0_0_0_1px_rgba(15,23,42,0.12)]" />
+              <CurrentFlag className="h-3 w-4.5 shrink-0 object-cover" />
               <span className="text-[10px] font-bold text-foreground tracking-wide">
                 {LOCALE_SHORT[locale]}
               </span>

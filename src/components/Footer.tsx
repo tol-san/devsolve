@@ -78,7 +78,7 @@ export default function Footer() {
         >
           <div className="flex flex-col items-start gap-5 lg:col-span-5">
             <Link href={lp("/")} aria-label={t("footer.home")} className="group block">
-              <span className="relative block h-16 w-44 sm:h-20 sm:w-56">
+              <span className="relative block h-20 w-56 sm:h-24 sm:w-64">
                 <Image
                   src="/devsolve-logo.png"
                   alt="DevSolve"

@@ -19,7 +19,7 @@ export const NotificationTrigger: React.FC<{ className?: string }> = ({ classNam
       aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ""}`}
       title={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
       className={cn(
-        "group relative inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-all active:scale-95 hover:bg-muted hover:border-primary/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+        "group relative inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-foreground shadow-none transition-all active:scale-95 hover:bg-muted/70 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
         className,
       )}
     >
