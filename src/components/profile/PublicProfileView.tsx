@@ -63,20 +63,15 @@ export default function PublicProfileView() {
         transition={{ duration: 0.3, ease: "easeOut" }}
         className="w-full space-y-6 pb-16"
       >
-        <ProfileHeroBanner profile={profile} />
+        <ProfileHeroBanner
+          profile={profile}
+          baseProfilePath={`/profile/${username}`}
+        />
 
         <StatsCards stats={effectiveStats} />
 
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start xl:gap-8">
-          <div className="w-full shrink-0 lg:sticky lg:top-24 lg:w-80">
-            <ProfileSidebar
-              profile={profile}
-              stats={effectiveStats}
-              baseProfilePath={`/profile/${username}`}
-            />
-          </div>
-
-          <div className="min-w-0 flex-1">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 xl:gap-8">
+          <div className="min-w-0 lg:col-span-8 xl:col-span-9">
             <Suspense fallback={null}>
               <ProfileTabsContainer
                 stats={effectiveStats}
@@ -86,6 +81,10 @@ export default function PublicProfileView() {
                 userId={profile.id}
               />
             </Suspense>
+          </div>
+
+          <div className="lg:col-span-4 lg:sticky lg:top-24 xl:col-span-3">
+            <ProfileSidebar profile={profile} stats={effectiveStats} />
           </div>
         </div>
       </motion.div>
