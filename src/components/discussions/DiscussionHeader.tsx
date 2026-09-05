@@ -11,15 +11,11 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   ChevronRight,
   Command,
-  MessagesSquare,
-  Plus,
   Search,
   X,
 } from "lucide-react";
 
-import { AuthGatedLink } from "@/components/auth/AuthGatedLink";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
@@ -34,19 +30,13 @@ interface DiscussionSearchProps {
 interface DiscussionHeaderProps {
   breadcrumbLabel: string;
   title: string;
-  badgeLabel: string;
-  description: string;
-  createHref: string;
+  createHref?: string;
   createLabel?: string;
 }
 
 export function DiscussionHeader({
   breadcrumbLabel,
   title,
-  badgeLabel,
-  description,
-  createHref,
-  createLabel,
 }: DiscussionHeaderProps) {
   const t = useT();
   const lp = useLocalePath();
@@ -70,37 +60,10 @@ export function DiscussionHeader({
           </span>
         </nav>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
-            {title}
-          </h1>
-          <Badge variant="tag" className="h-6 rounded-lg px-2.5 text-sm">
-            <MessagesSquare data-icon="inline-start" aria-hidden="true" />
-            {badgeLabel}
-          </Badge>
-        </div>
-
-        <p className="text-base leading-relaxed text-muted-foreground">
-          {description}
-        </p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-neutral-100">
+          {title}
+        </h1>
       </div>
-
-      <motion.div
-        className="w-full shrink-0 sm:w-auto"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
-      >
-        <AuthGatedLink
-          href={createHref}
-          className={cn(
-            buttonVariants({ size: "lg" }),
-            "w-full rounded-xl bg-blue-600 px-5 font-semibold text-white shadow-xs hover:bg-blue-700 sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-700",
-          )}
-        >
-          <Plus data-icon="inline-start" aria-hidden="true" />
-          {createLabel ?? t("community.pages.community.createLabel")}
-        </AuthGatedLink>
-      </motion.div>
     </header>
   );
 }

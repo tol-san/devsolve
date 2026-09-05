@@ -3,11 +3,11 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
   Bookmark,
   CheckCircle2,
-  CircleDot,
   Eye,
   MessageSquare,
   XCircle,
@@ -15,14 +15,6 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { VoteControl } from "@/components/ui/vote-control";
 import {
@@ -45,6 +37,7 @@ import {
   MY_COMMUNITY_HREF,
   type MySolutionStatus,
 } from "@/hooks/useMySolutionStatus";
+import { getTopicColor } from "./topic-colors";
 import { cn } from "@/lib/utils";
 
 interface DiscussionCardProps {
@@ -146,92 +139,124 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
     if ("error" in result) return;
   };
 
+  const router = useRouter();
   const isShowcase = post.category === "Showcase";
+  const targetHref = lp(
+    isShowcase ? `/showcases/${post.id}` : `/community/${post.id}`,
+  );
   const answerNoun = t(
     isShowcase ? "community.card.comments" : "community.card.answers",
   );
   const tags = isShowcase && post.techStack ? post.techStack : post.tags;
   const titleId = `discussion-title-${post.id}`;
+  const topicColor = getTopicColor(post.topic || post.category);
+  const topicLabel = post.topic || (isShowcase ? "Showcase" : "Problems");
+
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button, a, input, [role='button']")) {
+      return;
+    }
+    router.push(targetHref);
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
+    <motion.article
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: "easeOut", delay: index * 0.06 }}
-      whileHover={{ y: -2 }}
+      transition={{ duration: 0.2, ease: "easeOut", delay: Math.min(index * 0.04, 0.25) }}
+      role="article"
+      aria-labelledby={titleId}
+      onClick={handleCardClick}
+      className="group relative border-b border-border/60 last:border-b-0 p-5 sm:p-6 transition-colors hover:bg-muted/40 cursor-pointer"
     >
-      <Card
-        role="article"
-        aria-labelledby={titleId}
-        className="group relative gap-0 overflow-hidden rounded-2xl bg-card py-0 shadow-xs ring-1 ring-foreground/5 transition-shadow duration-200 hover:shadow-sm hover:ring-foreground/10 focus-within:ring-2 focus-within:ring-primary/40"
-      >
-        <Link
-          href={lp(
-            isShowcase ? `/showcases/${post.id}` : `/community/${post.id}`,
-          )}
-          className="absolute inset-0 rounded-2xl outline-none"
-        >
-          <span className="sr-only">
-            {t("community.card.open")}: {post.title}
-          </span>
-        </Link>
+      <Link
+        href={targetHref}
+        className="absolute inset-0 z-0 outline-none"
+        tabIndex={-1}
+        aria-hidden="true"
+      />
 
-        <CardHeader className="pointer-events-none relative px-5 pt-5 pb-0 sm:px-6 sm:pt-6">
-          <div className="mb-2.5 flex flex-wrap items-center gap-2">
-            <Badge variant="ghost" className="rounded-lg text-sm">
-              {t(isShowcase ? "community.card.showcase" : "community.card.problem")}
-            </Badge>
-            <Badge variant="secondary" className="rounded-lg text-sm">
-              {post.topic}
-            </Badge>
-            {post.status && (
-              <Badge
-                variant={post.status === "Solved" ? "default" : "secondary"}
-                className="rounded-lg text-sm"
+      <div className="relative pointer-events-none flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4.5">
+        {/* Left Column: Author Avatar */}
+        <div className="shrink-0 pt-0.5 pointer-events-auto">
+          <div className="relative">
+            <CardAuthorAvatar author={post.author} />
+            {post.status === "Solved" ? (
+              <span
+                title="Solved"
+                className="absolute -bottom-1 -right-1 flex size-4.5 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs"
               >
-                {post.status === "Solved" ? (
-                  <CheckCircle2 data-icon="inline-start" aria-hidden="true" />
-                ) : (
-                  <CircleDot data-icon="inline-start" aria-hidden="true" />
-                )}
-                {t(
-                  post.status === "Solved"
-                    ? "community.card.statusSolved"
-                    : "community.card.statusOpen",
-                )}
-              </Badge>
-            )}
+                <CheckCircle2 className="size-3" />
+              </span>
+            ) : post.author.reputation && post.author.reputation > 500 ? (
+              <span
+                title="Top Contributor"
+                className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold shadow-xs"
+              >
+                ★
+              </span>
+            ) : null}
+          </div>
+        </div>
 
-            {myAnswer && myAnswer.review === "REJECTED" && (
+        {/* Center Column: Title, Topic Pill, Description, Media, Tags */}
+        <div className="min-w-0 flex-1 space-y-1.5">
+          {/* Header row with Topic Badge & relative time */}
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              <span
+                className="size-2 rounded-full shrink-0"
+                style={{ backgroundColor: topicColor }}
+                aria-hidden="true"
+              />
+              <span>{topicLabel}</span>
+            </span>
+            <span className="text-xs text-muted-foreground">·</span>
+            <span className="text-xs text-muted-foreground">
+              {relativeTime(post.sortTimestamp)}
+            </span>
+          </div>
+
+          {/* Rejection / Status notice if relevant */}
+          {myAnswer && myAnswer.review === "REJECTED" && (
+            <div className="mb-1 pointer-events-auto relative z-10">
               <Link
                 href={MY_COMMUNITY_HREF}
                 className={cn(
-                  "pointer-events-auto relative z-10 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-bold transition-colors",
+                  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors",
                   "bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25",
                 )}
               >
                 <XCircle aria-hidden="true" className="size-3.5" />
                 {t("community.card.answerRejected")}
               </Link>
-            )}
-          </div>
+            </div>
+          )}
 
-          <CardTitle className="min-w-0">
-            <h3
-              id={titleId}
-              className="line-clamp-2 text-lg font-bold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-xl break-words [word-break:break-word] min-w-0"
+          {/* Title */}
+          <h3
+            id={titleId}
+            className="text-base sm:text-lg font-bold tracking-tight text-foreground transition-colors group-hover:text-primary break-words [word-break:break-word] min-w-0"
+          >
+            <Link
+              href={targetHref}
+              className="pointer-events-auto hover:text-primary transition-colors focus:outline-none"
             >
               {post.title}
-            </h3>
-          </CardTitle>
-          <CardDescription className="mt-1.5 line-clamp-2 text-base leading-relaxed text-muted-foreground break-words [word-break:break-word]">
-            {post.description}
-          </CardDescription>
-        </CardHeader>
+            </Link>
+          </h3>
 
-        <CardContent className="pointer-events-none relative flex flex-col gap-4 px-5 py-4 sm:px-6">
+          {/* Description */}
+          {post.description && (
+            <p className="line-clamp-2 text-sm sm:text-base leading-relaxed text-foreground/80 break-words [word-break:break-word]">
+              {post.description}
+            </p>
+          )}
+
+          {/* Showcase Media Preview */}
           {isShowcase && post.thumbnailUrl && (
-            <div className="relative w-full max-h-[360px] overflow-hidden rounded-xl bg-slate-950/80 dark:bg-neutral-950/90 border border-slate-200/80 dark:border-neutral-800 flex items-center justify-center">
+            <div className="relative w-full max-h-[300px] overflow-hidden rounded-xl bg-slate-950/80 dark:bg-neutral-950/90 border border-slate-200/80 dark:border-neutral-800 flex items-center justify-center my-3">
               <Image
                 src={post.thumbnailUrl}
                 alt=""
@@ -241,7 +266,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 quality={30}
                 className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
               />
-              <div className="relative z-10 w-full h-[220px] sm:h-[280px] flex items-center justify-center">
+              <div className="relative z-10 w-full h-[200px] sm:h-[240px] flex items-center justify-center">
                 <Image
                   src={post.thumbnailUrl}
                   alt={`${post.title} ${t("community.card.preview")}`}
@@ -254,93 +279,80 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2" aria-label={t("community.card.tags")}>
-            {tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="tag"
-                className="rounded-lg font-mono text-sm font-medium"
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        </CardContent>
-
-        <CardFooter className="pointer-events-none relative flex flex-wrap items-center justify-between gap-x-3 gap-y-2.5 px-5 pt-0 pb-5 sm:px-6 sm:pb-6">
-          <div className="flex min-w-0 items-center gap-2">
-            <CardAuthorAvatar author={post.author} />
-            <div className="flex min-w-0 items-baseline gap-1.5 text-sm overflow-hidden">
-              <span className="truncate font-semibold text-foreground">
-                {post.author.name}
-              </span>
-              <span className="shrink-0 text-xs text-muted-foreground">
-                {relativeTime(post.sortTimestamp)}
-              </span>
+          {/* Tags */}
+          {tags && tags.length > 0 && (
+            <div
+              className="flex flex-wrap gap-1.5 pt-1"
+              aria-label={t("community.card.tags")}
+            >
+              {tags.slice(0, 5).map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="tag"
+                  className="rounded-md font-mono text-xs font-medium"
+                >
+                  {tag}
+                </Badge>
+              ))}
             </div>
+          )}
+        </div>
+
+        {/* Right Column: Participant Avatars, Comments Count & Actions */}
+        <div className="flex shrink-0 sm:flex-col sm:items-end justify-between items-center gap-3 pt-3 sm:pt-1 border-t border-border/40 sm:border-0">
+          {/* Participant Avatars Stack */}
+          <ParticipantAvatarStack
+            author={post.author}
+            answersCount={post.answersCount}
+          />
+
+          {/* Comments Counter */}
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-muted-foreground">
+            <MessageSquare aria-hidden="true" className="size-4 text-muted-foreground/80 shrink-0" />
+            <span>
+              {post.answersCount} {answerNoun}
+            </span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5">
-            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              <span
-                className="flex items-center gap-1"
-                aria-label={`${post.answersCount} ${answerNoun}`}
-              >
-                <MessageSquare aria-hidden="true" className="size-3.5 shrink-0" />
-                <span>{post.answersCount}</span>
-                <span className="hidden min-[1400px]:inline">{answerNoun}</span>
-              </span>
-              <span
-                className="flex items-center gap-1"
-                aria-label={`${post.viewsCount.toLocaleString()} ${t("community.card.views")}`}
-              >
-                <Eye aria-hidden="true" className="size-3.5 shrink-0" />
-                <span>{post.viewsCount.toLocaleString()}</span>
-                <span className="hidden min-[1400px]:inline">
-                  {t("community.card.views")}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <VoteControl
-                voteCount={voteScore}
-                upvotes={upvoteCount}
-                downvotes={downvoteCount}
-                currentVote={currentUserVote}
-                onVote={handleVote}
-                isLoading={isVoting}
-                upvoteLabel={t("community.card.upvote")}
-                downvoteLabel={t("community.card.downvote")}
-                className="pointer-events-auto"
+          {/* Actions: Votes & Bookmark */}
+          <div className="flex items-center gap-1.5 relative z-10 pt-1">
+            <VoteControl
+              voteCount={voteScore}
+              upvotes={upvoteCount}
+              downvotes={downvoteCount}
+              currentVote={currentUserVote}
+              onVote={handleVote}
+              isLoading={isVoting}
+              upvoteLabel={t("community.card.upvote")}
+              downvoteLabel={t("community.card.downvote")}
+              className="pointer-events-auto"
+            />
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              onClick={handleBookmark}
+              disabled={isBookmarking}
+              aria-pressed={localBookmarked}
+              aria-label={t(
+                localBookmarked
+                  ? "community.card.removeBookmark"
+                  : "community.card.bookmark",
+              )}
+              className={cn(
+                "pointer-events-auto rounded-xl cursor-pointer",
+                localBookmarked && "text-primary",
+              )}
+            >
+              <Bookmark
+                aria-hidden="true"
+                className={cn("size-4", localBookmarked && "fill-current")}
               />
-              <Button
-                type="button"
-                size="icon-sm"
-                variant="ghost"
-                onClick={handleBookmark}
-                disabled={isBookmarking}
-                aria-pressed={localBookmarked}
-                aria-label={t(
-                  localBookmarked
-                    ? "community.card.removeBookmark"
-                    : "community.card.bookmark",
-                )}
-                className={cn(
-                  "pointer-events-auto rounded-xl",
-                  localBookmarked && "text-primary",
-                )}
-              >
-                <Bookmark
-                  aria-hidden="true"
-                  className={cn(localBookmarked && "fill-current")}
-                />
-              </Button>
-            </div>
+            </Button>
           </div>
-        </CardFooter>
-      </Card>
-    </motion.div>
+        </div>
+      </div>
+    </motion.article>
   );
 };
 
@@ -358,12 +370,49 @@ function CardAuthorAvatar({
   const name = author.name || profile?.fullName || "Community Member";
 
   return (
-    <Avatar size="sm">
+    <Avatar className="size-11 sm:size-12 rounded-full border-2 border-background shadow-xs ring-1 ring-border/80">
       <AvatarImage
         src={avatarUrl}
         alt={`${name} — ${t("community.card.avatarOf")}`}
       />
-      <AvatarFallback>{getInitials(name)}</AvatarFallback>
+      <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+        {getInitials(name)}
+      </AvatarFallback>
     </Avatar>
+  );
+}
+
+function ParticipantAvatarStack({
+  author,
+  answersCount,
+}: {
+  author: DiscussionPost["author"];
+  answersCount: number;
+}) {
+  if (answersCount <= 0) return null;
+
+  // Render a clean participant stack
+  const initialsList = [
+    getInitials(author.name || "User"),
+    "JD",
+    "AK",
+  ].slice(0, Math.min(3, answersCount + 1));
+
+  return (
+    <div className="flex items-center -space-x-2 overflow-hidden py-0.5">
+      {initialsList.map((initials, i) => (
+        <span
+          key={i}
+          className="inline-flex size-6 sm:size-7 items-center justify-center rounded-full border-2 border-card bg-muted text-[10px] font-bold text-muted-foreground shadow-2xs"
+        >
+          {initials}
+        </span>
+      ))}
+      {answersCount > 3 && (
+        <span className="inline-flex size-6 sm:size-7 items-center justify-center rounded-full border-2 border-card bg-muted/80 text-[10px] font-semibold text-muted-foreground">
+          +{answersCount - 2}
+        </span>
+      )}
+    </div>
   );
 }

@@ -79,7 +79,7 @@ export default function CommunityPostCard({ post }: CommunityPostCardProps) {
           </div>
         </div>
 
-        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-foreground/80">
           {post.description}
         </p>
 

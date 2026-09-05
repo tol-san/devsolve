@@ -52,11 +52,11 @@ export function DiscussionCategoryTabs({
   const t = useT();
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-card p-2 shadow-xs ring-1 ring-foreground/5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-2xl sm:rounded-3xl bg-card p-2 sm:p-2.5 shadow-xs ring-1 ring-foreground/5 sm:flex-row sm:items-center sm:justify-between">
       <div
         role="tablist"
         aria-label={t("community.tabs.label")}
-        className="grid grid-cols-3 gap-1 rounded-xl bg-muted/60 p-1"
+        className="grid grid-cols-3 gap-1 rounded-xl sm:rounded-2xl bg-muted/60 p-1"
       >
         {CATEGORIES.map(({ value, key }) => {
           const isActive = selected === value;
@@ -69,12 +69,12 @@ export function DiscussionCategoryTabs({
               type="button"
               aria-selected={isActive}
               onClick={() => onSelect(value)}
-              className="relative rounded-lg px-3 py-2 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-5 sm:text-base"
+              className="relative rounded-lg sm:rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 cursor-pointer"
             >
               {isActive && (
                 <motion.span
                   layoutId="active-discussion-category"
-                  className="absolute inset-0 rounded-lg bg-primary shadow-xs"
+                  className="absolute inset-0 rounded-lg sm:rounded-xl bg-primary shadow-xs"
                   transition={{ type: "spring", stiffness: 400, damping: 35 }}
                 />
               )}
@@ -111,7 +111,7 @@ export function DiscussionCategoryTabs({
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2 }}
               aria-live="polite"
-              className="text-sm font-medium text-muted-foreground"
+              className="text-xs sm:text-sm font-medium text-muted-foreground"
             >
               <span className="font-bold tabular-nums text-foreground">
                 {totalCount}
@@ -132,7 +132,7 @@ export function DiscussionCategoryTabs({
           <SelectTrigger
             id="discussions-sort"
             aria-label={t("community.sort.label")}
-            className="h-10 min-w-36 rounded-xl bg-muted/60 text-base font-semibold"
+            className="h-9 min-w-36 rounded-xl border border-border/80 bg-card text-xs sm:text-sm font-semibold shadow-2xs hover:bg-muted/50 cursor-pointer transition-colors"
           >
             <SelectValue />
           </SelectTrigger>
@@ -142,7 +142,7 @@ export function DiscussionCategoryTabs({
                 <SelectItem
                   key={option.value}
                   value={option.value}
-                  className="text-base"
+                  className="text-xs sm:text-sm font-medium"
                 >
                   {t(`community.sort.${option.key}`)}
                 </SelectItem>
