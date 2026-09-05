@@ -664,6 +664,7 @@
     },
     "pagination": {
       "region": "Discussion pagination",
+      "showing": "Showing",
       "of": "of",
       "show": "Show",
       "previous": "Previous",
