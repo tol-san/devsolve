@@ -15,6 +15,10 @@ import {
   FollowingUsersResponse,
 } from "@/lib/types/profile/types";
 import { mockEditProfileFormData } from "@/lib/types/profile/mock-data";
+import type {
+  ShowcaseEngagement,
+  ShowcaseViewer,
+} from "./showcasesApi";
 
 interface ProfileOverviewResponse {
   profile: Profile;
@@ -92,6 +96,9 @@ interface ShowcaseApiResponse {
   coverImageUrl?: string;
   reviewStatus?: "PENDING" | "APPROVED" | "REJECTED";
   viewCount?: number;
+  commentCount?: number;
+  engagement?: ShowcaseEngagement;
+  viewer?: ShowcaseViewer;
   createdAt?: string;
 }
 
@@ -398,7 +405,7 @@ export const profileApi = baseApi.injectEndpoints({
           await Promise.all([
             fetchWithBQ(`/user-profiles/${userId}/problems${query}`),
             fetchWithBQ(`/user-profiles/${userId}/solutions${query}`),
-            fetchWithBQ(`/user-profiles/${userId}/showcases${query}`),
+            fetchWithBQ(`/showcases/users/${userId}${query}`),
           ]);
 
         const contentOf = <T,>(result: { data?: unknown; error?: unknown }) =>
@@ -493,7 +500,9 @@ export const profileApi = baseApi.injectEndpoints({
             title: showcase.title,
             description: plainText(showcase.overview ?? ""),
             tag: "Showcase",
-            votes: scoreOf(showcaseVotes[index]),
+            votes: showcase.engagement?.voteScore ?? scoreOf(showcaseVotes[index]),
+            bookmarks: showcase.engagement?.bookmarkCount ?? 0,
+            answers: showcase.commentCount ?? 0,
             views: showcase.viewCount ?? 0,
             status:
               showcase.reviewStatus === "PENDING"

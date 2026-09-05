@@ -7,10 +7,13 @@ import { motion } from "motion/react";
 import { toast } from "sonner";
 import {
   AlertCircle,
+  Bookmark,
   Eye,
   FilePen,
+  Flame,
   ImageOff,
   LoaderCircle,
+  MessageSquare,
   Pencil,
   SendHorizontal,
   SquareArrowOutUpRight,
@@ -208,12 +211,43 @@ export function MyPostCard({ post }: { post: MyPost }) {
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3 text-xs font-medium text-slate-400 dark:text-slate-500">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs font-medium text-slate-400 dark:text-slate-500">
+            {post.kind === "Showcase" && (
+              <>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 font-semibold tabular-nums",
+                    (post.votes ?? 0) > 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : (post.votes ?? 0) < 0
+                        ? "text-rose-600 dark:text-rose-400"
+                        : "text-slate-500 dark:text-slate-400",
+                  )}
+                >
+                  <Flame className="size-3.5 text-amber-500" aria-hidden="true" />
+                  <span>{(post.votes ?? 0) > 0 ? `+${post.votes}` : (post.votes ?? 0)}</span>
+                </span>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1">
+                  <Bookmark className="size-3.5" aria-hidden="true" />
+                  <span>{post.bookmarks ?? 0}</span>
+                </span>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1">
+                  <MessageSquare className="size-3.5" aria-hidden="true" />
+                  <span>{post.comments ?? 0}</span>
+                </span>
+                <span>·</span>
+              </>
+            )}
             {post.views !== undefined && (
-              <span className="inline-flex items-center gap-1.5">
-                <Eye className="size-3.5" aria-hidden="true" />
-                {post.views.toLocaleString()}
-              </span>
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <Eye className="size-3.5" aria-hidden="true" />
+                  {post.views.toLocaleString()}
+                </span>
+                <span>·</span>
+              </>
             )}
             <span>{formatDate(post.createdAt)}</span>
           </div>

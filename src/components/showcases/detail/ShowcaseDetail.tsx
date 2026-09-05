@@ -100,64 +100,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
     const currentVote = showcase?.viewer?.vote ?? null;
     const isClearing = currentVote === direction;
 
-    // Optimistic cache patch
-    const patch = dispatch(
-      showcasesApi.util.updateQueryData("getShowcaseById", id, (draft) => {
-        if (!draft.engagement) {
-          draft.engagement = {
-            voteScore: 0,
-            upvoteCount: 0,
-            downvoteCount: 0,
-            bookmarkCount: 0,
-            followerCount: 0,
-          };
-        }
-        if (!draft.viewer) {
-          draft.viewer = {
-            vote: null,
-            bookmarked: false,
-            following: false,
-            followingAuthor: false,
-            owner: false,
-            canEdit: false,
-            canDelete: false,
-            editUnderReview: false,
-          };
-        }
-
-        const prevVote = draft.viewer.vote;
-
-        if (isClearing) {
-          // Double-click same direction: clear vote (DELETE)
-          if (prevVote === "UP") {
-            draft.engagement.voteScore -= 1;
-            draft.engagement.upvoteCount = Math.max(0, draft.engagement.upvoteCount - 1);
-          } else if (prevVote === "DOWN") {
-            draft.engagement.voteScore += 1;
-            draft.engagement.downvoteCount = Math.max(0, draft.engagement.downvoteCount - 1);
-          }
-          draft.viewer.vote = null;
-        } else {
-          // New vote or flipped vote
-          if (prevVote === "UP") {
-            draft.engagement.upvoteCount = Math.max(0, draft.engagement.upvoteCount - 1);
-          } else if (prevVote === "DOWN") {
-            draft.engagement.downvoteCount = Math.max(0, draft.engagement.downvoteCount - 1);
-          }
-
-          if (direction === "UP") {
-            draft.engagement.upvoteCount += 1;
-            draft.engagement.voteScore += prevVote === "DOWN" ? 2 : 1;
-            draft.viewer.vote = "UP";
-          } else {
-            draft.engagement.downvoteCount += 1;
-            draft.engagement.voteScore -= prevVote === "UP" ? 2 : 1;
-            draft.viewer.vote = "DOWN";
-          }
-        }
-      }),
-    );
-
     try {
       if (isClearing) {
         await removeVote({ type: "SHOWCASE", targetId: id }).unwrap();
@@ -166,7 +108,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
         await setVote({ type: "SHOWCASE", targetId: id, value: val }).unwrap();
       }
     } catch {
-      patch.undo();
       toast.error("Failed to record your vote. Please try again.");
     }
   };
@@ -180,40 +121,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
 
     const isBookmarked = Boolean(showcase?.viewer?.bookmarked);
 
-    const patch = dispatch(
-      showcasesApi.util.updateQueryData("getShowcaseById", id, (draft) => {
-        if (!draft.engagement) {
-          draft.engagement = {
-            voteScore: 0,
-            upvoteCount: 0,
-            downvoteCount: 0,
-            bookmarkCount: 0,
-            followerCount: 0,
-          };
-        }
-        if (!draft.viewer) {
-          draft.viewer = {
-            vote: null,
-            bookmarked: false,
-            following: false,
-            followingAuthor: false,
-            owner: false,
-            canEdit: false,
-            canDelete: false,
-            editUnderReview: false,
-          };
-        }
-
-        if (isBookmarked) {
-          draft.viewer.bookmarked = false;
-          draft.engagement.bookmarkCount = Math.max(0, draft.engagement.bookmarkCount - 1);
-        } else {
-          draft.viewer.bookmarked = true;
-          draft.engagement.bookmarkCount += 1;
-        }
-      }),
-    );
-
     try {
       if (isBookmarked) {
         await removeBookmark({ type: "SHOWCASE", targetId: id }).unwrap();
@@ -223,7 +130,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
         toast.success("Showcase bookmarked.");
       }
     } catch {
-      patch.undo();
       toast.error("Failed to update bookmark.");
     }
   };

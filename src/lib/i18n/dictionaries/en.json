@@ -596,6 +596,7 @@
     "sort": {
       "label": "Sort discussions",
       "newest": "Newest",
+      "trending": "Trending",
       "oldest": "Oldest",
       "top": "Most voted",
       "discussed": "Most answered",

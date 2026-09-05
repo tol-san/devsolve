@@ -1,5 +1,9 @@
 import { baseApi } from "./baseApi";
 import { excerptOf } from "@/lib/markdown-excerpt";
+import type {
+  ShowcaseEngagement,
+  ShowcaseViewer,
+} from "./showcasesApi";
 
 export type MyPostKind = "Problem" | "Solution" | "Showcase";
 
@@ -12,6 +16,9 @@ export interface MyPost {
   editHref?: string;
   createdAt: string;
   views?: number;
+  votes?: number;
+  bookmarks?: number;
+  comments?: number;
   coverImageUrl?: string;
   state: {
     label: string;
@@ -68,6 +75,9 @@ interface MyShowcase {
   hasUnpublishedRevision?: boolean;
   rejectionReason?: string;
   viewCount?: number;
+  commentCount?: number;
+  engagement?: ShowcaseEngagement;
+  viewer?: ShowcaseViewer;
   createdAt?: string;
 }
 
@@ -198,6 +208,9 @@ export const myCommunityApi = baseApi.injectEndpoints({
             editHref: `/dashboard/showcases/${showcase.id}/edit`,
             createdAt: showcase.createdAt || new Date().toISOString(),
             views: showcase.viewCount ?? 0,
+            votes: showcase.engagement?.voteScore ?? 0,
+            bookmarks: showcase.engagement?.bookmarkCount ?? 0,
+            comments: showcase.commentCount ?? 0,
             coverImageUrl: showcase.coverImageUrl,
             state:
               showcase.reviewStatus === "APPROVED"

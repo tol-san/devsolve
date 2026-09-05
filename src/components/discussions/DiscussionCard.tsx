@@ -1,22 +1,41 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
+import { toast } from "sonner";
 import {
   Bookmark,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Eye,
+  FilePen,
+  Flame,
   MessageSquare,
+  Pencil,
+  Trash2,
   XCircle,
+  ZoomIn,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { VoteControl } from "@/components/ui/vote-control";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   useAddBookmarkMutation,
   useGetBookmarkStatusQuery,
@@ -28,6 +47,7 @@ import {
   useSetVoteMutation,
 } from "@/lib/redux/services/votesApi";
 import { useGetPublicProfileQuery } from "@/lib/redux/services/solutionsApi";
+import { useDeleteShowcaseMutation } from "@/lib/redux/services/showcasesApi";
 import type { DiscussionPost } from "@/lib/types/dicussion/types";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { useRelativeTime } from "@/lib/i18n/relative-time";
@@ -61,36 +81,76 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   index = 0,
   myAnswer,
 }) => {
+  const [previewImage, setPreviewImage] = useState<{
+    src: string;
+    alt?: string;
+  } | null>(null);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+
   const t = useT();
   const lp = useLocalePath();
   const relativeTime = useRelativeTime();
-  const bookmarkableType =
-    post.category === "Showcase" ? "SHOWCASE" : "PROBLEM";
+  const router = useRouter();
 
-  const { data: voteSummary } = useGetVoteSummaryQuery({
-    type: bookmarkableType,
-    targetId: post.id,
-  });
+  const isShowcase = post.category === "Showcase";
+  const bookmarkableType = isShowcase ? "SHOWCASE" : "PROBLEM";
+
+  const { data: voteSummary } = useGetVoteSummaryQuery(
+    {
+      type: bookmarkableType,
+      targetId: post.id,
+    },
+    {
+      skip: isShowcase && post.engagement !== undefined && post.viewer !== undefined,
+    },
+  );
   const [setVote, { isLoading: isSettingVote }] = useSetVoteMutation();
   const [removeVote, { isLoading: isRemovingVote }] = useRemoveVoteMutation();
-  const { data: bookmarkStatus } = useGetBookmarkStatusQuery({
-    type: bookmarkableType,
-    targetId: post.id,
-  });
-  const [addBookmark, { isLoading: isAddingBookmark }] =
-    useAddBookmarkMutation();
-  const [removeBookmark, { isLoading: isRemovingBookmark }] =
-    useRemoveBookmarkMutation();
+  const { data: bookmarkStatus } = useGetBookmarkStatusQuery(
+    {
+      type: bookmarkableType,
+      targetId: post.id,
+    },
+    {
+      skip: isShowcase && post.viewer !== undefined,
+    },
+  );
+  const [addBookmark, { isLoading: isAddingBookmark }] = useAddBookmarkMutation();
+  const [removeBookmark, { isLoading: isRemovingBookmark }] = useRemoveBookmarkMutation();
+  const [deleteShowcase, { isLoading: isDeletingShowcase }] = useDeleteShowcaseMutation();
+
   const isVoting = isSettingVote || isRemovingVote;
   const isBookmarking = isAddingBookmark || isRemovingBookmark;
 
-  const currentUserVote = voteSummary
-    ? (voteSummary.currentUserVote ?? 0)
-    : (post.isUpvoted ? 1 : 0);
-  const upvoteCount = voteSummary?.upvotes;
-  const downvoteCount = voteSummary?.downvotes;
-  const voteScore = voteSummary?.score ?? post.votes ?? 0;
-  const localBookmarked = bookmarkStatus ?? post.isBookmarked ?? false;
+  const currentUserVote =
+    isShowcase && post.viewer
+      ? (post.viewer.vote === "UP" ? 1 : post.viewer.vote === "DOWN" ? -1 : 0)
+      : (voteSummary ? (voteSummary.currentUserVote ?? 0) : (post.isUpvoted ? 1 : 0));
+
+  const upvoteCount =
+    isShowcase && post.engagement
+      ? post.engagement.upvoteCount
+      : voteSummary?.upvotes;
+
+  const downvoteCount =
+    isShowcase && post.engagement
+      ? post.engagement.downvoteCount
+      : voteSummary?.downvotes;
+
+  const voteScore =
+    isShowcase && post.engagement
+      ? post.engagement.voteScore
+      : (voteSummary?.score ?? post.votes ?? 0);
+
+  const bookmarkCount =
+    isShowcase && post.engagement
+      ? post.engagement.bookmarkCount
+      : 0;
+
+  const localBookmarked =
+    isShowcase && post.viewer
+      ? Boolean(post.viewer.bookmarked)
+      : (bookmarkStatus ?? post.isBookmarked ?? false);
 
   const { data: session } = authClient.useSession();
   const { handleLogin } = useKeycloakLogin();
@@ -107,18 +167,26 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
     if (isVoting) return;
 
     if (currentUserVote === value) {
-      await removeVote({
-        type: bookmarkableType,
-        targetId: post.id,
-      }).unwrap();
+      try {
+        await removeVote({
+          type: bookmarkableType,
+          targetId: post.id,
+        }).unwrap();
+      } catch {
+        toast.error("Failed to remove vote.");
+      }
       return;
     }
 
-    await setVote({
-      type: bookmarkableType,
-      targetId: post.id,
-      value,
-    }).unwrap();
+    try {
+      await setVote({
+        type: bookmarkableType,
+        targetId: post.id,
+        value,
+      }).unwrap();
+    } catch {
+      toast.error("Failed to record your vote.");
+    }
   };
 
   const handleBookmark = async () => {
@@ -132,15 +200,30 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
     }
     if (isBookmarking) return;
 
-    const result = localBookmarked
-      ? await removeBookmark({ type: bookmarkableType, targetId: post.id })
-      : await addBookmark({ type: bookmarkableType, targetId: post.id });
-
-    if ("error" in result) return;
+    try {
+      if (localBookmarked) {
+        await removeBookmark({ type: bookmarkableType, targetId: post.id }).unwrap();
+        toast.success("Bookmark removed.");
+      } else {
+        await addBookmark({ type: bookmarkableType, targetId: post.id }).unwrap();
+        toast.success("Saved to bookmarks.");
+      }
+    } catch {
+      toast.error("Failed to update bookmark.");
+    }
   };
 
-  const router = useRouter();
-  const isShowcase = post.category === "Showcase";
+  const handleDeleteShowcase = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await deleteShowcase(post.id).unwrap();
+      toast.success("Showcase deleted.");
+      setIsConfirmingDelete(false);
+    } catch {
+      toast.error("Failed to delete showcase.");
+    }
+  };
+
   const targetHref = lp(
     isShowcase ? `/showcases/${post.id}` : `/community/${post.id}`,
   );
@@ -154,7 +237,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
-    if (target.closest("button, a, input, [role='button']")) {
+    if (target.closest("button, a, input, [role='button'], [role='dialog']")) {
       return;
     }
     router.push(targetHref);
@@ -189,7 +272,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
       />
 
       <div className="relative pointer-events-none flex flex-col gap-3 sm:gap-3.5">
-        {/* Top Header: Author info, Topic & Timestamp on left; Solved & Bookmark on right */}
+        {/* Top Header: Author info, Topic & Badges on left; Owner affordances & Bookmark on right */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pointer-events-auto">
             <div className="relative shrink-0">
@@ -226,16 +309,16 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 <Link
                   href={authorProfileHref}
                   onClick={(e) => e.stopPropagation()}
-                  className="font-semibold text-foreground hover:text-primary transition-colors truncate max-w-[140px] sm:max-w-[220px]"
+                  className="font-semibold text-foreground hover:text-primary transition-colors truncate max-w-[140px] sm:max-w-[200px]"
                 >
                   {authorName}
                 </Link>
               ) : (
-                <span className="font-semibold text-foreground truncate max-w-[140px] sm:max-w-[220px]">
+                <span className="font-semibold text-foreground truncate max-w-[140px] sm:max-w-[200px]">
                   {authorName}
                 </span>
               )}
-              <span className="text-muted-foreground text-xs">·</span>
+              <span className="text-muted-foreground/60 text-xs">·</span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
                 <span
                   className="size-1.5 sm:size-2 rounded-full shrink-0"
@@ -244,14 +327,29 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 />
                 <span>{topicLabel}</span>
               </span>
-              <span className="text-muted-foreground text-xs">·</span>
+              <span className="text-muted-foreground/60 text-xs">·</span>
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {relativeTime(post.sortTimestamp)}
               </span>
+
+              {/* Showcase Owner Badge: "Yours" */}
+              {isShowcase && post.viewer?.owner && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                  Yours
+                </span>
+              )}
+
+              {/* Showcase Pending Edit Badge */}
+              {isShowcase && post.hasUnpublishedRevision && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                  <FilePen className="size-3" aria-hidden="true" />
+                  <span>Edit awaiting review</span>
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Top Right: Solved Badge & Bookmark */}
+          {/* Top Right: Solved Badge, Edit/Delete affordances & Bookmark button */}
           <div className="flex items-center gap-1.5 shrink-0 pointer-events-auto">
             {post.status === "Solved" && (
               <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -259,6 +357,41 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 <span>Solved</span>
               </span>
             )}
+
+            {/* Owner affordances: Edit button */}
+            {isShowcase && post.viewer?.canEdit && (
+              <Link
+                href={lp(`/dashboard/showcases/${post.id}/edit`)}
+                onClick={(e) => e.stopPropagation()}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "h-8 px-2 sm:px-2.5 rounded-xl text-xs font-semibold gap-1 hover:bg-muted text-foreground cursor-pointer shadow-2xs border-border/80",
+                )}
+                title="Edit showcase"
+              >
+                <Pencil className="size-3.5" aria-hidden="true" />
+                <span className="hidden sm:inline">Edit</span>
+              </Link>
+            )}
+
+            {/* Owner affordances: Delete button */}
+            {isShowcase && post.viewer?.canDelete && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsConfirmingDelete(true);
+                }}
+                className="h-8 w-8 rounded-xl text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
+                title="Delete showcase"
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+              </Button>
+            )}
+
+            {/* Bookmark button */}
             <Button
               type="button"
               size="icon-sm"
@@ -320,18 +453,63 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
           </p>
         )}
 
-        {/* Showcase Media Preview */}
+        {/* Showcase Media Preview - Shows full uncropped photo with click to preview */}
         {isShowcase && post.thumbnailUrl && (
-          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[340px] overflow-hidden rounded-xl border border-border/80 bg-muted/20 my-1 group/media shadow-2xs">
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Preview full showcase image"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setPreviewImage({
+                src: post.thumbnailUrl!,
+                alt: post.title,
+              });
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation();
+                e.preventDefault();
+                setPreviewImage({
+                  src: post.thumbnailUrl!,
+                  alt: post.title,
+                });
+              }
+            }}
+            className="relative pointer-events-auto w-full aspect-[16/10] sm:aspect-[16/9] max-h-[440px] min-h-[200px] overflow-hidden rounded-xl border border-border/80 bg-blue-950/20 dark:bg-blue-950/40 my-2 group/media flex items-center justify-center cursor-zoom-in transition-all hover:border-primary/50 shadow-2xs"
+          >
+            {/* Ambient blurred backdrop so any aspect ratio fills seamlessly */}
+            <Image
+              src={post.thumbnailUrl}
+              alt=""
+              fill
+              aria-hidden="true"
+              sizes="100px"
+              quality={20}
+              className="object-cover blur-2xl opacity-40 dark:opacity-30 scale-110 pointer-events-none select-none"
+            />
+
+            {/* Soft blue ambient glow overlay */}
+            <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-600/15 mix-blend-overlay pointer-events-none" />
+
+            {/* Full uncropped photo */}
             <Image
               src={post.thumbnailUrl}
               alt={`${post.title} ${t("community.card.preview")}`}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 850px"
-              quality={90}
-              className="object-cover object-top transition-transform duration-300 group-hover/media:scale-[1.015]"
+              quality={95}
+              className="object-contain p-1.5 sm:p-2.5 transition-transform duration-300 group-hover/media:scale-[1.015]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/25 via-transparent to-transparent pointer-events-none" />
+
+            {/* Click to preview floating badge */}
+            <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 pointer-events-none z-10">
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/90 text-[11px] font-semibold text-foreground shadow-xs border border-border/80 backdrop-blur-xs group-hover/media:bg-primary group-hover/media:text-primary-foreground group-hover/media:border-primary transition-all">
+                <ZoomIn className="size-3.5" />
+                <span>Preview</span>
+              </span>
+            </div>
           </div>
         )}
 
@@ -358,44 +536,139 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
           </div>
         )}
 
-        {/* Bottom Action Bar: Votes, Comments, Views on left; Participants on right */}
+        {/* Bottom Action Bar */}
         <div className="flex items-center justify-between gap-3 pt-2.5 sm:pt-3 border-t border-border/40 text-muted-foreground">
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            {/* Vote Control */}
-            <VoteControl
-              voteCount={voteScore}
-              upvotes={upvoteCount}
-              downvotes={downvoteCount}
-              currentVote={currentUserVote}
-              onVote={handleVote}
-              isLoading={isVoting}
-              upvoteLabel={t("community.card.upvote")}
-              downvoteLabel={t("community.card.downvote")}
-              className="pointer-events-auto"
-            />
-
-            {/* Comments Counter as Interactive Pill */}
-            <Link
-              href={targetHref}
-              className="pointer-events-auto inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl border border-border/70 bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shadow-2xs active:scale-98"
-            >
-              <MessageSquare
-                aria-hidden="true"
-                className="size-3.5 text-muted-foreground/80 shrink-0"
-              />
-              <span>
-                {post.answersCount} {answerNoun}
-              </span>
-            </Link>
-
-            {/* Views counter if present */}
-            {post.viewsCount !== undefined && post.viewsCount > 0 && (
-              <div className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground px-1.5">
-                <Eye className="size-3.5 text-muted-foreground/70" />
-                <span>{post.viewsCount.toLocaleString()}</span>
+          {isShowcase ? (
+            /* Showcase Card Footer: Vote buttons + score · bookmarks · comments · views */
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap pointer-events-auto">
+              {/* Compact Card-level Vote Action (Up/Down) */}
+              <div className="inline-flex items-center rounded-xl border border-border/70 bg-card p-0.5 shadow-2xs">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleVote(1)}
+                  disabled={isVoting}
+                  aria-pressed={currentUserVote === 1}
+                  aria-label="Upvote showcase"
+                  className={cn(
+                    "size-7.5 rounded-lg transition-colors cursor-pointer",
+                    currentUserVote === 1
+                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  )}
+                >
+                  <ChevronUp className="size-4" />
+                </Button>
+                <div className="h-4 w-px bg-border/60 mx-0.5" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleVote(-1)}
+                  disabled={isVoting}
+                  aria-pressed={currentUserVote === -1}
+                  aria-label="Downvote showcase"
+                  className={cn(
+                    "size-7.5 rounded-lg transition-colors cursor-pointer",
+                    currentUserVote === -1
+                      ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                  )}
+                >
+                  <ChevronDown className="size-4" />
+                </Button>
               </div>
-            )}
-          </div>
+
+              {/* Stats row: score (engagement.voteScore) · bookmarks · comments · views */}
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs text-muted-foreground">
+                {/* Score with its own Flame icon, negative scores not clamped to 0 */}
+                <span
+                  title="Vote Score"
+                  className={cn(
+                    "inline-flex items-center gap-1 font-bold tabular-nums",
+                    voteScore > 0
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : voteScore < 0
+                        ? "text-rose-600 dark:text-rose-400"
+                        : "text-foreground",
+                  )}
+                >
+                  <Flame className="size-3.5 text-amber-500 shrink-0" aria-hidden="true" />
+                  <span>{voteScore > 0 ? `+${voteScore}` : voteScore} score</span>
+                </span>
+
+                <span className="text-muted-foreground/60">·</span>
+
+                {/* Bookmarks */}
+                <span className="inline-flex items-center gap-1 font-medium">
+                  <Bookmark className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                  <span className="tabular-nums">
+                    {bookmarkCount} {bookmarkCount === 1 ? "bookmark" : "bookmarks"}
+                  </span>
+                </span>
+
+                <span className="text-muted-foreground/60">·</span>
+
+                {/* Comments */}
+                <Link
+                  href={targetHref}
+                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors"
+                >
+                  <MessageSquare className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                  <span className="tabular-nums">
+                    {post.answersCount} {post.answersCount === 1 ? "comment" : "comments"}
+                  </span>
+                </Link>
+
+                {/* Views */}
+                {post.viewsCount !== undefined && (
+                  <>
+                    <span className="text-muted-foreground/60">·</span>
+                    <span className="inline-flex items-center gap-1 font-medium">
+                      <Eye className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                      <span className="tabular-nums">{post.viewsCount.toLocaleString()} views</span>
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Problem Card Footer */
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <VoteControl
+                voteCount={voteScore}
+                upvotes={upvoteCount}
+                downvotes={downvoteCount}
+                currentVote={currentUserVote}
+                onVote={handleVote}
+                isLoading={isVoting}
+                upvoteLabel={t("community.card.upvote")}
+                downvoteLabel={t("community.card.downvote")}
+                className="pointer-events-auto"
+              />
+
+              <Link
+                href={targetHref}
+                className="pointer-events-auto inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl border border-border/70 bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shadow-2xs active:scale-98"
+              >
+                <MessageSquare
+                  aria-hidden="true"
+                  className="size-3.5 text-muted-foreground/80 shrink-0"
+                />
+                <span>
+                  {post.answersCount} {answerNoun}
+                </span>
+              </Link>
+
+              {post.viewsCount !== undefined && post.viewsCount > 0 && (
+                <div className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground px-1.5">
+                  <Eye className="size-3.5 text-muted-foreground/70" />
+                  <span>{post.viewsCount.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Right: Participant Avatars Stack */}
           <div className="pointer-events-auto">
@@ -406,6 +679,37 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Full Photo Lightbox Preview */}
+      <ImagePreviewModal
+        src={previewImage?.src ?? null}
+        alt={previewImage?.alt}
+        title={previewImage?.alt}
+        isOpen={previewImage !== null}
+        onClose={() => setPreviewImage(null)}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <AlertDialog open={isConfirmingDelete} onOpenChange={setIsConfirmingDelete}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete showcase?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The showcase and its build steps will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingShowcase}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteShowcase}
+              disabled={isDeletingShowcase}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              {isDeletingShowcase ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.article>
   );
 };
@@ -445,7 +749,6 @@ function ParticipantAvatarStack({
 }) {
   if (answersCount <= 0) return null;
 
-  // Render a clean participant stack
   const initialsList = [
     getInitials(author.name || "User"),
     "JD",

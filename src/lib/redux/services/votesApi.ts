@@ -1,5 +1,6 @@
 import { baseApi } from "./baseApi";
 import type { VoteTargetType } from "@/lib/validations/engagement";
+import { crossPatchShowcaseVote } from "./showcaseCacheSync";
 
 export interface VoteSummary {
   type: VoteTargetType;
@@ -35,8 +36,16 @@ export const votesApi = baseApi.injectEndpoints({
       }),
       async onQueryStarted(
         { type, targetId, value },
-        { dispatch, queryFulfilled },
+        { dispatch, getState, queryFulfilled },
       ) {
+        const showcasePatch =
+          type === "SHOWCASE"
+            ? crossPatchShowcaseVote(dispatch, getState, targetId, {
+                type: "SET",
+                value,
+              })
+            : null;
+
         const patch = dispatch(
           votesApi.util.updateQueryData(
             "getVoteSummary",
@@ -68,6 +77,7 @@ export const votesApi = baseApi.injectEndpoints({
           await queryFulfilled;
         } catch {
           patch.undo();
+          showcasePatch?.undo();
         }
       },
       invalidatesTags: (_result, _error, { type, targetId }) => [
@@ -80,7 +90,14 @@ export const votesApi = baseApi.injectEndpoints({
         url: `/votes/${type}/${targetId}`,
         method: "DELETE",
       }),
-      async onQueryStarted({ type, targetId }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ type, targetId }, { dispatch, getState, queryFulfilled }) {
+        const showcasePatch =
+          type === "SHOWCASE"
+            ? crossPatchShowcaseVote(dispatch, getState, targetId, {
+                type: "REMOVE",
+              })
+            : null;
+
         const patch = dispatch(
           votesApi.util.updateQueryData(
             "getVoteSummary",
@@ -106,6 +123,7 @@ export const votesApi = baseApi.injectEndpoints({
           await queryFulfilled;
         } catch {
           patch.undo();
+          showcasePatch?.undo();
         }
       },
       invalidatesTags: (_result, _error, { type, targetId }) => [

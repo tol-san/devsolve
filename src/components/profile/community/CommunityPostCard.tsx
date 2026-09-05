@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ChevronUp, Eye, MessageSquare } from "lucide-react";
+import { Bookmark, ChevronUp, Eye, Flame, MessageSquare } from "lucide-react";
 import { CommunityPost } from "@/lib/types/profile/types";
 
 interface CommunityPostCardProps {
@@ -83,11 +83,30 @@ export default function CommunityPostCard({ post }: CommunityPostCardProps) {
           {post.description}
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground">
+        <div className="mt-3 flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-medium text-muted-foreground">
+          {post.tag === "Showcase" && (
+            <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+              <Flame size={14} className="text-amber-500" />
+              <span>{post.votes > 0 ? `+${post.votes}` : post.votes}</span>
+            </span>
+          )}
+          {post.bookmarks !== undefined && post.bookmarks > 0 && (
+            <span className="inline-flex items-center gap-1.5">
+              <Bookmark size={14} />
+              {post.bookmarks} {post.bookmarks === 1 ? "bookmark" : "bookmarks"}
+            </span>
+          )}
           {post.answers !== undefined && (
             <span className="inline-flex items-center gap-1.5">
               <MessageSquare size={14} />
-              {post.answers} {post.answers === 1 ? "answer" : "answers"}
+              {post.answers}{" "}
+              {post.answers === 1
+                ? post.tag === "Showcase"
+                  ? "comment"
+                  : "answer"
+                : post.tag === "Showcase"
+                  ? "comments"
+                  : "answers"}
             </span>
           )}
           {post.views !== undefined && (

@@ -183,7 +183,7 @@ export const showcasesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
 
     getShowcases: builder.query<
-      Page<ShowcaseResponse>,
+      Page<ShowcaseSummaryResponse>,
       ShowcaseListParams | void
     >({
       query: (args) => ({ url: "/showcases", params: params(args ?? {}) }),
@@ -217,7 +217,7 @@ export const showcasesApi = baseApi.injectEndpoints({
       { userId: string } & PageParams
     >({
       query: ({ userId, ...rest }) => ({
-        url: `/user-profiles/${userId}/showcases`,
+        url: `/showcases/users/${userId}`,
         params: params(rest),
       }),
       providesTags: (_result, _error, { userId }) => [

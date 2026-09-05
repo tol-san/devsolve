@@ -9,9 +9,11 @@ import {
   Sparkles,
   Tag,
   LayoutTemplate,
+  ZoomIn,
 } from "lucide-react";
 import { SiGithub } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
+import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import type { ShowcaseResponse } from "@/lib/redux/services/showcasesApi";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +23,7 @@ interface ShowcaseHeroProps {
 
 export function ShowcaseHero({ showcase }: ShowcaseHeroProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const hasLiveUrl = Boolean(showcase.liveUrl?.trim());
   const hasRepoUrl = Boolean(showcase.repoUrl?.trim());
@@ -31,25 +34,66 @@ export function ShowcaseHero({ showcase }: ShowcaseHeroProps) {
 
   return (
     <header className="w-full space-y-6">
-      {/* 16:9 Cover Image Container */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-muted/30 shadow-xs">
+      {/* 16:9 Cover Image Container - shows full photo with click to preview */}
+      <div
+        onClick={() => {
+          if (showcase.coverImageUrl) {
+            setIsPreviewOpen(true);
+          }
+        }}
+        role={showcase.coverImageUrl ? "button" : undefined}
+        tabIndex={showcase.coverImageUrl ? 0 : undefined}
+        onKeyDown={(e) => {
+          if (showcase.coverImageUrl && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            setIsPreviewOpen(true);
+          }
+        }}
+        aria-label={showcase.coverImageUrl ? "Preview full cover photo" : undefined}
+        className={cn(
+          "relative aspect-[16/9] w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-muted/30 shadow-xs flex items-center justify-center",
+          showcase.coverImageUrl && "cursor-zoom-in group/hero transition-all hover:border-primary/50",
+        )}
+      >
         {showcase.coverImageUrl ? (
           <>
             {!imageLoaded && (
               <div className="absolute inset-0 animate-pulse bg-muted/60" />
             )}
+
+            {/* Ambient blurred backdrop so any aspect ratio fills seamlessly without harsh letterboxes */}
+            <Image
+              src={showcase.coverImageUrl}
+              alt=""
+              fill
+              aria-hidden="true"
+              sizes="100px"
+              quality={20}
+              className="object-cover blur-2xl opacity-25 dark:opacity-20 scale-110 pointer-events-none select-none"
+            />
+
+            {/* Full uncropped cover photo */}
             <Image
               src={showcase.coverImageUrl}
               alt={showcase.title}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
               priority
+              quality={95}
               className={cn(
-                "object-cover transition-all duration-500",
-                imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.02]",
+                "object-contain p-1.5 sm:p-3 transition-all duration-500 group-hover/hero:scale-[1.01]",
+                imageLoaded ? "opacity-100" : "opacity-0",
               )}
               onLoad={() => setImageLoaded(true)}
             />
+
+            {/* Click to preview floating badge */}
+            <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 pointer-events-none">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-background/90 text-xs font-semibold text-foreground shadow-sm border border-border/80 backdrop-blur-xs group-hover/hero:bg-primary group-hover/hero:text-primary-foreground group-hover/hero:border-primary transition-all">
+                <ZoomIn className="size-3.5" />
+                <span>Click to preview</span>
+              </span>
+            </div>
           </>
         ) : (
           /* Graceful Fallback Banner */
@@ -146,6 +190,17 @@ export function ShowcaseHero({ showcase }: ShowcaseHeroProps) {
           </div>
         )}
       </div>
+
+      {/* Full Photo Lightbox Preview */}
+      {showcase.coverImageUrl && (
+        <ImagePreviewModal
+          src={showcase.coverImageUrl}
+          alt={showcase.title}
+          title={showcase.title}
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      )}
     </header>
   );
 }

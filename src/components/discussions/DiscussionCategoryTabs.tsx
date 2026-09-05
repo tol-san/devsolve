@@ -26,10 +26,11 @@ const CATEGORIES: { value: DiscussionCategory; key: string }[] = [
 
 const SORT_OPTIONS: { value: DiscussionSort; key: string }[] = [
   { value: "newest", key: "newest" },
-  { value: "oldest", key: "oldest" },
+  { value: "trending", key: "trending" },
   { value: "top", key: "top" },
   { value: "discussed", key: "discussed" },
   { value: "viewed", key: "viewed" },
+  { value: "oldest", key: "oldest" },
 ];
 
 interface DiscussionCategoryTabsProps {

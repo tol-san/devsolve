@@ -131,16 +131,28 @@ export function ShowcaseWalkthrough({ steps = [] }: ShowcaseWalkthroughProps) {
                           });
                         }
                       }}
-                      className="group/img relative aspect-video w-full max-w-2xl overflow-hidden rounded-xl border border-border/80 bg-muted/40 cursor-zoom-in transition-all hover:border-primary/50"
+                      className="group/img relative aspect-video w-full max-w-2xl overflow-hidden rounded-xl border border-border/80 bg-muted/40 cursor-zoom-in transition-all hover:border-primary/50 flex items-center justify-center"
                     >
+                      {/* Ambient blurred backdrop so full figures look seamless */}
+                      <Image
+                        src={step.imageUrl!}
+                        alt=""
+                        fill
+                        aria-hidden="true"
+                        sizes="100px"
+                        quality={20}
+                        className="object-cover blur-2xl opacity-25 dark:opacity-20 scale-110 pointer-events-none select-none"
+                      />
+                      {/* Full uncropped photo/figure */}
                       <Image
                         src={step.imageUrl!}
                         alt={`${step.title} figure`}
                         fill
                         sizes="(max-width: 768px) 100vw, 800px"
-                        className="object-cover transition-transform duration-300 group-hover/img:scale-[1.02]"
+                        quality={95}
+                        className="object-contain p-2 transition-transform duration-300 group-hover/img:scale-[1.01]"
                       />
-                      <div className="absolute inset-0 bg-black/0 transition-colors group-hover/img:bg-black/10 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/0 transition-colors group-hover/img:bg-black/10 flex items-center justify-center pointer-events-none">
                         <span className="opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center gap-1 px-3 py-1.5 rounded-full bg-background/90 text-xs font-semibold text-foreground shadow-md backdrop-blur-xs">
                           <ZoomIn className="size-3.5" />
                           <span>Click to zoom</span>

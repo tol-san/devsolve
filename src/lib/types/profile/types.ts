@@ -1,4 +1,3 @@
-
 export interface SocialLinks {
   website?: string;
   github?: string;
@@ -83,6 +82,7 @@ export interface CommunityPost {
   votes: number;
   answers?: number;
   views?: number;
+  bookmarks?: number;
   status?: CommunityPostStatus;
   date: string; 
   href?: string;
@@ -180,6 +180,7 @@ export interface EditProfileFormData {
   twoFactorEnabled: boolean;
   notifications: NotificationPreferences;
 }
+
 export interface AccountStatus {
   memberSince: string; 
   totalSubmissions: number;
