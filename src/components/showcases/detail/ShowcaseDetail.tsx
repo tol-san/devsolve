@@ -2,8 +2,19 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
-import { AlertCircle, ArrowLeft, ChevronRight, Clock, Info, MessageSquare } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Bookmark,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  Clock,
+  Info,
+  MessageSquare,
+  Share2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { useAppDispatch } from "@/lib/redux/hooks";
@@ -30,6 +41,7 @@ import { AutoApprovalHoldNotice } from "@/components/notifications/AutoApprovalH
 import { CommentsSection } from "@/components/comments/CommentsSection";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
 import { formatDate } from "@/lib/discussions/format";
+import { cn } from "@/lib/utils";
 
 import { ShowcaseDetailSkeleton } from "./ShowcaseDetailSkeleton";
 import { ShowcaseHero } from "./ShowcaseHero";
@@ -49,6 +61,18 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const { handleLogin } = useKeycloakLogin();
 
   const [reportingOpen, setReportingOpen] = useState(false);
+  const [showFloatingDock, setShowFloatingDock] = useState(false);
+
+  // Monitor scroll position to show dynamic floating dock when scrolled past hero
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowFloatingDock(window.scrollY > 550);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const isSignedIn = Boolean(session?.user);
 
   // Mutations
   const [setVote] = useSetVoteMutation();
@@ -58,8 +82,6 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
   const [followTarget] = useFollowTargetMutation();
   const [unfollowTarget] = useUnfollowTargetMutation();
   const [incrementViews] = useIncrementShowcaseViewsMutation();
-
-  const isSignedIn = Boolean(session?.user);
 
   const requireAuth = () => {
     void handleLogin(
@@ -338,22 +360,22 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
           </div>
         )}
 
-        {/* Hero: Cover Image (16:9), Title, Chips, Action Buttons, Overview, Author Line */}
+        {/* Hero: Cover Image (16:9), Title, Chips, Action Buttons, Overview, Author Line + Integrated Action Bar */}
         <ShowcaseHero
           showcase={showcase}
           viewer={showcase.viewer}
           onOpenReport={() => setReportingOpen(true)}
-        />
-
-        {/* Action Bar (Sticky Desktop, Vote, Bookmark, Follow, Comments, Views) */}
-        <ShowcaseActionBar
-          showcase={showcase}
-          isSignedIn={isSignedIn}
-          onRequireAuth={requireAuth}
-          onVote={handleVote}
-          onToggleBookmark={handleToggleBookmark}
-          onToggleFollowShowcase={handleToggleFollowShowcase}
-          onOpenReport={() => setReportingOpen(true)}
+          actionBar={
+            <ShowcaseActionBar
+              showcase={showcase}
+              isSignedIn={isSignedIn}
+              onRequireAuth={requireAuth}
+              onVote={handleVote}
+              onToggleBookmark={handleToggleBookmark}
+              onToggleFollowShowcase={handleToggleFollowShowcase}
+              onOpenReport={() => setReportingOpen(true)}
+            />
+          }
         />
 
         {/* Main Content Layout: Walkthrough & Discussion (col-span-8) + Sidebar (col-span-4) */}
@@ -471,6 +493,124 @@ export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
         {/* More Like This (Related Showcases Grid - omitted if empty) */}
         <ShowcaseRelatedGrid related={showcase.related} />
       </main>
+
+      {/* Floating Dynamic Action Capsule when scrolled past Hero */}
+      <AnimatePresence>
+        {showFloatingDock && (
+          <motion.div
+            initial={{ opacity: 0, y: 28, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 28, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[95vw]"
+          >
+            <div className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border/80 bg-card/90 px-3 py-1.5 shadow-2xl backdrop-blur-xl ring-1 ring-foreground/10">
+              {/* Compact Up/Down Vote */}
+              <div className="inline-flex items-center rounded-full bg-background/90 p-0.5 border border-border/60">
+                <motion.button
+                  whileTap={{ scale: 0.88 }}
+                  type="button"
+                  onClick={() => handleVote("UP")}
+                  aria-label="Upvote showcase"
+                  className={cn(
+                    "flex size-7 items-center justify-center rounded-full transition-colors cursor-pointer",
+                    showcase?.viewer?.vote === "UP"
+                      ? "bg-emerald-500 text-white shadow-xs"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <ChevronUp className="size-4 stroke-[2.5]" />
+                </motion.button>
+                <span
+                  className={cn(
+                    "min-w-6 text-center text-xs font-extrabold tabular-nums px-0.5",
+                    showcase?.viewer?.vote === "UP"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : showcase?.viewer?.vote === "DOWN"
+                        ? "text-rose-600 dark:text-rose-400"
+                        : "text-foreground",
+                  )}
+                >
+                  {showcase?.engagement?.voteScore ?? 0}
+                </span>
+                <motion.button
+                  whileTap={{ scale: 0.88 }}
+                  type="button"
+                  onClick={() => handleVote("DOWN")}
+                  aria-label="Downvote showcase"
+                  className={cn(
+                    "flex size-7 items-center justify-center rounded-full transition-colors cursor-pointer",
+                    showcase?.viewer?.vote === "DOWN"
+                      ? "bg-rose-500 text-white shadow-xs"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <ChevronDown className="size-4 stroke-[2.5]" />
+                </motion.button>
+              </div>
+
+              {/* Bookmark */}
+              <motion.button
+                whileTap={{ scale: 0.92 }}
+                type="button"
+                onClick={handleToggleBookmark}
+                aria-label="Bookmark showcase"
+                className={cn(
+                  "inline-flex h-8 items-center gap-1 rounded-full border px-2.5 text-xs font-semibold transition-all cursor-pointer",
+                  showcase?.viewer?.bookmarked
+                    ? "border-amber-500/40 bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                    : "border-border/80 bg-background/80 text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Bookmark
+                  className={cn(
+                    "size-3.5",
+                    showcase?.viewer?.bookmarked && "fill-current",
+                  )}
+                />
+                <span className="tabular-nums font-bold">
+                  {showcase?.engagement?.bookmarkCount ?? 0}
+                </span>
+              </motion.button>
+
+              {/* Comments jump */}
+              <motion.button
+                whileTap={{ scale: 0.92 }}
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById("comments-section");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+                aria-label="Jump to discussion"
+                className="inline-flex h-8 items-center gap-1 rounded-full border border-border/80 bg-background/80 px-2.5 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all cursor-pointer"
+              >
+                <MessageSquare className="size-3.5" />
+                <span className="tabular-nums font-bold text-foreground">
+                  {showcase?.commentCount ?? 0}
+                </span>
+              </motion.button>
+
+              {/* Share */}
+              <motion.button
+                whileTap={{ scale: 0.92 }}
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    toast.success("Link copied to clipboard!");
+                  } catch {
+                    toast.error("Failed to copy link");
+                  }
+                }}
+                aria-label="Copy link"
+                className="flex size-8 items-center justify-center rounded-full border border-border/80 bg-background/80 text-muted-foreground hover:bg-muted hover:text-foreground transition-all cursor-pointer"
+              >
+                <Share2 className="size-3.5" />
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Report dialog */}
       <ReportContentDialog

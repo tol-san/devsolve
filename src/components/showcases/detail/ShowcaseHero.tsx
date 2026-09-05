@@ -46,12 +46,14 @@ interface ShowcaseHeroProps {
   showcase: ShowcaseResponse;
   viewer?: ShowcaseViewer;
   onOpenReport?: () => void;
+  actionBar?: React.ReactNode;
 }
 
 export function ShowcaseHero({
   showcase,
   viewer,
   onOpenReport,
+  actionBar,
 }: ShowcaseHeroProps) {
   const router = useRouter();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -92,7 +94,7 @@ export function ShowcaseHero({
   return (
     <header
       id="overview"
-      className="scroll-mt-24 rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs relative overflow-hidden p-5 sm:p-7 space-y-6"
+      className="scroll-mt-24 rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs relative overflow-hidden"
     >
       {/* Top accent rail */}
       <span
@@ -100,7 +102,8 @@ export function ShowcaseHero({
         className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-primary via-primary/80 to-primary/40"
       />
 
-      {/* Top Meta Bar: Category, Tags, Review status + Contextual Actions */}
+      <div className="p-5 sm:p-7 space-y-6">
+        {/* Top Meta Bar: Category, Tags, Review status + Contextual Actions */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div className="flex flex-wrap items-center gap-2">
           {showcase.categoryName && (
@@ -339,6 +342,14 @@ export function ShowcaseHero({
               <span>Watch Video</span>
             </a>
           )}
+        </div>
+      )}
+      </div>
+
+      {/* Bottom Integrated Action & Engagement Bar */}
+      {actionBar && (
+        <div className="border-t border-border/80 bg-muted/20 px-4 sm:px-7 py-3 sm:py-3.5">
+          {actionBar}
         </div>
       )}
 
