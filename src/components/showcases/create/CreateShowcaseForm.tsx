@@ -194,7 +194,7 @@ function toFormValues(
           key: `step-${step.id}`,
           serverId: step.id,
           title: step.title,
-          description: step.description,
+          description: step.description ?? "",
           codeSnippet: step.codeSnippet ?? "",
           codeLanguage: "typescript",
           imageUrl: step.imageUrl ?? "",

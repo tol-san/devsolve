@@ -12,9 +12,9 @@ export function DashboardTopCweBars({ categories }: DashboardTopCweBarsProps) {
   const sorted = [...categories].sort((a, b) => b.count - a.count);
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-2xs space-y-5">
+    <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-2xs space-y-5">
       <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="w-full sm:w-auto">
+        <div className="w-full sm:w-auto min-w-0">
           <h3 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
             <AlertCircle className="size-5 text-primary shrink-0" />
             <span>Top Vulnerability Classes (CWE)</span>
@@ -36,12 +36,12 @@ export function DashboardTopCweBars({ categories }: DashboardTopCweBarsProps) {
         <div className="space-y-4 pt-1">
           {sorted.map((cwe) => (
             <div key={cwe.cweId} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center justify-between text-sm gap-2">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <span className="font-mono text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md shrink-0">
                     {cwe.cweId}
                   </span>
-                  <span className="font-semibold text-foreground truncate">
+                  <span className="font-semibold text-foreground truncate" title={cwe.name}>
                     {cwe.name}
                   </span>
                 </div>

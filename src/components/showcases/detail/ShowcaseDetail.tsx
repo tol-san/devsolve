@@ -1,659 +1,463 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
-import {
-  ArrowLeft,
-  Bookmark,
-  Clock,
-  Code2,
-  ExternalLink,
-  Eye,
-  Flag,
-  Image as ImageIcon,
-  LayoutTemplate,
-  Network,
-  Share2,
-  Terminal,
-  ZoomIn,
-} from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
+import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
-import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
-import { ShowcaseCodeBlock } from "@/components/showcases/detail/ShowcaseCodeBlock";
-import { ShowcaseDiagramViewer } from "@/components/showcases/diagram/ShowcaseDiagramViewer";
-import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
-import { Button } from "@/components/ui/button";
-import { VoteControl } from "@/components/ui/vote-control";
-import { CommentsSection } from "@/components/comments/CommentsSection";
-import { authorNameOf, initialsOf } from "@/lib/discussions/format";
+import { useAppDispatch } from "@/lib/redux/hooks";
 import {
+  showcasesApi,
   useGetShowcaseByIdQuery,
-  useGetShowcaseStepsQuery,
   useIncrementShowcaseViewsMutation,
-  type ShowcaseStepResponse,
 } from "@/lib/redux/services/showcasesApi";
 import {
-  useGetVoteSummaryQuery,
-  useRemoveVoteMutation,
   useSetVoteMutation,
+  useRemoveVoteMutation,
 } from "@/lib/redux/services/votesApi";
-import { useLocalePath } from "@/lib/i18n/I18nProvider";
+import {
+  useAddBookmarkMutation,
+  useRemoveBookmarkMutation,
+} from "@/lib/redux/services/bookmarksApi";
+import {
+  useFollowTargetMutation,
+  useUnfollowTargetMutation,
+} from "@/lib/redux/services/profileApi";
 import { authClient } from "@/lib/auth/auth-client";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
-import { useGetMyProfileQuery } from "@/lib/redux/services/solutionsApi";
 import { AutoApprovalHoldNotice } from "@/components/notifications/AutoApprovalHoldNotice";
-import { cn } from "@/lib/utils";
+import { CommentsSection } from "@/components/comments/CommentsSection";
+import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
+
+import { ShowcaseDetailSkeleton } from "./ShowcaseDetailSkeleton";
+import { ShowcaseHero } from "./ShowcaseHero";
+import { ShowcaseActionBar } from "./ShowcaseActionBar";
+import { ShowcaseAuthorCard } from "./ShowcaseAuthorCard";
+import { ShowcaseOwnerStrip } from "./ShowcaseOwnerStrip";
+import { ShowcaseWalkthrough } from "./ShowcaseWalkthrough";
+import { ShowcaseRelatedGrid } from "./ShowcaseRelatedGrid";
 
 interface ShowcaseDetailProps {
   id: string;
 }
 
-const CARD =
-  "rounded-2xl border border-border bg-card shadow-xs";
-
-const SIDEBAR_HEADING =
-  "font-bold uppercase tracking-wider text-xs text-muted-foreground";
-
-function formatDate(iso?: string) {
-  if (!iso) return "—";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 export function ShowcaseDetail({ id }: ShowcaseDetailProps) {
-  const { data: showcase, isLoading } = useGetShowcaseByIdQuery(id);
-  const [reporting, setReporting] = useState(false);
+  const dispatch = useAppDispatch();
+  const { data: showcase, isLoading, isError } = useGetShowcaseByIdQuery(id);
   const { data: session } = authClient.useSession();
-  const { data: me } = useGetMyProfileQuery();
   const { handleLogin } = useKeycloakLogin();
 
-  const isPending = showcase?.reviewStatus === "PENDING";
-  const isAuthor = Boolean(
-    (me?.id && (showcase?.authorId === me.id || showcase?.author?.id === me.id)) ||
-    (session?.user?.id && (showcase?.authorId === session.user.id || showcase?.author?.id === session.user.id)) ||
-    (showcase?.authorName && (showcase.authorName === me?.fullName || showcase.authorName === session?.user?.name))
-  );
+  const [reportingOpen, setReportingOpen] = useState(false);
 
-  const embeddedSteps = showcase?.steps;
-  const { data: fetchedSteps } = useGetShowcaseStepsQuery(id, {
-    skip: !showcase || (embeddedSteps?.length ?? 0) > 0,
-  });
-
-  const steps: ShowcaseStepResponse[] = [
-    ...(embeddedSteps?.length ? embeddedSteps : (fetchedSteps ?? [])),
-  ].sort((a, b) => a.stepNumber - b.stepNumber);
-
-  const { data: votes } = useGetVoteSummaryQuery({
-    type: "SHOWCASE",
-    targetId: id,
-  });
+  // Mutations
   const [setVote] = useSetVoteMutation();
   const [removeVote] = useRemoveVoteMutation();
-  const [isVoting, setIsVoting] = useState(false);
+  const [addBookmark] = useAddBookmarkMutation();
+  const [removeBookmark] = useRemoveBookmarkMutation();
+  const [followTarget] = useFollowTargetMutation();
+  const [unfollowTarget] = useUnfollowTargetMutation();
+  const [incrementViews] = useIncrementShowcaseViewsMutation();
 
-  const upvoteCount = votes?.upvotes ?? 0;
-  const downvoteCount = votes?.downvotes ?? 0;
-  const voteScore = votes?.score ?? upvoteCount - downvoteCount;
-  const myVote = votes?.currentUserVote ?? 0;
+  const isSignedIn = Boolean(session?.user);
 
-  const vote = async (value: 1 | -1) => {
-    if (!session?.user) {
-      void handleLogin(
-        typeof window !== "undefined"
-          ? `${window.location.pathname}${window.location.search}`
-          : `/showcases/${id}`,
-      );
-      return;
-    }
-    if (isVoting) return;
-
-    try {
-      setIsVoting(true);
-      if (myVote === value) {
-        await removeVote({ type: "SHOWCASE", targetId: id }).unwrap();
-      } else {
-        await setVote({ type: "SHOWCASE", targetId: id, value }).unwrap();
-      }
-    } catch {
-      /* Signed out, or the vote was rejected. The count stays as the server
-         last reported it rather than drifting to an optimistic value. */
-    } finally {
-      setIsVoting(false);
-    }
+  const requireAuth = () => {
+    void handleLogin(
+      typeof window !== "undefined"
+        ? `${window.location.pathname}${window.location.search}`
+        : `/showcases/${id}`,
+    );
   };
 
-  const [incrementViews] = useIncrementShowcaseViewsMutation();
+  // 1. Fire view count once on mount
   const counted = useRef(false);
-
   useEffect(() => {
     if (counted.current) return;
     counted.current = true;
-    void incrementViews(id);
-  }, [id, incrementViews]);
+    incrementViews(id)
+      .unwrap()
+      .then((res) => {
+        if (res?.viewCount !== undefined) {
+          dispatch(
+            showcasesApi.util.updateQueryData("getShowcaseById", id, (draft) => {
+              draft.viewCount = res.viewCount;
+            }),
+          );
+        }
+      })
+      .catch(() => {
+        // Quietly catch view count error
+      });
+  }, [id, incrementViews, dispatch]);
 
-  if (isLoading) return <DetailSkeleton />;
+  // 2. Optimistic voting handler
+  const handleVote = async (direction: "UP" | "DOWN") => {
+    if (!isSignedIn) {
+      requireAuth();
+      return;
+    }
 
-  if (!showcase) {
+    const currentVote = showcase?.viewer?.vote ?? null;
+    const isClearing = currentVote === direction;
+
+    // Optimistic cache patch
+    const patch = dispatch(
+      showcasesApi.util.updateQueryData("getShowcaseById", id, (draft) => {
+        if (!draft.engagement) {
+          draft.engagement = {
+            voteScore: 0,
+            upvoteCount: 0,
+            downvoteCount: 0,
+            bookmarkCount: 0,
+            followerCount: 0,
+          };
+        }
+        if (!draft.viewer) {
+          draft.viewer = {
+            vote: null,
+            bookmarked: false,
+            following: false,
+            followingAuthor: false,
+            owner: false,
+            canEdit: false,
+            canDelete: false,
+            editUnderReview: false,
+          };
+        }
+
+        const prevVote = draft.viewer.vote;
+
+        if (isClearing) {
+          // Double-click same direction: clear vote (DELETE)
+          if (prevVote === "UP") {
+            draft.engagement.voteScore -= 1;
+            draft.engagement.upvoteCount = Math.max(0, draft.engagement.upvoteCount - 1);
+          } else if (prevVote === "DOWN") {
+            draft.engagement.voteScore += 1;
+            draft.engagement.downvoteCount = Math.max(0, draft.engagement.downvoteCount - 1);
+          }
+          draft.viewer.vote = null;
+        } else {
+          // New vote or flipped vote
+          if (prevVote === "UP") {
+            draft.engagement.upvoteCount = Math.max(0, draft.engagement.upvoteCount - 1);
+          } else if (prevVote === "DOWN") {
+            draft.engagement.downvoteCount = Math.max(0, draft.engagement.downvoteCount - 1);
+          }
+
+          if (direction === "UP") {
+            draft.engagement.upvoteCount += 1;
+            draft.engagement.voteScore += prevVote === "DOWN" ? 2 : 1;
+            draft.viewer.vote = "UP";
+          } else {
+            draft.engagement.downvoteCount += 1;
+            draft.engagement.voteScore -= prevVote === "UP" ? 2 : 1;
+            draft.viewer.vote = "DOWN";
+          }
+        }
+      }),
+    );
+
+    try {
+      if (isClearing) {
+        await removeVote({ type: "SHOWCASE", targetId: id }).unwrap();
+      } else {
+        const val = direction === "UP" ? 1 : -1;
+        await setVote({ type: "SHOWCASE", targetId: id, value: val }).unwrap();
+      }
+    } catch {
+      patch.undo();
+      toast.error("Failed to record your vote. Please try again.");
+    }
+  };
+
+  // 3. Optimistic bookmarking handler
+  const handleToggleBookmark = async () => {
+    if (!isSignedIn) {
+      requireAuth();
+      return;
+    }
+
+    const isBookmarked = Boolean(showcase?.viewer?.bookmarked);
+
+    const patch = dispatch(
+      showcasesApi.util.updateQueryData("getShowcaseById", id, (draft) => {
+        if (!draft.engagement) {
+          draft.engagement = {
+            voteScore: 0,
+            upvoteCount: 0,
+            downvoteCount: 0,
+            bookmarkCount: 0,
+            followerCount: 0,
+          };
+        }
+        if (!draft.viewer) {
+          draft.viewer = {
+            vote: null,
+            bookmarked: false,
+            following: false,
+            followingAuthor: false,
+            owner: false,
+            canEdit: false,
+            canDelete: false,
+            editUnderReview: false,
+          };
+        }
+
+        if (isBookmarked) {
+          draft.viewer.bookmarked = false;
+          draft.engagement.bookmarkCount = Math.max(0, draft.engagement.bookmarkCount - 1);
+        } else {
+          draft.viewer.bookmarked = true;
+          draft.engagement.bookmarkCount += 1;
+        }
+      }),
+    );
+
+    try {
+      if (isBookmarked) {
+        await removeBookmark({ type: "SHOWCASE", targetId: id }).unwrap();
+        toast.success("Bookmark removed.");
+      } else {
+        await addBookmark({ type: "SHOWCASE", targetId: id }).unwrap();
+        toast.success("Showcase bookmarked.");
+      }
+    } catch {
+      patch.undo();
+      toast.error("Failed to update bookmark.");
+    }
+  };
+
+  // 4. Optimistic Showcase follow handler
+  const handleToggleFollowShowcase = async () => {
+    if (!isSignedIn) {
+      requireAuth();
+      return;
+    }
+
+    const isFollowing = Boolean(showcase?.viewer?.following);
+
+    const patch = dispatch(
+      showcasesApi.util.updateQueryData("getShowcaseById", id, (draft) => {
+        if (!draft.engagement) {
+          draft.engagement = {
+            voteScore: 0,
+            upvoteCount: 0,
+            downvoteCount: 0,
+            bookmarkCount: 0,
+            followerCount: 0,
+          };
+        }
+        if (!draft.viewer) {
+          draft.viewer = {
+            vote: null,
+            bookmarked: false,
+            following: false,
+            followingAuthor: false,
+            owner: false,
+            canEdit: false,
+            canDelete: false,
+            editUnderReview: false,
+          };
+        }
+
+        if (isFollowing) {
+          draft.viewer.following = false;
+          draft.engagement.followerCount = Math.max(0, draft.engagement.followerCount - 1);
+        } else {
+          draft.viewer.following = true;
+          draft.engagement.followerCount += 1;
+        }
+      }),
+    );
+
+    try {
+      if (isFollowing) {
+        await unfollowTarget({ type: "SHOWCASE", targetId: id }).unwrap();
+        toast.success("Unfollowed showcase.");
+      } else {
+        await followTarget({ type: "SHOWCASE", targetId: id }).unwrap();
+        toast.success("Following showcase updates.");
+      }
+    } catch {
+      patch.undo();
+      toast.error("Failed to update follow status.");
+    }
+  };
+
+  // 5. Optimistic Author follow handler
+  const handleToggleFollowAuthor = async () => {
+    if (!isSignedIn) {
+      requireAuth();
+      return;
+    }
+
+    const authorId = showcase?.author?.id || showcase?.authorId;
+    if (!authorId) return;
+
+    const isFollowingAuthor = Boolean(
+      showcase?.author?.followedByViewer ?? showcase?.viewer?.followingAuthor,
+    );
+
+    const patch = dispatch(
+      showcasesApi.util.updateQueryData("getShowcaseById", id, (draft) => {
+        if (draft.author) {
+          if (isFollowingAuthor) {
+            draft.author.followedByViewer = false;
+            draft.author.followerCount = Math.max(
+              0,
+              (draft.author.followerCount ?? 1) - 1,
+            );
+          } else {
+            draft.author.followedByViewer = true;
+            draft.author.followerCount = (draft.author.followerCount ?? 0) + 1;
+          }
+        }
+        if (draft.viewer) {
+          draft.viewer.followingAuthor = !isFollowingAuthor;
+        }
+      }),
+    );
+
+    try {
+      if (isFollowingAuthor) {
+        await unfollowTarget({ type: "USER", targetId: authorId }).unwrap();
+        toast.success("Unfollowed author.");
+      } else {
+        await followTarget({ type: "USER", targetId: authorId }).unwrap();
+        toast.success("Following author.");
+      }
+    } catch {
+      patch.undo();
+      toast.error("Failed to update author follow status.");
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center text-slate-800 dark:text-neutral-100 font-sans"
-        style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}
-      >
-        <h1 className="text-2xl font-bold mb-2">Showcase Not Found</h1>
-        <p className="text-slate-500 dark:text-neutral-400 mb-4">
-          It may have been removed, or it is still waiting on review.
-        </p>
-        <Link
-          href="/showcases"
-          className="inline-flex items-center space-x-2 text-sm font-semibold text-blue-600 hover:underline"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Showcases</span>
-        </Link>
-      </div>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <ShowcaseDetailSkeleton />
+      </main>
     );
   }
+
+  if (isError || !showcase) {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-24 text-center space-y-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          Showcase Not Found
+        </h1>
+        <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
+          This project may have been removed or is currently waiting on editorial review.
+        </p>
+        <div className="pt-2">
+          <Link
+            href="/showcases"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+          >
+            <ArrowLeft className="size-4" />
+            <span>Back to all Showcases</span>
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const isOwner = Boolean(showcase.viewer?.owner);
+  const isPending = showcase.reviewStatus === "PENDING";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="min-h-screen text-slate-800 dark:text-neutral-100 font-sans pb-16"
-      style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}
+      className="w-full pb-20"
     >
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <Link
-          href="/showcases"
-          className="inline-flex items-center space-x-2 text-base font-semibold text-slate-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400 mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to Showcases</span>
-        </Link>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+        {/* Navigation & Status Row */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href="/showcases"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors group"
+          >
+            <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
+            <span>Back to Showcases</span>
+          </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3 space-y-6">
-            <div className={`${CARD} p-6`}>
-              <AutoApprovalHoldNotice
-                notifiableId={id}
-                notifiableType="SHOWCASE"
-                isAuthor={isAuthor}
-                isPending={isPending}
-                editHref={`/dashboard/showcases/${id}/edit`}
-                className="mb-4"
+          {isPending && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-3 py-1 text-xs font-bold shadow-2xs">
+              <Clock className="size-3.5" />
+              <span>Pending Review</span>
+            </span>
+          )}
+        </div>
+
+        {/* Hold Notice for Pending Showcases */}
+        <AutoApprovalHoldNotice
+          notifiableId={id}
+          notifiableType="SHOWCASE"
+          isAuthor={isOwner}
+          isPending={isPending}
+          editHref={`/dashboard/showcases/${id}/edit`}
+        />
+
+        {/* Owner Action Strip (Edit/Delete/Revision Notice) */}
+        <ShowcaseOwnerStrip showcaseId={id} viewer={showcase.viewer} />
+
+        {/* Hero: Cover Image (16:9), Title, Chips, Link Row, Overview */}
+        <ShowcaseHero showcase={showcase} />
+
+        {/* Action Bar (Sticky Desktop, Vote, Bookmark, Follow, Comments, Views) */}
+        <ShowcaseActionBar
+          showcase={showcase}
+          isSignedIn={isSignedIn}
+          onRequireAuth={requireAuth}
+          onVote={handleVote}
+          onToggleBookmark={handleToggleBookmark}
+          onToggleFollowShowcase={handleToggleFollowShowcase}
+          onOpenReport={() => setReportingOpen(true)}
+        />
+
+        {/* Main Content Layout: Walkthrough (col-span-8) + Author Card (col-span-4) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Walkthrough Timeline + Comments Section */}
+          <div className="lg:col-span-8 space-y-10 min-w-0">
+            {/* Numbered vertical walkthrough steps */}
+            <ShowcaseWalkthrough steps={showcase.steps} />
+
+            {/* Comments Section */}
+            <section id="comments-section" className="pt-8 border-t border-border/80">
+              <CommentsSection
+                commentableType="SHOWCASE"
+                commentableId={id}
               />
+            </section>
+          </div>
 
-              <div className="flex items-center justify-between gap-4 mb-3">
-                <div className="flex items-center space-x-2">
-                  <span className="inline-flex items-center space-x-1.5 rounded-full bg-blue-100 dark:bg-blue-500/15 px-3 py-1 text-xs font-bold text-blue-700 dark:text-blue-300">
-                    <LayoutTemplate className="h-3.5 w-3.5" />
-                    <span>Showcase</span>
-                  </span>
-
-                  {isPending && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-800 dark:text-amber-300">
-                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>Pending Review</span>
-                    </span>
-                  )}
-
-                  {showcase.categoryName && (
-                    <span className="rounded-md bg-slate-100 dark:bg-neutral-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-neutral-300">
-                      {showcase.categoryName}
-                    </span>
-                  )}
-                </div>
-
-                <VoteControl
-                  voteCount={voteScore}
-                  upvotes={upvoteCount}
-                  downvotes={downvoteCount}
-                  currentVote={myVote}
-                  onVote={vote}
-                  isLoading={isVoting}
-                  upvoteLabel="Upvote this showcase"
-                  downvoteLabel="Downvote this showcase"
-                  className="shrink-0"
-                />
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-neutral-100 tracking-tight leading-snug break-words [word-break:break-word] min-w-0">
-                {showcase.title}
-              </h1>
-
-              {showcase.coverImageUrl && (
-                <div className="mt-5">
-                  <ShowcaseImage
-                    url={showcase.coverImageUrl}
-                    alt={`${showcase.title} cover`}
-                    heightClassName="h-64 sm:h-80 md:h-[420px]"
-                  />
-                </div>
-              )}
-
-              <div className="mt-6 border-t border-slate-100 dark:border-neutral-800 pt-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-2">
-                  Project Overview
-                </h3>
-                <MarkdownView source={showcase.overview} />
-              </div>
-
-              <div className="mt-6 flex items-center justify-between border-t border-slate-100 dark:border-neutral-800 pt-4 text-sm">
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    className="flex items-center space-x-1.5 rounded-xl border border-slate-200 dark:border-neutral-700 px-3.5 py-1.5 text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800 font-medium"
-                  >
-                    <Bookmark className="h-4 w-4" />
-                    <span>Bookmark</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="flex items-center space-x-1.5 rounded-xl border border-slate-200 dark:border-neutral-700 px-3.5 py-1.5 text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800 font-medium"
-                  >
-                    <Share2 className="h-4 w-4" />
-                    <span>Share</span>
-                  </button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="lg"
-                    onClick={() => {
-                      if (!session?.user) {
-                        void handleLogin(
-                          typeof window !== "undefined"
-                            ? `${window.location.pathname}${window.location.search}`
-                            : `/showcases/${id}`,
-                        );
-                        return;
-                      }
-                      setReporting(true);
-                    }}
-                    className="rounded-xl text-muted-foreground"
-                  >
-                    <Flag data-icon="inline-start" />
-                    Report
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className={`${CARD} p-6 space-y-4`}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-base font-bold text-slate-900 dark:text-neutral-100 flex items-center space-x-2">
-                  <Terminal className="h-4 w-4 text-blue-600" />
-                  <span>Build guide</span>
-                </h3>
-                {steps.length > 0 && (
-                  <span className="text-sm font-semibold tabular-nums text-slate-500 dark:text-neutral-400">
-                    {steps.length} {steps.length === 1 ? "step" : "steps"}
-                  </span>
-                )}
-              </div>
-
-              {steps.length === 0 ? (
-                <EmptyTab>This showcase has no build steps yet.</EmptyTab>
-              ) : (
-                <ol className="space-y-3">
-                  {steps.map((step, index) => (
-                    <li
-                      key={step.id}
-                      className="flex gap-3 items-start bg-slate-50 dark:bg-neutral-800/60 p-4 rounded-xl border border-slate-100 dark:border-neutral-800 text-sm"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-xs">
-                        {index + 1}
-                      </span>
-
-                      <div className="min-w-0 flex-1 space-y-3">
-                        <p className="text-base font-bold text-slate-900 dark:text-neutral-100">
-                          {step.title}
-                        </p>
-
-                        <MarkdownView source={step.description} />
-
-                        {step.codeSnippet && (
-                          <ShowcaseCodeBlock
-                            code={step.codeSnippet}
-                          />
-                        )}
-
-                        {step.imageUrl && (
-                          <figure className="space-y-1.5">
-                            <figcaption className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                              <ImageIcon aria-hidden="true" className="size-3.5" />
-                              Screenshot
-                            </figcaption>
-                            <ShowcaseImage
-                              url={step.imageUrl}
-                              alt={`${step.title} screenshot`}
-                              heightClassName="h-48 sm:h-56"
-                              sizes="(max-width: 1024px) 90vw, 720px"
-                            />
-                          </figure>
-                        )}
-
-                        {step.diagramUrl && (
-                          <figure className="space-y-1.5">
-                            <figcaption className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                              <Network aria-hidden="true" className="size-3.5" />
-                              Diagram
-                            </figcaption>
-                            <ShowcaseDiagramViewer
-                              diagramUrl={step.diagramUrl}
-                              title={`${step.title} diagram`}
-                              stepId={step.id}
-                            />
-                          </figure>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </div>
-
-            <CommentsSection
-              commentableType="SHOWCASE"
-              commentableId={id}
-              className={`${CARD} p-6`}
+          {/* Right Column: Author Card */}
+          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-36">
+            <ShowcaseAuthorCard
+              author={showcase.author}
+              isOwner={isOwner}
+              isSignedIn={isSignedIn}
+              onRequireAuth={requireAuth}
+              onToggleFollowAuthor={handleToggleFollowAuthor}
             />
           </div>
-
-          <div className="space-y-6">
-            <div className={`${CARD} p-5 space-y-3.5 text-sm`}>
-              <h3
-                className={`${SIDEBAR_HEADING} border-b border-slate-100 dark:border-neutral-800 pb-2`}
-              >
-                Showcase Metadata
-              </h3>
-              <SidebarRow
-                label="Category"
-                value={showcase.categoryName ?? "—"}
-              />
-              <SidebarRow
-                label="Views"
-                value={showcase.viewCount.toLocaleString()}
-              />
-              <SidebarRow label="Steps" value={String(steps.length)} />
-              <SidebarRow
-                label="Posted"
-                value={formatDate(showcase.createdAt)}
-              />
-            </div>
-
-            {(showcase.repoUrl || showcase.liveUrl || showcase.videoUrl) && (
-              <div className={`${CARD} p-5 text-sm space-y-3`}>
-                <h3 className={SIDEBAR_HEADING}>Project Links</h3>
-                {showcase.repoUrl && (
-                  <ProjectLink href={showcase.repoUrl} label="Repository" />
-                )}
-                {showcase.liveUrl && (
-                  <ProjectLink href={showcase.liveUrl} label="Live Demo" />
-                )}
-                {showcase.videoUrl && (
-                  <ProjectLink href={showcase.videoUrl} label="Walkthrough" />
-                )}
-              </div>
-            )}
-
-            <div className={`${CARD} p-5 text-sm`}>
-              <h3 className={`${SIDEBAR_HEADING} mb-3`}>Posted By</h3>
-              <PostedBy
-                authorId={showcase.authorId ?? showcase.author?.id}
-                authorName={authorNameOf(showcase.author, showcase.authorName || "Community Member")}
-                avatarUrl={showcase.author?.avatarUrl}
-                viewCount={showcase.viewCount}
-              />
-            </div>
-          </div>
         </div>
+
+        {/* More Like This (Related Showcases Grid - omitted if empty) */}
+        <ShowcaseRelatedGrid related={showcase.related} />
       </main>
 
+      {/* Report dialog */}
       <ReportContentDialog
-        contentId={id}
+        open={reportingOpen}
+        onOpenChange={setReportingOpen}
         contentType="SHOWCASE"
-        authorName={authorNameOf(showcase.author, showcase.authorName || "Community Member")}
-        open={reporting}
-        onOpenChange={setReporting}
+        contentId={id}
+        authorName={showcase.author?.fullName || showcase.authorName}
       />
     </motion.div>
   );
 }
-
-function PostedBy({
-  authorId,
-  authorName,
-  avatarUrl,
-  viewCount,
-}: {
-  authorId?: string;
-  authorName: string;
-  avatarUrl?: string;
-  viewCount: number;
-}) {
-  const lp = useLocalePath();
-
-  const identity = (
-    <>
-      <Avatar size="lg" className="shrink-0">
-        <AvatarImage src={avatarUrl} alt={authorName} />
-        <AvatarFallback>{initialsOf(authorName)}</AvatarFallback>
-      </Avatar>
-      <div className="min-w-0">
-        <p className="truncate text-base font-bold text-slate-900 group-hover:text-blue-600 dark:text-neutral-100 dark:group-hover:text-blue-400">
-          {authorName}
-        </p>
-        <p className="flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-neutral-400">
-          <Eye className="h-3 w-3" />
-          {viewCount.toLocaleString()} views on this project
-        </p>
-      </div>
-    </>
-  );
-
-  if (!authorId) {
-    return <div className="flex items-center space-x-3">{identity}</div>;
-  }
-
-  return (
-    <Link
-      href={lp(`/profile/${authorId}`)}
-      className="group flex items-center space-x-3 rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-    >
-      {identity}
-      <span className="sr-only">View profile</span>
-    </Link>
-  );
-}
-
-function EmptyTab({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-6 text-center text-sm text-slate-500 dark:border-neutral-700 dark:bg-neutral-800/40 dark:text-neutral-400">
-      {children}
-    </p>
-  );
-}
-
-function SidebarRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-xs text-slate-500 dark:text-neutral-400">
-        {label}
-      </span>
-      <span className="truncate text-sm font-semibold text-slate-800 dark:text-neutral-100">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function ProjectLink({ href, label }: { href: string; label: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3 transition-colors hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-800/60 dark:hover:bg-neutral-800"
-    >
-      <span className="text-sm font-semibold text-slate-700 dark:text-neutral-200">
-        {label}
-      </span>
-      <ExternalLink className="h-4 w-4 text-slate-400" />
-    </a>
-  );
-}
-
-function isOptimizable(url: string) {
-  return url.startsWith("https://") || url.startsWith("/");
-}
-
-function ShowcaseImage({
-  url,
-  alt,
-  heightClassName = "h-64 sm:h-72",
-  sizes = "(max-width: 1024px) 100vw, 860px",
-  framed = true,
-}: {
-  url: string;
-  alt: string;
-  heightClassName?: string;
-  sizes?: string;
-  framed?: boolean;
-}) {
-  const [failed, setFailed] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  if (failed) return null;
-
-  const frame = cn(
-    "relative w-full overflow-hidden flex items-center justify-center cursor-pointer",
-    heightClassName,
-    framed &&
-      "rounded-2xl border border-slate-200/80 bg-slate-950 dark:border-neutral-800 dark:bg-neutral-950 shadow-md",
-  );
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setIsPreviewOpen(true)}
-        title="Click to view full image"
-        aria-label={`View full image: ${alt}`}
-        className={cn(
-          frame,
-          "group block w-full text-left transition-all hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-        )}
-      >
-        {isOptimizable(url) ? (
-          <>
-            <Image
-              src={url}
-              alt=""
-              fill
-              aria-hidden="true"
-              sizes="100px"
-              quality={30}
-              className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
-            />
-            <Image
-              src={url}
-              alt={alt}
-              fill
-              sizes={sizes}
-              quality={90}
-              onError={() => setFailed(true)}
-              className="relative z-10 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
-            />
-          </>
-        ) : (
-          <>
-            <img
-              src={url}
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
-            />
-            <img
-              src={url}
-              alt={alt}
-              loading="lazy"
-              onError={() => setFailed(true)}
-              className="relative z-10 h-full w-full object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
-            />
-          </>
-        )}
-
-        <div className="absolute bottom-3 right-3 z-20 flex items-center gap-1.5 rounded-xl border border-white/20 bg-black/60 px-2.5 py-1 text-xs font-semibold text-white opacity-0 backdrop-blur-md transition-opacity duration-200 group-hover:opacity-100 shadow-md">
-          <ZoomIn className="size-3.5" />
-          <span>Preview</span>
-        </div>
-      </button>
-
-      <ImagePreviewModal
-        src={url}
-        alt={alt}
-        title={alt}
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-      />
-    </>
-  );
-}
-
-function DetailSkeleton() {
-  return (
-    <div
-      className="min-h-screen pb-16 font-sans"
-      style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}
-    >
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div
-          role="status"
-          aria-label="Loading showcase"
-          className="grid animate-pulse grid-cols-1 gap-8 lg:grid-cols-4"
-        >
-          <span className="sr-only">Loading showcase…</span>
-          <div className="space-y-6 lg:col-span-3">
-            <div className={`${CARD} space-y-4 p-6`}>
-              <div className="h-6 w-28 rounded-full bg-slate-200 dark:bg-neutral-800" />
-              <div className="h-8 w-3/4 rounded-lg bg-slate-200 dark:bg-neutral-800" />
-              <div className="aspect-[16/7] w-full rounded-xl bg-slate-200 dark:bg-neutral-800" />
-              <div className="h-4 w-full rounded-lg bg-slate-200 dark:bg-neutral-800" />
-              <div className="h-4 w-4/5 rounded-lg bg-slate-200 dark:bg-neutral-800" />
-            </div>
-            <div className="flex gap-2">
-              {[0, 1, 2].map((index) => (
-                <div
-                  key={index}
-                  className="h-10 w-44 rounded-xl bg-slate-200 dark:bg-neutral-800"
-                />
-              ))}
-            </div>
-            <div className={`${CARD} space-y-3 p-6`}>
-              <div className="h-16 rounded-xl bg-slate-200 dark:bg-neutral-800" />
-              <div className="h-16 rounded-xl bg-slate-200 dark:bg-neutral-800" />
-            </div>
-          </div>
-          <div className="space-y-6">
-            {[0, 1].map((index) => (
-              <div key={index} className={`${CARD} space-y-3 p-5`}>
-                <div className="h-4 w-32 rounded bg-slate-200 dark:bg-neutral-800" />
-                <div className="h-4 w-full rounded bg-slate-200 dark:bg-neutral-800" />
-                <div className="h-4 w-2/3 rounded bg-slate-200 dark:bg-neutral-800" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
-

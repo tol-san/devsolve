@@ -92,7 +92,7 @@ export function DashboardSeverityDonut({
   const totalCount = chartData.reduce((acc, curr) => acc + curr.count, 0);
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-2xs space-y-5 flex flex-col justify-between">
+    <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-2xs space-y-5 flex flex-col justify-between">
       <div className="min-w-0">
         <h3 className="text-base sm:text-lg font-bold text-foreground flex items-start sm:items-center gap-2">
           <ShieldAlert className="size-5 text-primary shrink-0 mt-0.5 sm:mt-0" />
@@ -103,7 +103,7 @@ export function DashboardSeverityDonut({
         </p>
       </div>
 
-      <div className="relative h-56 w-full flex items-center justify-center">
+      <div className="relative h-52 sm:h-56 w-full flex items-center justify-center">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

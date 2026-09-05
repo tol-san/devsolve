@@ -36,12 +36,12 @@ export interface ShowcaseStepResponse {
   id: string;
   stepNumber: number;
   title: string;
-  description: string;
-  codeSnippet?: string;
-  imageUrl?: string;
-  diagramUrl?: string;
-  createdAt: string;
-  updatedAt: string;
+  description?: string | null;
+  codeSnippet?: string | null;
+  imageUrl?: string | null;
+  diagramUrl?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ShowcaseTagResponse {
@@ -52,31 +52,68 @@ export interface ShowcaseTagResponse {
 
 export interface ShowcaseAuthorResponse {
   id?: string;
+  username?: string;
   fullName?: string;
   displayName?: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
+  biography?: string | null;
   reputation?: number;
+  publishedShowcaseCount?: number;
+  followerCount?: number;
+  followedByViewer?: boolean;
+}
+
+export interface ShowcaseEngagement {
+  voteScore: number;
+  upvoteCount: number;
+  downvoteCount: number;
+  bookmarkCount: number;
+  followerCount: number;
+}
+
+export interface ShowcaseViewer {
+  vote: "UP" | "DOWN" | null;
+  bookmarked: boolean;
+  following: boolean;
+  followingAuthor: boolean;
+  owner: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  editUnderReview: boolean;
+}
+
+export interface ShowcaseRelatedItem {
+  id: string;
+  title: string;
+  coverImageUrl?: string | null;
+  authorName?: string | null;
+  categoryName?: string | null;
+  viewCount: number;
 }
 
 export interface ShowcaseResponse {
   id: string;
   authorId?: string;
   authorName?: string;
-  author?: ShowcaseAuthorResponse;
-  categoryId?: string;
-  categoryName?: string;
+  author?: ShowcaseAuthorResponse | null;
+  categoryId?: string | null;
+  categoryName?: string | null;
   title: string;
   overview: string;
-  coverImageUrl?: string;
-  liveUrl?: string;
-  repoUrl?: string;
-  videoUrl?: string;
+  coverImageUrl?: string | null;
+  liveUrl?: string | null;
+  repoUrl?: string | null;
+  videoUrl?: string | null;
   reviewStatus: ShowcaseReviewStatus;
   viewCount: number;
-  createdAt: string;
-  updatedAt: string;
+  commentCount?: number;
+  engagement?: ShowcaseEngagement;
+  viewer?: ShowcaseViewer;
   tags?: ShowcaseTagResponse[];
   steps?: ShowcaseStepResponse[];
+  related?: ShowcaseRelatedItem[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ShowcaseSummaryResponse

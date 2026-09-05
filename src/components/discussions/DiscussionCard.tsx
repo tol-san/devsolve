@@ -160,6 +160,17 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
     router.push(targetHref);
   };
 
+  const { data: authorProfile } = useGetPublicProfileQuery(post.author.id ?? "", {
+    skip: Boolean(post.author.name && post.author.avatarUrl) || !post.author.id,
+  });
+  const authorName =
+    post.author.name ||
+    authorProfile?.fullName ||
+    "Community Member";
+  const authorProfileHref = post.author.id
+    ? lp(`/profile/${post.author.id}`)
+    : null;
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 8 }}
@@ -168,7 +179,7 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
       role="article"
       aria-labelledby={titleId}
       onClick={handleCardClick}
-      className="group relative border-b border-border/60 last:border-b-0 p-5 sm:p-6 transition-colors hover:bg-muted/40 cursor-pointer"
+      className="group relative border-b border-border/60 last:border-b-0 p-4 sm:p-6 transition-colors hover:bg-muted/30 cursor-pointer"
     >
       <Link
         href={targetHref}
@@ -177,156 +188,77 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative pointer-events-none flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4.5">
-        {/* Left Column: Author Avatar */}
-        <div className="shrink-0 pt-0.5 pointer-events-auto">
-          <div className="relative">
-            <CardAuthorAvatar author={post.author} />
-            {post.status === "Solved" ? (
-              <span
-                title="Solved"
-                className="absolute -bottom-1 -right-1 flex size-4.5 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs"
-              >
-                <CheckCircle2 className="size-3" />
-              </span>
-            ) : post.author.reputation && post.author.reputation > 500 ? (
-              <span
-                title="Top Contributor"
-                className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold shadow-xs"
-              >
-                ★
-              </span>
-            ) : null}
-          </div>
-        </div>
-
-        {/* Center Column: Title, Topic Pill, Description, Media, Tags */}
-        <div className="min-w-0 flex-1 space-y-1.5">
-          {/* Header row with Topic Badge & relative time */}
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-              <span
-                className="size-2 rounded-full shrink-0"
-                style={{ backgroundColor: topicColor }}
-                aria-hidden="true"
-              />
-              <span>{topicLabel}</span>
-            </span>
-            <span className="text-xs text-muted-foreground">·</span>
-            <span className="text-xs text-muted-foreground">
-              {relativeTime(post.sortTimestamp)}
-            </span>
-          </div>
-
-          {/* Rejection / Status notice if relevant */}
-          {myAnswer && myAnswer.review === "REJECTED" && (
-            <div className="mb-1 pointer-events-auto relative z-10">
-              <Link
-                href={MY_COMMUNITY_HREF}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors",
-                  "bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25",
-                )}
-              >
-                <XCircle aria-hidden="true" className="size-3.5" />
-                {t("community.card.answerRejected")}
-              </Link>
-            </div>
-          )}
-
-          {/* Title */}
-          <h3
-            id={titleId}
-            className="text-base sm:text-lg font-bold tracking-tight text-foreground transition-colors group-hover:text-primary break-words [word-break:break-word] min-w-0"
-          >
-            <Link
-              href={targetHref}
-              className="pointer-events-auto hover:text-primary transition-colors focus:outline-none"
-            >
-              {post.title}
-            </Link>
-          </h3>
-
-          {/* Description */}
-          {post.description && (
-            <p className="line-clamp-2 text-sm sm:text-base leading-relaxed text-foreground/80 break-words [word-break:break-word]">
-              {post.description}
-            </p>
-          )}
-
-          {/* Showcase Media Preview */}
-          {isShowcase && post.thumbnailUrl && (
-            <div className="relative w-full max-h-[300px] overflow-hidden rounded-xl bg-slate-950/80 dark:bg-neutral-950/90 border border-slate-200/80 dark:border-neutral-800 flex items-center justify-center my-3">
-              <Image
-                src={post.thumbnailUrl}
-                alt=""
-                fill
-                aria-hidden="true"
-                sizes="100px"
-                quality={30}
-                className="object-cover blur-2xl opacity-40 dark:opacity-50 scale-110 pointer-events-none select-none"
-              />
-              <div className="relative z-10 w-full h-[200px] sm:h-[240px] flex items-center justify-center">
-                <Image
-                  src={post.thumbnailUrl}
-                  alt={`${post.title} ${t("community.card.preview")}`}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  quality={90}
-                  className="object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-[1.01]"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Tags */}
-          {tags && tags.length > 0 && (
-            <div
-              className="flex flex-wrap gap-1.5 pt-1"
-              aria-label={t("community.card.tags")}
-            >
-              {tags.slice(0, 5).map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="tag"
-                  className="rounded-md font-mono text-xs font-medium"
+      <div className="relative pointer-events-none flex flex-col gap-3 sm:gap-3.5">
+        {/* Top Header: Author info, Topic & Timestamp on left; Solved & Bookmark on right */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pointer-events-auto">
+            <div className="relative shrink-0">
+              {authorProfileHref ? (
+                <Link
+                  href={authorProfileHref}
+                  onClick={(e) => e.stopPropagation()}
+                  className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block"
                 >
-                  {tag}
-                </Badge>
-              ))}
+                  <CardAuthorAvatar author={post.author} />
+                </Link>
+              ) : (
+                <CardAuthorAvatar author={post.author} />
+              )}
+              {post.status === "Solved" ? (
+                <span
+                  title="Solved"
+                  className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs"
+                >
+                  <CheckCircle2 className="size-2.5" />
+                </span>
+              ) : post.author.reputation && post.author.reputation > 500 ? (
+                <span
+                  title="Top Contributor"
+                  className="absolute -bottom-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-white text-[9px] font-bold shadow-xs"
+                >
+                  ★
+                </span>
+              ) : null}
             </div>
-          )}
-        </div>
 
-        {/* Right Column: Participant Avatars, Comments Count & Actions */}
-        <div className="flex shrink-0 sm:flex-col sm:items-end justify-between items-center gap-3 pt-3 sm:pt-1 border-t border-border/40 sm:border-0">
-          {/* Participant Avatars Stack */}
-          <ParticipantAvatarStack
-            author={post.author}
-            answersCount={post.answersCount}
-          />
-
-          {/* Comments Counter */}
-          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-muted-foreground">
-            <MessageSquare aria-hidden="true" className="size-4 text-muted-foreground/80 shrink-0" />
-            <span>
-              {post.answersCount} {answerNoun}
-            </span>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0 text-xs sm:text-sm">
+              {authorProfileHref ? (
+                <Link
+                  href={authorProfileHref}
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-semibold text-foreground hover:text-primary transition-colors truncate max-w-[140px] sm:max-w-[220px]"
+                >
+                  {authorName}
+                </Link>
+              ) : (
+                <span className="font-semibold text-foreground truncate max-w-[140px] sm:max-w-[220px]">
+                  {authorName}
+                </span>
+              )}
+              <span className="text-muted-foreground text-xs">·</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                <span
+                  className="size-1.5 sm:size-2 rounded-full shrink-0"
+                  style={{ backgroundColor: topicColor }}
+                  aria-hidden="true"
+                />
+                <span>{topicLabel}</span>
+              </span>
+              <span className="text-muted-foreground text-xs">·</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {relativeTime(post.sortTimestamp)}
+              </span>
+            </div>
           </div>
 
-          {/* Actions: Votes & Bookmark */}
-          <div className="flex items-center gap-1.5 relative z-10 pt-1">
-            <VoteControl
-              voteCount={voteScore}
-              upvotes={upvoteCount}
-              downvotes={downvoteCount}
-              currentVote={currentUserVote}
-              onVote={handleVote}
-              isLoading={isVoting}
-              upvoteLabel={t("community.card.upvote")}
-              downvoteLabel={t("community.card.downvote")}
-              className="pointer-events-auto"
-            />
+          {/* Top Right: Solved Badge & Bookmark */}
+          <div className="flex items-center gap-1.5 shrink-0 pointer-events-auto">
+            {post.status === "Solved" && (
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="size-3" />
+                <span>Solved</span>
+              </span>
+            )}
             <Button
               type="button"
               size="icon-sm"
@@ -340,8 +272,8 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                   : "community.card.bookmark",
               )}
               className={cn(
-                "pointer-events-auto rounded-xl cursor-pointer",
-                localBookmarked && "text-primary",
+                "rounded-xl cursor-pointer hover:bg-muted text-muted-foreground hover:text-foreground transition-colors",
+                localBookmarked && "text-primary hover:text-primary",
               )}
             >
               <Bookmark
@@ -349,6 +281,128 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
                 className={cn("size-4", localBookmarked && "fill-current")}
               />
             </Button>
+          </div>
+        </div>
+
+        {/* Rejection / Status notice if relevant */}
+        {myAnswer && myAnswer.review === "REJECTED" && (
+          <div className="pointer-events-auto relative z-10">
+            <Link
+              href={MY_COMMUNITY_HREF}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors",
+                "bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25",
+              )}
+            >
+              <XCircle aria-hidden="true" className="size-3.5" />
+              {t("community.card.answerRejected")}
+            </Link>
+          </div>
+        )}
+
+        {/* Title */}
+        <h3
+          id={titleId}
+          className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-foreground transition-colors group-hover:text-primary break-words [word-break:break-word] leading-snug"
+        >
+          <Link
+            href={targetHref}
+            className="pointer-events-auto hover:text-primary transition-colors focus:outline-none"
+          >
+            {post.title}
+          </Link>
+        </h3>
+
+        {/* Description */}
+        {post.description && (
+          <p className="line-clamp-2 sm:line-clamp-3 text-sm sm:text-base leading-relaxed text-muted-foreground break-words [word-break:break-word]">
+            {post.description}
+          </p>
+        )}
+
+        {/* Showcase Media Preview */}
+        {isShowcase && post.thumbnailUrl && (
+          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[340px] overflow-hidden rounded-xl border border-border/80 bg-muted/20 my-1 group/media shadow-2xs">
+            <Image
+              src={post.thumbnailUrl}
+              alt={`${post.title} ${t("community.card.preview")}`}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 850px"
+              quality={90}
+              className="object-cover object-top transition-transform duration-300 group-hover/media:scale-[1.015]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/25 via-transparent to-transparent pointer-events-none" />
+          </div>
+        )}
+
+        {/* Tags */}
+        {tags && tags.length > 0 && (
+          <div
+            className="flex flex-wrap gap-1.5 pt-0.5"
+            aria-label={t("community.card.tags")}
+          >
+            {tags.slice(0, 5).map((tag) => (
+              <Badge
+                key={tag}
+                variant="tag"
+                className="rounded-md font-mono text-xs font-medium bg-muted/50 hover:bg-muted text-muted-foreground border-border/70 transition-colors"
+              >
+                {tag}
+              </Badge>
+            ))}
+            {tags.length > 5 && (
+              <span className="text-xs text-muted-foreground font-mono self-center px-1">
+                +{tags.length - 5}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Bottom Action Bar: Votes, Comments, Views on left; Participants on right */}
+        <div className="flex items-center justify-between gap-3 pt-2.5 sm:pt-3 border-t border-border/40 text-muted-foreground">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Vote Control */}
+            <VoteControl
+              voteCount={voteScore}
+              upvotes={upvoteCount}
+              downvotes={downvoteCount}
+              currentVote={currentUserVote}
+              onVote={handleVote}
+              isLoading={isVoting}
+              upvoteLabel={t("community.card.upvote")}
+              downvoteLabel={t("community.card.downvote")}
+              className="pointer-events-auto"
+            />
+
+            {/* Comments Counter as Interactive Pill */}
+            <Link
+              href={targetHref}
+              className="pointer-events-auto inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl border border-border/70 bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shadow-2xs active:scale-98"
+            >
+              <MessageSquare
+                aria-hidden="true"
+                className="size-3.5 text-muted-foreground/80 shrink-0"
+              />
+              <span>
+                {post.answersCount} {answerNoun}
+              </span>
+            </Link>
+
+            {/* Views counter if present */}
+            {post.viewsCount !== undefined && post.viewsCount > 0 && (
+              <div className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground px-1.5">
+                <Eye className="size-3.5 text-muted-foreground/70" />
+                <span>{post.viewsCount.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Participant Avatars Stack */}
+          <div className="pointer-events-auto">
+            <ParticipantAvatarStack
+              author={post.author}
+              answersCount={post.answersCount}
+            />
           </div>
         </div>
       </div>
@@ -370,12 +424,12 @@ function CardAuthorAvatar({
   const name = author.name || profile?.fullName || "Community Member";
 
   return (
-    <Avatar className="size-11 sm:size-12 rounded-full border-2 border-background shadow-xs ring-1 ring-border/80">
+    <Avatar className="size-9 sm:size-10 rounded-full border-2 border-background shadow-xs ring-1 ring-border/80">
       <AvatarImage
         src={avatarUrl}
         alt={`${name} — ${t("community.card.avatarOf")}`}
       />
-      <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+      <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs sm:text-sm">
         {getInitials(name)}
       </AvatarFallback>
     </Avatar>
