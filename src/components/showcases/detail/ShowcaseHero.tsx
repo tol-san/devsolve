@@ -39,6 +39,7 @@ import {
   type ShowcaseViewer,
 } from "@/lib/redux/services/showcasesApi";
 import { formatDate, initialsOf } from "@/lib/discussions/format";
+import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { cn } from "@/lib/utils";
 
 interface ShowcaseHeroProps {
@@ -295,9 +296,9 @@ export function ShowcaseHero({
 
       {/* Overview */}
       {showcase.overview && (
-        <p className="text-base sm:text-lg text-muted-foreground leading-relaxed pt-1">
-          {showcase.overview}
-        </p>
+        <div className="text-base sm:text-lg text-muted-foreground leading-relaxed pt-1">
+          <MarkdownView source={showcase.overview} size="lg" />
+        </div>
       )}
 
       {/* Action Link Row (only renders existing links) */}

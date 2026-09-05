@@ -20,9 +20,14 @@ const MarkdownPreview = dynamic(
 interface MarkdownViewProps {
   source: string;
   className?: string;
+  size?: "sm" | "base" | "lg";
 }
 
-export function MarkdownView({ source, className }: MarkdownViewProps) {
+export function MarkdownView({
+  source,
+  className,
+  size = "base",
+}: MarkdownViewProps) {
   const { resolvedTheme } = useTheme();
   const [previewImage, setPreviewImage] = useState<{
     src: string;
@@ -46,6 +51,13 @@ export function MarkdownView({ source, className }: MarkdownViewProps) {
     }
   };
 
+  const sizeClasses =
+    size === "sm"
+      ? "[&.wmde-markdown]:!text-xs sm:[&.wmde-markdown]:!text-sm [&.wmde-markdown_p]:!mb-1.5 [&.wmde-markdown_p]:!leading-relaxed"
+      : size === "lg"
+        ? "[&.wmde-markdown]:!text-base sm:[&.wmde-markdown]:!text-[17px] [&.wmde-markdown_p]:!mb-3 [&.wmde-markdown_p]:!leading-relaxed"
+        : "[&.wmde-markdown]:!text-sm sm:[&.wmde-markdown]:!text-base [&.wmde-markdown_p]:!mb-2 [&.wmde-markdown_p]:!leading-relaxed";
+
   return (
     <>
       <div
@@ -64,7 +76,10 @@ export function MarkdownView({ source, className }: MarkdownViewProps) {
           style={{
             background: "transparent",
           }}
-          className="!bg-transparent [&.wmde-markdown]:!font-sans [&.wmde-markdown]:!text-[17px] [&.wmde-markdown]:!leading-relaxed [&.wmde-markdown_img]:cursor-pointer [&.wmde-markdown_img]:transition-transform hover:[&.wmde-markdown_img]:scale-[1.01] hover:[&.wmde-markdown_img]:opacity-95 [&.wmde-markdown_img]:rounded-xl"
+          className={cn(
+            "!bg-transparent !text-inherit [&.wmde-markdown]:!bg-transparent [&.wmde-markdown]:!text-inherit [&.wmde-markdown]:!font-sans [&.wmde-markdown_img]:cursor-pointer [&.wmde-markdown_img]:transition-transform hover:[&.wmde-markdown_img]:scale-[1.01] hover:[&.wmde-markdown_img]:opacity-95 [&.wmde-markdown_img]:rounded-xl",
+            sizeClasses,
+          )}
         />
       </div>
 

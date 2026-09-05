@@ -6,6 +6,7 @@ import { Award, Check, Plus, ShieldAlert, UserPlus, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { ShowcaseAuthorResponse } from "@/lib/redux/services/showcasesApi";
+import { MarkdownView } from "@/components/showcases/detail/MarkdownView";
 import { initialsOf } from "@/lib/discussions/format";
 import { cn } from "@/lib/utils";
 
@@ -76,11 +77,11 @@ export function ShowcaseAuthorCard({
         </div>
       </div>
 
-      {/* Biography (omitted when null/empty) */}
+      {/* Biography (rendered as markdown if provided) */}
       {author.biography && (
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {author.biography}
-        </p>
+        <div className="text-sm text-muted-foreground leading-relaxed">
+          <MarkdownView source={author.biography} size="sm" />
+        </div>
       )}
 
       {/* Stats row: Reputation, Published Showcases, Followers */}
