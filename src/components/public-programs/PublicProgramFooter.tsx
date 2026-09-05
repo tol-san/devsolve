@@ -4,7 +4,7 @@ import { Globe, Mail, Shield } from "lucide-react";
 
 export function PublicProgramFooter() {
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="border-t border-border/80 bg-background/85 dark:bg-background/90 backdrop-blur-xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_-8px_24px_rgba(0,0,0,0.4)]">
       <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.2fr_0.8fr_0.8fr_1fr] lg:px-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3">

@@ -67,7 +67,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative w-full overflow-hidden border-t border-slate-200/80 font-sans text-slate-700 dark:border-neutral-800 dark:text-neutral-300">
+    <footer className="relative w-full overflow-hidden border-t border-border/80 bg-background/85 dark:bg-background/90 backdrop-blur-xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.05)] dark:shadow-[0_-8px_24px_rgba(0,0,0,0.4)] font-sans text-foreground">
       <div className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-12 sm:px-6 sm:pt-16 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -98,7 +98,7 @@ export default function Footer() {
               </span>
             </Link>
 
-            <p className="max-w-md text-base leading-relaxed tracking-[-0.01em] text-slate-600 dark:text-neutral-400">
+            <p className="max-w-md text-base leading-relaxed tracking-[-0.01em] text-muted-foreground">
               {t("footer.tagline")}
             </p>
           </div>
@@ -109,9 +109,9 @@ export default function Footer() {
                 <h3 className="flex items-center gap-2.5">
                   <span
                     aria-hidden="true"
-                    className="h-px w-6 shrink-0 bg-blue-600 dark:bg-blue-400"
+                    className="h-px w-6 shrink-0 bg-primary"
                   />
-                  <span className="text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">
+                  <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
                     {t(section.tKey) || section.title}
                   </span>
                 </h3>
@@ -123,7 +123,7 @@ export default function Footer() {
                           href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-block text-sm font-medium tracking-[-0.01em] text-slate-600 transition-all duration-200 hover:translate-x-0.5 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
+                          className="inline-block text-sm font-medium tracking-[-0.01em] text-muted-foreground transition-all duration-200 hover:translate-x-0.5 hover:text-primary"
                         >
                           {t(link.tKey) || link.name}
                         </a>
@@ -131,7 +131,7 @@ export default function Footer() {
                         <Link
                           href={lp(link.href)}
                           prefetch={false}
-                          className="inline-block text-sm font-medium tracking-[-0.01em] text-slate-600 transition-all duration-200 hover:translate-x-0.5 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400"
+                          className="inline-block text-sm font-medium tracking-[-0.01em] text-muted-foreground transition-all duration-200 hover:translate-x-0.5 hover:text-primary"
                         >
                           {t(link.tKey) || link.name}
                         </Link>
@@ -149,19 +149,19 @@ export default function Footer() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-12 border-t border-slate-200/70 pt-10 dark:border-neutral-800/80"
+          className="mt-12 border-t border-border/70 pt-10"
         >
           <h2 className="mb-8 flex items-center justify-center gap-3">
             <span
               aria-hidden="true"
-              className="h-px w-6 bg-blue-600 dark:bg-blue-400"
+              className="h-px w-6 bg-primary"
             />
-            <span className="text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-400">
+            <span className="text-xs font-bold uppercase tracking-[0.22em] text-primary">
               {t("footer.sponsors")}
             </span>
             <span
               aria-hidden="true"
-              className="h-px w-6 bg-blue-600 dark:bg-blue-400"
+              className="h-px w-6 bg-primary"
             />
           </h2>
 
@@ -188,10 +188,10 @@ export default function Footer() {
           </div>
         </motion.section>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-slate-200/70 pt-6 text-sm text-slate-500 sm:flex-row dark:border-neutral-800/80 dark:text-neutral-500">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border/70 pt-6 text-sm text-muted-foreground sm:flex-row">
           <p className="tracking-[-0.01em]">
             © {new Date().getFullYear()} DevSolve
-            <span className="text-blue-600 dark:text-blue-400">.</span>{" "}
+            <span className="text-primary">.</span>{" "}
             {t("footer.rights")}
           </p>
 
@@ -200,7 +200,7 @@ export default function Footer() {
             whileTap={{ scale: 0.95 }}
             onClick={scrollToTop}
             aria-label={t("footer.backToTop")}
-            className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_8px_20px_-6px_rgba(37,99,235,0.6)] transition-colors hover:bg-blue-700"
+            className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/25 transition-colors hover:bg-primary/90"
           >
             <ArrowUp className="size-4" />
           </motion.button>
