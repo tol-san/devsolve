@@ -15,7 +15,9 @@ import {
   Bookmark,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   CircleDot,
   Clock,
   Copy,
@@ -41,6 +43,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { ImagePreviewModal } from "@/components/ui/image-preview-modal";
 import { SolutionCard } from "@/components/discussions/SolutionCard";
 import { ReportContentDialog } from "@/components/comments/ReportCommentDialog";
@@ -448,49 +451,14 @@ function Loaded({
             <section className={`${CARD} relative overflow-hidden`}>
               <span
                 aria-hidden="true"
-                className={`absolute inset-x-0 top-0 h-1 ${
+                className={`absolute inset-x-0 top-0 h-1.5 ${
                   severity?.rail ?? "bg-primary/50"
                 }`}
               />
 
-              <div className="flex gap-5 p-5 pt-6 sm:p-7 sm:pt-8">
-                {/* Vote rail — the page's primary action, given its own column */}
-                <div className="hidden w-11 shrink-0 flex-col items-center gap-2 sm:flex">
-                  <VoteControl
-                    voteCount={voteScore}
-                    upvotes={upvoteCount}
-                    downvotes={downvoteCount}
-                    currentVote={votes?.currentUserVote ?? 0}
-                    onVote={onVote}
-                    isLoading={isVoting}
-                    upvoteLabel="Upvote this problem"
-                    downvoteLabel="Downvote this problem"
-                    orientation="vertical"
-                    className="w-full"
-                  />
-
-                  <RailButton
-                    label={isBookmarked ? "Remove bookmark" : "Bookmark"}
-                    onClick={() => void onBookmark()}
-                    disabled={isBookmarking}
-                    pressed={isBookmarked}
-                    className="w-full"
-                  >
-                    <Bookmark
-                      className={`size-4 ${isBookmarked ? "fill-current" : ""}`}
-                    />
-                  </RailButton>
-
-                  <RailButton
-                    label="Copy link"
-                    onClick={() => void onShare()}
-                    className="w-full"
-                  >
-                    <Share2 className="size-4" />
-                  </RailButton>
-                </div>
-
-                <div className="min-w-0 flex-1 space-y-4">
+              <div className="p-5 sm:p-7 space-y-4">
+                {/* Top Row: Status pills, classification badges, and top-right quick actions */}
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-2">
                     {isPending ? (
                       <Pill tone="pending" icon={Clock}>
@@ -531,86 +499,206 @@ function Loaded({
                     )}
                   </div>
 
-                  <h1 className="text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl lg:text-[2rem]">
-                    {problem.title ?? "Untitled problem"}
-                  </h1>
+                  {/* Top-Right Contextual Actions */}
+                  <div className="flex items-center gap-1.5">
+                    {(problem.canEdit || (isOwnProblem && isPending)) && (
+                      <Link
+                        href={`/community/${id}/edit`}
+                        className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-border/80 bg-background/80 px-3 text-xs font-semibold text-foreground hover:bg-muted transition-colors shadow-2xs"
+                      >
+                        <Pencil className="size-3.5 text-primary" />
+                        <span>Edit</span>
+                      </Link>
+                    )}
 
-                  <AuthorLine
-                    author={problem.author}
-                    createdAt={problem.createdAt}
-                    updatedAt={problem.updatedAt}
-                  />
-
-                  {(technologies.length > 0 || tags.length > 0) && (
-                    <div className="flex flex-wrap gap-1.5 pt-0.5">
-                      {technologies.map((tech, i) => (
-                        <span
-                          key={tech.id ?? `${tech.name}-${i}`}
-                          className="rounded-lg border border-border bg-muted/60 px-2.5 py-1 font-mono text-xs font-medium text-foreground/80"
-                        >
-                          {tech.name}
-                          {tech.version ? ` ${tech.version}` : ""}
-                        </span>
-                      ))}
-                      {tags.map((tag, i) => (
-                        <span
-                          key={tag.id ?? `${tag.name}-${i}`}
-                          className="rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1 font-mono text-xs font-medium text-primary"
-                        >
-                          #{tag.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Mobile equivalents of the rail */}
-                  <div className="flex flex-wrap items-center gap-2 pt-1 sm:hidden">
-                    <VoteControl
-                      voteCount={voteScore}
-                      upvotes={upvoteCount}
-                      downvotes={downvoteCount}
-                      currentVote={votes?.currentUserVote ?? 0}
-                      onVote={onVote}
-                      isLoading={isVoting}
-                      upvoteLabel="Upvote this problem"
-                      downvoteLabel="Downvote this problem"
-                      orientation="horizontal"
-                    />
-                    <RailButton
-                      label={isBookmarked ? "Remove bookmark" : "Bookmark"}
-                      onClick={() => void onBookmark()}
-                      disabled={isBookmarking}
-                      pressed={isBookmarked}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!isSignedIn) return requireSignIn();
+                        setReportingProblem(true);
+                      }}
+                      aria-label="Report problem"
+                      className="inline-flex size-8 items-center justify-center rounded-xl border border-border/80 bg-background/80 text-muted-foreground hover:bg-muted hover:text-rose-500 transition-colors shadow-2xs cursor-pointer"
+                      title="Report problem"
                     >
-                      <Bookmark
-                        className={`size-4 ${isBookmarked ? "fill-current" : ""}`}
-                      />
-                    </RailButton>
-                    <RailButton label="Copy link" onClick={() => void onShare()}>
-                      <Share2 className="size-4" />
-                    </RailButton>
+                      <Flag className="size-3.5" />
+                    </button>
                   </div>
                 </div>
+
+                {/* Full-width Problem Title */}
+                <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-foreground sm:text-3xl lg:text-[2.25rem] break-words">
+                  {problem.title ?? "Untitled problem"}
+                </h1>
+
+                {/* Author & Timestamp Line */}
+                <AuthorLine
+                  author={problem.author}
+                  createdAt={problem.createdAt}
+                  updatedAt={problem.updatedAt}
+                />
+
+                {/* Technologies & Tags */}
+                {(technologies.length > 0 || tags.length > 0) && (
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {technologies.map((tech, i) => (
+                      <span
+                        key={tech.id ?? `${tech.name}-${i}`}
+                        className="rounded-lg border border-border bg-muted/60 px-2.5 py-1 font-mono text-xs font-medium text-foreground/80"
+                      >
+                        {tech.name}
+                        {tech.version ? ` ${tech.version}` : ""}
+                      </span>
+                    ))}
+                    {tags.map((tag, i) => (
+                      <span
+                        key={tag.id ?? `${tag.name}-${i}`}
+                        className="rounded-lg border border-primary/25 bg-primary/10 px-2.5 py-1 font-mono text-xs font-medium text-primary"
+                      >
+                        #{tag.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <dl className="grid grid-cols-2 divide-x divide-border border-t border-border bg-muted/25 sm:grid-cols-4">
-                <Metric
-                  label="Solutions"
-                  value={answerCount}
-                  icon={CheckCircle2}
-                />
-                <Metric
-                  label="Views"
-                  value={problem.viewCount ?? 0}
-                  icon={Eye}
-                />
-                <Metric label="Score" value={voteScore} icon={TrendingUp} />
-                <Metric
-                  label="Comments"
-                  value={problem.commentCount ?? 0}
-                  icon={MessageSquare}
-                />
-              </dl>
+              {/* Bottom Integrated Action & Engagement Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/80 bg-muted/20 px-5 sm:px-7 py-3">
+                {/* Left Side: Voting Pill + Bookmark + Share + Repo */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Vote Control Pill */}
+                  <div className="inline-flex items-center rounded-xl border border-border/80 bg-background/80 p-0.5 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => void onVote(1)}
+                      disabled={isVoting}
+                      aria-pressed={votes?.currentUserVote === 1}
+                      aria-label="Upvote this problem"
+                      className={cn(
+                        "flex size-8 sm:size-8.5 items-center justify-center rounded-lg transition-all active:scale-95 cursor-pointer",
+                        votes?.currentUserVote === 1
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold"
+                          : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                      )}
+                    >
+                      <ChevronUp className="size-4.5 stroke-[2.5]" />
+                    </button>
+
+                    <span
+                      className={cn(
+                        "min-w-8 text-center text-xs sm:text-sm font-bold tabular-nums px-1.5",
+                        votes?.currentUserVote === 1
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : votes?.currentUserVote === -1
+                            ? "text-rose-600 dark:text-rose-400"
+                            : "text-foreground",
+                      )}
+                    >
+                      {voteScore}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => void onVote(-1)}
+                      disabled={isVoting}
+                      aria-pressed={votes?.currentUserVote === -1}
+                      aria-label="Downvote this problem"
+                      className={cn(
+                        "flex size-8 sm:size-8.5 items-center justify-center rounded-lg transition-all active:scale-95 cursor-pointer",
+                        votes?.currentUserVote === -1
+                          ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 font-bold"
+                          : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                      )}
+                    >
+                      <ChevronDown className="size-4.5 stroke-[2.5]" />
+                    </button>
+                  </div>
+
+                  {/* Bookmark Button */}
+                  <button
+                    type="button"
+                    onClick={() => void onBookmark()}
+                    disabled={isBookmarking}
+                    aria-pressed={isBookmarked}
+                    className={cn(
+                      "inline-flex h-9 sm:h-9.5 items-center gap-1.5 rounded-xl border px-3 text-xs sm:text-sm font-semibold transition-all active:scale-98 cursor-pointer shadow-2xs",
+                      isBookmarked
+                        ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        : "border-border/80 bg-background/80 text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <Bookmark
+                      className={cn("size-4", isBookmarked && "fill-current")}
+                    />
+                    <span>{isBookmarked ? "Saved" : "Save"}</span>
+                  </button>
+
+                  {/* Share Button */}
+                  <button
+                    type="button"
+                    onClick={() => void onShare()}
+                    className="inline-flex h-9 sm:h-9.5 items-center gap-1.5 rounded-xl border border-border/80 bg-background/80 px-3 text-xs sm:text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-98 cursor-pointer shadow-2xs"
+                    title="Copy link"
+                  >
+                    <Share2 className="size-4" />
+                    <span className="hidden sm:inline">Share</span>
+                  </button>
+
+                  {/* Repository Link (if present) */}
+                  {problem.repositoryUrl?.startsWith("https://") && (
+                    <a
+                      href={problem.repositoryUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex h-9 sm:h-9.5 items-center gap-1.5 rounded-xl border border-border/80 bg-background/80 px-3 text-xs sm:text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all shadow-2xs"
+                    >
+                      <FolderGit2 className="size-4 text-primary" />
+                      <span className="hidden sm:inline">Repo</span>
+                    </a>
+                  )}
+                </div>
+
+                {/* Right Side: Quick Stats & Anchor Navigation */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  {/* Solutions anchor */}
+                  <a
+                    href="#solutions"
+                    className="inline-flex h-9 sm:h-9.5 items-center gap-1.5 rounded-xl border border-border/80 bg-background/80 px-3 text-xs sm:text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all shadow-2xs"
+                  >
+                    <CheckCircle2 className="size-4 text-emerald-500" />
+                    <span className="font-bold text-foreground tabular-nums">
+                      {answerCount}
+                    </span>
+                    <span className="hidden sm:inline">
+                      {answerCount === 1 ? "Solution" : "Solutions"}
+                    </span>
+                  </a>
+
+                  {/* Views count */}
+                  <div
+                    title={`${problem.viewCount ?? 0} views`}
+                    className="inline-flex h-9 sm:h-9.5 items-center gap-1.5 rounded-xl border border-border/60 bg-muted/40 px-3 text-xs sm:text-sm font-semibold text-muted-foreground shadow-2xs select-none"
+                  >
+                    <Eye className="size-4 text-muted-foreground/70" />
+                    <span className="tabular-nums">
+                      {problem.viewCount ?? 0}
+                    </span>
+                    <span className="hidden md:inline">views</span>
+                  </div>
+
+                  {/* Comments anchor */}
+                  <a
+                    href="#comments"
+                    className="inline-flex h-9 sm:h-9.5 items-center gap-1.5 rounded-xl border border-border/80 bg-background/80 px-3 text-xs sm:text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all shadow-2xs"
+                  >
+                    <MessageSquare className="size-4 text-primary" />
+                    <span className="font-bold text-foreground tabular-nums">
+                      {problem.commentCount ?? 0}
+                    </span>
+                    <span className="hidden sm:inline">Comments</span>
+                  </a>
+                </div>
+              </div>
             </section>
 
             {/* ── Body ───────────────────────────────────────────────── */}
