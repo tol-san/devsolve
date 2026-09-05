@@ -933,6 +933,28 @@
       "kicker": "Platform Technology",
       "title": "Engineered with High-Performance Tech",
       "lede": "A resilient microservice architecture powered by modern edge routing, federated identity, high-throughput datastores, and an automated security pipeline."
+    },
+    "contact": {
+      "kicker": "Contact",
+      "title": "Get in touch",
+      "subtitle": "Send us a message",
+      "nameLabel": "Full name",
+      "namePlaceholder": "Dim Pathea",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "pathea.dim@gmail.com",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "What is this about?",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Tell us a bit more…",
+      "sendButton": "Send message",
+      "sendingButton": "Sending…",
+      "successMessage": "Thanks — we'll reply within one business day.",
+      "addressTitle": "Address",
+      "addressValue": "#40, Street 273, Sangkat Boeung Kak Ti Mouy, Khan Toul Kork, Phnom Penh",
+      "emailTitle": "Email us",
+      "phoneTitle": "Support HQ",
+      "connectTitle": "Connect with us",
+      "viewOnMaps": "View on Google Maps"
     }
   }
 }

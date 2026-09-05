@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { BRAND_INK } from "@/components/public-about/SectionHeading";
-import { useLocalePath } from "@/lib/i18n/I18nProvider";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -25,6 +25,7 @@ export function AboutHero({
   imageAlt: string;
 }) {
   const lp = useLocalePath();
+  const t = useT();
 
   return (
     <section className="relative -mt-(--navbar-height) overflow-hidden pt-(--navbar-height)">
@@ -57,12 +58,20 @@ export function AboutHero({
               {description}
             </p>
 
-            <Link
-              href={lp("/programs")}
-              className="inline-flex items-center justify-center rounded-md bg-foreground px-5 py-2.5 text-xs font-semibold text-background shadow-xs transition-all hover:opacity-90 active:scale-98"
-            >
-              {actionLabel}
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href={lp("/programs")}
+                className="inline-flex items-center justify-center rounded-md bg-foreground px-5 py-2.5 text-xs font-semibold text-background shadow-xs transition-all hover:opacity-90 active:scale-98"
+              >
+                {actionLabel}
+              </Link>
+              <a
+                href="#contact"
+                className="inline-flex items-center justify-center rounded-md border border-border bg-card/60 px-5 py-2.5 text-xs font-semibold text-foreground shadow-2xs backdrop-blur-xs transition-all hover:bg-muted active:scale-98"
+              >
+                {t("aboutPage.contact.title") || "Get in touch"}
+              </a>
+            </div>
           </motion.div>
         </div>
 

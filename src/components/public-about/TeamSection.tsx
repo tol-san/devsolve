@@ -58,10 +58,12 @@ export function MemberCard({
   member,
   badgeLabel,
   roleLabel,
+  index = 0,
 }: {
   member: TeamMember;
   badgeLabel: string;
   roleLabel: string;
+  index?: number;
 }) {
   const ink = useInk();
   const socials = socialsFor(member);
@@ -81,9 +83,12 @@ export function MemberCard({
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-30px" }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.4,
+        delay: Math.min(index * 0.06, 0.4),
+        ease: "easeOut",
+      }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl bg-card/90 border border-border/80 shadow-xs backdrop-blur-md transition-all duration-300 hover:shadow-md hover:border-blue-500/35"
     >
@@ -243,13 +248,11 @@ export function TeamSection() {
           </div>
 
           {/* Supervisor Cards */}
-          {SUPERVISORS.map((mentor) => (
-            <div
-              key={mentor.name}
-              className="w-full max-w-[340px]"
-            >
+          {SUPERVISORS.map((mentor, i) => (
+            <div key={mentor.name} className="w-full max-w-[340px]">
               <MemberCard
                 member={mentor}
+                index={i}
                 badgeLabel={getBadgeLabel(mentor.badge ?? "Mentor")}
                 roleLabel={getSubRoleLabel(mentor.subRole, true)}
               />
@@ -262,13 +265,11 @@ export function TeamSection() {
           <GroupLabel label={developersLabel} count={STUDENT_DEVELOPERS.length} />
 
           <div className="mt-8 grid grid-cols-1 justify-items-center gap-6 sm:grid-cols-2 sm:gap-7 lg:grid-cols-3">
-            {STUDENT_DEVELOPERS.map((member) => (
-              <div
-                key={member.name}
-                className="w-full max-w-[340px]"
-              >
+            {STUDENT_DEVELOPERS.map((member, i) => (
+              <div key={member.name} className="w-full max-w-[340px]">
                 <MemberCard
                   member={member}
+                  index={i}
                   badgeLabel={getBadgeLabel(member.badge ?? "Member")}
                   roleLabel={getSubRoleLabel(member.subRole, false)}
                 />

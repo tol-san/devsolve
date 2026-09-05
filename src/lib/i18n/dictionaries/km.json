@@ -933,6 +933,28 @@
       "kicker": "ស្ថាបត្យកម្មបច្ចេកវិទ្យា",
       "title": "បង្កើតឡើងលើបច្ចេកវិទ្យាទំនើប និងសុវត្ថិភាពខ្ពស់",
       "lede": "ស្ថាបត្យកម្មប្រព័ន្ធកម្រិតខ្ពស់ដែលរួមបញ្ចូល Edge Gateway, Federated Identity, ប្រព័ន្ធទិន្នន័យចែកចាយ, និងការត្រួតពិនិត្យសុវត្ថិភាពស្វ័យប្រវត្តិ។"
+    },
+    "contact": {
+      "kicker": "ទំនាក់ទំនង",
+      "title": "ទាក់ទងមកយើងខ្ញុំ",
+      "subtitle": "ផ្ញើសារមកកាន់យើង",
+      "nameLabel": "ឈ្មោះពេញ",
+      "namePlaceholder": "ឌីម ផាធា",
+      "emailLabel": "អាសយដ្ឋានអ៊ីមែល",
+      "emailPlaceholder": "pathea.dim@gmail.com",
+      "subjectLabel": "ប្រធានបទ",
+      "subjectPlaceholder": "តើអ្នកចង់ទាក់ទងអំពីអ្វី?",
+      "messageLabel": "សារ",
+      "messagePlaceholder": "រៀបរាប់ព័ត៌មានលម្អិត…",
+      "sendButton": "ផ្ញើសារ",
+      "sendingButton": "កំពុងផ្ញើ…",
+      "successMessage": "សូមអរគុណ — យើងនឹងឆ្លើយតបក្នុងរយៈពេលមួយថ្ងៃនៃថ្ងៃធ្វើការ។",
+      "addressTitle": "អាសយដ្ឋាន",
+      "addressValue": "#40, ផ្លូវ 273, សង្កាត់បឹងកក់១, ខណ្ឌទួលគោក, រាជធានីភ្នំពេញ",
+      "emailTitle": "ផ្ញើអ៊ីមែល",
+      "phoneTitle": "ការិយាល័យជំនួយ",
+      "connectTitle": "បណ្តាញសង្គម",
+      "viewOnMaps": "មើលនៅលើ Google Maps"
     }
   }
 }
