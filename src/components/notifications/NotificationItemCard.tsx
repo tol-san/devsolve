@@ -205,14 +205,18 @@ function getNotificationLink(
   title?: string,
   authorUsername?: string | null,
 ): string {
-  if (title && AUTO_APPROVAL_HOLD_PATTERN.test(title)) {
-    if (type === "SHOWCASE") return `/showcases/${id}`;
-    if (type === "PROBLEM") return `/community/${id}`;
+  const upperType = (type || "").toUpperCase();
+
+  if (upperType === "SHOWCASE" && (!isAdmin || (title && AUTO_APPROVAL_HOLD_PATTERN.test(title)))) {
+    return `/showcases/${id}`;
+  }
+  if (upperType === "PROBLEM" && (!isAdmin || (title && AUTO_APPROVAL_HOLD_PATTERN.test(title)))) {
+    return `/community/${id}`;
   }
 
   if (isAdmin) return getAdminNotificationLink(type, id);
 
-  switch (type) {
+  switch (upperType) {
     case "PROBLEM":
       return `/community/${id}`;
     case "SHOWCASE":

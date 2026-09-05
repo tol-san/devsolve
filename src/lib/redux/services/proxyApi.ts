@@ -26,6 +26,7 @@ export const proxyApi = createApi({
     "Tag",
     "Leaderboard",
     "Profile",
+    "AutoReview",
   ],
   endpoints: () => ({}),
 });

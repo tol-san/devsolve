@@ -9,6 +9,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { CreateProblemForm } from "@/components/discussions/create/CreateProblemForm";
 import { useInk } from "@/components/landing/SectionBackdrop";
 import { useGetProblemByIdQuery } from "@/lib/redux/services/problemsApi";
+import { useGetMyProfileQuery } from "@/lib/redux/services/solutionsApi";
 
 export function ProblemEditScreen({ problemId }: { problemId: string }) {
   const ink = useInk();
@@ -19,6 +20,11 @@ export function ProblemEditScreen({ problemId }: { problemId: string }) {
     isError,
     error,
   } = useGetProblemByIdQuery(problemId, { skip: !problemId });
+
+  const { data: me } = useGetMyProfileQuery();
+  const isOwnProblem = Boolean(me?.id && problem?.author?.id === me.id);
+  const isPending = problem?.status === "PENDING_APPROVAL";
+  const canEdit = problem?.canEdit !== false || (isOwnProblem && isPending);
 
   const status =
     typeof error === "object" && error !== null && "status" in error
@@ -105,7 +111,7 @@ export function ProblemEditScreen({ problemId }: { problemId: string }) {
                 }
                 problemId={problemId}
               />
-            ) : problem.canEdit === false ? (
+            ) : !canEdit ? (
               <Notice
                 title="This problem cannot be edited"
                 body="Either it is not yours, or it has reached a state that is closed to changes. Its answers and comments are still open."

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { AlertCircle, MessagesSquare, Plus, RotateCcw } from "lucide-react";
+import { AlertCircle, MessagesSquare, Pencil, Plus, RotateCcw, Sparkles } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import {
   type MyPost,
   type MyPostKind,
 } from "@/lib/redux/services/myCommunityApi";
+import { useGetMyAutoReviewsQuery } from "@/lib/redux/services/autoReviewsApi";
 import { cn } from "@/lib/utils";
 
 type Filter = "All" | MyPostKind;
@@ -29,6 +30,13 @@ const FILTERS: { value: Filter; label: string }[] = [
 export default function MyCommunityPage() {
   const { data: posts = [], isLoading, isError, error, refetch } =
     useGetMyPostsQuery();
+  const { data: autoReviewsData } = useGetMyAutoReviewsQuery({
+    approved: false,
+  });
+  const heldVerdicts = useMemo(
+    () => (autoReviewsData?.content ?? []).filter((v) => v.status === "HELD"),
+    [autoReviewsData],
+  );
   const [filter, setFilter] = useState<Filter>("All");
 
   const counts = useMemo(
@@ -97,7 +105,71 @@ export default function MyCommunityPage() {
         </Link>
       </header>
 
-      {needsAttention > 0 && (
+      {heldVerdicts.length > 0 && (
+        <section
+          aria-label="Posts needing your attention"
+          className="rounded-2xl border border-amber-500/35 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 shadow-xs space-y-3"
+        >
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300">
+              <Sparkles className="size-4" aria-hidden="true" />
+            </span>
+            <h2 className="text-base font-bold text-foreground">
+              Needs your attention ({heldVerdicts.length})
+            </h2>
+          </div>
+
+          <div className="divide-y divide-border/60">
+            {heldVerdicts.map((item) => {
+              const editUrl =
+                item.target === "PROBLEM"
+                  ? `/community/${item.contentId}/edit`
+                  : `/dashboard/showcases/${item.contentId}/edit`;
+              const detailUrl =
+                item.target === "PROBLEM"
+                  ? `/community/${item.contentId}`
+                  : `/showcases/${item.contentId}`;
+
+              return (
+                <div
+                  key={`${item.target}_${item.contentId}`}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 first:pt-1 last:pb-0"
+                >
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                        {item.target}
+                      </span>
+                      <Link
+                        href={detailUrl}
+                        className="text-sm font-semibold text-foreground hover:underline truncate"
+                      >
+                        {item.title || "Untitled"}
+                      </Link>
+                    </div>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {item.message}
+                    </p>
+                  </div>
+
+                  <Link
+                    href={editUrl}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "shrink-0 rounded-xl border-amber-500/30 text-xs font-semibold hover:bg-amber-500/10 hover:text-amber-900 dark:hover:text-amber-200 cursor-pointer shadow-2xs self-start sm:self-center",
+                    )}
+                  >
+                    <Pencil className="size-3 mr-1.5" aria-hidden="true" />
+                    <span>Edit and resubmit</span>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {needsAttention > 0 && heldVerdicts.length === 0 && (
         <div className="flex gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm font-medium text-rose-700 dark:text-rose-300">
           <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>

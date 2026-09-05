@@ -215,6 +215,8 @@ export const showcasesApi = baseApi.injectEndpoints({
         { type: "Showcase", id: LIST },
         { type: "Showcase", id: "MINE" },
         { type: "ShowcaseRevision", id },
+        { type: "AutoReview", id: `SHOWCASE_${id}` },
+        { type: "AutoReview" },
       ],
     }),
 

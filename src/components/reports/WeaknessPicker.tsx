@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   Database,
+  Flame,
   HelpCircle,
   PenTool,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VulnerabilityCategoryCombobox } from "@/components/reports/VulnerabilityCategoryCombobox";
+import { useGetPopularWeaknessesQuery } from "@/lib/redux/services/weaknessesApi";
 import { cn } from "@/lib/utils";
 
 export type WeaknessMode = "catalog" | "unsure" | "custom";
@@ -54,6 +56,9 @@ export function WeaknessPicker({
       : "unsure");
 
   const [internalCustom, setInternalCustom] = React.useState(suggestedWeakness || "");
+  const { data: popularWeaknesses = [] } = useGetPopularWeaknessesQuery({
+    limit: 8,
+  });
 
   React.useEffect(() => {
     setInternalCustom(suggestedWeakness || "");
@@ -265,6 +270,61 @@ export function WeaknessPicker({
                 Search the common weakness enumeration catalog by name or CWE identifier.
               </p>
             </div>
+
+            {popularWeaknesses.length > 0 && (
+              <div className="space-y-2 pb-1">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <Flame className="size-3.5 text-amber-500" aria-hidden="true" />
+                  <span>Popular weaknesses (quick pick)</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {popularWeaknesses.map((item) => {
+                    const isSelected =
+                      weaknessId === item.id ||
+                      (Boolean(category) &&
+                        category.toLowerCase() === item.name.toLowerCase());
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() =>
+                          handleCatalogChange({
+                            category: item.name,
+                            weaknessId: item.id,
+                            cweId: item.cweId,
+                          })
+                        }
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer shadow-2xs",
+                          isSelected
+                            ? "border-primary bg-primary text-primary-foreground font-semibold shadow-xs"
+                            : "border-border/80 bg-background text-foreground hover:border-primary/40 hover:bg-muted active:scale-[0.98]",
+                        )}
+                      >
+                        <span className="font-mono text-[11px] opacity-80">
+                          {item.cweId}
+                        </span>
+                        <span>{item.name}</span>
+                        {item.reportCount > 0 && (
+                          <span
+                            className={cn(
+                              "rounded-full px-1.5 py-0.2 text-[10px] tabular-nums font-semibold",
+                              isSelected
+                                ? "bg-primary-foreground/20 text-primary-foreground"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {item.reportCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <VulnerabilityCategoryCombobox
               value={category}
               weaknessId={weaknessId || undefined}

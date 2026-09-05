@@ -117,6 +117,7 @@ export const baseApi = createApi({
     "SecurityIncident",
     "Leaderboard",
     "AdminAutoApproval",
+    "AutoReview",
   ],
   endpoints: () => ({}),
 });

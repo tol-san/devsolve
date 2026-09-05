@@ -870,7 +870,7 @@ function Loaded({
 
             {/* ── Post-level actions ─────────────────────────────────── */}
             <div className="flex flex-wrap items-center gap-2 px-1">
-              {problem.canEdit && (
+              {(problem.canEdit || (isOwnProblem && isPending)) && (
                 <QuietAction href={`/community/${id}/edit`} icon={Pencil}>
                   Edit
                 </QuietAction>

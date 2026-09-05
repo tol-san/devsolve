@@ -252,6 +252,8 @@ export const problemsApi = baseApi.injectEndpoints({
         { type: "Problem", id: "LIST" },
         { type: "Problem", id: "MINE" },
         { type: "Discussion", id: "LIST" },
+        { type: "AutoReview", id: `PROBLEM_${id}` },
+        { type: "AutoReview" },
       ],
     }),
 
