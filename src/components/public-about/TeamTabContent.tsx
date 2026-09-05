@@ -104,7 +104,7 @@ export function TeamTabContent() {
       </div>
 
       <div className="mt-20">
-        <GroupLabel label="Developers" count={STUDENT_DEVELOPERS.length} />
+        <GroupLabel label="Our Team" count={STUDENT_DEVELOPERS.length} />
 
         <div className="mt-8 grid grid-cols-1 justify-items-center gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-3">
           {STUDENT_DEVELOPERS.map((member) => (

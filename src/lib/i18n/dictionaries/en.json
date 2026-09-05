@@ -919,14 +919,14 @@
       "kicker": "Core Team",
       "title": "Meet the People Behind DevSolve",
       "lede": "Guided by senior security educators and built by dedicated student engineers passionate about cybersecurity and software resilience.",
-      "supervisorsLabel": "Supervisors & Mentors",
-      "developersLabel": "Engineering Team",
+      "supervisorsLabel": "Mentors",
+      "developersLabel": "Our Team",
       "memberCount": "Members",
       "roles": {
-        "mentor": "Supervisor",
+        "mentor": "Mentor",
         "leader": "Team Leader",
         "subLeader": "Sub Leader",
-        "fullStack": "Full Stack Developer"
+        "fullStack": "Full Stack"
       }
     },
     "integrations": {

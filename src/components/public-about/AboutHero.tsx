@@ -74,7 +74,7 @@ export function AboutHero({
         >
           <div className="relative aspect-16/10 sm:aspect-video lg:aspect-21/10 w-full overflow-hidden rounded-2xl sm:rounded-3xl bg-muted shadow-xl ring-1 ring-foreground/10">
             <Image
-              src="/teams/team.jpg"
+              src="/teams/team.webp"
               alt={imageAlt}
               fill
               priority
