@@ -74,16 +74,13 @@ export default function LiveProfilePreviewCard({
 
       <div className={cn("relative w-full overflow-hidden transition-all duration-300", isCompact ? "h-24 sm:h-28" : "h-32 sm:h-40")}>
         {values.coverUrl ? (
-          <>
-            <Image
-              src={values.coverUrl}
-              alt="Profile Cover"
-              fill
-              className="object-cover"
-              unoptimized
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-card/20 to-transparent" />
-          </>
+          <Image
+            src={values.coverUrl}
+            alt="Profile Cover"
+            fill
+            className="object-cover"
+            unoptimized
+          />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-indigo-600/15 to-purple-600/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-purple-500/10">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.25),transparent_60%)]" />
