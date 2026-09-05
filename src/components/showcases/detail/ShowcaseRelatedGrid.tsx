@@ -19,7 +19,7 @@ export function ShowcaseRelatedGrid({
   }
 
   return (
-    <section className="space-y-5 pt-8 border-t border-border/80">
+    <section id="related-showcases" className="space-y-5 pt-8 border-t border-border/80 scroll-mt-24">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">

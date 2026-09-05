@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Award, Check, Plus, UserPlus, Users } from "lucide-react";
+import { Award, Check, Plus, ShieldAlert, UserPlus, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { ShowcaseAuthorResponse } from "@/lib/redux/services/showcasesApi";
@@ -114,8 +114,13 @@ export function ShowcaseAuthorCard({
         </div>
       </div>
 
-      {/* Follow Button: strictly hidden when viewer.owner is true */}
-      {!isOwner && (
+      {/* Follow Button or Creator Owner Badge */}
+      {isOwner ? (
+        <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/10 py-2.5 text-xs font-bold text-primary">
+          <ShieldAlert className="size-4" />
+          <span>You created this project</span>
+        </div>
+      ) : (
         <Button
           type="button"
           onClick={handleFollowClick}
