@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { AlertTriangle, CheckCircle, Copy, ShieldAlert, XCircle } from "lucide-react";
+import { CheckCircle, Copy, ShieldAlert, XCircle } from "lucide-react";
 import { SeverityStats } from "@/lib/types/profile/types";
 
 interface SeverityBreakdownProps {
@@ -71,6 +71,19 @@ export default function SeverityBreakdown({ severity }: SeverityBreakdownProps) 
         </span>
       </div>
 
+      {totalFindings === 0 ? (
+        <div className="mt-5 rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center">
+          <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <ShieldAlert className="size-5" />
+          </div>
+          <p className="text-base font-semibold text-foreground">
+            No triaged findings yet
+          </p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+            Once reports are validated, the severity split appears here.
+          </p>
+        </div>
+      ) : (
       <div className="mt-5 space-y-4">
         {SEVERITY_CONFIG.map((row) => {
           const value = severity[row.key];
@@ -104,6 +117,7 @@ export default function SeverityBreakdown({ severity }: SeverityBreakdownProps) 
           );
         })}
       </div>
+      )}
 
       <div className="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-5">
         <div className="flex flex-col items-center rounded-xl bg-muted/40 p-3 text-center">

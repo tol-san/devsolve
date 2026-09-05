@@ -137,15 +137,8 @@ export default function ProfilePage() {
 
       <StatsCards stats={effectiveStats} />
 
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start xl:gap-8">
-        <div className="w-full shrink-0 lg:sticky lg:top-6 lg:w-80">
-          <ProfileSidebar
-            profile={profile}
-            stats={effectiveStats}
-          />
-        </div>
-
-        <div className="min-w-0 flex-1">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 xl:gap-8">
+        <div className="min-w-0 lg:col-span-8 xl:col-span-9">
           <Suspense fallback={null}>
             <ProfileTabsContainer
               stats={effectiveStats}
@@ -155,6 +148,10 @@ export default function ProfilePage() {
               userId={profile.id}
             />
           </Suspense>
+        </div>
+
+        <div className="lg:col-span-4 lg:sticky lg:top-6 xl:col-span-3">
+          <ProfileSidebar profile={profile} stats={effectiveStats} />
         </div>
       </div>
     </motion.div>

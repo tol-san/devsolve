@@ -69,7 +69,7 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
 
         {activeTab === "hacktivity" &&
           (hacktivityLoading ? (
-            <div className="p-6 text-sm text-slate-400 dark:text-neutral-500">Loading hacktivity...</div>
+            <TabSkeleton label="Loading hacktivity" />
           ) : (
             <HacktivityTab
               activities={hacktivity?.activities ?? []}
@@ -80,18 +80,48 @@ export default function ProfileTabsContainer({ stats, severity, badges, username
 
         {activeTab === "community" &&
           (communityLoading ? (
-            <div className="p-6 text-sm text-slate-400 dark:text-neutral-500">Loading community posts...</div>
+            <TabSkeleton label="Loading community posts" />
           ) : (
             <CommunityTab posts={communityPosts ?? []} />
           ))}
 
         {activeTab === "hall-of-thanks" &&
           (thanksLoading ? (
-            <div className="p-6 text-sm text-slate-400 dark:text-neutral-500">Loading recognitions...</div>
+            <TabSkeleton label="Loading recognitions" />
           ) : (
             <HallOfThanksTab recognitions={recognitionsData?.content ?? []} />
           ))}
       </div>
+    </div>
+  );
+}
+
+function TabSkeleton({ label }: { label: string }) {
+  return (
+    <div
+      role="status"
+      aria-label={label}
+      className="animate-pulse space-y-4"
+    >
+      <span className="sr-only">{label}…</span>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-border bg-card p-5 shadow-2xs"
+        >
+          <div className="flex items-center gap-3">
+            <div className="size-10 shrink-0 rounded-xl bg-muted" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="h-4 w-2/5 rounded bg-muted" />
+              <div className="h-3 w-1/4 rounded bg-muted" />
+            </div>
+          </div>
+          <div className="mt-4 space-y-2">
+            <div className="h-3 w-full rounded bg-muted" />
+            <div className="h-3 w-4/5 rounded bg-muted" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -19,19 +19,24 @@ const TABS: { id: ProfileTabId; label: string; icon: LucideIcon }[] = [
 
 export default function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
   return (
-    <div className="border-b border-border">
-      <nav className="flex gap-4 overflow-x-auto pr-1 sm:gap-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="rounded-xl border border-border bg-card px-2 pt-2 shadow-2xs">
+      <nav
+        aria-label="Profile sections"
+        className="flex gap-1 overflow-x-auto scrollbar-none"
+      >
         {TABS.map((tab) => {
           const isActive = tab.id === activeTab;
           const Icon = tab.icon;
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex shrink-0 items-center gap-2 whitespace-nowrap pb-3.5 pt-1 text-sm font-semibold transition cursor-pointer ${
+              aria-current={isActive ? "page" : undefined}
+              className={`relative flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-t-lg px-3.5 pb-3 pt-2.5 text-sm font-semibold transition-colors sm:px-4 ${
                 isActive
                   ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
               }`}
             >
               <Icon
@@ -40,9 +45,10 @@ export default function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps
               />
               <span>{tab.label}</span>
               {isActive && (
-                <motion.div
+                <motion.span
                   layoutId="profile-tab-indicator"
-                  className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary"
+                  aria-hidden="true"
+                  className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-primary"
                   transition={{ type: "spring", stiffness: 400, damping: 35 }}
                 />
               )}
