@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -364,103 +363,99 @@ function formatNotificationTime(dateStr: string): string {
   });
 }
 
-export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
-  item,
-  isAdmin = false,
-  onMarkRead,
-  onCloseModal,
-  isSelected = false,
-  onToggleSelect,
-  showCheckbox = false,
-}) => {
-  const router = useRouter();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [resolveComment, { isFetching: isResolvingComment }] =
-    useLazyGetCommentByIdQuery();
+export const NotificationItemCard: React.FC<NotificationItemCardProps> = React.memo(
+  function NotificationItemCard({
+    item,
+    isAdmin = false,
+    onMarkRead,
+    onCloseModal,
+    isSelected = false,
+    onToggleSelect,
+    showCheckbox = false,
+  }) {
+    const router = useRouter();
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [resolveComment, { isFetching: isResolvingComment }] =
+      useLazyGetCommentByIdQuery();
 
-  const targetHref = getNotificationLink(
-    item.notifiableType,
-    item.notifiableId,
-    isAdmin,
-    item.title,
-    item.authorUsername,
-  );
-  const isUnread = !item.read;
-  const hasAuthor = Boolean(
-    item.authorAvatarUrl || item.authorName || item.authorUsername,
-  );
+    const targetHref = getNotificationLink(
+      item.notifiableType,
+      item.notifiableId,
+      isAdmin,
+      item.title,
+      item.authorUsername,
+    );
+    const isUnread = !item.read;
+    const hasAuthor = Boolean(
+      item.authorAvatarUrl || item.authorName || item.authorUsername,
+    );
 
-  const config =
-    NOTIFICATION_TYPE_CONFIG[item.notifiableType] ||
-    NOTIFICATION_TYPE_CONFIG.COMMENT;
-  const IconComponent = config.icon;
-  const { status, statusLabel } = resolveNotificationStatus(item);
-  const statusStyles = NOTIFICATION_STATUS_STYLES[status];
+    const config =
+      NOTIFICATION_TYPE_CONFIG[item.notifiableType] ||
+      NOTIFICATION_TYPE_CONFIG.COMMENT;
+    const IconComponent = config.icon;
+    const { status, statusLabel } = resolveNotificationStatus(item);
+    const statusStyles = NOTIFICATION_STATUS_STYLES[status];
 
-  const handleCardClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement;
-    if (
-      target.closest("button") ||
-      target.closest("input") ||
-      target.closest("a")
-    ) {
-      return;
-    }
+    const handleCardClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement;
+      if (
+        target.closest("button") ||
+        target.closest("input") ||
+        target.closest("a")
+      ) {
+        return;
+      }
 
-    if (item.notifiableType === "COMMENT") {
-      if (isResolvingComment) return;
+      if (item.notifiableType === "COMMENT") {
+        if (isResolvingComment) return;
+
+        if (isUnread && item.id && onMarkRead) {
+          onMarkRead(item.id);
+        }
+
+        void resolveComment(item.notifiableId)
+          .unwrap()
+          .then((comment) => {
+            onCloseModal?.();
+            router.push(getCommentLink(comment));
+          })
+          .catch(() => {
+            toast.error("That comment could not be opened.");
+          });
+        return;
+      }
 
       if (isUnread && item.id && onMarkRead) {
         onMarkRead(item.id);
       }
+      if (onCloseModal) {
+        onCloseModal();
+      }
+      router.push(targetHref);
+    };
 
-      void resolveComment(item.notifiableId)
-        .unwrap()
-        .then((comment) => {
-          onCloseModal?.();
-          router.push(getCommentLink(comment));
-        })
-        .catch(() => {
-          toast.error("That comment could not be opened.");
-        });
-      return;
-    }
+    const isLongContent = (item.content || "").length > 180;
 
-    if (isUnread && item.id && onMarkRead) {
-      onMarkRead(item.id);
-    }
-    if (onCloseModal) {
-      onCloseModal();
-    }
-    router.push(targetHref);
-  };
-
-  const isLongContent = (item.content || "").length > 180;
-
-  return (
-    <motion.div
-      layout
-      role="button"
-      tabIndex={0}
-      onClick={handleCardClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          handleCardClick(e as unknown as React.MouseEvent<HTMLDivElement>);
-        }
-      }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
-      className={cn(
-        "group relative flex items-start gap-3.5 px-5 sm:px-6 py-3.5 sm:py-4 transition-colors cursor-pointer select-none",
-        isUnread
-          ? "bg-primary/[0.03] hover:bg-muted/60 dark:bg-primary/[0.05]"
-          : "bg-transparent hover:bg-muted/40",
-        isSelected && "bg-muted",
-      )}
-    >
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleCardClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleCardClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+          }
+        }}
+        className={cn(
+          "group relative flex items-start gap-3.5 px-5 sm:px-6 py-3.5 sm:py-4 transition-colors duration-150 cursor-pointer select-none",
+          isUnread
+            ? "bg-primary/[0.03] hover:bg-muted/60 dark:bg-primary/[0.05]"
+            : "bg-transparent hover:bg-muted/40",
+          isSelected && "bg-muted",
+        )}
+      >
       {showCheckbox && item.id && (
         <div
           className="shrink-0 pt-1"
@@ -663,6 +658,8 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
-};
+});
+
+NotificationItemCard.displayName = "NotificationItemCard";

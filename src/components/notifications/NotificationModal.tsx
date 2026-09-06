@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -83,25 +83,24 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     };
   }, [isOpen, isEmbedded, onClose]);
 
-  const handleMarkAllRead = async () => {
+  const handleMarkAllRead = useCallback(async () => {
     try {
       await markAllRead().unwrap();
       toast.success("All notifications marked as read");
-      refetch();
     } catch {
       toast.error("Failed to mark all as read. Please try again.");
     }
-  };
+  }, [markAllRead]);
 
-  const handleMarkSingleRead = async (id: string) => {
+  const handleMarkSingleRead = useCallback(async (id: string) => {
     try {
       await markSingleRead(id).unwrap();
     } catch {
       // Handled by RTK Query
     }
-  };
+  }, [markSingleRead]);
 
-  const allNotifications = data?.content || [];
+  const allNotifications = useMemo(() => data?.content || [], [data?.content]);
 
   const filteredNotifications = useMemo(() => {
     if (activeCategory === "all") return allNotifications;
@@ -407,15 +406,15 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             key="notification-panel"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            exit={{ x: "100%", transition: { duration: 0.16, ease: [0.32, 0, 0.67, 0] } }}
             transition={{
-              duration: 0.24,
-              ease: [0.16, 1, 0.3, 1],
+              duration: 0.22,
+              ease: [0.22, 1, 0.36, 1],
             }}
             style={{ willChange: "transform" }}
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              "fixed inset-y-0 right-0 z-[300] h-full shadow-2xl bg-card text-card-foreground border-l border-border flex flex-col transition-[width] duration-200 ease-out",
+              "fixed inset-y-0 right-0 z-[300] h-full shadow-2xl bg-card text-card-foreground border-l border-border flex flex-col will-change-transform transition-[width] duration-200 ease-out",
               isExpanded
                 ? "w-full sm:w-[720px] lg:w-[820px]"
                 : "w-full sm:w-[480px] md:w-[520px]",

@@ -2,12 +2,11 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AlertTriangle,
-  ArrowUpDown,
   Bell,
   BellOff,
   BellRing,
@@ -93,26 +92,28 @@ export default function NotificationsPage() {
   const [markSingleRead] = useMarkAsReadMutation();
   const [markAllRead, { isLoading: isMarkingAll }] = useMarkAllAsReadMutation();
 
-  const handleMarkAllRead = async () => {
+  const handleMarkAllRead = useCallback(async () => {
     try {
       await markAllRead().unwrap();
       toast.success("All notifications marked as read");
       setSelectedIds([]);
-      refetch();
     } catch {
       toast.error("Failed to mark all as read. Please try again.");
     }
-  };
+  }, [markAllRead]);
 
-  const handleMarkSingleRead = async (id: string) => {
-    try {
-      await markSingleRead(id).unwrap();
-    } catch {
-      // Handled by RTK Query
-    }
-  };
+  const handleMarkSingleRead = useCallback(
+    async (id: string) => {
+      try {
+        await markSingleRead(id).unwrap();
+      } catch {
+        // Handled by RTK Query
+      }
+    },
+    [markSingleRead],
+  );
 
-  const allNotifications = data?.content || [];
+  const allNotifications = useMemo(() => data?.content || [], [data?.content]);
   const totalElements = data?.totalElements || 0;
   const totalPages = data?.totalPages || 0;
   const isFirstPage = data?.first ?? true;
@@ -215,17 +216,16 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleMarkSelectedAsRead = async () => {
+  const handleMarkSelectedAsRead = useCallback(async () => {
     if (selectedIds.length === 0) return;
     try {
       await Promise.all(selectedIds.map((id) => markSingleRead(id).unwrap()));
       toast.success(`${selectedIds.length} notification(s) marked as read`);
       setSelectedIds([]);
-      refetch();
     } catch {
       toast.error("Failed to mark selected as read.");
     }
-  };
+  }, [selectedIds, markSingleRead]);
 
   const hasActiveFilters =
     searchTerm.trim().length > 0 ||

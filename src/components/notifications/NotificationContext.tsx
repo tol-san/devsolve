@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { NotificationModal } from "./NotificationModal";
 import { useNotificationStream } from "@/lib/hooks/useNotificationStream";
 
@@ -21,14 +21,17 @@ export const NotificationProvider: React.FC<{
 
   useNotificationStream(enableStream);
 
-  const openNotification = () => setIsOpen(true);
-  const closeNotification = () => setIsOpen(false);
-  const toggleNotification = () => setIsOpen((prev) => !prev);
+  const openNotification = useCallback(() => setIsOpen(true), []);
+  const closeNotification = useCallback(() => setIsOpen(false), []);
+  const toggleNotification = useCallback(() => setIsOpen((prev) => !prev), []);
+
+  const value = useMemo(
+    () => ({ isOpen, openNotification, closeNotification, toggleNotification }),
+    [isOpen, openNotification, closeNotification, toggleNotification],
+  );
 
   return (
-    <NotificationContext.Provider
-      value={{ isOpen, openNotification, closeNotification, toggleNotification }}
-    >
+    <NotificationContext.Provider value={value}>
       {children}
       <NotificationModal
         isOpen={enableStream && isOpen}
