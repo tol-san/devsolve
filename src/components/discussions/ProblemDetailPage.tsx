@@ -26,8 +26,10 @@ import {
   FileText,
   Flag,
   FolderGit2,
+  ImageIcon,
   Info,
   ListOrdered,
+  Maximize2,
   MessageSquare,
   Paperclip,
   Pencil,
@@ -289,6 +291,23 @@ function Loaded({
   }, [isLoadingSolutions, solutions]);
 
   const attachments = problem.attachments ?? [];
+  const { imageAttachments, documentAttachments } = useMemo(() => {
+    const images: typeof attachments = [];
+    const documents: typeof attachments = [];
+    for (const file of attachments) {
+      const isImg =
+        file.mimeType?.startsWith("image/") ||
+        /\.(png|jpe?g|webp|gif|svg|bmp|ico|avif)$/i.test(
+          file.originalFileName || file.downloadUrl || "",
+        );
+      if (isImg) {
+        images.push(file);
+      } else {
+        documents.push(file);
+      }
+    }
+    return { imageAttachments: images, documentAttachments: documents };
+  }, [attachments]);
   const tags = problem.tags ?? [];
   const technologies = problem.technologies ?? [];
   const environment = (problem.environment ?? []).filter(
@@ -830,128 +849,290 @@ function Loaded({
               <SectionCard
                 id="attachments"
                 title="Attachments"
-                icon={Paperclip}
-                meta={`${attachments.length} ${
-                  attachments.length === 1 ? "file" : "files"
-                }`}
+                icon={
+                  imageAttachments.length > 0 && documentAttachments.length === 0
+                    ? ImageIcon
+                    : Paperclip
+                }
+                meta={
+                  imageAttachments.length > 0 && documentAttachments.length === 0
+                    ? `${imageAttachments.length} ${
+                        imageAttachments.length === 1 ? "photo" : "photos"
+                      }`
+                    : documentAttachments.length > 0 && imageAttachments.length === 0
+                    ? `${documentAttachments.length} ${
+                        documentAttachments.length === 1 ? "file" : "files"
+                      }`
+                    : `${attachments.length} files (${imageAttachments.length} ${
+                        imageAttachments.length === 1 ? "photo" : "photos"
+                      })`
+                }
                 order={6}
               >
-                <div className="space-y-2.5">
-                  {attachments.map((file, i) => {
-                    const isImg =
-                      file.mimeType?.startsWith("image/") ||
-                      /\.(png|jpe?g|webp|gif|svg)$/i.test(
-                        file.originalFileName || file.downloadUrl || "",
-                      );
-                    const isPdf =
-                      file.mimeType === "application/pdf" ||
-                      /\.pdf$/i.test(
-                        file.originalFileName || file.downloadUrl || "",
-                      );
+                <div className="space-y-4">
+                  {/* Photo / Screenshot Showcase */}
+                  {imageAttachments.length > 0 && (
+                    <div
+                      className={cn(
+                        "grid gap-3.5",
+                        imageAttachments.length === 1
+                          ? "grid-cols-1"
+                          : imageAttachments.length === 2
+                          ? "grid-cols-1 sm:grid-cols-2"
+                          : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+                      )}
+                    >
+                      {imageAttachments.map((file, i) => {
+                        const fileUrl =
+                          attachmentUrl(file.downloadUrl) ||
+                          (file.id && id
+                            ? `/api/problems/${id}/attachments/${file.id}/download`
+                            : undefined);
 
-                    const fileUrl =
-                      attachmentUrl(file.downloadUrl) ||
-                      (file.id && id
-                        ? `/api/problems/${id}/attachments/${file.id}/download`
-                        : undefined);
+                        const preview = () =>
+                          fileUrl &&
+                          setPreviewImage({
+                            src: fileUrl,
+                            alt: file.originalFileName ?? "Attachment",
+                            title: file.originalFileName ?? "Attachment Preview",
+                            mimeType: file.mimeType,
+                          });
 
-                    const preview = () =>
-                      fileUrl &&
-                      setPreviewImage({
-                        src: fileUrl,
-                        alt: file.originalFileName ?? "Attachment",
-                        title: file.originalFileName ?? "Attachment Preview",
-                        mimeType: file.mimeType,
-                      });
-
-                    return (
-                      <div
-                        key={file.id ?? `${file.originalFileName}-${i}`}
-                        className="group flex flex-col justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center"
-                      >
-                        <div className="flex min-w-0 flex-1 items-center gap-3.5">
-                          {fileUrl ? (
-                            <button
-                              type="button"
+                        return (
+                          <div
+                            key={file.id ?? `${file.originalFileName}-${i}`}
+                            className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs shadow-2xs transition-all duration-200 hover:border-primary/40 hover:shadow-md"
+                          >
+                            {/* Visual photo presentation area */}
+                            <div
+                              role="button"
+                              tabIndex={0}
                               onClick={preview}
-                              className="group/thumb relative flex size-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-border bg-background shadow-2xs transition-all hover:ring-2 hover:ring-primary/50"
-                              title="Click to preview attachment"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  preview();
+                                }
+                              }}
+                              className="relative flex h-52 sm:h-60 w-full cursor-zoom-in items-center justify-center overflow-hidden bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              title="Click to preview full screen"
                             >
-                              {isImg ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
+                              {/* Ambient blurred backdrop for aesthetic fit without letterbox bars */}
+                              {fileUrl && (
+                                <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+                                  <img
+                                    src={fileUrl}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="size-full object-cover blur-2xl opacity-25 dark:opacity-20 scale-125 transition-transform duration-500 group-hover:scale-135"
+                                    loading="lazy"
+                                  />
+                                  <div className="absolute inset-0 bg-background/35 backdrop-blur-[1px]" />
+                                </div>
+                              )}
+
+                              {/* Crisp foreground image */}
+                              {fileUrl ? (
                                 <img
                                   src={fileUrl}
-                                  alt={file.originalFileName ?? "Attachment"}
-                                  className="size-full object-cover transition-transform group-hover/thumb:scale-105"
+                                  alt={file.originalFileName ?? "Attachment photo"}
+                                  className="relative z-10 max-h-[88%] max-w-[92%] rounded-lg object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.02]"
                                   loading="lazy"
                                 />
-                              ) : isPdf ? (
-                                <FileText className="size-6 text-rose-500" />
                               ) : (
-                                <FileText className="size-6 text-primary" />
+                                <div className="flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
+                                  <ImageIcon className="size-8 stroke-[1.5]" />
+                                  <span className="text-xs">No preview</span>
+                                </div>
                               )}
-                              <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 transition-colors group-hover/thumb:bg-foreground/25">
-                                <Eye className="size-4 text-background opacity-0 drop-shadow-md transition-opacity group-hover/thumb:opacity-100" />
+
+                              {/* Floating preview badge */}
+                              <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5 rounded-full border border-border/70 bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-md shadow-xs opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 translate-y-1">
+                                <Maximize2 className="size-3 text-primary" />
+                                <span>Preview</span>
                               </div>
-                            </button>
-                          ) : (
-                            <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background shadow-2xs">
-                              <FileText className="size-6 text-muted-foreground" />
                             </div>
-                          )}
 
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-bold text-foreground">
-                              {file.originalFileName ?? "Unnamed file"}
-                            </p>
-                            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <span className="font-mono">
-                                {file.mimeType || (isImg ? "image" : "file")}
-                              </span>
-                              {file.sizeBytes ? (
-                                <>
-                                  <span>·</span>
-                                  <span>{formatBytes(file.sizeBytes)}</span>
-                                </>
-                              ) : null}
-                            </p>
+                            {/* Photo details & quick actions */}
+                            <div className="relative z-20 flex items-center justify-between gap-3 border-t border-border/60 bg-card/95 px-3.5 py-2.5 backdrop-blur-xs">
+                              <div className="min-w-0 flex-1">
+                                <p
+                                  className="truncate text-xs font-semibold text-foreground"
+                                  title={file.originalFileName ?? "Image attachment"}
+                                >
+                                  {file.originalFileName ?? "Image attachment"}
+                                </p>
+                                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                  <span className="font-mono">
+                                    {file.mimeType || "image"}
+                                  </span>
+                                  {file.sizeBytes ? (
+                                    <>
+                                      <span>·</span>
+                                      <span>{formatBytes(file.sizeBytes)}</span>
+                                    </>
+                                  ) : null}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    preview();
+                                  }}
+                                  className="h-7 cursor-pointer gap-1 rounded-lg px-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted"
+                                >
+                                  <Eye className="size-3.5 text-primary" />
+                                  <span className="hidden sm:inline">Preview</span>
+                                </Button>
+
+                                {fileUrl && (
+                                  <a
+                                    href={fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    download={file.originalFileName ?? "attachment"}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="inline-flex h-7 items-center gap-1 rounded-lg border border-border/80 bg-background px-2 text-xs font-medium text-foreground shadow-2xs transition-colors hover:bg-muted"
+                                    title="Download"
+                                  >
+                                    <Download className="size-3.5 text-muted-foreground" />
+                                    <span className="hidden sm:inline">Download</span>
+                                  </a>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        );
+                      })}
+                    </div>
+                  )}
 
-                        {fileUrl && (
-                          <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={preview}
-                              className="h-8 cursor-pointer gap-1.5 rounded-xl border-border bg-background px-3 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted"
-                            >
-                              <Eye
-                                aria-hidden="true"
-                                className="size-3.5 text-primary"
-                              />
-                              <span>Preview</span>
-                            </Button>
+                  {/* Documents & other non-image attachments */}
+                  {documentAttachments.length > 0 && (
+                    <div
+                      className={cn(
+                        "space-y-2.5",
+                        imageAttachments.length > 0 && "pt-3 border-t border-border/60",
+                      )}
+                    >
+                      {imageAttachments.length > 0 && (
+                        <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                          <FileText className="size-3.5" />
+                          <span>
+                            Other Documents & Files ({documentAttachments.length})
+                          </span>
+                        </p>
+                      )}
 
-                            <a
-                              href={fileUrl}
-                              target="_blank"
-                              rel="noreferrer noopener"
-                              download={file.originalFileName ?? "attachment"}
-                              className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground shadow-2xs transition hover:bg-muted"
-                            >
-                              <Download
-                                aria-hidden="true"
-                                className="size-3.5 text-muted-foreground"
-                              />
-                              <span>Download</span>
-                            </a>
+                      {documentAttachments.map((file, i) => {
+                        const isPdf =
+                          file.mimeType === "application/pdf" ||
+                          /\.pdf$/i.test(
+                            file.originalFileName || file.downloadUrl || "",
+                          );
+
+                        const fileUrl =
+                          attachmentUrl(file.downloadUrl) ||
+                          (file.id && id
+                            ? `/api/problems/${id}/attachments/${file.id}/download`
+                            : undefined);
+
+                        const preview = () =>
+                          fileUrl &&
+                          setPreviewImage({
+                            src: fileUrl,
+                            alt: file.originalFileName ?? "Attachment",
+                            title: file.originalFileName ?? "Attachment Preview",
+                            mimeType: file.mimeType,
+                          });
+
+                        return (
+                          <div
+                            key={file.id ?? `${file.originalFileName}-${i}`}
+                            className="group flex flex-col justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center"
+                          >
+                            <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                              {fileUrl ? (
+                                <button
+                                  type="button"
+                                  onClick={preview}
+                                  className="group/thumb relative flex size-12 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-border bg-background shadow-2xs transition-all hover:ring-2 hover:ring-primary/50"
+                                  title="Click to preview file"
+                                >
+                                  {isPdf ? (
+                                    <FileText className="size-6 text-rose-500" />
+                                  ) : (
+                                    <FileText className="size-6 text-primary" />
+                                  )}
+                                  <div className="absolute inset-0 flex items-center justify-center bg-foreground/0 transition-colors group-hover/thumb:bg-foreground/25">
+                                    <Eye className="size-4 text-background opacity-0 drop-shadow-md transition-opacity group-hover/thumb:opacity-100" />
+                                  </div>
+                                </button>
+                              ) : (
+                                <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-border bg-background shadow-2xs">
+                                  <FileText className="size-6 text-muted-foreground" />
+                                </div>
+                              )}
+
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-semibold text-foreground">
+                                  {file.originalFileName ?? "Unnamed file"}
+                                </p>
+                                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <span className="font-mono">
+                                    {file.mimeType || "file"}
+                                  </span>
+                                  {file.sizeBytes ? (
+                                    <>
+                                      <span>·</span>
+                                      <span>{formatBytes(file.sizeBytes)}</span>
+                                    </>
+                                  ) : null}
+                                </p>
+                              </div>
+                            </div>
+
+                            {fileUrl && (
+                              <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={preview}
+                                  className="h-8 cursor-pointer gap-1.5 rounded-xl border-border bg-background px-3 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted"
+                                >
+                                  <Eye
+                                    aria-hidden="true"
+                                    className="size-3.5 text-primary"
+                                  />
+                                  <span>Preview</span>
+                                </Button>
+
+                                <a
+                                  href={fileUrl}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  download={file.originalFileName ?? "attachment"}
+                                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground shadow-2xs transition hover:bg-muted"
+                                >
+                                  <Download
+                                    aria-hidden="true"
+                                    className="size-3.5 text-muted-foreground"
+                                  />
+                                  <span>Download</span>
+                                </a>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </SectionCard>
             )}

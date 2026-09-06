@@ -20,6 +20,7 @@ import {
   ImageIcon,
   Link2,
   ListChecks,
+  Maximize2,
   MonitorPlay,
   Network,
   Paperclip,
@@ -185,6 +186,20 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   const attachments = (solution.attachments ?? []).filter(
     (file) => file.downloadUrl,
   );
+  const { imageAttachments, documentAttachments } = React.useMemo(() => {
+    const images: typeof attachments = [];
+    const documents: typeof attachments = [];
+    for (const file of attachments) {
+      const isImg =
+        file.mimeType?.startsWith("image/") ||
+        /\.(png|jpe?g|webp|gif|svg|bmp|ico|avif)$/i.test(
+          file.fileName || file.downloadUrl || "",
+        );
+      if (isImg) images.push(file);
+      else documents.push(file);
+    }
+    return { imageAttachments: images, documentAttachments: documents };
+  }, [attachments]);
 
   const { data: session } = authClient.useSession();
   const { handleLogin } = useKeycloakLogin();
@@ -487,109 +502,209 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                 </div>
               )}
 
-              {/* Attachments as rich cards */}
+              {/* Attachments */}
               {attachments.length > 0 && (
-                <div>
-                  <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                    <Paperclip className="size-3.5" />
-                    {attachments.length === 1 ? "1 attachment" : `${attachments.length} attachments`}
+                <div className="space-y-3 pt-1">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    {imageAttachments.length > 0 && documentAttachments.length === 0 ? (
+                      <ImageIcon className="size-3.5" />
+                    ) : (
+                      <Paperclip className="size-3.5" />
+                    )}
+                    {imageAttachments.length > 0 && documentAttachments.length === 0
+                      ? `${imageAttachments.length} ${
+                          imageAttachments.length === 1 ? "photo attachment" : "photo attachments"
+                        }`
+                      : documentAttachments.length > 0 && imageAttachments.length === 0
+                      ? `${documentAttachments.length} ${
+                          documentAttachments.length === 1 ? "attachment" : "attachments"
+                        }`
+                      : `${attachments.length} attachments (${imageAttachments.length} ${
+                          imageAttachments.length === 1 ? "photo" : "photos"
+                        })`}
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {attachments.map((file, i) => {
-                      const fileUrl =
-                        attachmentUrl(file.downloadUrl) ||
-                        (file.id && solution.id
-                          ? `/api/solutions/${solution.id}/attachments/${file.id}/download`
-                          : undefined);
 
-                      if (!fileUrl) return null;
+                  {/* Photo attachments grid */}
+                  {imageAttachments.length > 0 && (
+                    <div
+                      className={cn(
+                        "grid gap-3",
+                        imageAttachments.length === 1
+                          ? "grid-cols-1"
+                          : "grid-cols-1 sm:grid-cols-2",
+                      )}
+                    >
+                      {imageAttachments.map((file, i) => {
+                        const fileUrl =
+                          attachmentUrl(file.downloadUrl) ||
+                          (file.id && solution.id
+                            ? `/api/solutions/${solution.id}/attachments/${file.id}/download`
+                            : undefined);
 
-                      const typeInfo = getFileTypeInfo(file.mimeType, file.fileName ?? undefined);
-                      const { Icon, color, isImage } = typeInfo;
+                        if (!fileUrl) return null;
 
-                      return (
-                        <div
-                          key={file.id ?? i}
-                          className="group flex items-stretch rounded-xl border border-border/80 bg-background/80 overflow-hidden shadow-sm hover:border-primary/30 hover:shadow-md transition-all"
-                        >
-                          {/* Thumbnail / icon panel */}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setPreviewImage({
-                                src: fileUrl,
-                                alt: file.fileName ?? "Attachment",
-                                title: file.fileName ?? "Attachment Preview",
-                                mimeType: file.mimeType,
-                              })
-                            }
-                            className="relative flex w-14 shrink-0 items-center justify-center bg-muted/40 hover:bg-muted/70 transition-colors cursor-pointer border-r border-border/60"
-                            title="Click to preview"
-                            aria-label={`Preview ${file.fileName ?? "attachment"}`}
+                        const preview = () =>
+                          setPreviewImage({
+                            src: fileUrl,
+                            alt: file.fileName ?? "Attachment",
+                            title: file.fileName ?? "Attachment Preview",
+                            mimeType: file.mimeType,
+                          });
+
+                        return (
+                          <div
+                            key={file.id ?? i}
+                            className="group relative flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card/60 backdrop-blur-xs shadow-2xs transition-all duration-200 hover:border-primary/40 hover:shadow-md"
                           >
-                            {isImage ? (
-                              <>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              onClick={preview}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  preview();
+                                }
+                              }}
+                              className="relative flex h-48 w-full cursor-zoom-in items-center justify-center overflow-hidden bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              title="Click to preview full screen"
+                            >
+                              <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                                 <img
                                   src={fileUrl}
                                   alt=""
-                                  className="h-14 w-14 object-cover"
+                                  aria-hidden="true"
+                                  className="size-full object-cover blur-2xl opacity-25 dark:opacity-20 scale-125 transition-transform duration-500 group-hover:scale-135"
                                   loading="lazy"
                                 />
-                                {/* hover overlay */}
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
-                                  <Eye className="size-4 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
-                                </div>
-                              </>
-                            ) : (
-                              <div className={cn("flex size-9 items-center justify-center rounded-lg", color)}>
-                                <Icon className="size-4.5" />
+                                <div className="absolute inset-0 bg-background/35 backdrop-blur-[1px]" />
                               </div>
-                            )}
-                          </button>
 
-                          {/* File info */}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setPreviewImage({
-                                src: fileUrl,
-                                alt: file.fileName ?? "Attachment",
-                                title: file.fileName ?? "Attachment Preview",
-                                mimeType: file.mimeType,
-                              })
-                            }
-                            className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2 text-left hover:bg-muted/30 transition-colors cursor-pointer"
-                            title="Click to preview"
-                          >
-                            <span className="truncate text-sm font-semibold text-foreground leading-snug">
-                              {file.fileName ?? "Attachment"}
-                            </span>
-                            <span className="mt-0.5 text-xs text-muted-foreground">
-                              {typeInfo.label}
-                              {file.fileSize !== undefined && (
-                                <> · {formatBytes(file.fileSize)}</>
-                              )}
-                            </span>
-                          </button>
+                              <img
+                                src={fileUrl}
+                                alt={file.fileName ?? "Attachment photo"}
+                                className="relative z-10 max-h-[88%] max-w-[92%] rounded-lg object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.02]"
+                                loading="lazy"
+                              />
 
-                          {/* Download action */}
-                          <a
-                            href={fileUrl}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                            download={file.fileName ?? "attachment"}
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex shrink-0 items-center justify-center w-10 border-l border-border/60 text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors"
-                            title="Download attachment"
-                            aria-label={`Download ${file.fileName ?? "attachment"}`}
+                              <div className="absolute top-2 right-2 z-20 flex items-center gap-1 rounded-full border border-border/70 bg-background/85 px-2 py-0.5 text-[11px] font-medium text-foreground backdrop-blur-md shadow-xs opacity-0 transition-all duration-200 group-hover:opacity-100">
+                                <Maximize2 className="size-3 text-primary" />
+                                <span>Preview</span>
+                              </div>
+                            </div>
+
+                            <div className="relative z-20 flex items-center justify-between gap-2 border-t border-border/60 bg-card/95 px-3 py-2 backdrop-blur-xs">
+                              <div className="min-w-0 flex-1">
+                                <p
+                                  className="truncate text-xs font-semibold text-foreground"
+                                  title={file.fileName ?? "Attachment"}
+                                >
+                                  {file.fileName ?? "Attachment"}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground font-mono">
+                                  {file.mimeType || "image"}{" "}
+                                  {file.fileSize !== undefined ? `· ${formatBytes(file.fileSize)}` : ""}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={(e: React.MouseEvent) => {
+                                    e.stopPropagation();
+                                    preview();
+                                  }}
+                                  className="inline-flex h-6 cursor-pointer items-center gap-1 rounded-md px-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                                >
+                                  <Eye className="size-3 text-primary" />
+                                  <span>Preview</span>
+                                </button>
+                                <a
+                                  href={fileUrl}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  download={file.fileName ?? "attachment"}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex h-6 items-center gap-1 rounded-md border border-border/80 bg-background px-1.5 text-xs font-medium text-foreground shadow-2xs hover:bg-muted transition-colors"
+                                  title="Download"
+                                >
+                                  <Download className="size-3 text-muted-foreground" />
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Document attachments */}
+                  {documentAttachments.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {documentAttachments.map((file, i) => {
+                        const fileUrl =
+                          attachmentUrl(file.downloadUrl) ||
+                          (file.id && solution.id
+                            ? `/api/solutions/${solution.id}/attachments/${file.id}/download`
+                            : undefined);
+
+                        if (!fileUrl) return null;
+
+                        const typeInfo = getFileTypeInfo(file.mimeType, file.fileName ?? undefined);
+                        const { Icon, color } = typeInfo;
+
+                        return (
+                          <div
+                            key={file.id ?? i}
+                            className="group flex items-stretch rounded-xl border border-border/80 bg-background/80 overflow-hidden shadow-2xs hover:border-primary/30 hover:shadow-sm transition-all"
                           >
-                            <Download aria-hidden="true" className="size-3.5" />
-                          </a>
-                        </div>
-                      );
-                    })}
-                  </div>
+                            <div className="flex w-12 shrink-0 items-center justify-center bg-muted/40 border-r border-border/60">
+                              <div className={cn("flex size-8 items-center justify-center rounded-lg", color)}>
+                                <Icon className="size-4" />
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPreviewImage({
+                                  src: fileUrl,
+                                  alt: file.fileName ?? "Attachment",
+                                  title: file.fileName ?? "Attachment Preview",
+                                  mimeType: file.mimeType,
+                                })
+                              }
+                              className="flex min-w-0 flex-1 flex-col justify-center px-3 py-2 text-left hover:bg-muted/30 transition-colors cursor-pointer"
+                              title="Click to preview"
+                            >
+                              <span className="truncate text-xs font-semibold text-foreground leading-snug">
+                                {file.fileName ?? "Attachment"}
+                              </span>
+                              <span className="mt-0.5 text-[11px] text-muted-foreground font-mono">
+                                {typeInfo.label}
+                                {file.fileSize !== undefined && (
+                                  <> · {formatBytes(file.fileSize)}</>
+                                )}
+                              </span>
+                            </button>
+
+                            <a
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noreferrer noopener"
+                              download={file.fileName ?? "attachment"}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex shrink-0 items-center justify-center w-9 border-l border-border/60 text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                              title="Download attachment"
+                              aria-label={`Download ${file.fileName ?? "attachment"}`}
+                            >
+                              <Download aria-hidden="true" className="size-3.5" />
+                            </a>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
