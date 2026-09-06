@@ -69,8 +69,8 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
           </span>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-6 mt-5">
-          <div className="relative size-36 shrink-0 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-5 mt-5">
+          <div className="relative size-32 sm:size-36 shrink-0 flex items-center justify-center">
             <svg viewBox="0 0 100 100" className="size-full transform -rotate-90">
               <circle
                 cx="50"
@@ -106,7 +106,7 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
             </div>
           </div>
 
-          <div className="w-full space-y-2">
+          <div className="w-full space-y-1.5 pt-3 border-t border-border/60">
             {items.map((item) => {
               const percent = total > 0 ? Math.round((item.count / total) * 100) : 0;
               return (
@@ -114,13 +114,13 @@ export const DashboardReportStatus: React.FC<DashboardReportStatusProps> = ({ di
                   key={item.label}
                   className="flex items-center justify-between text-sm py-1 px-2 rounded-lg hover:bg-muted/40 transition-colors"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className={cn("size-2.5 rounded-full shadow-2xs", item.bgClass)} />
-                    <span className="font-medium text-foreground text-xs sm:text-sm">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={cn("size-2.5 rounded-full shrink-0 shadow-2xs", item.bgClass)} />
+                    <span className="font-medium text-foreground text-xs sm:text-sm truncate">
                       {item.label}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 tabular-nums">
+                  <div className="flex items-center gap-2 tabular-nums shrink-0">
                     <span className="font-bold text-foreground text-xs sm:text-sm">
                       {item.count}
                     </span>

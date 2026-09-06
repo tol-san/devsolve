@@ -9,7 +9,7 @@ import {
   Sparkles,
   ArrowUpRight,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface ResearcherReportMetricsProps {
@@ -87,65 +87,66 @@ export function ResearcherReportMetrics({
             type="button"
             key={item.id}
             onClick={() => onTabChange(item.id)}
-            className="group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl cursor-pointer transition-all duration-200"
+            className="group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl cursor-pointer transition-all duration-200 h-full"
           >
             <Card
               className={cn(
-                "relative overflow-hidden rounded-2xl bg-card/90 text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none p-4 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
+                "relative overflow-hidden rounded-2xl bg-card/90 text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none p-4 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md flex flex-col justify-between h-full",
                 isActive && item.activeRing,
                 item.isActionRequired &&
                   !isActive &&
                   "ring-1 ring-cyan-500/40 bg-gradient-to-br from-cyan-500/10 via-card to-card"
               )}
             >
-              {item.isActionRequired && (
-                <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-[10px] font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider animate-pulse">
-                  <Sparkles className="size-2.5" />
-                  <span>Action</span>
-                </div>
-              )}
-
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div
+              <div className="flex items-start justify-between gap-2">
+                <div
+                  className={cn(
+                    "flex size-10 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 shrink-0 shadow-2xs",
+                    item.iconBg
+                  )}
+                >
+                  <Icon
                     className={cn(
-                      "flex size-11 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 shrink-0",
-                      item.iconBg
+                      "size-5",
+                      item.id === "Retesting" && retestCount > 0 && "animate-spin-slow"
                     )}
-                  >
-                    <Icon
-                      className={cn(
-                        "size-5",
-                        item.id === "Retesting" && retestCount > 0 && "animate-spin-slow"
-                      )}
-                    />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
-                      {item.title}
-                    </span>
-                    <span className="text-[11px] text-muted-foreground/80 truncate">
-                      {item.helper}
-                    </span>
-                  </div>
+                  />
                 </div>
 
-                {!item.isActionRequired && (
-                  <ArrowUpRight className="size-4 text-muted-foreground/40 group-hover:text-foreground/70 transition-colors shrink-0" />
+                {item.isActionRequired ? (
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-[10px] font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider animate-pulse">
+                    <Sparkles className="size-2.5" />
+                    <span>Action</span>
+                  </div>
+                ) : (
+                  <div className="p-1 text-muted-foreground/40 group-hover:text-foreground/70 transition-colors">
+                    <ArrowUpRight className="size-4" />
+                  </div>
                 )}
               </div>
 
-              <div className="mt-4 flex items-baseline justify-between">
+              <div className="mt-3.5 space-y-1">
                 {isLoading ? (
                   <div className="h-8 w-16 animate-pulse rounded-lg bg-muted" />
                 ) : (
-                  <span className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                  <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground tabular-nums">
                     {item.value.toLocaleString()}
-                  </span>
+                  </div>
                 )}
+                <div>
+                  <h4 className="text-sm font-bold text-foreground leading-snug">
+                    {item.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                    {item.helper}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between text-xs">
                 <span
                   className={cn(
-                    "text-xs font-medium transition-colors",
+                    "font-semibold transition-colors inline-flex items-center gap-1",
                     isActive
                       ? "text-primary font-bold"
                       : "text-muted-foreground group-hover:text-foreground"
@@ -153,6 +154,9 @@ export function ResearcherReportMetrics({
                 >
                   {isActive ? "Filtered" : "Filter"} &rarr;
                 </span>
+                {isActive && (
+                  <span className="size-1.5 rounded-full bg-primary" />
+                )}
               </div>
             </Card>
           </button>
