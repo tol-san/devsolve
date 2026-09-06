@@ -20,6 +20,7 @@ export interface ShowcaseReviewQueueItem {
   repoUrl?: string;
   videoUrl?: string;
   reviewStatus: ShowcaseReviewStatus;
+  tags?: { id?: string; name: string; slug?: string }[];
   submittedAt: string;
 }
 

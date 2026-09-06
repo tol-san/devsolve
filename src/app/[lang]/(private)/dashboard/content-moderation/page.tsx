@@ -150,6 +150,18 @@ function ContentManagement() {
   const activeBlurb =
     TABS.find((tab) => tab.value === activeTab)?.blurb ?? TABS[0].blurb;
 
+  const activeTabRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [activeTab]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -157,7 +169,7 @@ function ContentManagement() {
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="space-y-6 w-full pb-12"
     >
-      <header className="space-y-1">
+      <header className="space-y-1.5 pb-4 border-b border-border/80">
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           <Link
             href="/dashboard"
@@ -179,70 +191,76 @@ function ContentManagement() {
         </p>
       </header>
 
-      <nav
-        aria-label="Moderation sections"
-        className="grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-card p-1.5 sm:flex sm:items-stretch shadow-xs"
-      >
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab.value;
-          const count = counts[tab.value];
-          const Icon = tab.icon;
+      {/* Moderation Sections Navigation (Responsive Horizontal Scroll) */}
+      <div className="w-full overflow-x-auto py-1 scrollbar-none">
+        <nav
+          aria-label="Moderation sections"
+          className="inline-flex w-max min-w-full items-center gap-1.5 rounded-2xl border border-border bg-card p-1.5 shadow-xs"
+        >
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.value;
+            const count = counts[tab.value];
+            const Icon = tab.icon;
 
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => selectTab(tab.value)}
-              aria-current={isActive ? "page" : undefined}
-              className={cn(
-                "flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors sm:px-4",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-2xs"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <Icon
-                aria-hidden="true"
+            return (
+              <button
+                key={tab.value}
+                ref={isActive ? activeTabRef : undefined}
+                type="button"
+                onClick={() => selectTab(tab.value)}
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "size-4 shrink-0",
+                  "flex flex-1 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap",
                   isActive
-                    ? "text-primary-foreground"
-                    : "text-muted-foreground",
+                    ? "bg-primary text-primary-foreground shadow-2xs"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
-              />
-              <span className="truncate">{tab.label}</span>
-              {count !== undefined && count > 0 && (
-                <span
+              >
+                <Icon
+                  aria-hidden="true"
                   className={cn(
-                    "min-w-5 shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums",
+                    "size-4 shrink-0",
                     isActive
-                      ? "bg-primary-foreground/20 text-primary-foreground"
-                      : "bg-muted text-muted-foreground",
+                      ? "text-primary-foreground"
+                      : "text-muted-foreground",
                   )}
-                >
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
+                />
+                <span className="shrink-0">{tab.label}</span>
+                {count !== undefined && count > 0 && (
+                  <span
+                    className={cn(
+                      "min-w-5 shrink-0 rounded-full px-1.5 py-0.5 text-xs font-bold tabular-nums",
+                      isActive
+                        ? "bg-primary-foreground/20 text-primary-foreground"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-      {activeTab === "queue" ? (
-        <ReportQueue />
-      ) : activeTab === "showcases" ? (
-        <ShowcaseReviewQueue />
-      ) : activeTab === "problems" ? (
-        <ProblemReviewQueue />
-      ) : activeTab === "solutions" ? (
-        <SolutionReviewQueue />
-      ) : activeTab === "security" ? (
-        <SecurityIncidentsTable scope="admin" />
-      ) : activeTab === "auto-approval" ? (
-        <AutoApprovalSettings />
-      ) : (
-        <ModerationHistoryTable />
-      )}
+      <div className="pt-2">
+        {activeTab === "queue" ? (
+          <ReportQueue />
+        ) : activeTab === "showcases" ? (
+          <ShowcaseReviewQueue />
+        ) : activeTab === "problems" ? (
+          <ProblemReviewQueue />
+        ) : activeTab === "solutions" ? (
+          <SolutionReviewQueue />
+        ) : activeTab === "security" ? (
+          <SecurityIncidentsTable scope="admin" />
+        ) : activeTab === "auto-approval" ? (
+          <AutoApprovalSettings />
+        ) : (
+          <ModerationHistoryTable />
+        )}
+      </div>
     </motion.div>
   );
 }

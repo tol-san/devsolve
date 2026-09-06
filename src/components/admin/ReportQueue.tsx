@@ -112,62 +112,64 @@ export function ReportQueue() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex items-center rounded-xl border border-border bg-muted/60 p-1 text-sm font-semibold">
-          {STATUS_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => resetPage(setStatus)(tab.value)}
-              aria-pressed={status === tab.value}
-              className={`relative cursor-pointer rounded-lg px-3.5 py-1.5 transition-colors ${
-                status === tab.value
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3.5 shadow-xs">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="inline-flex items-center rounded-xl border border-border bg-muted/60 p-1 text-sm font-semibold">
+            {STATUS_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => resetPage(setStatus)(tab.value)}
+                aria-pressed={status === tab.value}
+                className={`relative cursor-pointer rounded-lg px-3.5 py-1.5 transition-colors ${
+                  status === tab.value
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <Select
+            value={flaggableType}
+            onValueChange={(value) =>
+              resetPage(setFlaggableType)(value as AdminFlaggableType | "ALL")
+            }
+          >
+            <SelectTrigger className="h-9 w-44 rounded-xl border-border bg-background text-sm">
+              <SelectValue placeholder="All content" />
+            </SelectTrigger>
+            <SelectContent className="border-border bg-card text-foreground">
+              <SelectItem value="ALL">All content</SelectItem>
+              {ADMIN_FLAGGABLE_TYPES.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {FLAGGABLE_TYPE_LABELS[type]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={reason}
+            onValueChange={(value) => resetPage(setReason)(value as FlagReason | "ALL")}
+          >
+            <SelectTrigger className="h-9 w-40 rounded-xl border-border bg-background text-sm">
+              <SelectValue placeholder="Any reason" />
+            </SelectTrigger>
+            <SelectContent className="border-border bg-card text-foreground">
+              <SelectItem value="ALL">Any reason</SelectItem>
+              {FLAG_REASONS.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {FLAG_REASON_LABELS[value] ?? value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        <Select
-          value={flaggableType}
-          onValueChange={(value) =>
-            resetPage(setFlaggableType)(value as AdminFlaggableType | "ALL")
-          }
-        >
-          <SelectTrigger className="h-9 w-44 rounded-xl bg-background text-sm">
-            <SelectValue placeholder="All content" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All content</SelectItem>
-            {ADMIN_FLAGGABLE_TYPES.map((type) => (
-              <SelectItem key={type} value={type}>
-                {FLAGGABLE_TYPE_LABELS[type]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={reason}
-          onValueChange={(value) => resetPage(setReason)(value as FlagReason | "ALL")}
-        >
-          <SelectTrigger className="h-9 w-40 rounded-xl bg-background text-sm">
-            <SelectValue placeholder="Any reason" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Any reason</SelectItem>
-            {FLAG_REASONS.map((value) => (
-              <SelectItem key={value} value={value}>
-                {FLAG_REASON_LABELS[value] ?? value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <span className="ml-auto text-sm text-muted-foreground">
+        <span className="text-sm font-medium text-muted-foreground tabular-nums">
           {query.isFetching ? "Loading…" : `${total.toLocaleString()} report${total === 1 ? "" : "s"}`}
         </span>
       </div>
