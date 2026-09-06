@@ -4,14 +4,14 @@ import React from "react";
 import Link from "next/link";
 import {
   Bookmark,
-  Send,
   Trophy,
   Award,
   Layers,
   Calendar,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Program, ProgramDetail } from "@/lib/types/programs/types";
+import { ProgramDetail } from "@/lib/types/programs/types";
 import { isPublished, isUnderReview } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth/auth-client";
@@ -92,11 +92,20 @@ export function ProgramDetailHero({ program }: ProgramDetailHeroProps) {
     )
   );
 
+  const isPrivate =
+    program.visibility === "PRIVATE" || program.visibility === "INVITE_ONLY";
+
   const badgesElement = (
     <>
       <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20">
         • {program.state || "Active"}
       </span>
+      {isPrivate && (
+        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20 inline-flex items-center gap-1">
+          <Lock className="w-2.5 h-2.5" />
+          Private
+        </span>
+      )}
       <span
         className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
           isBounty
