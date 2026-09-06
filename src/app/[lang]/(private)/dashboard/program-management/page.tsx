@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
@@ -22,6 +22,7 @@ import { useGetMyCompanyProgramsQuery } from "@/lib/redux/services/program/progr
 import { ProgramStatCards } from "@/components/admin/programs/ProgramStatCards";
 import { ProgramFiltersBar } from "@/components/admin/programs/ProgramFiltersBar";
 import { ProgramDataTable } from "@/components/admin/programs/ProgramDataTable";
+import { ProgramManagementCardGrid } from "@/components/admin/programs/ProgramManagementCardGrid";
 import { getProgramColumns } from "@/components/admin/programs/programColumns";
 
 function ProgramManagementPageContent() {
@@ -34,26 +35,15 @@ function ProgramManagementPageContent() {
     (searchParams.get("scope") === "admin" || (isAdmin && !isCompanyUser)) &&
     isAdmin;
 
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [submissionStateFilter, setSubmissionStateFilter] = useState<
     ProgramSubmissionState | "ALL"
   >("ALL");
   const [stateFilter, setStateFilter] = useState<ProgramState | "ALL">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sort, setSort] = useState("updatedAt,DESC");
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    setPageIndex(0);
-  }, [debouncedSearch]);
+  const [pageSize, setPageSize] = useState(12);
 
   const { data: adminPendingResponse, isLoading: isAdminPendingLoading } =
     useGetAdminProgramsQuery(
@@ -159,19 +149,20 @@ function ProgramManagementPageContent() {
     const isDesc = direction?.toUpperCase() === "DESC";
 
     list.sort((a, b) => {
-      let valA: any = a[field as keyof ProgramManagementSummaryItem] ?? "";
-      let valB: any = b[field as keyof ProgramManagementSummaryItem] ?? "";
+      const rawA = a[field as keyof ProgramManagementSummaryItem];
+      const rawB = b[field as keyof ProgramManagementSummaryItem];
 
       if (field === "createdAt" || field === "updatedAt") {
-        valA = new Date(valA).getTime() || 0;
-        valB = new Date(valB).getTime() || 0;
-      } else if (typeof valA === "string") {
-        valA = valA.toLowerCase();
-        valB = valB.toLowerCase();
+        const timeA = typeof rawA === "string" ? new Date(rawA).getTime() || 0 : 0;
+        const timeB = typeof rawB === "string" ? new Date(rawB).getTime() || 0 : 0;
+        return isDesc ? timeB - timeA : timeA - timeB;
       }
 
-      if (valA < valB) return isDesc ? 1 : -1;
-      if (valA > valB) return isDesc ? -1 : 1;
+      const strA = typeof rawA === "string" ? rawA.toLowerCase() : String(rawA ?? "");
+      const strB = typeof rawB === "string" ? rawB.toLowerCase() : String(rawB ?? "");
+
+      if (strA < strB) return isDesc ? 1 : -1;
+      if (strA > strB) return isDesc ? -1 : 1;
       return 0;
     });
 
@@ -320,14 +311,47 @@ function ProgramManagementPageContent() {
         onSearchQueryChange={handleSearchQueryChange}
         sort={sort}
         onSortChange={handleSortChange}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
         counts={counts}
       />
 
       <main className="flex flex-col gap-3">
         {isLoading ? (
-          <div className="space-y-3 animate-pulse">
-            <div className="h-64 bg-muted rounded-2xl border border-border" />
-          </div>
+          viewMode === "grid" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5 animate-pulse">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div
+                  key={i}
+                  className="h-56 bg-muted/60 rounded-2xl border border-border"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3 animate-pulse">
+              <div className="h-64 bg-muted rounded-2xl border border-border" />
+            </div>
+          )
+        ) : viewMode === "grid" ? (
+          <ProgramManagementCardGrid
+            programs={displayedPrograms}
+            scope={isAdminScope ? "admin" : "owner"}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+            pageCount={totalPages}
+            totalElements={totalElements}
+            onPageChange={setPageIndex}
+            onPageSizeChange={(newSize) => {
+              setPageSize(newSize);
+              setPageIndex(0);
+            }}
+            onResetFilters={() => {
+              setSubmissionStateFilter("ALL");
+              setStateFilter("ALL");
+              setSearchQuery("");
+              setPageIndex(0);
+            }}
+          />
         ) : (
           <ProgramDataTable
             columns={columns}

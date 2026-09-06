@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUpDown, Filter } from "lucide-react";
+import { ArrowUpDown, Filter, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
@@ -15,6 +15,7 @@ import {
   ProgramSubmissionState,
   ProgramState,
 } from "@/lib/types/admin/programAdminTypes";
+import { cn } from "@/lib/utils";
 
 interface ProgramFiltersBarProps {
   submissionStateFilter: ProgramSubmissionState | "ALL";
@@ -25,6 +26,8 @@ interface ProgramFiltersBarProps {
   onSearchQueryChange: (query: string) => void;
   sort?: string;
   onSortChange?: (sort: string) => void;
+  viewMode?: "grid" | "table";
+  onViewModeChange?: (mode: "grid" | "table") => void;
   counts: {
     all: number;
     pendingReview: number;
@@ -68,6 +71,8 @@ export const ProgramFiltersBar: React.FC<ProgramFiltersBarProps> = ({
   onSearchQueryChange,
   sort = "updatedAt,DESC",
   onSortChange,
+  viewMode = "grid",
+  onViewModeChange,
   counts,
 }) => {
   const activeFilters: ActiveFilter[] = [
@@ -152,6 +157,47 @@ export const ProgramFiltersBar: React.FC<ProgramFiltersBarProps> = ({
             value={sort}
             onValueChange={(value) => onSortChange?.(value)}
           />
+
+          {onViewModeChange && (
+            <div
+              role="group"
+              aria-label="View mode"
+              className="flex items-center gap-0.5 rounded-xl border border-border bg-muted/60 p-1 shrink-0"
+            >
+              <button
+                type="button"
+                onClick={() => onViewModeChange("grid")}
+                aria-pressed={viewMode === "grid"}
+                aria-label="Cards view"
+                title="Cards view"
+                className={cn(
+                  "flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold transition-all cursor-pointer",
+                  viewMode === "grid"
+                    ? "bg-card text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <LayoutGrid className="size-3.5" />
+                <span className="hidden sm:inline">Cards</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onViewModeChange("table")}
+                aria-pressed={viewMode === "table"}
+                aria-label="Table view"
+                title="Table view"
+                className={cn(
+                  "flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold transition-all cursor-pointer",
+                  viewMode === "table"
+                    ? "bg-card text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <TableIcon className="size-3.5" />
+                <span className="hidden sm:inline">Table</span>
+              </button>
+            </div>
+          )}
         </FilterControls>
       </FilterRow>
 
