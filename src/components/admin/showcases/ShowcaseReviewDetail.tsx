@@ -186,7 +186,7 @@ export function ShowcaseReviewDetail({ id }: { id: string }) {
                       <p className="text-base font-bold text-slate-900 dark:text-slate-100">
                         {step.title}
                       </p>
-                      <MarkdownView source={step.description} />
+                      <MarkdownView source={step.description ?? ""} />
 
                       {step.codeSnippet && (
                         <ShowcaseCodeBlock

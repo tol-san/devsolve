@@ -48,17 +48,17 @@ export function PublicProgramPagination({
         </Select>
       </div>
 
-      <nav className="flex items-center gap-1.5">
+      <nav className="flex items-center gap-1.5" aria-label="Public programs pagination">
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="h-9 px-3 rounded-xl border-border bg-background text-xs sm:text-sm font-semibold text-foreground shadow-2xs hover:bg-muted transition-all disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
-          <ChevronLeft data-icon="inline-start" className="size-4" />
-          Previous
+          <ChevronLeft data-icon="inline-start" className="size-4 mr-0.5" />
+          <span className="hidden sm:inline">Previous</span>
         </Button>
 
         {pageNumbers.map((page) => (
@@ -69,8 +69,8 @@ export function PublicProgramPagination({
             size="icon-sm"
             onClick={() => onPageChange(page)}
             className={cn(
-              "rounded-full border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
-              currentPage === page && "border-blue-600 bg-blue-600 text-white hover:bg-blue-700 hover:text-white dark:border-blue-500 dark:bg-blue-600"
+              "size-9 rounded-xl border border-border/80 bg-background/80 text-xs font-bold tabular-nums text-muted-foreground hover:bg-muted hover:text-foreground hover:border-border transition-all shadow-2xs cursor-pointer",
+              currentPage === page && "border-primary bg-primary text-primary-foreground font-extrabold shadow-xs shadow-primary/25 hover:bg-primary/90 hover:text-primary-foreground"
             )}
           >
             {page}
@@ -79,14 +79,14 @@ export function PublicProgramPagination({
 
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
           disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="h-9 px-3 rounded-xl border-border bg-background text-xs sm:text-sm font-semibold text-foreground shadow-2xs hover:bg-muted transition-all disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
         >
-          Next
-          <ChevronRight data-icon="inline-end" className="size-4" />
+          <span className="hidden sm:inline">Next</span>
+          <ChevronRight data-icon="inline-end" className="size-4 ml-0.5" />
         </Button>
       </nav>
     </footer>

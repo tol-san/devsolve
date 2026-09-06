@@ -47,10 +47,34 @@ export const SEVERITY_SELECT_ITEMS = [
 ];
 
 export const CARD_CLASS =
-  "rounded-2xl border border-border bg-card shadow-xs transition-colors";
+  "rounded-2xl border border-border/70 bg-card/85 backdrop-blur-xs shadow-xs hover:border-border transition-all duration-200";
 
 export const CONTROL_CLASS =
-  "h-12 rounded-xl border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary text-base transition-colors shadow-2xs";
+  "h-11 rounded-xl border-border/80 bg-background text-foreground placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary text-sm sm:text-base transition-all shadow-2xs";
+
+export const SUGGESTED_TECHNOLOGIES = [
+  "Next.js",
+  "React",
+  "TypeScript",
+  "Node.js",
+  "Python",
+  "PostgreSQL",
+  "Docker",
+  "Tailwind CSS",
+  "GraphQL",
+  "Redis",
+];
+
+export const SUGGESTED_TAGS = [
+  "authentication",
+  "performance",
+  "api",
+  "database",
+  "docker",
+  "styling",
+  "state-management",
+  "routing",
+];
 
 export const SERVER_FIELDS = new Set([
   "categoryId",

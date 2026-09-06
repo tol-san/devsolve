@@ -1,9 +1,29 @@
 import { proxyApi } from "./proxyApi";
-import type { Weakness } from "./weaknessesApi";
+import type { Weakness, PopularWeakness } from "./weaknessesApi";
 import type {
   WeaknessCreateValues,
   WeaknessPatchValues,
 } from "@/lib/validations/weakness";
+
+export interface SuggestedWeakness {
+  name: string;
+  reportCount: number;
+  inCatalog: boolean;
+  firstSuggestedAt: string;
+  lastSuggestedAt: string;
+}
+
+export interface WeaknessStatsQuery {
+  includeUnused?: boolean;
+  activeOnly?: boolean;
+  page?: number;
+  size?: number;
+}
+
+export interface SuggestedWeaknessQuery {
+  page?: number;
+  size?: number;
+}
 
 interface WeaknessPage {
   content?: Weakness[];
@@ -88,6 +108,55 @@ export const adminWeaknessesApi = proxyApi.injectEndpoints({
       query: (id) => ({ url: `/admin/weaknesses/${id}`, method: "DELETE" }),
       invalidatesTags: ["Weakness"],
     }),
+
+    getWeaknessStats: builder.query<
+      {
+        content: PopularWeakness[];
+        totalElements: number;
+        totalPages: number;
+        number: number;
+        size: number;
+      },
+      WeaknessStatsQuery | void
+    >({
+      query: (input) => {
+        const {
+          includeUnused = false,
+          activeOnly = false,
+          page = 0,
+          size = 20,
+        } = input ?? {};
+        const params = new URLSearchParams({
+          page: String(Math.max(0, page)),
+          size: String(Math.min(Math.max(1, size), 100)),
+        });
+        if (includeUnused) params.set("includeUnused", "true");
+        if (activeOnly) params.set("activeOnly", "true");
+        return `/admin/weaknesses/stats?${params.toString()}`;
+      },
+      providesTags: ["Weakness"],
+    }),
+
+    getSuggestedWeaknesses: builder.query<
+      {
+        content: SuggestedWeakness[];
+        totalElements: number;
+        totalPages: number;
+        number: number;
+        size: number;
+      },
+      SuggestedWeaknessQuery | void
+    >({
+      query: (input) => {
+        const { page = 0, size = 20 } = input ?? {};
+        const params = new URLSearchParams({
+          page: String(Math.max(0, page)),
+          size: String(Math.min(Math.max(1, size), 100)),
+        });
+        return `/admin/weaknesses/suggested?${params.toString()}`;
+      },
+      providesTags: ["Weakness"],
+    }),
   }),
 });
 
@@ -96,4 +165,7 @@ export const {
   useCreateWeaknessMutation,
   useUpdateWeaknessMutation,
   useDeleteWeaknessMutation,
+  useGetWeaknessStatsQuery,
+  useGetSuggestedWeaknessesQuery,
 } = adminWeaknessesApi;
+

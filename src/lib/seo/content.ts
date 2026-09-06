@@ -223,7 +223,7 @@ export function showcaseToDiscussionPost(
     votes: 0,
     answersCount: 0,
     viewsCount: raw.viewCount ?? 0,
-    thumbnailUrl: raw.coverImageUrl,
+    thumbnailUrl: raw.coverImageUrl ?? undefined,
     author: {
       id: authorId,
       name: authorName,

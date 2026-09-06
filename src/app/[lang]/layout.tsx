@@ -32,6 +32,12 @@ const hackdaddy = localFont({
   display: "swap",
 });
 
+const angkor = localFont({
+  src: "../fonts/Angkor-Regular.ttf",
+  variable: "--font-angkor",
+  display: "swap",
+});
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -118,7 +124,7 @@ export default async function RootLayout({
     <html
       lang={LOCALE_TAGS[locale]}
       suppressHydrationWarning
-      className={cn("h-full", "antialiased", inter.variable, khmer.variable, hackdaddy.variable)}
+      className={cn("h-full", "antialiased", inter.variable, khmer.variable, hackdaddy.variable, angkor.variable)}
     >
       <body suppressHydrationWarning className={cn("h-full font-sans antialiased")}>
         <ThemeProvider

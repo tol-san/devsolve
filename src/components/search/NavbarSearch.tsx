@@ -20,7 +20,7 @@ export interface NavbarSearchProps {
 export function NavbarSearch({
   variant = "icon",
   className,
-  placeholder = "Search all (programs, people, write-ups…)",
+  placeholder = "Search…",
   iconClassName,
   onOpen,
 }: NavbarSearchProps) {
@@ -37,23 +37,24 @@ export function NavbarSearch({
         type="button"
         onClick={handleOpen}
         aria-expanded={isOpen}
-        aria-label="Search all (Ctrl+K)"
+        aria-label={placeholder}
+        title={placeholder}
         className={cn(
-          "group flex h-10 w-full items-center justify-between gap-3 rounded-xl border border-border/80 bg-card/60 hover:bg-muted/80 px-3.5 text-sm text-muted-foreground shadow-2xs transition-all duration-200 cursor-pointer ring-1 ring-foreground/5 dark:ring-foreground/10 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+          "group flex h-8.5 w-full items-center justify-between gap-2 rounded-full border border-border/50 bg-muted/30 hover:bg-muted/60 dark:bg-muted/20 dark:hover:bg-muted/40 px-3 text-xs text-muted-foreground shadow-none transition-all duration-150 cursor-pointer hover:border-border/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
           className,
         )}
       >
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
           <Search
             className={cn(
-              "size-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors",
+              "size-3.5 shrink-0 text-muted-foreground/70 group-hover:text-foreground transition-colors",
               iconClassName,
             )}
           />
-          <span className="truncate">{placeholder}</span>
+          <span className="truncate text-left select-none font-normal">{placeholder}</span>
         </div>
-        <kbd className="hidden sm:inline-flex items-center gap-1 rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground select-none">
-          <span className="text-xs">⌘</span>K
+        <kbd className="hidden sm:inline-flex shrink-0 items-center gap-0.5 rounded border border-border/50 bg-background/50 dark:bg-card/50 px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground/70 select-none">
+          <span className="text-[11px]">⌘</span>K
         </kbd>
       </button>
     );

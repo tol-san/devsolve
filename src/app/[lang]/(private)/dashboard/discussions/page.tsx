@@ -76,8 +76,6 @@ export default function DiscussionsPage() {
       <DiscussionHeader
         breadcrumbLabel="Community"
         title="Community"
-        badgeLabel="Problems · Solutions · Showcases"
-        description="Ask focused questions, share practical solutions, and showcase what you are building with other developers."
         createHref="/dashboard/discussions/create"
         createLabel="Start a discussion"
       />
@@ -127,6 +125,8 @@ export default function DiscussionsPage() {
           isLoadingTopics={isLoadingTopics}
           isLoadingTags={isLoadingTags}
           isLoadingStats={isLoadingStats}
+          createHref="/dashboard/discussions/create"
+          createLabel="Start New Discussion"
         />
 
         <section
@@ -153,7 +153,7 @@ export default function DiscussionsPage() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="flex flex-col gap-5"
+                      className="flex flex-col rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs overflow-hidden ring-1 ring-foreground/5"
                     >
                       {discussions.data.map((post, index) => (
                         <DiscussionCard

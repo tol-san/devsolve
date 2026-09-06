@@ -77,6 +77,13 @@
     "opening": "កំពុងបើក…"
   },
   "hero": {
+    "titleBounty": "វេទិកាផ្តល់រង្វាន់",
+    "titlePlatform": "សម្រាប់ការរកឃើញចន្លោះប្រហោង",
+    "titleDev": "និង សហគមន៍អ្នកសរសេរកូដ",
+    "titleCommunity": "",
+    "subtitle": "DevSolve តភ្ជាប់អ្នកស្រាវជ្រាវសុវត្ថិភាព និងក្រុមវិស្វកម្ម — ធានាប្រាក់រង្វាន់កក់ទុកសម្រាប់ Hunters និងផ្តល់ដំណោះស្រាយកូដដែលបានផ្ទៀងផ្ទាត់សម្រាប់ Developers។",
+    "explorePrograms": "ស្វែងរក Programs",
+    "devCommunity": "សហគមន៍អ្នកសរសេរកូដ",
     "kicker": "DevSolve Platform",
     "kickerSub": "មជ្ឈមណ្ឌល Bug Bounty និង Dev Hub រួមតែមួយ",
     "titleLine1": "បង្វែរចន្លោះប្រហោងសុវត្ថិភាព",
@@ -153,14 +160,7 @@
         "blurb": "រាល់ Report ដែលបាន Approve និងដំណោះស្រាយដែលគេរើស នឹងលោតឡើងលើ Profile របស់អ្នកភ្លាមៗ ភ្ជាប់ជាមួយ Severity ឈ្មោះ Program និងកាលបរិច្ឆេទច្បាស់ៗ។",
         "link": "ចូលមើល Showcase"
       }
-    },
-    "titleBounty": "BUG BOUNTY",
-    "titlePlatform": "PLATFORM",
-    "titleDev": "DEVELOPER",
-    "titleCommunity": "COMMUNITY",
-    "subtitle": "DevSolve ភ្ជាប់ទំនាក់ទំនងរវាងអ្នកស្រាវជ្រាវសន្តិសុខ និងក្រុមវិស្វកម្ម — ធានាប្រាក់រង្វាន់ Bounty សម្រាប់ Hunters និងផ្តល់ដំណោះស្រាយកូដដែលបានផ្ទៀងផ្ទាត់សម្រាប់ Developers។",
-    "explorePrograms": "ស្វែងរក Programs",
-    "devCommunity": "សហគមន៍ Developers"
+    }
   },
   "footer": {
     "tagline": "Platform ប្រមាញ់ Bug Bounty និងរាយការណ៍ចន្លោះប្រហោងសុវត្ថិភាពសម្រាប់ Devs, Security Engineers និងក្រុមហ៊ុននានា។ បង្កើតឡើងដើម្បីស្វែងរក Bug មុនពេល Hacker វាយលុក។",
@@ -541,7 +541,6 @@
         "breadcrumb": "សហគមន៍",
         "title": "សហគមន៍",
         "badge": "បញ្ហា · ដំណោះស្រាយ · ស្នាដៃ",
-        "description": "សួរសំណួរឱ្យច្បាស់លាស់ ចែករំលែកដំណោះស្រាយជាក់ស្ដែង និងបង្ហាញអ្វីដែលអ្នកកំពុងបង្កើតជាមួយអ្នកអភិវឌ្ឍន៍ដទៃ។",
         "createLabel": "ចាប់ផ្ដើមការពិភាក្សា",
         "empty": "រកមិនឃើញការពិភាក្សាទេ",
         "metaTitle": "សហគមន៍",
@@ -597,6 +596,7 @@
     "sort": {
       "label": "តម្រៀបការពិភាក្សា",
       "newest": "ថ្មីបំផុត",
+      "trending": "ពេញនិយម",
       "oldest": "ចាស់បំផុត",
       "top": "គាំទ្រច្រើនបំផុត",
       "discussed": "ឆ្លើយច្រើនបំផុត",
@@ -664,6 +664,7 @@
     },
     "pagination": {
       "region": "ការបែងចែកទំព័រការពិភាក្សា",
+      "showing": "បង្ហាញ",
       "of": "ក្នុងចំណោម",
       "show": "បង្ហាញ",
       "previous": "មុន",
@@ -933,6 +934,28 @@
       "kicker": "ស្ថាបត្យកម្មបច្ចេកវិទ្យា",
       "title": "បង្កើតឡើងលើបច្ចេកវិទ្យាទំនើប និងសុវត្ថិភាពខ្ពស់",
       "lede": "ស្ថាបត្យកម្មប្រព័ន្ធកម្រិតខ្ពស់ដែលរួមបញ្ចូល Edge Gateway, Federated Identity, ប្រព័ន្ធទិន្នន័យចែកចាយ, និងការត្រួតពិនិត្យសុវត្ថិភាពស្វ័យប្រវត្តិ។"
+    },
+    "contact": {
+      "kicker": "ទំនាក់ទំនង",
+      "title": "ទាក់ទងមកយើងខ្ញុំ",
+      "subtitle": "ផ្ញើសារមកកាន់យើង",
+      "nameLabel": "ឈ្មោះពេញ",
+      "namePlaceholder": "ឌីម ផាធា",
+      "emailLabel": "អាសយដ្ឋានអ៊ីមែល",
+      "emailPlaceholder": "pathea.dim@gmail.com",
+      "subjectLabel": "ប្រធានបទ",
+      "subjectPlaceholder": "តើអ្នកចង់ទាក់ទងអំពីអ្វី?",
+      "messageLabel": "សារ",
+      "messagePlaceholder": "រៀបរាប់ព័ត៌មានលម្អិត…",
+      "sendButton": "ផ្ញើសារ",
+      "sendingButton": "កំពុងផ្ញើ…",
+      "successMessage": "សូមអរគុណ — យើងនឹងឆ្លើយតបក្នុងរយៈពេលមួយថ្ងៃនៃថ្ងៃធ្វើការ។",
+      "addressTitle": "អាសយដ្ឋាន",
+      "addressValue": "#40, ផ្លូវ 273, សង្កាត់បឹងកក់១, ខណ្ឌទួលគោក, រាជធានីភ្នំពេញ",
+      "emailTitle": "ផ្ញើអ៊ីមែល",
+      "phoneTitle": "ការិយាល័យជំនួយ",
+      "connectTitle": "បណ្តាញសង្គម",
+      "viewOnMaps": "មើលនៅលើ Google Maps"
     }
   }
 }

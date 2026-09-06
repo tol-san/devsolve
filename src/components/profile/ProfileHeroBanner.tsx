@@ -66,15 +66,12 @@ export default function ProfileHeroBanner({
     <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
       <div className="relative h-40 w-full overflow-hidden sm:h-52">
         {coverUrl ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={coverUrl}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
-          </>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coverUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         ) : (
           <>
             <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-primary/8 to-transparent" />

@@ -4,8 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { motion, useInView, useReducedMotion } from "motion/react";
-import { ArrowUpRight } from "lucide-react";
-import SectionBackdrop, { ACCENT, PRIMARY, SECONDARY, SURFACE } from "./SectionBackdrop";
+import { ArrowUpRight, RefreshCw } from "lucide-react";
+import { ACCENT, PRIMARY, SECONDARY, SURFACE } from "./SectionBackdrop";
+import { useGetPublicStatsQuery } from "@/lib/redux/services/publicApi";
+import { Button } from "@/components/ui/button";
 
 const TONE = {
   deemphasis: "var(--ds-deemphasis)",
@@ -15,59 +17,22 @@ const TONE = {
   ink: "var(--ds-ink)",
 } as const;
 
-type Stat = {
-  label: string;
-  labelKey: string;
-  unit: string;
-  unitKey: string;
-  series: number[];
-  format: (n: number) => string;
-  color?: string;
-};
+function formatCurrency(n: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
 
-const HERO: Stat = {
-  label: "Bounties paid out",
-  labelKey: "stats.bountiesPaid",
-  unit: "USD, cumulative",
-  unitKey: "stats.bountiesUnit",
-  series: [2.1, 2.4, 2.6, 3.0, 3.2, 3.5, 3.9, 4.1, 4.4, 4.7, 4.9, 5.24],
-  format: (n) => `$${n.toFixed(2)}M`,
-  color: PRIMARY,
-};
-
-const STATS: Stat[] = [
-  {
-    label: "Verified researchers",
-    labelKey: "stats.researchers",
-    unit: "active accounts",
-    unitKey: "stats.researchersUnit",
-    series: [1180, 1290, 1400, 1520, 1660, 1790, 1900, 2020, 2140, 2240, 2330, 2412],
-    format: (n) => Math.round(n).toLocaleString(),
-    color: ACCENT, // Cyber Emerald for Community & Researchers
-  },
-  {
-    label: "Live programs",
-    labelKey: "stats.livePrograms",
-    unit: "accepting reports",
-    unitKey: "stats.liveUnit",
-    series: [72, 80, 86, 95, 101, 108, 114, 122, 131, 138, 145, 152],
-    format: (n) => String(Math.round(n)),
-    color: PRIMARY, // Electric Blue for Live Programs
-  },
-  {
-    label: "Reports validated",
-    labelKey: "stats.reports",
-    unit: "triaged and closed",
-    unitKey: "stats.reportsUnit",
-    series: [14200, 16100, 18000, 19800, 21600, 23400, 25100, 27000, 28600, 30200, 31400, 32400],
-    format: (n) => `${(n / 1000).toFixed(1)}K`,
-    color: SECONDARY, // Charcoal / Dark Slate for Proof of Work
-  },
-];
-
-function quarterDelta(series: number[]) {
+function quarterDelta(series: number[] | undefined | null): number | null {
+  if (!series || series.length < 4) return null;
   const now = series[series.length - 1];
   const then = series[series.length - 4];
+  if (then === 0) {
+    return now > 0 ? 100 : 0;
+  }
   return ((now - then) / then) * 100;
 }
 
@@ -84,7 +49,10 @@ function CountUp({
   const [value, setValue] = useState(0);
 
   useEffect(() => {
-    if (!inView || reduce) return;
+    if (!inView || reduce) {
+      setValue(target);
+      return;
+    }
 
     let frame = 0;
     const start = performance.now();
@@ -144,7 +112,7 @@ function Sparkline({
     .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
     .join(" ");
   const last = points[points.length - 1];
-  const prev = points[points.length - 2];
+  const prev = points[points.length - 2] ?? last;
   const current = `M ${prev.x.toFixed(2)} ${prev.y.toFixed(2)} L ${last.x.toFixed(2)} ${last.y.toFixed(2)}`;
   const trendColor = color || tone.trend;
 
@@ -228,8 +196,45 @@ export function StatsSection() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const tone = TONE;
 
-  const heroTarget = HERO.series[HERO.series.length - 1];
-  const heroDelta = quarterDelta(HERO.series);
+  const { data: stats, isLoading, isError, refetch } = useGetPublicStatsQuery();
+
+  const heroTarget = stats?.totalDisbursedUsd ?? 0;
+  const heroSeries = stats?.historicalSeries?.disbursedUsd ?? null;
+  const heroDelta = heroSeries ? quarterDelta(heroSeries) : null;
+
+  const subStats = [
+    {
+      label: "Verified researchers",
+      labelKey: "stats.researchers",
+      unit: "active accounts",
+      unitKey: "stats.researchersUnit",
+      value: stats?.activeResearchers ?? 0,
+      series: stats?.historicalSeries?.researchers ?? null,
+      format: (n: number) => Math.round(n).toLocaleString(),
+      color: ACCENT,
+    },
+    {
+      label: "Live programs",
+      labelKey: "stats.livePrograms",
+      unit: "accepting reports",
+      unitKey: "stats.liveUnit",
+      value: stats?.livePrograms ?? 0,
+      series: stats?.historicalSeries?.livePrograms ?? null,
+      format: (n: number) => String(Math.round(n)),
+      color: PRIMARY,
+    },
+    {
+      label: "Reports validated",
+      labelKey: "stats.reports",
+      unit: "triaged and closed",
+      unitKey: "stats.reportsUnit",
+      value: stats?.validatedReports ?? 0,
+      series: stats?.historicalSeries?.validatedReports ?? null,
+      format: (n: number) =>
+        n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(Math.round(n)),
+      color: SECONDARY,
+    },
+  ];
 
   return (
     <section
@@ -280,110 +285,156 @@ export function StatsSection() {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 gap-x-12 lg:grid-cols-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={inView ? { opacity: 1, y: 0 } : undefined}
-            transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col justify-center border-b border-slate-200 py-10 lg:col-span-5 lg:border-b-0 lg:border-r lg:pr-12 dark:border-neutral-800"
-          >
-            <p className="text-base font-medium text-slate-500 dark:text-neutral-400">
-              {t(HERO.labelKey) || HERO.label}
+        {isError ? (
+          <div className="py-12 text-center">
+            <p className="text-sm text-muted-foreground">
+              Unable to load live platform statistics.
             </p>
-
-            <p
-              className="mt-3 font-bold leading-none tracking-tighter"
-              style={{ color: tone.ink, fontSize: "clamp(56px, 7vw, 92px)" }}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="mt-3 rounded-full gap-1.5 cursor-pointer text-xs"
             >
-              <CountUp target={heroTarget} format={HERO.format} inView={inView} />
-            </p>
+              <RefreshCw className="size-3.5" />
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-x-12 lg:grid-cols-12">
+            {/* Hero Left: Bounties Paid Out */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : undefined}
+              transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col justify-center border-b border-slate-200 py-10 lg:col-span-5 lg:border-b-0 lg:border-r lg:pr-12 dark:border-neutral-800"
+            >
+              <p className="text-base font-medium text-slate-500 dark:text-neutral-400">
+                {t("stats.bountiesPaid") || "Bounties paid out"}
+              </p>
 
-            <div className="mt-6 flex items-center gap-4">
-              <Sparkline
-                series={HERO.series}
-                label={`${HERO.label}: 12-month trend, $${HERO.series[0].toFixed(
-                  1,
-                )}M rising to ${HERO.format(heroTarget)}`}
-                width={200}
-                height={52}
-                inView={inView}
-                color={PRIMARY}
-              />
-              <span className="text-xs font-medium uppercase leading-relaxed tracking-[0.16em] text-slate-400 dark:text-neutral-500">
-                {t("common.last12")}
-                <br />
-                {t("common.months")}
-              </span>
-            </div>
+              <p
+                className="mt-3 font-bold leading-none tracking-tighter"
+                style={{ color: tone.ink, fontSize: "clamp(48px, 6vw, 76px)" }}
+              >
+                {isLoading ? (
+                  <span className="animate-pulse opacity-40">$0.00</span>
+                ) : (
+                  <CountUp
+                    target={heroTarget}
+                    format={formatCurrency}
+                    inView={inView}
+                  />
+                )}
+              </p>
 
-            <div className="mt-6">
-              <Delta value={heroDelta} color={PRIMARY} />
-            </div>
-          </motion.div>
+              {/* Sparkline & Delta (hidden if historicalSeries is null) */}
+              {heroSeries && (
+                <>
+                  <div className="mt-6 flex items-center gap-4">
+                    <Sparkline
+                      series={heroSeries}
+                      label={`Bounties paid out: 12-month trend, ${formatCurrency(heroSeries[0])} to ${formatCurrency(heroTarget)}`}
+                      width={200}
+                      height={52}
+                      inView={inView}
+                      color={PRIMARY}
+                    />
+                    <span className="text-xs font-medium uppercase leading-relaxed tracking-[0.16em] text-slate-400 dark:text-neutral-500">
+                      {t("common.last12")}
+                      <br />
+                      {t("common.months")}
+                    </span>
+                  </div>
 
-          <div className="lg:col-span-7">
-            {STATS.map((stat, i) => {
-              const target = stat.series[stat.series.length - 1];
-              const delta = quarterDelta(stat.series);
+                  {heroDelta !== null && (
+                    <div className="mt-6">
+                      <Delta value={heroDelta} color={PRIMARY} />
+                    </div>
+                  )}
+                </>
+              )}
+            </motion.div>
 
-              return (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={inView ? { opacity: 1, y: 0 } : undefined}
-                  transition={{ duration: 0.5, delay: 0.2 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className={`flex items-center justify-between gap-6 py-7 ${
-                    i < STATS.length - 1
-                      ? "border-b border-slate-200 dark:border-neutral-800"
-                      : ""
-                  }`}
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      {stat.color && (
-                        <span
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: stat.color }}
-                          aria-hidden
-                        />
+            {/* Sub Stats Right Column */}
+            <div className="lg:col-span-7">
+              {subStats.map((stat, i) => {
+                const delta = stat.series ? quarterDelta(stat.series) : null;
+
+                return (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={inView ? { opacity: 1, y: 0 } : undefined}
+                    transition={{
+                      duration: 0.5,
+                      delay: 0.2 + i * 0.1,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className={`flex items-center justify-between gap-6 py-7 ${
+                      i < subStats.length - 1
+                        ? "border-b border-slate-200 dark:border-neutral-800"
+                        : ""
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        {stat.color && (
+                          <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: stat.color }}
+                            aria-hidden
+                          />
+                        )}
+                        <p className="text-base font-medium text-slate-500 dark:text-neutral-400">
+                          {t(stat.labelKey) || stat.label}
+                        </p>
+                      </div>
+                      <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-neutral-500">
+                        {t(stat.unitKey) || stat.unit}
+                      </p>
+                      {delta !== null && (
+                        <div className="mt-3">
+                          <Delta value={delta} color={stat.color} />
+                        </div>
                       )}
-                      <p className="text-base font-medium text-slate-500 dark:text-neutral-400">
-                        {t(stat.labelKey) || stat.label}
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-5 sm:gap-8">
+                      {/* Sparkline hidden if series is null */}
+                      {stat.series && (
+                        <div className="hidden sm:block">
+                          <Sparkline
+                            series={stat.series}
+                            label={`${stat.label}: 12-month trend`}
+                            inView={inView}
+                            delay={0.15 + i * 0.1}
+                            color={stat.color}
+                          />
+                        </div>
+                      )}
+
+                      <p
+                        className="text-right text-4xl font-bold leading-none tracking-[-0.04em] sm:text-5xl"
+                        style={{ color: tone.ink }}
+                      >
+                        {isLoading ? (
+                          <span className="animate-pulse opacity-40">0</span>
+                        ) : (
+                          <CountUp
+                            target={stat.value}
+                            format={stat.format}
+                            inView={inView}
+                          />
+                        )}
                       </p>
                     </div>
-                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-400 dark:text-neutral-500">
-                      {t(stat.unitKey) || stat.unit}
-                    </p>
-                    <div className="mt-3">
-                      <Delta value={delta} color={stat.color} />
-                    </div>
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-5 sm:gap-8">
-                    <div className="hidden sm:block">
-                      <Sparkline
-                        series={stat.series}
-                        label={`${stat.label}: 12-month trend, ${stat.format(
-                          stat.series[0],
-                        )} rising to ${stat.format(target)}`}
-                        inView={inView}
-                        delay={0.15 + i * 0.1}
-                        color={stat.color}
-                      />
-                    </div>
-
-                    <p
-                      className="text-right text-4xl font-bold leading-none tracking-[-0.04em] sm:text-5xl"
-                      style={{ color: tone.ink }}
-                    >
-                      <CountUp target={target} format={stat.format} inView={inView} />
-                    </p>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

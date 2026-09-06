@@ -5,6 +5,7 @@ import {
   BookmarksResponse,
   BookmarkableType,
 } from "@/lib/types/bookmarks/types";
+import { crossPatchShowcaseBookmark } from "./showcaseCacheSync";
 
 export * from "@/lib/types/bookmarks/types";
 
@@ -178,6 +179,27 @@ export const bookmarksApi = baseApi.injectEndpoints({
         url: `/bookmarks/${type}/${targetId}`,
         method: "PUT",
       }),
+      async onQueryStarted({ type, targetId }, { dispatch, getState, queryFulfilled }) {
+        const showcasePatch =
+          type === "SHOWCASE"
+            ? crossPatchShowcaseBookmark(dispatch, getState, targetId, true)
+            : null;
+
+        const patch = dispatch(
+          bookmarksApi.util.updateQueryData(
+            "getBookmarkStatus",
+            { type, targetId },
+            () => true,
+          ),
+        );
+
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+          showcasePatch?.undo();
+        }
+      },
       invalidatesTags: (_result, _error, { type, targetId }) => [
         "Bookmark",
         { type: "Bookmark", id: `${type}:${targetId}` },
@@ -190,6 +212,27 @@ export const bookmarksApi = baseApi.injectEndpoints({
         url: `/bookmarks/${type}/${targetId}`,
         method: "DELETE",
       }),
+      async onQueryStarted({ type, targetId }, { dispatch, getState, queryFulfilled }) {
+        const showcasePatch =
+          type === "SHOWCASE"
+            ? crossPatchShowcaseBookmark(dispatch, getState, targetId, false)
+            : null;
+
+        const patch = dispatch(
+          bookmarksApi.util.updateQueryData(
+            "getBookmarkStatus",
+            { type, targetId },
+            () => false,
+          ),
+        );
+
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+          showcasePatch?.undo();
+        }
+      },
       invalidatesTags: (_result, _error, { type, targetId }) => [
         "Bookmark",
         { type: "Bookmark", id: `${type}:${targetId}` },

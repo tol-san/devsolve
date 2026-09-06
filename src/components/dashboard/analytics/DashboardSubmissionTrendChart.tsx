@@ -97,7 +97,7 @@ export function DashboardSubmissionTrendChart({
   data,
 }: DashboardSubmissionTrendChartProps) {
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-2xs space-y-5">
+    <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-2xs space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-base sm:text-lg font-bold text-foreground flex items-start sm:items-center gap-2">
@@ -109,27 +109,27 @@ export function DashboardSubmissionTrendChart({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm font-medium">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 text-xs sm:text-sm font-medium">
           <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="size-3 rounded-full bg-blue-500" />
+            <span className="size-2.5 sm:size-3 rounded-full bg-blue-500" />
             <span>Submitted</span>
           </span>
           <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="size-3 rounded-full bg-emerald-500" />
+            <span className="size-2.5 sm:size-3 rounded-full bg-emerald-500" />
             <span>Accepted</span>
           </span>
           <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="size-3 rounded-full bg-purple-500" />
+            <span className="size-2.5 sm:size-3 rounded-full bg-purple-500" />
             <span>Resolved</span>
           </span>
         </div>
       </div>
 
-      <div className="h-80 w-full pt-2">
+      <div className="h-64 sm:h-80 w-full pt-2">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={data}
-            margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
             <defs>
               <linearGradient id="submittedGrad" x1="0" y1="0" x2="0" y2="1">
@@ -154,7 +154,8 @@ export function DashboardSubmissionTrendChart({
               dataKey="label"
               tickLine={false}
               axisLine={false}
-              tick={{ fill: "currentColor", fontSize: 12 }}
+              tick={{ fill: "currentColor", fontSize: 11 }}
+              minTickGap={16}
               className="text-muted-foreground"
             />
             <YAxis

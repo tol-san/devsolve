@@ -51,9 +51,117 @@ interface NotificationTypeConfig {
   label: string;
   category: "security" | "rewards" | "community" | "team" | "system";
   icon: React.ComponentType<{ className?: string }>;
+}
+
+export type NotificationSemanticStatus = "accepted" | "rejected" | "pending" | "info";
+
+interface StatusStyleConfig {
   iconContainerClass: string;
-  badgeClass: string;
   solidBadgeClass: string;
+  statusBadgeClass: string;
+}
+
+export const NOTIFICATION_STATUS_STYLES: Record<NotificationSemanticStatus, StatusStyleConfig> = {
+  accepted: {
+    iconContainerClass:
+      "bg-emerald-500/12 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 ring-1 ring-emerald-500/25",
+    solidBadgeClass: "bg-emerald-600 text-white ring-2 ring-card",
+    statusBadgeClass:
+      "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  },
+  rejected: {
+    iconContainerClass:
+      "bg-rose-500/12 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 ring-1 ring-rose-500/25",
+    solidBadgeClass: "bg-rose-600 text-white ring-2 ring-card",
+    statusBadgeClass:
+      "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
+  },
+  pending: {
+    iconContainerClass:
+      "bg-amber-500/12 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 ring-1 ring-amber-500/25",
+    solidBadgeClass: "bg-amber-500 text-white ring-2 ring-card",
+    statusBadgeClass:
+      "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  },
+  info: {
+    iconContainerClass:
+      "bg-muted/80 text-muted-foreground ring-1 ring-border/60",
+    solidBadgeClass: "bg-muted-foreground text-background ring-2 ring-card",
+    statusBadgeClass:
+      "border-border/60 bg-muted/40 text-muted-foreground",
+  },
+};
+
+export function resolveNotificationStatus(item: Notification): {
+  status: NotificationSemanticStatus;
+  statusLabel: string | null;
+} {
+  const title = (item.title || "").toLowerCase();
+  const content = (item.content || "").toLowerCase();
+  const combined = `${title} ${content}`;
+
+  // 1. Pending / Waiting for review (Orange)
+  if (
+    combined.includes("waiting for review") ||
+    combined.includes("under review") ||
+    combined.includes("in review") ||
+    combined.includes("awaiting review") ||
+    combined.includes("pending review") ||
+    combined.includes("pending approval") ||
+    combined.includes("pending") ||
+    combined.includes("awaiting") ||
+    combined.includes("on hold") ||
+    item.notifiableType === "DISPUTE"
+  ) {
+    return { status: "pending", statusLabel: "Pending review" };
+  }
+
+  // 2. Rejected / Declined / Failed / Danger / Security (Red)
+  if (
+    combined.includes("rejected") ||
+    combined.includes("declined") ||
+    combined.includes("denied") ||
+    combined.includes("disapproved") ||
+    combined.includes("failed") ||
+    combined.includes("removed") ||
+    combined.includes("suspended") ||
+    combined.includes("banned") ||
+    combined.includes("security alert") ||
+    item.notifiableType === "SECURITY"
+  ) {
+    let label = "Declined";
+    if (combined.includes("failed")) label = "Failed";
+    else if (combined.includes("rejected")) label = "Rejected";
+    else if (combined.includes("denied")) label = "Denied";
+    else if (combined.includes("suspended") || combined.includes("banned")) label = "Suspended";
+    else if (item.notifiableType === "SECURITY") label = "Security Alert";
+    return { status: "rejected", statusLabel: label };
+  }
+
+  // 3. Accepted / Approved / Published / Resolved / Verified (Green)
+  if (
+    combined.includes("approved") ||
+    combined.includes("accepted") ||
+    combined.includes("published") ||
+    combined.includes("is now live") ||
+    combined.includes("resolved") ||
+    combined.includes("verified") ||
+    combined.includes("reward") ||
+    combined.includes("awarded") ||
+    item.notifiableType === "REWARD" ||
+    item.notifiableType === "RECOGNITION"
+  ) {
+    let label = "Approved";
+    if (combined.includes("published") || combined.includes("is now live")) label = "Published";
+    else if (combined.includes("resolved")) label = "Resolved";
+    else if (combined.includes("verified")) label = "Verified";
+    else if (combined.includes("reward") || combined.includes("awarded")) label = "Rewarded";
+    else if (combined.includes("accepted")) label = "Accepted";
+    return { status: "accepted", statusLabel: label };
+  }
+
+  // 4. Default / Informational
+  return { status: "info", statusLabel: null };
 }
 
 const NOTIFICATION_TYPE_CONFIG: Record<NotificationType, NotificationTypeConfig> = {
@@ -61,113 +169,71 @@ const NOTIFICATION_TYPE_CONFIG: Record<NotificationType, NotificationTypeConfig>
     label: "Vulnerability Report",
     category: "security",
     icon: AlertTriangle,
-    iconContainerClass: "bg-rose-500/15 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500/30",
-    badgeClass: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
-    solidBadgeClass: "bg-rose-600 text-white ring-2 ring-card",
   },
   SECURITY: {
     label: "Security Alert",
     category: "security",
     icon: ShieldAlert,
-    iconContainerClass: "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/30",
-    badgeClass: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
-    solidBadgeClass: "bg-red-600 text-white ring-2 ring-card",
   },
   REWARD: {
     label: "Bounty Reward",
     category: "rewards",
     icon: Gift,
-    iconContainerClass: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/30",
-    badgeClass: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-    solidBadgeClass: "bg-emerald-600 text-white ring-2 ring-card",
   },
   RECOGNITION: {
     label: "Recognition Award",
     category: "rewards",
     icon: Award,
-    iconContainerClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/30",
-    badgeClass: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-    solidBadgeClass: "bg-amber-500 text-white ring-2 ring-card",
   },
   PROGRAM: {
     label: "Bounty Program",
     category: "team",
     icon: Building2,
-    iconContainerClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/30",
-    badgeClass: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
-    solidBadgeClass: "bg-blue-600 text-white ring-2 ring-card",
   },
   ORGANIZATION: {
     label: "Organization",
     category: "team",
     icon: Building,
-    iconContainerClass: "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/30",
-    badgeClass: "border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300",
-    solidBadgeClass: "bg-indigo-600 text-white ring-2 ring-card",
   },
   INVITATION: {
     label: "Team Invitation",
     category: "team",
     icon: Mail,
-    iconContainerClass: "bg-purple-500/15 text-purple-600 dark:text-purple-400 ring-1 ring-purple-500/30",
-    badgeClass: "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300",
-    solidBadgeClass: "bg-purple-600 text-white ring-2 ring-card",
   },
   KYC: {
     label: "Identity & Verification",
     category: "system",
     icon: BadgeCheck,
-    iconContainerClass: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 ring-1 ring-cyan-500/30",
-    badgeClass: "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300",
-    solidBadgeClass: "bg-cyan-600 text-white ring-2 ring-card",
   },
   COMMENT: {
     label: "Discussion Comment",
     category: "community",
     icon: MessageSquare,
-    iconContainerClass: "bg-sky-500/15 text-sky-600 dark:text-sky-400 ring-1 ring-sky-500/30",
-    badgeClass: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-    solidBadgeClass: "bg-sky-500 text-white ring-2 ring-card",
   },
   PROBLEM: {
     label: "Community Problem",
     category: "community",
     icon: BookOpen,
-    iconContainerClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/30",
-    badgeClass: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-    solidBadgeClass: "bg-amber-500 text-white ring-2 ring-card",
   },
   SOLUTION: {
     label: "Verified Solution",
     category: "community",
     icon: CheckCircle2,
-    iconContainerClass: "bg-teal-500/15 text-teal-600 dark:text-teal-400 ring-1 ring-teal-500/30",
-    badgeClass: "border-teal-500/30 bg-teal-500/10 text-teal-700 dark:text-teal-300",
-    solidBadgeClass: "bg-teal-600 text-white ring-2 ring-card",
   },
   SHOWCASE: {
     label: "Solution Showcase",
     category: "community",
     icon: Sparkles,
-    iconContainerClass: "bg-violet-500/15 text-violet-600 dark:text-violet-400 ring-1 ring-violet-500/30",
-    badgeClass: "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300",
-    solidBadgeClass: "bg-violet-600 text-white ring-2 ring-card",
   },
   USER: {
     label: "Member Follow",
     category: "community",
     icon: UserPlus,
-    iconContainerClass: "bg-blue-500/15 text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/30",
-    badgeClass: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
-    solidBadgeClass: "bg-blue-600 text-white ring-2 ring-card",
   },
   DISPUTE: {
     label: "Triage Dispute",
     category: "security",
     icon: Gavel,
-    iconContainerClass: "bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/30",
-    badgeClass: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-    solidBadgeClass: "bg-amber-600 text-white ring-2 ring-card",
   },
 };
 
@@ -205,14 +271,18 @@ function getNotificationLink(
   title?: string,
   authorUsername?: string | null,
 ): string {
-  if (title && AUTO_APPROVAL_HOLD_PATTERN.test(title)) {
-    if (type === "SHOWCASE") return `/showcases/${id}`;
-    if (type === "PROBLEM") return `/community/${id}`;
+  const upperType = (type || "").toUpperCase();
+
+  if (upperType === "SHOWCASE" && (!isAdmin || (title && AUTO_APPROVAL_HOLD_PATTERN.test(title)))) {
+    return `/showcases/${id}`;
+  }
+  if (upperType === "PROBLEM" && (!isAdmin || (title && AUTO_APPROVAL_HOLD_PATTERN.test(title)))) {
+    return `/community/${id}`;
   }
 
   if (isAdmin) return getAdminNotificationLink(type, id);
 
-  switch (type) {
+  switch (upperType) {
     case "PROBLEM":
       return `/community/${id}`;
     case "SHOWCASE":
@@ -324,6 +394,8 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
     NOTIFICATION_TYPE_CONFIG[item.notifiableType] ||
     NOTIFICATION_TYPE_CONFIG.COMMENT;
   const IconComponent = config.icon;
+  const { status, statusLabel } = resolveNotificationStatus(item);
+  const statusStyles = NOTIFICATION_STATUS_STYLES[status];
 
   const handleCardClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
@@ -455,7 +527,7 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
             <div
               className={cn(
                 "absolute -bottom-1 -right-1 size-5 sm:size-5.5 rounded-full flex items-center justify-center shadow-md ring-2 ring-card z-10",
-                config.solidBadgeClass,
+                statusStyles.solidBadgeClass,
               )}
             >
               <IconComponent className="size-3 sm:size-3.5 stroke-[2.5]" />
@@ -465,7 +537,7 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
           <div
             className={cn(
               "flex size-10 sm:size-11 items-center justify-center rounded-2xl ring-1 shadow-xs transition-transform group-hover:scale-105 shrink-0",
-              config.iconContainerClass,
+              statusStyles.iconContainerClass,
             )}
           >
             <IconComponent className="size-5 sm:size-5.5 stroke-[2.2]" />
@@ -475,16 +547,32 @@ export const NotificationItemCard: React.FC<NotificationItemCardProps> = ({
 
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground min-w-0 flex-wrap">
             <span
-              className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold border shadow-2xs shrink-0",
-                config.badgeClass,
-              )}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border border-border/60 bg-muted/40 text-muted-foreground shrink-0 shadow-2xs"
             >
-              <IconComponent className="size-3 stroke-[2.5]" />
+              <IconComponent className="size-3 stroke-[2.2] text-muted-foreground/75" />
               <span>{config.label}</span>
             </span>
+
+            {statusLabel && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border shadow-2xs shrink-0",
+                  statusStyles.statusBadgeClass,
+                )}
+              >
+                <span
+                  className={cn(
+                    "size-1.5 rounded-full shrink-0",
+                    status === "accepted" && "bg-emerald-500",
+                    status === "pending" && "bg-amber-500",
+                    status === "rejected" && "bg-rose-500",
+                  )}
+                />
+                {statusLabel}
+              </span>
+            )}
             {hasAuthor && (item.authorName || item.authorUsername) && (
               <>
                 <span className="text-muted-foreground/40">•</span>

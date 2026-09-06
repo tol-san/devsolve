@@ -1,20 +1,20 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import {
-  BarChart3,
   ChevronDown,
   ChevronUp,
   Hash,
+  Plus,
   RotateCcw,
   Search,
   SlidersHorizontal,
-  Sparkles,
   TrendingUp,
   X,
 } from "lucide-react";
 
+import { AuthGatedLink } from "@/components/auth/AuthGatedLink";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,8 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import type { DiscussionStats } from "@/lib/redux/services/discussionsApi";
 import type { TopicCount, TopicName } from "@/lib/types/dicussion/types";
-import { useT } from "@/lib/i18n/I18nProvider";
+import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
+import { getTopicColor } from "./topic-colors";
 import { cn } from "@/lib/utils";
 
 interface DiscussionSidebarProps {
@@ -45,24 +46,26 @@ interface DiscussionSidebarProps {
   className?: string;
   showExploreHeader?: boolean;
   showStats?: boolean;
+  createHref?: string;
+  createLabel?: string;
 }
 
 export function DiscussionSidebar({
   topics,
   tags,
-  stats,
   selectedTopic,
   selectedTag,
   onSelectTopic,
   onSelectTag,
   isLoadingTopics,
   isLoadingTags,
-  isLoadingStats,
   className,
   showExploreHeader = true,
-  showStats = true,
+  createHref,
+  createLabel,
 }: DiscussionSidebarProps) {
   const t = useT();
+  const lp = useLocalePath();
   const [topicSearch, setTopicSearch] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTagsExpanded, setIsTagsExpanded] = useState(false);
@@ -97,11 +100,11 @@ export function DiscussionSidebar({
     if (isExpanded) {
       return sortedTopics;
     }
-    return activeTopics.length > 0 ? activeTopics : sortedTopics.slice(0, 5);
+    const baseList = activeTopics.length > 0 ? activeTopics : sortedTopics;
+    return baseList.slice(0, 3);
   }, [sortedTopics, activeTopics, topicSearch, isExpanded]);
 
-  const hasHiddenZeroTopics =
-    !topicSearch && sortedTopics.length > activeTopics.length && activeTopics.length > 0;
+  const hasHiddenTopics = !topicSearch && sortedTopics.length > 3;
 
   const visibleTags = useMemo(() => {
     if (isTagsExpanded || tags.length <= 10) return tags;
@@ -115,37 +118,41 @@ export function DiscussionSidebar({
     onSelectTag(null);
   };
 
-  const metrics = [
-    { key: "problems", label: t("community.stats.problems"), value: stats?.problems ?? 0 },
-    { key: "showcases", label: t("community.stats.showcases"), value: stats?.showcases ?? 0 },
-  ];
-
   return (
     <motion.aside
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: "easeOut", delay: 0.08 }}
-      aria-label={t(
-        showStats ? "community.explore.regionWithStats" : "community.explore.region",
-      )}
+      aria-label={t("community.explore.region")}
       className={cn(
-        "flex flex-col gap-5 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start",
+        "flex flex-col gap-4 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start",
         className,
       )}
     >
-      <Card className="gap-0 rounded-2xl py-0 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 bg-card">
+      {/* Primary CTA: Start New Discussion (Reference Top Button) */}
+      {createHref && (
+        <AuthGatedLink
+          href={createHref}
+          className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all duration-150 text-sm cursor-pointer"
+        >
+          <Plus className="size-4" aria-hidden="true" />
+          <span>{createLabel ?? "Start New Discussion"}</span>
+        </AuthGatedLink>
+      )}
+
+      {/* Main Sidebar Card */}
+      <Card className="gap-0 rounded-2xl sm:rounded-3xl py-0 shadow-xs ring-1 ring-foreground/5 bg-card overflow-hidden">
+
         {showExploreHeader && (
-          <CardHeader className="px-5 pt-5 pb-3">
+          <CardHeader className="px-5 pt-4 pb-2">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <SlidersHorizontal aria-hidden="true" className="size-4" />
+              <div className="flex items-center gap-2">
+                <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <SlidersHorizontal aria-hidden="true" className="size-3.5" />
                 </span>
-                <div>
-                  <CardTitle className="text-base font-bold tracking-tight">
-                    {t("community.explore.title")}
-                  </CardTitle>
-                </div>
+                <CardTitle className="text-sm font-bold tracking-tight">
+                  {t("community.explore.title")}
+                </CardTitle>
               </div>
 
               <div className="flex items-center gap-2">
@@ -176,16 +183,8 @@ export function DiscussionSidebar({
           </CardHeader>
         )}
 
-        {!showExploreHeader && (
-          <CardHeader className="sr-only">
-            <CardTitle>{t("community.explore.title")}</CardTitle>
-            <CardDescription>
-              {t("community.explore.description")}
-            </CardDescription>
-          </CardHeader>
-        )}
-
-        <CardContent className={cn("px-4 pb-4", !showExploreHeader && "pt-3")}>
+        <CardContent className="px-4 pb-4 pt-2">
+          {/* Topics Section */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -200,7 +199,7 @@ export function DiscussionSidebar({
               )}
             </div>
 
-            {topics.length > 6 && (
+            {topics.length > 5 && (
               <div className="relative">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                 <Input
@@ -223,12 +222,13 @@ export function DiscussionSidebar({
               </div>
             )}
 
+            {/* Topic list with Colored Dots (Reference Design) */}
             <div
               className="flex flex-col gap-1 max-h-[360px] overflow-y-auto pr-0.5 custom-scrollbar"
               aria-label={t("community.explore.topics")}
             >
               {isLoadingTopics ? (
-                Array.from({ length: 5 }).map((_, index) => (
+                Array.from({ length: 4 }).map((_, index) => (
                   <div
                     key={index}
                     className="h-9 animate-pulse rounded-xl bg-muted/60"
@@ -242,6 +242,7 @@ export function DiscussionSidebar({
                 filteredTopics.map((topic) => {
                   const isActive = selectedTopic === topic.name;
                   const isPopulated = topic.count > 0;
+                  const dotColor = getTopicColor(topic.name);
 
                   return (
                     <button
@@ -262,9 +263,16 @@ export function DiscussionSidebar({
                             : "font-normal text-muted-foreground/75 hover:bg-muted/50 hover:text-foreground",
                       )}
                     >
-                      <span className="min-w-0 flex-1 truncate pr-2">
-                        {topic.name}
-                      </span>
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
+                        {/* Colored Dot from Reference Image */}
+                        <span
+                          className="size-2.5 rounded-full shrink-0 shadow-2xs"
+                          style={{ backgroundColor: dotColor }}
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{topic.name}</span>
+                      </div>
+
                       <span className="shrink-0">
                         {isActive ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-primary-foreground/20 px-2 py-0.5 text-xs font-bold tabular-nums text-primary-foreground">
@@ -287,7 +295,7 @@ export function DiscussionSidebar({
               )}
             </div>
 
-            {hasHiddenZeroTopics && (
+            {hasHiddenTopics && (
               <Button
                 type="button"
                 variant="ghost"
@@ -298,7 +306,7 @@ export function DiscussionSidebar({
                 {isExpanded ? (
                   <>
                     <ChevronUp className="size-3.5 mr-1.5" />
-                    Show active topics only ({activeTopics.length})
+                    Show top 3 topics
                   </>
                 ) : (
                   <>
@@ -312,10 +320,14 @@ export function DiscussionSidebar({
 
           <Separator className="my-4 bg-border/60" />
 
+          {/* Trending Tags Section */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <TrendingUp aria-hidden="true" className="size-3.5 text-primary" />
+                <TrendingUp
+                  aria-hidden="true"
+                  className="size-3.5 text-primary"
+                />
                 <span>{t("community.explore.trendingTags")}</span>
               </div>
               {selectedTag && (
@@ -393,51 +405,6 @@ export function DiscussionSidebar({
           </div>
         </CardContent>
       </Card>
-
-      {showStats && (
-        <div className="hidden lg:block">
-          <Card className="gap-0 rounded-2xl py-0 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 bg-card">
-            <CardHeader className="px-5 pt-5 pb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                  <BarChart3 aria-hidden="true" className="size-4" />
-                </span>
-                <div>
-                  <CardTitle className="text-sm font-bold tracking-tight">
-                    {t("community.stats.title")}
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {t("community.stats.subtitle")}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2.5 px-5 pb-4">
-              <dl className="flex flex-col gap-2.5">
-                {metrics.map(({ key, label, value }) => (
-                  <div
-                    key={key}
-                    className="flex items-center justify-between gap-3 text-xs"
-                  >
-                    <dt className="font-medium text-muted-foreground">
-                      {label}
-                    </dt>
-                    <dd>
-                      {isLoadingStats ? (
-                        <div className="h-4 w-10 animate-pulse rounded bg-muted" />
-                      ) : (
-                        <span className="font-bold tabular-nums text-foreground">
-                          {value.toLocaleString()}
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </motion.aside>
   );
 }

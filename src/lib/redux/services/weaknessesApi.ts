@@ -20,6 +20,17 @@ export interface WeaknessSearch {
   size?: number;
 }
 
+export interface PopularWeakness {
+  id: string;
+  cweId: string;
+  name: string;
+  isActive: boolean;
+  reportCount: number;
+  validCount: number;
+  share: number;
+  lastReportedAt: string;
+}
+
 export const weaknessesApi = proxyApi.injectEndpoints({
   endpoints: (builder) => ({
     searchWeaknesses: builder.query<Weakness[], WeaknessSearch | void>({
@@ -40,7 +51,21 @@ export const weaknessesApi = proxyApi.injectEndpoints({
       providesTags: ["Weakness"],
       keepUnusedDataFor: 300,
     }),
+
+    getPopularWeaknesses: builder.query<
+      PopularWeakness[],
+      { limit?: number } | void
+    >({
+      query: (input) => {
+        const limit = Math.min(Math.max(1, input?.limit ?? 10), 50);
+        return `/weaknesses/popular?limit=${limit}`;
+      },
+      providesTags: ["Weakness"],
+      keepUnusedDataFor: 300,
+    }),
   }),
 });
 
-export const { useSearchWeaknessesQuery } = weaknessesApi;
+export const { useSearchWeaknessesQuery, useGetPopularWeaknessesQuery } =
+  weaknessesApi;
+

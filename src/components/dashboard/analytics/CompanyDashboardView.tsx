@@ -49,11 +49,13 @@ function CompanyDashboardSkeleton() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 sm:gap-4">
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="h-28 rounded-2xl border border-border/60 bg-card/60 p-4 space-y-3"
+            className={`h-28 rounded-2xl border border-border/60 bg-card/60 p-4 space-y-3 ${
+              i === 5 ? "sm:col-span-2 md:col-span-1" : ""
+            }`}
           >
             <div className="flex justify-between">
               <div className="h-3.5 w-20 rounded bg-muted/60" />
@@ -67,21 +69,21 @@ function CompanyDashboardSkeleton() {
 
       <div className="h-20 rounded-2xl border border-border/60 bg-card/60" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="h-88 rounded-2xl border border-border/60 bg-card/60 lg:col-span-7" />
-        <div className="h-88 rounded-2xl border border-border/60 bg-card/60 lg:col-span-5" />
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="h-88 rounded-2xl border border-border/60 bg-card/60 xl:col-span-7" />
+        <div className="h-88 rounded-2xl border border-border/60 bg-card/60 xl:col-span-5" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="h-72 rounded-2xl border border-border/60 bg-card/60 lg:col-span-6" />
-        <div className="h-72 rounded-2xl border border-border/60 bg-card/60 lg:col-span-6" />
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="h-72 rounded-2xl border border-border/60 bg-card/60 xl:col-span-6" />
+        <div className="h-72 rounded-2xl border border-border/60 bg-card/60 xl:col-span-6" />
       </div>
 
       <div className="h-64 rounded-2xl border border-border/60 bg-card/60" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="h-80 rounded-2xl border border-border/60 bg-card/60 lg:col-span-6" />
-        <div className="h-80 rounded-2xl border border-border/60 bg-card/60 lg:col-span-6" />
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="h-80 rounded-2xl border border-border/60 bg-card/60 xl:col-span-6" />
+        <div className="h-80 rounded-2xl border border-border/60 bg-card/60 xl:col-span-6" />
       </div>
     </div>
   );
@@ -330,24 +332,24 @@ export function CompanyDashboardView() {
 
         <DashboardSlaStrip sla={analytics.kpiSummary.slaMetrics} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div className="xl:col-span-7">
             <DashboardSubmissionTrendChart data={analytics.submissionTrend} />
           </div>
-          <div className="lg:col-span-5">
+          <div className="xl:col-span-5">
             <DashboardSeverityDonut
               distribution={analytics.severityDistribution}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div className="xl:col-span-6">
             <DashboardTopCweBars
               categories={analytics.topVulnerabilityCategories}
             />
           </div>
-          <div className="lg:col-span-6">
+          <div className="xl:col-span-6">
             <DashboardTargetedAssetsTable assets={analytics.topTargetedAssets} />
           </div>
         </div>
@@ -356,11 +358,11 @@ export function CompanyDashboardView() {
           researchers={analytics.topResearchers}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div className="xl:col-span-6">
             <DashboardCompanyProgramsTable />
           </div>
-          <div className="lg:col-span-6">
+          <div className="xl:col-span-6">
             <DashboardRecentReportsTable programId={programId} />
           </div>
         </div>

@@ -29,9 +29,9 @@ export function DashboardCompanyProgramsTable() {
   const programs = data?.content ?? [];
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-2xs space-y-5">
+    <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-2xs space-y-5">
       <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-3 sm:pb-2 border-b border-border/70">
-        <div className="w-full sm:w-auto">
+        <div className="w-full sm:w-auto min-w-0">
           <h3 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
             <Building2 className="size-5 text-primary shrink-0" />
             <span>Active Bug Bounty Programs</span>
@@ -50,7 +50,7 @@ export function DashboardCompanyProgramsTable() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border/60">
-        <Table>
+        <Table className="min-w-[540px]">
           <TableHeader>
             <TableRow className="border-border/60 bg-muted/40 hover:bg-muted/40">
               <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider py-3.5 px-4">

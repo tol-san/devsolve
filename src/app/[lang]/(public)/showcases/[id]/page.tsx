@@ -67,7 +67,7 @@ export default async function PublicShowcaseDetailPage({ params }: PageProps) {
         />
       ) : null}
 
-      <div className="font-sans" style={{ fontFamily: "'Inter', var(--font-sans), sans-serif" }}>
+      <div className="font-sans">
         <ShowcaseDetail id={id} />
       </div>
     </>

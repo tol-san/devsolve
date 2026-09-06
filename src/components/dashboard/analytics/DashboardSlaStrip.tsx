@@ -12,11 +12,11 @@ export function DashboardSlaStrip({ sla }: DashboardSlaStripProps) {
   const isCompliant = sla.slaCompliancePercentage >= 90;
 
   return (
-    <div className="rounded-2xl border border-border/80 bg-card/60 p-5 sm:p-6 shadow-2xs backdrop-blur-md">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-        <div className="flex items-start gap-3.5">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-            <ShieldCheck className="size-6" />
+    <div className="rounded-2xl border border-border/80 bg-card/60 p-4 sm:p-5 lg:p-6 shadow-2xs backdrop-blur-md">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-5">
+        <div className="flex items-start gap-3.5 min-w-0">
+          <div className="flex size-10 sm:size-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
+            <ShieldCheck className="size-5 sm:size-6" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -33,7 +33,7 @@ export function DashboardSlaStrip({ sla }: DashboardSlaStripProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-8 pt-4 lg:pt-0 border-t lg:border-t-0 border-border/60">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 md:gap-6 lg:gap-8 pt-3.5 lg:pt-0 border-t lg:border-t-0 border-border/60 shrink-0">
           <div className="flex items-center justify-between sm:flex-col sm:items-start p-3 sm:p-0 rounded-xl bg-muted/30 sm:bg-transparent border border-border/50 sm:border-0">
             <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
               <Timer className="size-3.5 text-muted-foreground shrink-0" />

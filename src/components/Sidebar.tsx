@@ -430,8 +430,8 @@ const Sidebar = () => {
           <ThemeToggle
             variant="rectangle"
             start="bottom-up"
-            className="size-9 sm:size-10 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-2xs transition-colors hover:bg-muted cursor-pointer"
-            iconClassName="size-4.5 sm:size-5"
+            className="size-9 sm:size-10 items-center justify-center rounded-full border-0 bg-transparent text-foreground shadow-none transition-all active:scale-95 hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+            iconClassName="size-4.5 sm:size-5 text-muted-foreground hover:text-foreground transition-colors"
           />
           <Button
             size="icon"

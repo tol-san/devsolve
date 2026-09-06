@@ -5,6 +5,10 @@ import {
   TopicCount,
 } from "@/lib/types/dicussion/types";
 import { authorNameOf } from "@/lib/discussions/format";
+import type {
+  ShowcaseEngagement,
+  ShowcaseViewer,
+} from "./showcasesApi";
 
 export interface DiscussionsFilterParams {
   category?: "All" | "Problems" | "Showcase";
@@ -77,6 +81,9 @@ interface ShowcaseApiResponse {
   coverImageUrl?: string;
   viewCount?: number;
   commentCount?: number;
+  engagement?: ShowcaseEngagement;
+  viewer?: ShowcaseViewer;
+  hasUnpublishedRevision?: boolean;
   tags?: { name?: string }[];
   createdAt?: string;
 }
@@ -167,6 +174,13 @@ function toShowcasePost(
     raw.authorId ||
     (typeof rawAny.authorId === "string" ? rawAny.authorId : undefined) ||
     (typeof rawAny.userId === "string" ? rawAny.userId : undefined);
+
+  const engagement = raw.engagement;
+  const viewer = raw.viewer;
+  const votes = engagement?.voteScore ?? 0;
+  const isBookmarked = Boolean(viewer?.bookmarked);
+  const isUpvoted = viewer?.vote === "UP";
+
   return {
     id: raw.id,
     title: raw.title,
@@ -174,7 +188,7 @@ function toShowcasePost(
     topic: raw.categoryName ?? "General",
     description: raw.overview ?? "",
     tags: (raw.tags ?? []).flatMap((tag) => tag.name ? [tag.name] : []),
-    votes: 0,
+    votes,
     answersCount: raw.commentCount ?? 0,
     viewsCount: raw.viewCount ?? 0,
     thumbnailUrl: raw.coverImageUrl,
@@ -186,8 +200,11 @@ function toShowcasePost(
     },
     createdAt: toRelativeDate(raw.createdAt),
     sortTimestamp: raw.createdAt,
-    isBookmarked: false,
-    isUpvoted: false,
+    isBookmarked,
+    isUpvoted,
+    engagement,
+    viewer,
+    hasUnpublishedRevision: raw.hasUnpublishedRevision,
   };
 }
 
@@ -210,6 +227,7 @@ function sortDiscussions<T extends DiscussionPost>(
       return sorted.sort(
         (a, b) => createdAtTime(a) - createdAtTime(b) || a.id.localeCompare(b.id),
       );
+    case "trending":
     case "top":
       return sorted.sort((a, b) => b.votes - a.votes || newestFirst(a, b));
     case "discussed":
@@ -264,11 +282,24 @@ export const discussionsApi = baseApi.injectEndpoints({
             page,
             size: apiPageSize,
           });
+
+        const showcaseSort =
+          sort === "trending"
+            ? "TRENDING"
+            : sort === "top"
+              ? "TOP"
+              : sort === "oldest"
+                ? "OLDEST"
+                : sort === "viewed"
+                  ? "MOST_VIEWED"
+                  : "NEWEST";
+
         const showcaseUrl = (page: number) =>
           apiUrl("/showcases", {
             categoryId: params?.showcaseCategoryId,
             tag: params?.tag ?? undefined,
             query: params?.searchQuery || undefined,
+            sort: showcaseSort,
             pageNumber: page,
             pageSize: apiPageSize,
           });
@@ -340,28 +371,6 @@ export const discussionsApi = baseApi.injectEndpoints({
           ...showcases.map(toShowcasePost),
         ];
 
-        if (sort === "top" && showcases.length > 0) {
-          const voteResults = await Promise.all(
-            showcases.map((showcase) =>
-              fetchWithBQ(`/votes/SHOWCASE/${showcase.id}/summary`),
-            ),
-          );
-          const scoreById = new Map<string, number>();
-          voteResults.forEach((result, index) => {
-            if (!result.error) {
-              scoreById.set(
-                showcases[index].id,
-                (result.data as VoteSummaryApiResponse).score,
-              );
-            }
-          });
-          results = results.map((post) =>
-            post.category === "Showcase"
-              ? { ...post, votes: scoreById.get(post.id) ?? 0 }
-              : post,
-          );
-        }
-
         results = sortDiscussions(results, sort);
 
         const totalCount =
@@ -418,14 +427,15 @@ export const discussionsApi = baseApi.injectEndpoints({
         ]);
         if (showcaseResult.error) return { data: null };
 
-        const isBookmarked =
-          !showcaseStatusResult.error && (showcaseStatusResult.data as { bookmarked: boolean }).bookmarked;
-        const isUpvoted =
-          !showcaseVoteResult.error && (showcaseVoteResult.data as VoteSummaryApiResponse).currentUserVote > 0;
         const post = toShowcasePost(showcaseResult.data as ShowcaseApiResponse);
-        post.isBookmarked = isBookmarked;
-        post.isUpvoted = isUpvoted;
-        if (!showcaseVoteResult.error) post.votes = (showcaseVoteResult.data as VoteSummaryApiResponse).score;
+        if (!showcaseStatusResult.error) {
+          post.isBookmarked = (showcaseStatusResult.data as { bookmarked: boolean }).bookmarked;
+        }
+        if (!showcaseVoteResult.error) {
+          const v = showcaseVoteResult.data as VoteSummaryApiResponse;
+          post.isUpvoted = v.currentUserVote > 0;
+          post.votes = v.score;
+        }
         return { data: post };
       },
       providesTags: (_result, _error, id) => [{ type: "Discussion" as const, id }],

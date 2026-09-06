@@ -40,7 +40,11 @@ export function DiscussionsFeed({
   initialData,
 }: DiscussionsFeedProps) {
   const t = useT();
-  const copy = (field: string) => t(`community.pages.${feed}.${field}`);
+  const copy = (field: string) => {
+    const key = `community.pages.${feed}.${field}`;
+    const value = t(key);
+    return value === key ? undefined : value;
+  };
   const {
     category,
     topic,
@@ -101,10 +105,8 @@ export function DiscussionsFeed({
     >
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <DiscussionHeader
-          breadcrumbLabel={copy("breadcrumb")}
-          title={copy("title")}
-          badgeLabel={copy("badge")}
-          description={copy("description")}
+          breadcrumbLabel={copy("breadcrumb") ?? ""}
+          title={copy("title") ?? ""}
           createHref={createHref}
           createLabel={copy("createLabel")}
         />
@@ -164,6 +166,8 @@ export function DiscussionsFeed({
             isLoadingTopics={isLoadingTopics}
             isLoadingTags={isLoadingTags}
             isLoadingStats={isLoadingStats}
+            createHref={createHref}
+            createLabel={copy("createLabel")}
             className="hidden lg:flex"
           />
 
@@ -191,7 +195,7 @@ export function DiscussionsFeed({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className="flex flex-col gap-5"
+                        className="flex flex-col rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs overflow-hidden ring-1 ring-foreground/5"
                       >
                         {discussions.data.map((post, index) => (
                           <DiscussionCard

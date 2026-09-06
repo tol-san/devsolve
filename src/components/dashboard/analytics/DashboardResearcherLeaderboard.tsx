@@ -27,9 +27,9 @@ export function DashboardResearcherLeaderboard({
   researchers,
 }: DashboardResearcherLeaderboardProps) {
   return (
-    <div className="rounded-2xl border border-border/80 bg-card p-6 shadow-2xs space-y-5">
+    <div className="rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-2xs space-y-5">
       <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="w-full sm:w-auto">
+        <div className="w-full sm:w-auto min-w-0">
           <h3 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-2">
             <Trophy className="size-5 text-primary shrink-0" />
             <span>Top Security Researchers</span>
@@ -48,7 +48,7 @@ export function DashboardResearcherLeaderboard({
           No researcher contributions recorded for this window.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-4 pt-1">
           {researchers.map((researcher) => {
             const initials = researcher.displayName
               ? researcher.displayName

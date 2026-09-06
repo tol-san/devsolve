@@ -8,6 +8,7 @@ import { motion } from "motion/react";
 import {
   AlertCircle,
   ArrowLeft,
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -104,6 +105,14 @@ export default function AdminWeaknessesPage() {
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href={lp("/dashboard/weaknesses/insights")}
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border/80 bg-card px-3.5 text-sm font-semibold text-foreground shadow-2xs transition-colors hover:bg-muted"
+          >
+            <BarChart3 className="size-4 text-muted-foreground" />
+            <span>Insights</span>
+          </Link>
+
           {retired > 0 && (
             <Badge
               variant="outline"

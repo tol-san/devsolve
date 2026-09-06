@@ -41,11 +41,13 @@ export function WeaknessFormDialog({
   open,
   onOpenChange,
   weakness,
+  initialName,
   session,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   weakness: Weakness | null;
+  initialName?: string;
   session: number;
 }) {
   return (
@@ -54,6 +56,7 @@ export function WeaknessFormDialog({
         <WeaknessForm
           key={session}
           weakness={weakness}
+          initialName={initialName}
           onDone={() => onOpenChange(false)}
         />
       </DialogContent>
@@ -63,12 +66,14 @@ export function WeaknessFormDialog({
 
 function WeaknessForm({
   weakness,
+  initialName,
   onDone,
 }: {
   weakness: Weakness | null;
+  initialName?: string;
   onDone: () => void;
 }) {
-  const isEdit = weakness !== null;
+  const isEdit = Boolean(weakness && weakness.id);
   const [createWeakness, { isLoading: isCreating }] = useCreateWeaknessMutation();
   const [updateWeakness, { isLoading: isUpdating }] = useUpdateWeaknessMutation();
   const isSaving = isCreating || isUpdating;
@@ -81,7 +86,7 @@ function WeaknessForm({
   } = useForm<WeaknessCreateInput, unknown, WeaknessCreateValues>({
     resolver: zodResolver(weaknessCreateSchema),
     defaultValues: {
-      name: weakness?.name ?? "",
+      name: weakness?.name ?? initialName ?? "",
       cweId: weakness?.cweId ?? "",
       description: weakness?.description ?? "",
       isActive: weakness?.isActive ?? true,
@@ -97,7 +102,7 @@ function WeaknessForm({
     };
 
     try {
-      if (isEdit) {
+      if (isEdit && weakness) {
         await updateWeakness({ id: weakness.id, body }).unwrap();
       } else {
         await createWeakness(body).unwrap();

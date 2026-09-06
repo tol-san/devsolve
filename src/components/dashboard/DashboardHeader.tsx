@@ -39,9 +39,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     : t("dashboard.header.userTitle");
 
   return (
-    <header className="flex flex-col gap-4 pb-4 border-b border-border/80 lg:flex-row lg:items-center lg:justify-between">
-      <div className="space-y-1.5">
-        <div className="flex flex-wrap items-center gap-2.5">
+    <header className="flex flex-col gap-4 sm:gap-5 pb-5 border-b border-border/80 lg:flex-row lg:items-center lg:justify-between">
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             {headerTitle}
           </h1>
@@ -68,55 +68,57 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </Badge>
         </div>
 
-        <p className="text-sm font-normal text-muted-foreground max-w-2xl">
+        <p className="text-sm font-normal text-muted-foreground max-w-2xl leading-relaxed">
           {isCompany
             ? t("dashboard.header.companyDesc")
             : "Monitor your vulnerability submissions, track active program scopes, and manage bounty payouts in real-time."}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
-        {onRefresh && (
-          <Button
-            variant="outline"
-            size="default"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            aria-label="Refresh dashboard data"
-            className="h-10 px-3 text-sm font-medium border-border/80 bg-card text-foreground hover:bg-muted rounded-xl transition-all shadow-2xs cursor-pointer"
-          >
-            <RefreshCw
-              data-icon="inline-start"
-              className={cn("size-4", isRefreshing && "animate-spin")}
-            />
-            <span className="hidden sm:inline">{t("dashboard.header.refresh")}</span>
-          </Button>
-        )}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          {onRefresh && (
+            <Button
+              variant="outline"
+              size="default"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              aria-label="Refresh dashboard data"
+              className="h-10 px-3 text-sm font-medium border-border/80 bg-card text-foreground hover:bg-muted rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+            >
+              <RefreshCw
+                data-icon="inline-start"
+                className={cn("size-4", isRefreshing && "animate-spin")}
+              />
+              <span className="hidden md:inline">{t("dashboard.header.refresh")}</span>
+            </Button>
+          )}
 
-        <Link
-          href={isCompany ? "/dashboard/program-management" : "/dashboard/programs"}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "default" }),
-            "h-10 px-3.5 rounded-xl border-border/80 bg-card text-foreground hover:bg-muted font-medium transition-all shadow-2xs",
-          )}
-        >
-          {isCompany ? (
-            <Settings2 className="size-4" data-icon="inline-start" />
-          ) : (
-            <Globe className="size-4" data-icon="inline-start" />
-          )}
-          <span>
-            {isCompany
-              ? t("dashboard.header.managePrograms")
-              : t("dashboard.header.explorePrograms")}
-          </span>
-        </Link>
+          <Link
+            href={isCompany ? "/dashboard/program-management" : "/dashboard/programs"}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "default" }),
+              "h-10 px-3.5 rounded-xl border-border/80 bg-card text-foreground hover:bg-muted font-medium transition-all shadow-2xs flex-1 sm:flex-initial justify-center",
+            )}
+          >
+            {isCompany ? (
+              <Settings2 className="size-4" data-icon="inline-start" />
+            ) : (
+              <Globe className="size-4" data-icon="inline-start" />
+            )}
+            <span>
+              {isCompany
+                ? t("dashboard.header.managePrograms")
+                : t("dashboard.header.explorePrograms")}
+            </span>
+          </Link>
+        </div>
 
         <Link
           href={isCompany ? "/dashboard/create-program" : "/dashboard/submit-report"}
           className={cn(
             buttonVariants({ size: "default" }),
-            "h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 font-semibold text-white shadow-sm shadow-blue-500/20 transition-all cursor-pointer",
+            "h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 font-semibold text-white shadow-sm shadow-blue-500/20 transition-all cursor-pointer w-full sm:w-auto justify-center",
           )}
         >
           <PlusCircle className="size-4" data-icon="inline-start" />

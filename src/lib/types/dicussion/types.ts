@@ -1,6 +1,17 @@
+import type {
+  ShowcaseEngagement,
+  ShowcaseViewer,
+} from "@/lib/redux/services/showcasesApi";
+
 export type DiscussionCategory = "All" | "Problems" | "Showcase";
 
-export type DiscussionSort = "newest" | "oldest" | "top" | "discussed" | "viewed";
+export type DiscussionSort =
+  | "newest"
+  | "oldest"
+  | "top"
+  | "trending"
+  | "discussed"
+  | "viewed";
 
 export type TopicFilter = string;
 
@@ -27,6 +38,9 @@ export interface DiscussionPost {
   sortTimestamp?: string;
   isBookmarked?: boolean;
   isUpvoted?: boolean;
+  engagement?: ShowcaseEngagement;
+  viewer?: ShowcaseViewer;
+  hasUnpublishedRevision?: boolean;
 }
 
 export type TopicName = TopicFilter | (string & {});

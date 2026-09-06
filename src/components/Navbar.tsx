@@ -246,9 +246,17 @@ export const Navbar = () => {
     handleSignOut,
   } = useSidebarAuth();
 
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const activeUser = hasMounted ? sessionUser : undefined;
+
   const visibleNavLinks = useMemo(
-    () => navLinks.filter((link) => !(link.guestOnly && sessionUser)),
-    [sessionUser],
+    () => navLinks.filter((link) => !(link.guestOnly && activeUser)),
+    [activeUser],
   );
 
   const {
@@ -278,8 +286,8 @@ export const Navbar = () => {
     : {
       isCompany: false,
       name: displayName,
-      detail: sessionUser?.email || undefined,
-      image: sessionUser?.image,
+      detail: activeUser?.email || undefined,
+      image: activeUser?.image,
       profileHref: "/dashboard/profile",
       profileLabel: "My profile",
       settingsHref: "/dashboard/profile/settings",
@@ -287,8 +295,9 @@ export const Navbar = () => {
     };
 
   const isNavbarIdentityPending =
+    !hasMounted ||
     isSessionPending ||
-    (Boolean(sessionUser) && !areRolesResolved) ||
+    (Boolean(activeUser) && !areRolesResolved) ||
     isMembershipLoading;
 
   const headerRef = useRef<HTMLElement>(null);
@@ -522,7 +531,7 @@ export const Navbar = () => {
                 }}
                 className="flex items-center"
               >
-                <span className="relative block h-[38px] w-[92px] sm:h-[44px] sm:w-[104px] lg:h-[48px] lg:w-[114px] xl:h-[52px] xl:w-[124px]">
+                <span className="relative block h-[32px] w-[76px] sm:h-[36px] sm:w-[86px] lg:h-[38px] lg:w-[92px] xl:h-[42px] xl:w-[100px]">
                   <Image
                     src="/devsolve-logo.png"
                     alt="DevSolve"
@@ -733,67 +742,136 @@ export const Navbar = () => {
               </div>
             </nav>
 
-            <div className="hidden lg:flex shrink-0 items-center justify-end gap-2">
-              {sessionUser && <NotificationTrigger />}
-
-              <NavbarSearch variant="icon" />
-
-              {!sessionUser && (
-                <>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={toggle}
-                    aria-label={
-                      mounted && isDark
-                        ? "Switch to light mode"
-                        : "Switch to dark mode"
-                    }
-                    title={
-                      mounted && isDark
-                        ? "Switch to light mode"
-                        : "Switch to dark mode"
-                    }
-                    className="size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-foreground shadow-none transition-all hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  >
-                    {mounted && isDark ? (
-                      <Sun className="size-4.5 text-amber-500" />
-                    ) : (
-                      <Moon className="size-4.5 text-muted-foreground hover:text-foreground" />
-                    )}
-                  </Button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const nextLocale: Locale = locale === "en" ? "km" : "en";
-                      rememberLocale(nextLocale);
-                      router.push(localise(pathname ?? "/", nextLocale));
-                      router.refresh();
-                    }}
-                    aria-label={`Switch language (current: ${LOCALE_SHORT[locale]})`}
-                    title={`Switch language (current: ${LOCALE_SHORT[locale]})`}
-                    className="flex h-9 shrink-0 cursor-pointer items-center justify-center px-1 border-0 bg-transparent shadow-none transition-transform duration-150 hover:scale-110 active:scale-95 focus-visible:outline-none"
-                  >
-                    <CurrentFlag className="h-5 w-7.5 shrink-0 object-cover" />
-                  </button>
-                </>
+            <div className="hidden lg:flex shrink-0 items-center justify-end gap-2 xl:gap-2.5">
+              {/* Search: Icon button when guest/not logged in, minimalist long bar when logged in */}
+              {activeUser ? (
+                <NavbarSearch
+                  variant="expanded"
+                  placeholder="Search…"
+                  className="h-8.5 w-36 lg:w-44 xl:w-56 rounded-full bg-muted/30 hover:bg-muted/60 dark:bg-muted/20 dark:hover:bg-muted/40 border border-border/50 hover:border-border/80 text-xs text-muted-foreground px-3 shadow-none"
+                />
+              ) : (
+                <NavbarSearch
+                  variant="icon"
+                  className="size-8.5 text-muted-foreground hover:text-foreground"
+                />
               )}
 
+              {/* Theme Toggle Button */}
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={toggle}
+                aria-label={
+                  mounted && isDark
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+                title={
+                  mounted && isDark
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+                className="size-8.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-muted-foreground hover:text-foreground shadow-none transition-all hover:bg-muted/60 focus-visible:outline-none"
+              >
+                {mounted && isDark ? (
+                  <Sun className="size-4 text-amber-500" />
+                ) : (
+                  <Moon className="size-4 text-muted-foreground hover:text-foreground" />
+                )}
+              </Button>
+
+              {/* Language Switcher */}
+              <button
+                type="button"
+                onClick={() => {
+                  const nextLocale: Locale = locale === "en" ? "km" : "en";
+                  rememberLocale(nextLocale);
+                  router.push(localise(pathname ?? "/", nextLocale));
+                  router.refresh();
+                }}
+                aria-label={`Switch language (current: ${LOCALE_SHORT[locale]})`}
+                title={`Switch language (current: ${LOCALE_SHORT[locale]})`}
+                className="flex size-8.5 shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent shadow-none transition-transform duration-150 hover:scale-105 active:scale-95 focus-visible:outline-none"
+              >
+                <CurrentFlag className="h-4.5 w-6.5 shrink-0 object-cover rounded-[3px] border border-border/40 shadow-2xs" />
+              </button>
+
+              {/* Subtle divider before user account */}
+              {activeUser && (
+                <div className="h-4 w-px bg-border/60 mx-0.5 shrink-0" />
+              )}
+
+              {/* Notification Bell (Grouped with User Profile!) */}
+              {activeUser && <NotificationTrigger className="size-8.5" />}
+
+              {/* User Account Menu / Login Button */}
               <NavbarUserMenu
                 onLogin={handleLogin}
                 isLoggingIn={isLoggingIn}
-                user={sessionUser}
+                user={activeUser}
                 identity={navbarIdentity}
                 isIdentityPending={isNavbarIdentityPending}
                 onSignOut={handleSignOut}
               />
             </div>
 
-            <div className="flex lg:hidden items-center gap-1.5 sm:gap-2">
-              {sessionUser && <NotificationTrigger className="size-9" />}
+            <div className="flex lg:hidden items-center gap-1 sm:gap-1.5 flex-1 justify-end min-w-0">
+              {/* Search on Mobile: Icon button when not logged in, fitted long bar when logged in */}
+              {activeUser ? (
+                <NavbarSearch
+                  variant="expanded"
+                  placeholder={t("nav.search") || "Search…"}
+                  className="h-8 flex-1 min-w-[70px] max-w-[130px] xs:max-w-[170px] sm:max-w-[220px] rounded-full bg-muted/30 hover:bg-muted/60 dark:bg-muted/20 border-border/50 text-xs px-2.5 shadow-none"
+                />
+              ) : (
+                <NavbarSearch
+                  variant="icon"
+                  className="size-8.5 text-muted-foreground hover:text-foreground"
+                />
+              )}
 
-              <NavbarSearch variant="icon" className="size-9" />
+              {/* Dark / Light Mode Toggle directly on mobile navbar */}
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={toggle}
+                aria-label={
+                  mounted && isDark
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+                title={
+                  mounted && isDark
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+                className="size-8.5 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-foreground shadow-none transition-all hover:bg-muted/70 focus-visible:outline-none"
+              >
+                {mounted && isDark ? (
+                  <Sun className="size-4 text-amber-500" />
+                ) : (
+                  <Moon className="size-4 text-muted-foreground hover:text-foreground" />
+                )}
+              </Button>
+
+              {/* Language Switcher directly on mobile navbar */}
+              <button
+                type="button"
+                onClick={() => {
+                  const nextLocale: Locale = locale === "en" ? "km" : "en";
+                  rememberLocale(nextLocale);
+                  router.push(localise(pathname ?? "/", nextLocale));
+                  router.refresh();
+                }}
+                aria-label={`Switch language (current: ${LOCALE_SHORT[locale]})`}
+                title={`Switch language (current: ${LOCALE_SHORT[locale]})`}
+                className="flex size-8.5 shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent shadow-none transition-transform duration-150 hover:scale-110 active:scale-95 focus-visible:outline-none"
+              >
+                <CurrentFlag className="h-4.5 w-6.5 shrink-0 object-cover rounded-[2px]" />
+              </button>
+
+              {activeUser && <NotificationTrigger className="size-8.5" />}
 
               <Button
                 size="icon"
@@ -806,12 +884,12 @@ export const Navbar = () => {
                     ? "Close navigation menu"
                     : "Open navigation menu"
                 }
-                className="size-9 cursor-pointer rounded-full text-foreground hover:bg-muted hover:border-primary/40 inline-flex items-center justify-center border-0 shadow-none transition-all"
+                className="size-8.5 cursor-pointer rounded-full text-foreground hover:bg-muted hover:border-primary/40 inline-flex items-center justify-center border-0 shadow-none transition-all shrink-0"
               >
                 {mobileMenuOpen ? (
-                  <X className="size-4.5 text-foreground" />
+                  <X className="size-4 text-foreground" />
                 ) : (
-                  <Menu className="size-4.5 text-foreground" />
+                  <Menu className="size-4 text-foreground" />
                 )}
               </Button>
             </div>
@@ -844,6 +922,16 @@ export const Navbar = () => {
               className="relative z-10 px-4 pb-5 pt-2 sm:px-6 lg:hidden"
             >
               <div className="mx-auto w-full max-w-7xl overflow-hidden rounded-2xl sm:rounded-3xl border border-border/80 bg-card/98 p-3.5 sm:p-4 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 backdrop-blur-2xl">
+                {/* Minimalist Search Bar inside Mobile Drawer */}
+                <div className="pb-3 border-b border-border/60 mb-2.5">
+                  <NavbarSearch
+                    variant="expanded"
+                    placeholder="Search…"
+                    className="h-9.5 w-full rounded-xl bg-muted/35 hover:bg-muted/60 border-border/60 text-sm px-3.5 shadow-none"
+                    onOpen={() => setMobileMenuOpen(false)}
+                  />
+                </div>
+
                 <nav
                   aria-label="Mobile navigation"
                   className="flex flex-col gap-1 pb-2.5"
@@ -1015,7 +1103,7 @@ export const Navbar = () => {
                 </nav>
 
                 <div className="space-y-2.5 border-t border-border/70 pt-2.5">
-                  {sessionUser ? (
+                  {activeUser ? (
                     <>
                       {isNavbarIdentityPending ? (
                         <div
