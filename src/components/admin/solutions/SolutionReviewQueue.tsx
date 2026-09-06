@@ -89,7 +89,7 @@ const APPROACH_CONFIG: Record<
 };
 
 export function SolutionReviewQueue() {
-  const [status, setStatus] = useState<StatusTab>("PENDING");
+  const [status, setStatus] = useState<StatusTab>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [approachFilter, setApproachFilter] = useState<ApproachType | "ALL">("ALL");
   const [acceptedFilter, setAcceptedFilter] = useState<AcceptedFilter>("ALL");
@@ -117,9 +117,6 @@ export function SolutionReviewQueue() {
     reviewStatus: "REJECTED",
     pageSize: 1,
   });
-  const { data: allData } = useGetAdminSolutionsQuery({
-    pageSize: 1,
-  });
 
   const pendingCount =
     status === "PENDING" && data?.totalElements !== undefined
@@ -139,7 +136,7 @@ export function SolutionReviewQueue() {
   const allCount =
     status === "ALL" && data?.totalElements !== undefined
       ? data.totalElements
-      : allData?.totalElements ?? (pendingCount + approvedCount + rejectedCount);
+      : (pendingCount + approvedCount + rejectedCount);
 
   const [decisionFor, setDecisionFor] = useState<SolutionResponse | null>(null);
   const [decision, setDecision] = useState<SolutionDecision | null>(null);

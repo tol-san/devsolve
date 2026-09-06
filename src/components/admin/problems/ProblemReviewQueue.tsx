@@ -112,7 +112,7 @@ const PROBLEM_TYPE_ICONS: Record<ProblemType, LucideIcon> = {
 };
 
 export function ProblemReviewQueue() {
-  const [status, setStatus] = useState<StatusTab>("PENDING_APPROVAL");
+  const [status, setStatus] = useState<StatusTab>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [severityFilter, setSeverityFilter] = useState<ProblemSeverity | "ALL">("ALL");
@@ -143,9 +143,6 @@ export function ProblemReviewQueue() {
     status: "REJECTED",
     size: 1,
   });
-  const { data: allData } = useGetProblemReviewQueueQuery({
-    size: 1,
-  });
 
   const pendingCount =
     status === "PENDING_APPROVAL" && data?.totalElements !== undefined
@@ -165,7 +162,7 @@ export function ProblemReviewQueue() {
   const allCount =
     status === "ALL" && data?.totalElements !== undefined
       ? data.totalElements
-      : allData?.totalElements ?? (pendingCount + publishedCount + rejectedCount);
+      : (pendingCount + publishedCount + rejectedCount);
 
   const { data: categories = [] } = useGetActiveCategoriesQuery("PROBLEM");
 
