@@ -48,33 +48,30 @@ export function ManagedReportGridCard({ report, index }: ManagedReportGridCardPr
     >
       <div className="space-y-3 sm:space-y-3.5 min-w-0">
         {/* Top Header: Program/Org Context + Status */}
-        <div className="flex items-center justify-between gap-2.5 min-w-0">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted border border-border shadow-2xs">
+        <div className="flex items-center justify-between gap-3 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="flex size-9.5 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-card border border-border shadow-xs">
               {orgLogo ? (
                 <Image
                   src={orgLogo}
                   alt={orgName || "Organization logo"}
-                  width={28}
-                  height={28}
-                  className="size-6 object-contain"
+                  width={38}
+                  height={38}
+                  className="size-full object-cover"
                   unoptimized
                 />
               ) : (
-                <Shield className="size-3.5 text-blue-600 dark:text-blue-400" />
+                <Shield className="size-4.5 text-blue-600 dark:text-blue-400" />
               )}
             </div>
-            <div className="min-w-0 flex items-center gap-1 text-xs leading-tight">
+            <div className="min-w-0 flex flex-col justify-center leading-snug">
               {orgName ? (
-                <>
-                  <span className="font-semibold text-foreground truncate max-w-[120px] sm:max-w-[150px]" title={orgName}>
-                    {orgName}
-                  </span>
-                  <span className="text-muted-foreground/40 shrink-0">/</span>
-                </>
+                <span className="font-bold text-foreground text-xs truncate max-w-[150px] sm:max-w-[190px]" title={orgName}>
+                  {orgName}
+                </span>
               ) : null}
-              <span className="text-muted-foreground truncate" title={progName || "Program"}>
-                {progName || "Program"}
+              <span className="text-muted-foreground text-[11px] truncate max-w-[150px] sm:max-w-[190px]" title={progName || "Program"}>
+                {progName || "Security Program"}
               </span>
             </div>
           </div>
@@ -98,30 +95,30 @@ export function ManagedReportGridCard({ report, index }: ManagedReportGridCardPr
         </div>
 
         {/* Submitter / Researcher Section */}
-        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-border/50 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border border-border shadow-2xs">
+        <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/50 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex size-10.5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border border-border shadow-2xs ring-1 ring-foreground/10">
               {report.authorAvatarUrl ? (
                 <Image
                   src={report.authorAvatarUrl}
                   alt={report.author}
-                  width={28}
-                  height={28}
-                  className="size-7 object-cover rounded-full"
+                  width={42}
+                  height={42}
+                  className="size-full object-cover rounded-full"
                   unoptimized
                 />
               ) : (
-                <span className="text-[10px] font-bold text-foreground">
+                <span className="text-xs font-bold text-foreground">
                   {report.authorInitials || "SR"}
                 </span>
               )}
             </div>
-            <div className="min-w-0 flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-foreground truncate max-w-[140px]" title={report.author}>
+            <div className="min-w-0 flex flex-col justify-center leading-snug">
+              <span className="text-xs sm:text-sm font-bold text-foreground truncate max-w-[150px]" title={report.author}>
                 {report.author}
               </span>
               {report.authorUsername && (
-                <span className="text-[11px] text-muted-foreground truncate hidden xs:inline">
+                <span className="text-[11px] text-muted-foreground truncate">
                   @{report.authorUsername}
                 </span>
               )}
@@ -131,7 +128,7 @@ export function ManagedReportGridCard({ report, index }: ManagedReportGridCardPr
           {typeof report.authorReputation === "number" && (
             <Badge
               variant="outline"
-              className="h-5 px-1.5 text-[10px] font-bold rounded-md border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 gap-0.5 shrink-0"
+              className="h-6 px-2 text-[11px] font-bold rounded-lg border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 gap-1 shrink-0"
             >
               <span>★</span>
               <span>{report.authorReputation.toLocaleString()}</span>

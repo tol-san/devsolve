@@ -255,18 +255,18 @@ export function ManagedReportCard({
         <div className={cn(reportListGridClass, "items-center")}>
           <div className="min-w-0">
             <div className="flex items-start gap-3.5">
-              <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted border border-border shadow-2xs">
+              <div className="flex size-13 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-card border border-border shadow-xs">
                 {report.organizationLogoUrl || report.programLogo ? (
                   <Image
                     src={report.organizationLogoUrl || report.programLogo!}
                     alt={`${report.organizationName || report.title} logo`}
-                    width={44}
-                    height={44}
-                    className="size-10 object-contain"
+                    width={52}
+                    height={52}
+                    className="size-full object-cover"
                     unoptimized
                   />
                 ) : (
-                  <span className="text-sm font-bold text-foreground">
+                  <span className="text-base font-bold text-foreground">
                     {(report.organizationName || report.authorInitials || "DS").slice(0, 2).toUpperCase()}
                   </span>
                 )}
@@ -289,18 +289,18 @@ export function ManagedReportCard({
                       </>
                     )}
                     <span className="text-muted-foreground/60">&bull;</span>
-                    <span className="inline-flex items-center gap-1 truncate max-w-[180px]">
+                    <span className="inline-flex items-center gap-1.5 truncate max-w-[220px]">
                       {report.authorAvatarUrl ? (
                         <Image
                           src={report.authorAvatarUrl}
                           alt={report.author}
-                          width={16}
-                          height={16}
-                          className="size-4 rounded-full object-cover shrink-0"
+                          width={22}
+                          height={22}
+                          className="size-5.5 rounded-full object-cover shrink-0 ring-1 ring-border shadow-2xs"
                           unoptimized
                         />
                       ) : null}
-                      <span className="truncate">{report.author}</span>
+                      <span className="truncate font-medium text-foreground">{report.author}</span>
                       {report.authorUsername && (
                         <span className="text-muted-foreground/80">(@{report.authorUsername})</span>
                       )}
