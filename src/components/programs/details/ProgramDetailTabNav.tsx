@@ -19,6 +19,7 @@ interface ProgramDetailTabNavProps {
   activeTab: ProgramDetailTabId;
   onTabChange: (tabId: ProgramDetailTabId) => void;
   showInvitationsTab?: boolean;
+  showThanksTab?: boolean;
   tabs?: { id: ProgramDetailTabId; label: string }[];
 }
 
@@ -26,16 +27,25 @@ export const ProgramDetailTabNav: React.FC<ProgramDetailTabNavProps> = ({
   activeTab,
   onTabChange,
   showInvitationsTab = false,
+  showThanksTab = true,
   tabs: customTabs,
 }) => {
+  React.useEffect(() => {
+    if (!showThanksTab && activeTab === "thanks") {
+      onTabChange("overview");
+    }
+  }, [showThanksTab, activeTab, onTabChange]);
+
   const tabs = React.useMemo(() => {
     if (customTabs) return customTabs;
-    const base: { id: ProgramDetailTabId; label: string }[] = [...PROGRAM_DETAILS_TABS];
+    const base: { id: ProgramDetailTabId; label: string }[] =
+      PROGRAM_DETAILS_TABS.filter((tab) => tab.id !== "thanks" || showThanksTab);
     if (showInvitationsTab) {
       base.push({ id: "invitations", label: "Guest List" });
     }
     return base;
-  }, [customTabs, showInvitationsTab]);
+  }, [customTabs, showInvitationsTab, showThanksTab]);
+
   return (
     <nav className="border-b border-border bg-card rounded-2xl px-2 pt-1 shadow-2xs overflow-hidden">
       <ul className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">

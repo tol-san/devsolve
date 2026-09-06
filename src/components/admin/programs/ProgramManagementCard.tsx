@@ -160,11 +160,13 @@ export function ProgramManagementCard({
         {/* Top: Identity & Review Status */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0 flex-1">
-            <Avatar className="size-11 shrink-0 rounded-xl border border-border bg-muted/60 shadow-2xs group-hover:scale-105 transition-transform">
-              <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/20 text-sm font-bold text-foreground">
-                {initialsOf(program.name)}
-              </AvatarFallback>
-            </Avatar>
+            <Link href={targetUrl} tabIndex={-1} className="shrink-0">
+              <Avatar className="size-11 rounded-xl border border-border bg-muted/60 shadow-2xs group-hover:scale-105 transition-transform cursor-pointer">
+                <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/20 text-sm font-bold text-foreground">
+                  {initialsOf(program.name)}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
 
             <div className="min-w-0 flex-1">
               <Link
@@ -277,17 +279,6 @@ export function ProgramManagementCard({
         <div className="flex items-center gap-2">
           {scope === "owner" ? (
             <>
-              <Link
-                href={targetUrl}
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "h-8 rounded-xl border-border bg-card px-3 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted cursor-pointer transition-colors gap-1",
-                )}
-              >
-                <span>View</span>
-                <ArrowRight className="size-3 text-muted-foreground" />
-              </Link>
-
               {canDelete && (
                 <Button
                   type="button"

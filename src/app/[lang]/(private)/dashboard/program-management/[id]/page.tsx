@@ -66,6 +66,7 @@ import { ProgramScopeTab } from "@/components/programs/details/ProgramScopeTab";
 import { ProgramBountyMatrixTab } from "@/components/programs/details/ProgramBountyMatrixTab";
 import { ProgramRulesTab } from "@/components/programs/details/ProgramRulesTab";
 import { ProgramGuestListTab } from "@/components/programs/management/ProgramGuestListTab";
+import { ProgramThanksTab } from "@/components/programs/details/ProgramThanksTab";
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/api/error-message";
 
@@ -609,6 +610,7 @@ function ProgramDetailPageContent({
           <ProgramDetailTabNav
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            showThanksTab={!isPending}
             showInvitationsTab={
               !isAdminScope &&
               (isCompanyUser ||
@@ -636,6 +638,12 @@ function ProgramDetailPageContent({
                 )}
                 {activeTab === "invitations" && (
                   <ProgramGuestListTab program={program} />
+                )}
+                {activeTab === "thanks" && !isPending && (
+                  <ProgramThanksTab
+                    programId={program.id}
+                    programName={program.name}
+                  />
                 )}
               </AnimatePresence>
             </section>

@@ -1,11 +1,10 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Zap, Calendar, FileText, Loader2 } from "lucide-react";
-import { Program, ProgramDetail } from "@/lib/types/programs/types";
-import { isPublished } from "@/lib/programs/draft-status";
+import { ProgramDetail } from "@/lib/types/programs/types";
+import { isPublished, isUnderReview } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth/auth-client";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
@@ -22,6 +21,10 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
   const lp = useLocalePath();
   const { data: session } = authClient.useSession();
   const { handleLogin, isLoggingIn } = useKeycloakLogin();
+
+  const isPendingReview =
+    isUnderReview(program) || program.submissionState === "PENDING_REVIEW";
+  const canSubmitReport = isPublished(program) && !isPendingReview;
 
   const handleSubmitReport = () => {
     const targetUrl = lp(`/dashboard/submit-report?programId=${program.id}`);
@@ -42,7 +45,7 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
         <dl className="space-y-3 text-sm">
           <div className="flex justify-between items-center">
             <dt className="text-muted-foreground font-medium">Start Date</dt>
-            <span className="text-foreground">{program.createdAt?.split('T')[0]}</span>
+            <span className="text-foreground">{program.createdAt?.split("T")[0]}</span>
           </div>
           <div className="flex justify-between items-center">
             <dt className="text-muted-foreground font-medium">Status</dt>
@@ -63,13 +66,13 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
           <div className="flex justify-between items-center">
             <dt className="text-muted-foreground font-medium">Total Reports</dt>
             <dd className="font-bold text-foreground">
-              { 142}
+              {142}
             </dd>
           </div>
           <div className="flex justify-between items-center">
             <dt className="text-muted-foreground font-medium">Active Researchers</dt>
             <dd className="font-bold text-foreground">
-              { 89}
+              {89}
             </dd>
           </div>
           <div className="flex justify-between items-center">
@@ -81,7 +84,7 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
         </dl>
       </section>
 
-      {isPublished(program) && (
+      {canSubmitReport && (
         <section className="bg-gradient-to-br from-blue-900 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-md space-y-4 relative overflow-hidden">
           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-600/20 rounded-full blur-2xl" />
           <div className="space-y-2 relative z-10">

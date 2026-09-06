@@ -20,6 +20,7 @@ import { ProgramScopeTab } from "@/components/programs/details/ProgramScopeTab";
 import { ProgramBountyMatrixTab } from "@/components/programs/details/ProgramBountyMatrixTab";
 import { ProgramRulesTab } from "@/components/programs/details/ProgramRulesTab";
 import { ProgramThanksTab } from "@/components/programs/details/ProgramThanksTab";
+import { isUnderReview } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -148,6 +149,9 @@ export default function ProgramDetailPage({
     );
   }
 
+  const isPending =
+    isUnderReview(program) || program?.submissionState === "PENDING_REVIEW";
+
   return (
     <div className="min-h-screen text-foreground font-sans">
       <main className="w-full py-8 ">
@@ -174,6 +178,7 @@ export default function ProgramDetailPage({
           <ProgramDetailTabNav
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            showThanksTab={!isPending}
           />
 
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -192,7 +197,7 @@ export default function ProgramDetailPage({
                     exclusions={program?.exclusions}
                   />
                 )}
-                {activeTab === "thanks" && (
+                {activeTab === "thanks" && !isPending && (
                   <ProgramThanksTab
                     programId={program.id}
                     programName={program.name}
