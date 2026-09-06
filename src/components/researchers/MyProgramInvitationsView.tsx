@@ -19,6 +19,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ import { cn } from "@/lib/utils";
 type TabType = "pending" | "active" | "history";
 
 export function MyProgramInvitationsView() {
+  const lp = useLocalePath();
   const [activeTab, setActiveTab] = useState<TabType>("pending");
   const [declineTarget, setDeclineTarget] = useState<ProgramInvitation | null>(null);
   const [actionInProgressId, setActionInProgressId] = useState<string | null>(null);
@@ -132,7 +134,7 @@ export function MyProgramInvitationsView() {
     }
   };
 
-  const now = Date.now();
+  const [now] = useState(() => Date.now());
   const isAnyFetching = isPendingFetching || isAcceptedFetching || isAllFetching;
 
   return (
@@ -327,7 +329,7 @@ export function MyProgramInvitationsView() {
                         {/* Action Buttons */}
                         <div className="pt-2 border-t border-border flex flex-col sm:flex-row items-center gap-2 justify-between">
                           <Link
-                            href={`/programs/${item.programId}`}
+                            href={lp(`/programs/${item.programId}`)}
                             className="w-full sm:w-auto"
                           >
                             <Button
@@ -455,7 +457,7 @@ export function MyProgramInvitationsView() {
                       {/* Action Buttons */}
                       <div className="pt-3 border-t border-border flex flex-col sm:flex-row items-center gap-2 justify-between">
                         <Link
-                          href={`/programs/${item.programId}`}
+                          href={lp(`/programs/${item.programId}`)}
                           className="w-full sm:w-auto"
                         >
                           <Button
@@ -470,7 +472,7 @@ export function MyProgramInvitationsView() {
                         </Link>
 
                         <Link
-                          href={`/reports/submit?programId=${item.programId}`}
+                          href={lp(`/dashboard/submit-report?programId=${item.programId}`)}
                           className="w-full sm:w-auto"
                         >
                           <Button
@@ -571,7 +573,7 @@ export function MyProgramInvitationsView() {
                             </td>
                             <td className="py-3.5 px-4 sm:px-6 text-right">
                               <Link
-                                href={`/programs/${item.programId}`}
+                                href={lp(`/programs/${item.programId}`)}
                                 className="text-xs font-semibold text-primary hover:underline"
                               >
                                 View Scope

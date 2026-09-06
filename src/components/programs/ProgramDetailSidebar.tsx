@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Zap, Calendar, FileText, Loader2 } from "lucide-react";
+import { Zap, Calendar, FileText, Loader2, Clock } from "lucide-react";
 import { ProgramDetail } from "@/lib/types/programs/types";
 import { isPublished, isUnderReview } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { authClient } from "@/lib/auth/auth-client";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
+import { useGetMyProgramInvitationsQuery } from "@/lib/redux/services/programInvitationsApi";
 
 interface ProgramDetailSidebarProps {
   program: ProgramDetail;
@@ -25,6 +27,26 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
   const { data: session } = authClient.useSession();
   const { handleLogin, isLoggingIn } = useKeycloakLogin();
   const { memberships, membership, hasCompanyAccess } = useCompanyAccess();
+
+  const isPrivate =
+    program.visibility === "PRIVATE" || program.visibility === "INVITE_ONLY";
+
+  const { data: myInvitationsData } = useGetMyProgramInvitationsQuery(
+    { page: 0, size: 100 },
+    { skip: !isPrivate || !session?.user }
+  );
+
+  const matchedInvitation =
+    isPrivate && myInvitationsData?.content
+      ? myInvitationsData.content.find((inv) => {
+          const lowerId = program.id?.toLowerCase();
+          const lowerHandle = program.handle?.toLowerCase();
+          return (
+            inv.programId?.toLowerCase() === lowerId ||
+            (lowerHandle && inv.programHandle?.toLowerCase() === lowerHandle)
+          );
+        }) ?? null
+      : null;
 
   const programOrgId = program.organizationId || program.organization?.id;
   const isCompanyOwnerOfProgram = Boolean(
@@ -49,8 +71,17 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
 
   const isPendingReview =
     isUnderReview(program) || program.submissionState === "PENDING_REVIEW";
+
+  const isInvitedPending =
+    isPrivate && !isOwnProgram && matchedInvitation?.status === "INVITED";
+  const isPrivateAccepted =
+    isPrivate && matchedInvitation?.status === "ACCEPTED";
+
   const canSubmitReport =
-    isPublished(program) && !isPendingReview && !isOwnProgram;
+    isPublished(program) &&
+    !isPendingReview &&
+    !isOwnProgram &&
+    (!isPrivate || isPrivateAccepted);
 
   const handleSubmitReport = () => {
     const targetUrl = lp(`/dashboard/submit-report?programId=${program.id}`);
@@ -109,6 +140,25 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
           </div>
         </dl>
       </section>
+
+      {isInvitedPending && (
+        <section className="bg-card p-6 rounded-2xl ring-1 ring-amber-500/20 shadow-xs space-y-4">
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-sm">
+            <Clock className="w-4 h-4" />
+            <span>Invitation Pending</span>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            You have received an invitation to this private program. Please review and accept your invitation before submitting vulnerability reports.
+          </p>
+          <Link href={lp("/dashboard/program-invitations")} className="block">
+            <Button
+              className="w-full h-10 rounded-xl font-semibold text-xs bg-amber-600 hover:bg-amber-700 text-white gap-1.5 shadow-xs"
+            >
+              Review Invitation
+            </Button>
+          </Link>
+        </section>
+      )}
 
       {canSubmitReport && (
         <section className="bg-gradient-to-br from-blue-900 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-md space-y-4 relative overflow-hidden">
