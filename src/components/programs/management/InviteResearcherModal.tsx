@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Search,
-  UserCheck,
   UserPlus,
   Loader2,
   AlertCircle,
@@ -28,7 +27,7 @@ import {
   useGetPublicProfilesQuery,
   type PublicUserProfileItem,
 } from "@/lib/redux/services/profileApi";
-import { useInviteResearcherMutation } from "@/lib/redux/services/programInvitationsApi";
+import { useInviteProgramResearcherMutation } from "@/lib/redux/services/programInvitationsApi";
 import { apiErrorMessage } from "@/lib/api/error-message";
 import { cn } from "@/lib/utils";
 
@@ -57,12 +56,27 @@ export function InviteResearcherModal({
     id: string;
     name: string;
     avatarUrl?: string | null;
-  } | null>(null);
+  } | null>(preselectedUser ?? null);
   const [note, setNote] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Reset state when modal opens or preselectedUser changes
+  const [prevOpen, setPrevOpen] = useState(isOpen);
+  const [prevPreselected, setPrevPreselected] = useState(preselectedUser);
+  if (isOpen !== prevOpen || preselectedUser !== prevPreselected) {
+    setPrevOpen(isOpen);
+    setPrevPreselected(preselectedUser);
+    if (isOpen) {
+      setSelectedUser(preselectedUser ?? null);
+      setSearchTerm("");
+      setDebouncedSearch("");
+      setNote("");
+      setErrorMessage(null);
+    }
+  }
+
   const [inviteResearcher, { isLoading: isInviting }] =
-    useInviteResearcherMutation();
+    useInviteProgramResearcherMutation();
 
   // Debounce search term
   useEffect(() => {
@@ -71,19 +85,6 @@ export function InviteResearcherModal({
     }, 300);
     return () => clearTimeout(timer);
   }, [searchTerm]);
-
-  // Set preselected user if provided
-  useEffect(() => {
-    if (preselectedUser) {
-      setSelectedUser(preselectedUser);
-    } else if (isOpen) {
-      setSelectedUser(null);
-      setSearchTerm("");
-      setDebouncedSearch("");
-      setNote("");
-      setErrorMessage(null);
-    }
-  }, [preselectedUser, isOpen]);
 
   const { data: searchData, isFetching: isSearching } =
     useGetPublicProfilesQuery(
@@ -127,10 +128,14 @@ export function InviteResearcherModal({
 
       toast.success(`Invitation sent to ${selectedUser.name}`);
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Surface backend errors verbatim (409, 404, 403)
+      const errData =
+        err && typeof err === "object" && "data" in err
+          ? (err as { data?: { message?: string } }).data
+          : undefined;
       const message =
-        err?.data?.message ||
+        errData?.message ||
         apiErrorMessage(err, "Failed to send invitation.");
       setErrorMessage(message);
     }

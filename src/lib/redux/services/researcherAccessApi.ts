@@ -139,6 +139,7 @@ export const researcherAccessApi = proxyApi.injectEndpoints({
       invalidatesTags: ["ResearcherAccess"],
     }),
   }),
+  overrideExisting: true,
 });
 
 export const {

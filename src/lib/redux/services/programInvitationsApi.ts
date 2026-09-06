@@ -31,7 +31,7 @@ export const programInvitationsApi = proxyApi.injectEndpoints({
       ],
     }),
 
-    inviteResearcher: builder.mutation<
+    inviteProgramResearcher: builder.mutation<
       ProgramInvitation,
       { programId: string; body: InviteResearcherRequest }
     >({
@@ -110,9 +110,15 @@ export const programInvitationsApi = proxyApi.injectEndpoints({
 
 export const {
   useGetProgramInvitationsQuery,
-  useInviteResearcherMutation,
+  useInviteProgramResearcherMutation,
   useRevokeProgramInvitationMutation,
   useGetMyProgramInvitationsQuery,
   useAcceptProgramInvitationMutation,
   useDeclineProgramInvitationMutation,
 } = programInvitationsApi;
+
+/**
+ * @deprecated Use `useInviteProgramResearcherMutation` instead to avoid endpoint name collision with organization `inviteResearcher`.
+ */
+export const useInviteResearcherMutation = useInviteProgramResearcherMutation;
+
