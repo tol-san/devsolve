@@ -76,7 +76,7 @@ function ReportManagementContent() {
       initial="hidden"
       animate="visible"
       variants={pageEnterContainer}
-      className="space-y-6 w-full pb-12 min-w-0 max-w-full overflow-hidden"
+      className="space-y-6 w-full pb-12 min-w-0 max-w-full"
     >
       <motion.div variants={pageEnterItem}>
         <ReportManagementHeader />

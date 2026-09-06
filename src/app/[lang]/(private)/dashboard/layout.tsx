@@ -63,7 +63,7 @@ export default async function DashboardLayout({
               />
             </div>
           </header>
-          <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto min-w-0 w-full">
+          <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden min-w-0 w-full">
             <ProfileProvisioningGate>{children}</ProfileProvisioningGate>
           </main>
         </div>

@@ -26,7 +26,7 @@ export function FilterBar({
   return (
     <div
       className={cn(
-        "space-y-3 rounded-2xl bg-card p-4 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10",
+        "space-y-3 rounded-2xl bg-card p-3 sm:p-4 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 min-w-0 max-w-full overflow-hidden",
         className,
       )}
     >
@@ -223,37 +223,38 @@ export function FilterTabs<T extends string>({
   className?: string;
 }) {
   return (
-    <ToggleGroup
-      multiple={false}
-      value={[value]}
-      onValueChange={(values) => {
-        const next = values[values.length - 1] as T | undefined;
-        if (next) onChange(next);
-      }}
-      spacing={1}
-      aria-label={label}
-      className={cn(
-        "w-full min-w-0 overflow-x-auto rounded-xl bg-muted p-1",
-        className,
-      )}
-    >
-      {tabs.map((tab) => (
-        <ToggleGroupItem
-          key={tab.value}
-          value={tab.value}
-          className="h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-semibold text-muted-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-2xs"
+    <div className="w-full min-w-0 max-w-full overflow-x-auto rounded-xl bg-muted p-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-max min-w-full items-center gap-1">
+        <ToggleGroup
+          multiple={false}
+          value={[value]}
+          onValueChange={(values) => {
+            const next = values[values.length - 1] as T | undefined;
+            if (next) onChange(next);
+          }}
+          spacing={1}
+          aria-label={label}
+          className={cn("w-full flex items-center gap-1", className)}
         >
-          <span>{tab.label}</span>
-          {typeof tab.count === "number" ? (
-            <Badge
-              variant={value === tab.value ? "default" : "secondary"}
-              className="rounded-full tabular-nums"
+          {tabs.map((tab) => (
+            <ToggleGroupItem
+              key={tab.value}
+              value={tab.value}
+              className="h-8.5 sm:h-9 shrink-0 cursor-pointer rounded-lg px-2.5 sm:px-3 text-xs sm:text-sm font-semibold text-muted-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-2xs gap-1.5"
             >
-              {tab.count}
-            </Badge>
-          ) : null}
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
+              <span>{tab.label}</span>
+              {typeof tab.count === "number" ? (
+                <Badge
+                  variant={value === tab.value ? "default" : "secondary"}
+                  className="rounded-full tabular-nums text-[10px] sm:text-xs h-5 px-1.5"
+                >
+                  {tab.count}
+                </Badge>
+              ) : null}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </div>
+    </div>
   );
 }
