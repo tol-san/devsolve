@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Clock3, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { Clock3, Lock, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { RequestAccessDialog } from "@/components/researchers/RequestAccessDialog";
@@ -18,11 +19,13 @@ export function ReportingAccessNotice({
   isLoading,
   blockedMessage,
   className,
+  isPrivate,
 }: {
   access?: ProgramReportingAccess;
   isLoading?: boolean;
   blockedMessage?: string | null;
   className?: string;
+  isPrivate?: boolean;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [session, setSession] = useState(0);
@@ -62,13 +65,14 @@ export function ReportingAccessNotice({
       >
         <div className="flex flex-wrap items-center gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-            <ShieldCheck className="size-5" />
+            {isPrivate ? <Lock className="size-5" /> : <ShieldCheck className="size-5" />}
           </span>
           <p className="text-base font-bold tracking-tight text-amber-900 dark:text-amber-200">
-            {access?.organizationName?.trim() || "This organization"} reviews
-            who can report to it
+            {isPrivate
+              ? "Private Program Reporting Authorization"
+              : `${access?.organizationName?.trim() || "This organization"} reviews who can report to it`}
           </p>
-          <ResearcherAccessBadge status={status} className="ml-auto" />
+          {!isPrivate && <ResearcherAccessBadge status={status} className="ml-auto" />}
         </div>
 
         {explanation && (
@@ -89,7 +93,18 @@ export function ReportingAccessNotice({
         )}
 
         <div className="flex flex-wrap items-center gap-3">
-          {actionLabel && canRequestAccess(status) ? (
+          {isPrivate ? (
+            blockedMessage?.includes("Accept your invitation") ? (
+              <Link href="/dashboard/program-invitations">
+                <Button
+                  type="button"
+                  className="h-10 cursor-pointer rounded-xl px-4 text-sm font-semibold"
+                >
+                  Review Invitations
+                </Button>
+              </Link>
+            ) : null
+          ) : actionLabel && canRequestAccess(status) ? (
             <Button
               type="button"
               onClick={() => {

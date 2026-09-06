@@ -27,6 +27,8 @@ export const proxyApi = createApi({
     "Leaderboard",
     "Profile",
     "AutoReview",
+    "ProgramInvitation",
+    "MyProgramInvitations",
   ],
   endpoints: () => ({}),
 });

@@ -9,6 +9,7 @@ import {
   useUploadReportAttachmentMutation,
 } from "@/lib/redux/services/reportsApi";
 import { useGetReportingAccessQuery } from "@/lib/redux/services/researcherAccessApi";
+import { useGetMyProgramInvitationsQuery } from "@/lib/redux/services/programInvitationsApi";
 import type { ResearcherAccessStatus } from "@/lib/validations/researcher-access";
 import {
   apiErrorMessage,
@@ -236,22 +237,70 @@ export function useSubmitReportForm() {
       null;
 
   const accessProgramId = selectedProgram?.id || selectedProgramId || "";
+  const isPrivateProgram =
+    selectedProgram?.visibility === "PRIVATE" ||
+    selectedProgram?.visibility === "INVITE_ONLY";
+
   const {
     data: reportingAccess,
-    isLoading: isAccessLoading,
+    isLoading: isReportingAccessLoading,
   } = useGetReportingAccessQuery(accessProgramId, {
-    skip: !isUuid(accessProgramId),
+    skip: !isUuid(accessProgramId) || isPrivateProgram,
   });
 
-  const canSubmitReport = reportingAccess?.canSubmitReports !== false;
+  const {
+    data: myInvitationsData,
+    isLoading: isMyInvitationsLoading,
+  } = useGetMyProgramInvitationsQuery(
+    { page: 0, size: 100 },
+    { skip: !isPrivateProgram },
+  );
+
+  const currentProgramInvitation = useMemo(() => {
+    if (!isPrivateProgram || !myInvitationsData?.content) return null;
+    return (
+      myInvitationsData.content.find(
+        (inv) => inv.programId === accessProgramId,
+      ) ?? null
+    );
+  }, [isPrivateProgram, myInvitationsData?.content, accessProgramId]);
+
+  let canSubmitReport = true;
+  let privateBlockedMessage: string | null = null;
+
+  if (isPrivateProgram) {
+    if (selectedProgram?.state && selectedProgram.state !== "ACTIVE") {
+      canSubmitReport = false;
+      privateBlockedMessage = `This program is currently ${selectedProgram.state.toLowerCase()} and cannot accept new reports.`;
+    } else if (currentProgramInvitation?.status === "ACCEPTED") {
+      canSubmitReport = true;
+      privateBlockedMessage = null;
+    } else if (currentProgramInvitation?.status === "INVITED") {
+      canSubmitReport = false;
+      privateBlockedMessage = `Accept your invitation to ${selectedProgram?.name || "this program"} before submitting reports to it.`;
+    } else {
+      canSubmitReport = false;
+      privateBlockedMessage = `You are not authorized to submit reports to ${selectedProgram?.name || "this program"}. It is a private program.`;
+    }
+  } else {
+    canSubmitReport = reportingAccess?.canSubmitReports !== false;
+  }
+
+  const isAccessLoading = isPrivateProgram
+    ? isMyInvitationsLoading
+    : isReportingAccessLoading;
 
   const accessStatus = reportingAccess?.status ?? null;
   const accessBlockedMessage =
-    accessRefusal &&
-    accessRefusal.programId === accessProgramId &&
-    accessRefusal.status === accessStatus
+    accessRefusal && accessRefusal.programId === accessProgramId
       ? accessRefusal.message
-      : null;
+      : isPrivateProgram
+        ? privateBlockedMessage
+        : accessRefusal &&
+          accessRefusal.programId === accessProgramId &&
+          accessRefusal.status === accessStatus
+          ? accessRefusal.message
+          : null;
 
   useEffect(() => {
     if (preselectedProgramId) {
@@ -470,14 +519,19 @@ export function useSubmitReportForm() {
       const status = apiErrorStatus(err);
 
       if (status === 403) {
+        const errorMsg = apiErrorMessage(
+          err,
+          isPrivateProgram
+            ? `You are not authorized to submit reports to ${selectedProgram?.name || "this program"}. It is a private program.`
+            : "This organization has not approved you to report to its programs yet.",
+        );
         setAccessRefusal({
           programId: values.programId,
           status: accessStatus,
-          message: apiErrorMessage(
-            err,
-            "This organization has not approved you to report to its programs yet.",
-          ),
+          message: errorMsg,
         });
+        setSubmitError(errorMsg);
+        toast.error(errorMsg);
         return;
       }
 
@@ -627,6 +681,7 @@ export function useSubmitReportForm() {
     isAccessLoading,
     canSubmitReport,
     accessBlockedMessage,
+    isPrivateProgram,
     isDraftSaved,
     draft,
     restoreDraft,

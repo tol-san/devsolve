@@ -11,21 +11,35 @@ export const PROGRAM_DETAILS_TABS = [
   { id: "thanks", label: "Hall of Thanks" },
 ] as const;
 
-export type ProgramDetailTabId = (typeof PROGRAM_DETAILS_TABS)[number]["id"];
+export type ProgramDetailTabId =
+  | (typeof PROGRAM_DETAILS_TABS)[number]["id"]
+  | "invitations";
 
 interface ProgramDetailTabNavProps {
   activeTab: ProgramDetailTabId;
   onTabChange: (tabId: ProgramDetailTabId) => void;
+  showInvitationsTab?: boolean;
+  tabs?: { id: ProgramDetailTabId; label: string }[];
 }
 
 export const ProgramDetailTabNav: React.FC<ProgramDetailTabNavProps> = ({
   activeTab,
   onTabChange,
+  showInvitationsTab = false,
+  tabs: customTabs,
 }) => {
+  const tabs = React.useMemo(() => {
+    if (customTabs) return customTabs;
+    const base: { id: ProgramDetailTabId; label: string }[] = [...PROGRAM_DETAILS_TABS];
+    if (showInvitationsTab) {
+      base.push({ id: "invitations", label: "Guest List" });
+    }
+    return base;
+  }, [customTabs, showInvitationsTab]);
   return (
     <nav className="border-b border-border bg-card rounded-2xl px-2 pt-1 shadow-2xs overflow-hidden">
       <ul className="flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {PROGRAM_DETAILS_TABS.map((tab) => {
+        {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <li key={tab.id} className="shrink-0">

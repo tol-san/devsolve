@@ -60,6 +60,7 @@ function SubmitReportContent() {
     handleSaveDraft,
     handleResetForm,
     onSubmit,
+    isPrivateProgram,
   } = useSubmitReportForm();
 
   return (
@@ -108,6 +109,7 @@ function SubmitReportContent() {
             access={reportingAccess}
             isLoading={isAccessLoading}
             blockedMessage={accessBlockedMessage}
+            isPrivate={isPrivateProgram}
           />
 
           <form onSubmit={handleSubmit(onSubmit)}>

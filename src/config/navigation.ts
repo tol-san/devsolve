@@ -27,6 +27,7 @@ import {
   UserRoundCheck,
   Sparkles,
   LucideIcon,
+  Lock,
 } from "lucide-react";
 
 export interface NavItem {
@@ -52,6 +53,7 @@ export const NAV_ITEMS: NavItem[] = [
   { name: "My Team", href: "/dashboard/my-team", icon: UsersRound, category: "Overview", memberOnly: true },
 
   { name: "Reports", href: "/dashboard/my-reports", icon: FileText, roles: ["USER"], category: "Researcher" },
+  { name: "Private Programs", href: "/dashboard/program-invitations", icon: Lock, roles: ["USER"], category: "Researcher" },
   { name: "Bookmarks", href: "/dashboard/bookmarks", icon: Bookmark, roles: ["USER"], category: "Researcher" },
   { name: "Saved Drafts", href: "/dashboard/saved-draft", icon: FilePen, roles: ["USER"], category: "Researcher" },
   { name: "My Access", href: "/dashboard/my-access", icon: ShieldQuestion, roles: ["USER"], category: "Researcher" },

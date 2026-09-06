@@ -26,6 +26,7 @@ import { useNotification } from "@/components/notifications/NotificationContext"
 import { NotificationTrigger } from "@/components/notifications/NotificationTrigger";
 import { ThemeToggle } from "@/components/motion/theme-toggle";
 import { useGetBookmarksQuery } from "@/lib/redux/services/bookmarksApi";
+import { useGetMyProgramInvitationsQuery } from "@/lib/redux/services/programInvitationsApi";
 import { cn } from "@/lib/utils";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -83,6 +84,12 @@ function SidebarContent({
     skip: !user,
   });
   const bookmarkCount = bookmarksResponse?.totalCount;
+
+  const { data: programInvitesResponse } = useGetMyProgramInvitationsQuery(
+    { status: "INVITED" },
+    { skip: !user },
+  );
+  const pendingProgramInvitesCount = programInvitesResponse?.totalElements;
 
   const getOrgStatusLabel = (status?: string): string => {
     switch (status) {
@@ -260,7 +267,11 @@ function SidebarContent({
                 const Icon = item.icon;
                 const isActive = item.href === activeHref;
                 const badgeCount =
-                  item.name === "Bookmarks" ? bookmarkCount : item.badge;
+                  item.name === "Bookmarks"
+                    ? bookmarkCount
+                    : item.name === "Private Programs"
+                      ? pendingProgramInvitesCount
+                      : item.badge;
                 const itemKey = `sidebar.nav.${item.name.toLowerCase()}`;
                 const translated = t(itemKey);
                 const itemLabel =

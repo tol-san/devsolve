@@ -65,6 +65,7 @@ import { ProgramOverviewTab } from "@/components/programs/details/ProgramOvervie
 import { ProgramScopeTab } from "@/components/programs/details/ProgramScopeTab";
 import { ProgramBountyMatrixTab } from "@/components/programs/details/ProgramBountyMatrixTab";
 import { ProgramRulesTab } from "@/components/programs/details/ProgramRulesTab";
+import { ProgramGuestListTab } from "@/components/programs/management/ProgramGuestListTab";
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/api/error-message";
 
@@ -608,6 +609,13 @@ function ProgramDetailPageContent({
           <ProgramDetailTabNav
             activeTab={activeTab}
             onTabChange={setActiveTab}
+            showInvitationsTab={
+              !isAdminScope &&
+              (isCompanyUser ||
+                can("MANAGE_RESEARCHERS") ||
+                program.visibility === "PRIVATE" ||
+                program.visibility === "INVITE_ONLY")
+            }
           />
 
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -625,6 +633,9 @@ function ProgramDetailPageContent({
                     rulesOfEngagement={program?.rulesOfEngagement}
                     exclusions={program?.exclusions}
                   />
+                )}
+                {activeTab === "invitations" && (
+                  <ProgramGuestListTab program={program} />
                 )}
               </AnimatePresence>
             </section>
