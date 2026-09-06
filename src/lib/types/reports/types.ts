@@ -48,6 +48,11 @@ export interface ReportItem {
   reputationPoints?: number | null;
   reputationAwardedAt?: string | null;
   firstRespondedAt?: string | null;
+  author?: string;
+  authorUsername?: string | null;
+  authorAvatarUrl?: string | null;
+  authorReputation?: number | null;
+  isDisputed?: boolean;
   bountyOrRep: string;
   isBountyHighlight?: boolean;
   isBountyDim?: boolean;
@@ -119,6 +124,8 @@ export interface ReportDetail extends ReportItem {
   reporterName?: string;
   reporterEmail?: string;
   reporterUsername?: string;
+  reporterAvatarUrl?: string | null;
+  reporterReputation?: number | null;
   attachments: {
     id?: string;
     name: string;

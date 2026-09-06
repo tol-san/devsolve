@@ -72,10 +72,34 @@ export interface RetestSummary {
   attachmentIds: string[] | null;
 }
 
+export interface ResearcherSummary {
+  id: string;
+  username?: string;
+  fullName?: string;
+  email?: string;
+  avatarUrl?: string;
+  reputation?: number;
+  totalReports?: number;
+  validReports?: number;
+  country?: string;
+}
+
+export interface ProgramSummary {
+  id: string;
+  name: string;
+  handle?: string;
+  organizationId: string;
+  organizationName: string;
+  organizationLogoUrl?: string;
+}
+
 interface ReportApiResponse {
   id: string;
   programId: string;
   reporterId?: string;
+  researcher?: ResearcherSummary;
+  program?: ProgramSummary;
+  isDisputed?: boolean;
   title: string;
   reportedSeverity?: ApiSeverity;
   triageSeverity?: ApiSeverity;
@@ -321,23 +345,54 @@ function toReportItem(
 ): ReportItem {
   const status = toStatus(report.state);
   const effectiveOrgName =
+    report.program?.organizationName ||
     organizationName ||
     (report as any).organizationName ||
     (report as any).org_name ||
     undefined;
   const effectiveOrgLogo =
+    report.program?.organizationLogoUrl ||
     organizationLogoUrl ||
     (report as any).organizationLogoUrl ||
     (report as any).org_logo ||
     undefined;
+  const effectiveOrgId =
+    report.program?.organizationId ||
+    organizationId ||
+    (report as any).organizationId;
+  const effectiveProgName =
+    report.program?.name ||
+    programName;
+
+  const author =
+    report.researcher?.fullName ||
+    report.researcher?.username ||
+    report.authorName ||
+    report.submitterName ||
+    report.researcherName ||
+    undefined;
+
+  const authorUsername =
+    report.researcher?.username ||
+    report.reporter?.username ||
+    undefined;
+
+  const authorAvatarUrl =
+    report.researcher?.avatarUrl ||
+    undefined;
+
+  const authorReputation =
+    typeof report.researcher?.reputation === "number"
+      ? report.researcher.reputation
+      : undefined;
 
   return {
     id: report.id,
     reportId: toReportId(report.id),
     title: report.title,
-    program: programName,
+    program: effectiveProgName,
     programId: report.programId,
-    organizationId: organizationId || (report as any).organizationId,
+    organizationId: effectiveOrgId,
     organizationName: effectiveOrgName,
     organizationLogoUrl: effectiveOrgLogo,
     organizationSlug:
@@ -350,7 +405,7 @@ function toReportItem(
       (report as any).organizationWebsiteUrl ||
       (report as any).website_url ||
       undefined,
-    avatarLetter: (effectiveOrgName || programName || "O").slice(0, 1).toUpperCase(),
+    avatarLetter: (effectiveOrgName || effectiveProgName || "O").slice(0, 1).toUpperCase(),
     type: "Bounty",
     severity: toSeverity(report.severity),
     reportedSeverity: report.reportedSeverity ?? null,
@@ -363,6 +418,7 @@ function toReportItem(
       report.reportedSeverity != null &&
       report.triageSeverity !== report.reportedSeverity,
     dispute: report.dispute ?? null,
+    isDisputed: report.isDisputed ?? Boolean(report.dispute),
     weaknessObj: report.weakness ?? null,
     suggestedWeakness: report.suggestedWeakness ?? (report as any).suggested_weakness ?? null,
     status,
@@ -371,6 +427,10 @@ function toReportItem(
     reputationPoints: report.reputationPoints ?? null,
     reputationAwardedAt: report.reputationAwardedAt ?? null,
     firstRespondedAt: report.firstRespondedAt ?? null,
+    author,
+    authorUsername,
+    authorAvatarUrl,
+    authorReputation,
     ...toBountyDisplay(report, status),
     lastActivityDate: toLastActivityDate(report),
     lastActivityBadge: toActivityBadge(status),
@@ -479,19 +539,25 @@ function toReportDetail(
     weaknessObj: report.weakness ?? null,
     suggestedWeakness: report.suggestedWeakness ?? (report as any).suggested_weakness ?? null,
     dispute: report.dispute ?? null,
-    reporterId: report.reporterId || report.reporter?.id,
+    isDisputed: report.isDisputed ?? Boolean(report.dispute),
+    reporterId: report.researcher?.id || report.reporterId || report.reporter?.id,
     reporterName:
+      report.researcher?.fullName ||
+      report.researcher?.username ||
       report.reporter?.name ||
       report.reporter?.username ||
       report.authorName ||
       report.researcherName ||
       report.submitterName,
     reporterEmail:
+      report.researcher?.email ||
       report.reporter?.email ||
       report.authorEmail ||
       report.researcherEmail ||
       report.submitterEmail,
-    reporterUsername: report.reporter?.username,
+    reporterUsername: report.researcher?.username || report.reporter?.username,
+    reporterAvatarUrl: report.researcher?.avatarUrl || null,
+    reporterReputation: typeof report.researcher?.reputation === "number" ? report.researcher.reputation : null,
     attachments,
     comments: [],
     updates,
@@ -548,11 +614,11 @@ async function toDetailWithProgram(
   report: ReportApiResponse,
   fetchWithBQ: (arg: string) => Promise<{ data?: unknown; error?: unknown }>,
 ): Promise<ReportDetail> {
-  let programName = report.programName || "Security Program";
-  let organizationId: string | undefined;
+  let programName = report.program?.name || report.programName || "Security Program";
+  let organizationId: string | undefined = report.program?.organizationId;
   let offersBounties: boolean | undefined;
 
-  if (report.programId) {
+  if (report.programId && (!report.program || !report.program.name)) {
     const progResult = await fetchWithBQ(`/programs/${report.programId}`);
     if (!progResult.error && progResult.data) {
       const program = progResult.data as ProgramApiResponse;

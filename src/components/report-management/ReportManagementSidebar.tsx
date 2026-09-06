@@ -4,9 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
-  AlertCircle,
   ArrowRight,
-  CheckCircle2,
+  Building2,
   CircleAlert,
   Coins,
   ExternalLink,
@@ -17,10 +16,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
-  Tag,
   Trophy,
   User,
-  XCircle,
 } from "lucide-react";
 
 import type { ReportDetail } from "@/lib/types/reports/types";
@@ -36,7 +33,6 @@ import { Button } from "@/components/ui/button";
 import { useGetProfileByUsernameQuery } from "@/lib/redux/services/profileApi";
 import { useReopenResolvedReportMutation } from "@/lib/redux/services/reportsApi";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
-import { formatDateTime } from "@/lib/format/datetime";
 import { apiErrorMessage } from "@/lib/api/error-message";
 import { toApiSeverity } from "@/lib/reports/severity";
 import { pointsFor } from "@/lib/reports/reputation";
@@ -45,7 +41,6 @@ import {
   formatBountyAmount,
   hasBountyReward,
   openRetestAttempt,
-  retestDeadline,
 } from "@/lib/reports/retest";
 import { cn } from "@/lib/utils";
 
@@ -85,7 +80,7 @@ export function ReportManagementSidebar({
 
   const rawStatus = (
     detail.rawStatus ||
-    (report as any).state ||
+    report.rawStatus ||
     report.status ||
     ""
   ).toUpperCase();
@@ -128,7 +123,7 @@ export function ReportManagementSidebar({
   const researcherDisplayName =
     report.reporterName ||
     profile?.displayName ||
-    (profile as any)?.fullName ||
+    (profile as { fullName?: string })?.fullName ||
     detail.submitter ||
     "Researcher";
   const researcherUsername =
@@ -136,19 +131,30 @@ export function ReportManagementSidebar({
     profile?.username ||
     detail.submitter.toLowerCase().replace(/[^a-z0-9_]+/g, "_");
   const researcherAvatarUrl =
-    (report as any).reporterAvatarUrl ||
+    report.reporterAvatarUrl ||
     profile?.avatarUrl ||
-    (detail as any).submitterAvatarUrl;
+    detail.submitterAvatarUrl;
   const researcherEmail =
     report.reporterEmail ||
-    (profile as any)?.email ||
+    (profile as { email?: string })?.email ||
     detail.submitterEmail?.trim() ||
     "";
   const researcherReputation =
     profileOverview?.stats?.reputation ??
-    (report as any).reporter?.reputation ??
-    (report as any).reputationPoints ??
+    report.reporterReputation ??
+    report.reputationPoints ??
     null;
+
+  const effectiveOrgId =
+    detail.organizationId ||
+    report.organizationId;
+  const orgName =
+    detail.organizationName ||
+    report.organizationName;
+  const orgLogo =
+    detail.organizationLogoUrl ||
+    detail.programLogo ||
+    report.organizationLogoUrl;
 
   const effectiveSeverity =
     report.settledSeverity ||
@@ -480,6 +486,69 @@ export function ReportManagementSidebar({
             <span className="font-semibold text-foreground">
               Private &bull; Not Disclosed
             </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-card p-5 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+            <Building2 className="size-3.5 text-blue-600 dark:text-blue-400" />
+            Organization &amp; Program
+          </h4>
+          {effectiveOrgId && (
+            <Link
+              href={`/company?id=${effectiveOrgId}`}
+              className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+            >
+              <span>View Org</span>
+              <ExternalLink className="size-3" />
+            </Link>
+          )}
+        </div>
+
+        <div className="p-3.5 rounded-xl border border-border bg-muted/40 space-y-3">
+          <div className="flex items-center gap-3">
+            {orgLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={orgLogo}
+                alt={orgName || "Organization"}
+                className="size-11 rounded-xl object-contain bg-card border border-border shadow-2xs shrink-0 p-1"
+              />
+            ) : (
+              <div className="size-11 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white font-black text-base flex items-center justify-center shrink-0 shadow-2xs">
+                {(orgName || report.program || "O").slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="flex flex-col min-w-0">
+              <p className="font-bold text-sm text-foreground truncate">
+                {orgName || "Organization"}
+              </p>
+              <p className="text-xs text-muted-foreground font-medium truncate">
+                {report.program || detail.programName || "Bug Bounty Program"}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 pt-2 border-t border-border/70 text-xs">
+            {detail.programId && (
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>Program Policy:</span>
+                <Link
+                  href={`/dashboard/programs/${detail.programId}`}
+                  className="font-medium text-primary hover:underline truncate max-w-[160px]"
+                >
+                  View Details &rarr;
+                </Link>
+              </div>
+            )}
+            {effectiveOrgId && (
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>Organization ID:</span>
+                <span className="font-mono text-[10px] text-foreground">{effectiveOrgId.slice(0, 8)}...</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

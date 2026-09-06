@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   AlertCircle,
   AlertTriangle,
@@ -192,7 +193,7 @@ export default function ReportManagementDetailPage() {
   }
 
   const rawState = (
-    (apiReport as any).state ||
+    apiReport.rawStatus ||
     detail.rawStatus ||
     apiReport.status ||
     ""
@@ -282,6 +283,40 @@ export default function ReportManagementDetailPage() {
             </h1>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-muted-foreground font-medium pt-0.5">
+              {(apiReport.organizationLogoUrl || detail.organizationLogoUrl) && (
+                <div className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded bg-muted border border-border">
+                  <Image
+                    src={apiReport.organizationLogoUrl || detail.organizationLogoUrl!}
+                    alt={apiReport.organizationName || detail.organizationName || "Organization"}
+                    width={20}
+                    height={20}
+                    className="size-4 object-contain"
+                    unoptimized
+                  />
+                </div>
+              )}
+
+              {(apiReport.organizationName || detail.organizationName) && (
+                <>
+                  <span className="flex items-center gap-1.5">
+                    <span>Org:</span>
+                    {detail.organizationId ? (
+                      <Link
+                        href={`/company?id=${detail.organizationId}`}
+                        className="font-bold text-foreground hover:text-primary transition-colors hover:underline"
+                      >
+                        {apiReport.organizationName || detail.organizationName}
+                      </Link>
+                    ) : (
+                      <strong className="text-foreground">
+                        {apiReport.organizationName || detail.organizationName}
+                      </strong>
+                    )}
+                  </span>
+                  <span className="text-muted-foreground/40">&bull;</span>
+                </>
+              )}
+
               <span className="flex items-center gap-1.5">
                 <Shield className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span>Program:</span>
@@ -291,15 +326,29 @@ export default function ReportManagementDetailPage() {
               <span className="text-muted-foreground/40">&bull;</span>
 
               <span className="flex items-center gap-1.5">
-                <User className="size-3.5 shrink-0" />
+                {apiReport.reporterAvatarUrl ? (
+                  <Image
+                    src={apiReport.reporterAvatarUrl}
+                    alt={apiReport.reporterName || "Researcher"}
+                    width={18}
+                    height={18}
+                    className="size-4.5 rounded-full object-cover shrink-0"
+                    unoptimized
+                  />
+                ) : (
+                  <User className="size-3.5 shrink-0" />
+                )}
                 <span>Researcher:</span>
                 <strong className="text-foreground">
                   {apiReport.reporterName || "Researcher"}
                 </strong>
                 {apiReport.reporterUsername && (
-                  <span className="text-muted-foreground">
+                  <Link
+                    href={`/profile/${encodeURIComponent(apiReport.reporterUsername)}`}
+                    className="text-muted-foreground hover:text-primary transition-colors hover:underline"
+                  >
                     (@{apiReport.reporterUsername})
-                  </span>
+                  </Link>
                 )}
               </span>
 

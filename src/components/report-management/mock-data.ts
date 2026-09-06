@@ -404,34 +404,73 @@ export function buildReportManagementDetailFromApiReport(
     };
   });
 
-  const submitter =
+  const submitter = String(
+    (report as any).researcher?.fullName ||
+    (report as any).researcher?.username ||
     report.reporterName ||
     report.reporterUsername ||
-    "Researcher";
+    "Researcher"
+  );
   const submitterInitials =
     submitter
       .split(" ")
       .filter(Boolean)
-      .map((w) => w[0])
+      .map((w: string) => w[0])
       .join("")
       .slice(0, 2)
       .toUpperCase() || "RE";
+
+  const organizationLogoUrl =
+    report.organizationLogoUrl ||
+    (report as any).program?.organizationLogoUrl ||
+    undefined;
+  const organizationName =
+    report.organizationName ||
+    (report as any).program?.organizationName ||
+    undefined;
+  const programName =
+    report.program ||
+    (report as any).programName ||
+    (report as any).program?.name ||
+    undefined;
 
   return {
     id: report.id,
     reportId: report.reportId || `RPT-${report.id.slice(0, 8).toUpperCase()}`,
     programId: report.programId || (report as any).program?.id || (report as any).programId || undefined,
-    organizationId: (report as any).organizationId || (report as any).organization?.id || undefined,
+    organizationId: (report as any).organizationId || (report as any).organization?.id || (report as any).program?.organizationId || undefined,
+    programName,
+    organizationName,
+    organizationLogoUrl,
     title: report.title || "Vulnerability Report",
-    programLogo: undefined,
+    programLogo: organizationLogoUrl,
     submitter,
+    submitterUsername:
+      (report as any).researcher?.username ||
+      report.reporterUsername ||
+      undefined,
     submitterInitials,
-    submitterEmail: report.reporterEmail || (report as any).authorEmail || undefined,
-    submitterId: report.reporterId || report.reporterUsername || undefined,
+    submitterEmail:
+      (report as any).researcher?.email ||
+      report.reporterEmail ||
+      (report as any).authorEmail ||
+      undefined,
+    submitterId:
+      (report as any).researcher?.id ||
+      report.reporterId ||
+      report.reporterUsername ||
+      undefined,
     submitterAvatarUrl:
+      (report as any).researcher?.avatarUrl ||
       (report as any).reporterAvatarUrl ||
       (report as any).avatarUrl ||
       undefined,
+    submitterReputation:
+      typeof (report as any).researcher?.reputation === "number"
+        ? (report as any).researcher.reputation
+        : typeof (report as any).reporterReputation === "number"
+        ? (report as any).reporterReputation
+        : undefined,
     type: report.type || "Bounty",
     status,
     isReviewed,

@@ -112,6 +112,7 @@ export function formatReportTitle(title: string): string {
 
 export function getSeverityBadge(report: ManagedReport) {
   const isTrulyDisputed =
+    Boolean(report.isDisputed) ||
     Boolean(report.dispute) ||
     (Boolean(report.triageSeverity) &&
       Boolean(report.reportedSeverity) &&
@@ -255,17 +256,18 @@ export function ManagedReportCard({
           <div className="min-w-0">
             <div className="flex items-start gap-3.5">
               <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted border border-border shadow-2xs">
-                {report.programLogo ? (
+                {report.organizationLogoUrl || report.programLogo ? (
                   <Image
-                    src={report.programLogo}
-                    alt={`${report.title} logo`}
+                    src={report.organizationLogoUrl || report.programLogo!}
+                    alt={`${report.organizationName || report.title} logo`}
                     width={44}
                     height={44}
                     className="size-10 object-contain"
+                    unoptimized
                   />
                 ) : (
                   <span className="text-sm font-bold text-foreground">
-                    {report.authorInitials}
+                    {(report.organizationName || report.authorInitials || "DS").slice(0, 2).toUpperCase()}
                   </span>
                 )}
               </div>
@@ -277,8 +279,35 @@ export function ManagedReportCard({
                   </h3>
                   <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                     <span className="font-mono font-medium text-foreground">{reportId}</span>
+                    {(report.organizationName || report.programName) && (
+                      <>
+                        <span className="text-muted-foreground/60">&bull;</span>
+                        <span className="font-medium text-foreground truncate max-w-[170px]" title={`${report.organizationName || ""} / ${report.programName || ""}`}>
+                          {report.organizationName ? `${report.organizationName} / ` : ""}
+                          {report.programName || "Program"}
+                        </span>
+                      </>
+                    )}
                     <span className="text-muted-foreground/60">&bull;</span>
-                    <span className="truncate">{report.author}</span>
+                    <span className="inline-flex items-center gap-1 truncate max-w-[180px]">
+                      {report.authorAvatarUrl ? (
+                        <Image
+                          src={report.authorAvatarUrl}
+                          alt={report.author}
+                          width={16}
+                          height={16}
+                          className="size-4 rounded-full object-cover shrink-0"
+                          unoptimized
+                        />
+                      ) : null}
+                      <span className="truncate">{report.author}</span>
+                      {report.authorUsername && (
+                        <span className="text-muted-foreground/80">(@{report.authorUsername})</span>
+                      )}
+                      {typeof report.authorReputation === "number" && (
+                        <span className="text-amber-600 dark:text-amber-400 font-bold text-[10px]">★{report.authorReputation}</span>
+                      )}
+                    </span>
                     <span className="text-muted-foreground/60">&bull;</span>
                     <span>{report.submittedAt}</span>
                   </p>

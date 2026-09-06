@@ -8,11 +8,18 @@ export type ManagedReport = {
   reportId?: string;
   programId?: string;
   organizationId?: string;
+  programName?: string;
+  programHandle?: string;
+  organizationName?: string;
+  organizationLogoUrl?: string;
   title: string;
   programLogo?: string;
   author: string;
+  authorUsername?: string | null;
   authorEmail: string;
   authorInitials: string;
+  authorAvatarUrl?: string | null;
+  authorReputation?: number | null;
   authorId?: string;
   type: ReportType;
   status: ReportStatus;
@@ -26,6 +33,7 @@ export type ManagedReport = {
   summary: string;
   assets: string[];
   dispute?: import("@/lib/types/reports/types").DisputeDetail | null;
+  isDisputed?: boolean;
 };
 
 export type ReportManagementDetail = {
@@ -33,13 +41,18 @@ export type ReportManagementDetail = {
   reportId: string;
   programId?: string;
   organizationId?: string;
+  programName?: string;
+  organizationName?: string;
+  organizationLogoUrl?: string;
   title: string;
   programLogo?: string;
   submitter: string;
+  submitterUsername?: string;
   submitterInitials: string;
   submitterEmail?: string;
   submitterId?: string;
   submitterAvatarUrl?: string;
+  submitterReputation?: number;
   type: ReportType;
   status: ReportStatus;
   isReviewed?: boolean;

@@ -15,10 +15,35 @@ type ApiState =
   | "REJECTED"
   | "DUPLICATE";
 
+interface ResearcherSummary {
+  id: string;
+  username?: string;
+  fullName?: string;
+  email?: string;
+  avatarUrl?: string;
+  reputation?: number;
+  totalReports?: number;
+  validReports?: number;
+  country?: string;
+}
+
+interface ProgramSummary {
+  id: string;
+  name: string;
+  handle?: string;
+  organizationId: string;
+  organizationName: string;
+  organizationLogoUrl?: string;
+}
+
 interface ReportApiResponse {
   id: string;
   programId: string;
   reporterId?: string;
+  researcher?: ResearcherSummary;
+  program?: ProgramSummary;
+  isDisputed?: boolean;
+  dispute?: import("@/lib/types/reports/types").DisputeDetail | null;
   title: string;
   reportedSeverity?: ApiSeverity;
   triageSeverity?: ApiSeverity;
@@ -56,6 +81,9 @@ interface ReportApiResponse {
 interface ProgramApiResponse {
   id: string;
   name: string;
+  organizationId?: string;
+  organizationName?: string;
+  organizationLogoUrl?: string;
   engagementType?: string;
   assets?: Array<{
     id?: string;
@@ -324,16 +352,78 @@ function toManagedReport(
   program?: ProgramApiResponse,
   reporterProfile?: UserProfileApiResponse,
 ): ManagedReport {
-  const author = toAuthorName(report, reporterProfile);
+  const author =
+    report.researcher?.fullName?.trim() ||
+    report.researcher?.username ||
+    toAuthorName(report, reporterProfile);
+
+  const authorUsername =
+    report.researcher?.username ||
+    report.reporter?.username ||
+    null;
+
+  const authorEmail =
+    report.researcher?.email ||
+    toAuthorEmail(report);
+
+  const authorAvatarUrl =
+    report.researcher?.avatarUrl ||
+    null;
+
+  const authorReputation =
+    typeof report.researcher?.reputation === "number"
+      ? report.researcher.reputation
+      : null;
+
+  const authorId =
+    report.researcher?.id ||
+    reporterIdOf(report);
+
+  const programId =
+    report.program?.id ||
+    report.programId;
+
+  const programName =
+    report.program?.name ||
+    program?.name;
+
+  const programHandle =
+    report.program?.handle;
+
+  const organizationId =
+    report.program?.organizationId ||
+    program?.organizationId;
+
+  const organizationName =
+    report.program?.organizationName ||
+    program?.organizationName;
+
+  const organizationLogoUrl =
+    report.program?.organizationLogoUrl ||
+    program?.organizationLogoUrl;
+
+  const isDisputed =
+    report.isDisputed ??
+    Boolean(report.dispute);
 
   return {
     id: report.id,
     reportId: toDisplayReportId(report),
-    title: report.title || program?.name || "Untitled report",
-    programLogo: undefined,
+    programId,
+    organizationId,
+    programName,
+    programHandle,
+    organizationName,
+    organizationLogoUrl,
+    title: report.title || programName || "Untitled report",
+    programLogo: organizationLogoUrl || undefined,
     author,
-    authorEmail: toAuthorEmail(report),
+    authorUsername,
+    authorEmail,
     authorInitials: toInitials(author),
+    authorAvatarUrl,
+    authorReputation,
+    authorId,
     type: toManagedType(report, program),
     status: toManagedStatus(report.state),
     severity: toManagedSeverity(report),
@@ -345,7 +435,8 @@ function toManagedReport(
     submittedAtIso: report.submittedAt ?? report.createdAt ?? report.updatedAt,
     summary: toSummary(report),
     assets: toAssets(report, program),
-    dispute: (report as any).dispute ?? null,
+    dispute: report.dispute ?? null,
+    isDisputed,
   };
 }
 
@@ -383,21 +474,31 @@ export async function GET(request: NextRequest) {
     }
 
     const rawReports = extractReports(reportsResult.data);
-    const programIds = Array.from(
-      new Set(rawReports.map((report) => report.programId).filter(Boolean)),
+    const missingProgramIds = Array.from(
+      new Set(
+        rawReports
+          .filter((r) => !r.program?.name)
+          .map((r) => r.programId)
+          .filter(Boolean),
+      ),
     );
-    const reporterIds = Array.from(
-      new Set(rawReports.map((report) => reporterIdOf(report)).filter((id): id is string => Boolean(id))),
+    const missingReporterIds = Array.from(
+      new Set(
+        rawReports
+          .filter((r) => !r.researcher?.fullName && !r.researcher?.username)
+          .map((r) => reporterIdOf(r))
+          .filter((id): id is string => Boolean(id)),
+      ),
     );
 
     const [programResults, reporterResults] = await Promise.all([
       Promise.all(
-        programIds.map((id) =>
+        missingProgramIds.map((id) =>
           fetchOptionalBackendJson<ProgramApiResponse>(`/programs/${id}`, token),
         ),
       ),
       Promise.all(
-        reporterIds.map((id) =>
+        missingReporterIds.map((id) =>
           fetchOptionalBackendJson<UserProfileApiResponse>(`/user-profiles/${id}`, token),
         ),
       ),
@@ -406,14 +507,14 @@ export async function GET(request: NextRequest) {
     const programMap = new Map<string, ProgramApiResponse>();
     const reporterMap = new Map<string, UserProfileApiResponse>();
 
-    programIds.forEach((id, index) => {
+    missingProgramIds.forEach((id, index) => {
       const result = programResults[index];
       if (result?.ok) {
         programMap.set(id, result.data);
       }
     });
 
-    reporterIds.forEach((id, index) => {
+    missingReporterIds.forEach((id, index) => {
       const result = reporterResults[index];
       if (result?.ok) {
         reporterMap.set(id, result.data);
