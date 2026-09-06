@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { useUpdateShowcaseReviewStatusMutation } from "@/lib/redux/services/admin/showcaseReviewApi";
 import type { ShowcaseReviewStatus } from "@/lib/validations/showcase";
 
@@ -149,13 +150,13 @@ export function ShowcaseDecisionDialog({
           )}
         </div>
 
-        <DialogFooter className="flex flex-col gap-2 pt-2 sm:flex-row sm:justify-end">
+        <DialogFooter className="flex flex-col gap-2.5 pt-3 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
-            className="rounded-xl"
+            className="h-11 rounded-xl px-5 text-sm font-semibold border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
             Cancel
           </Button>
@@ -163,15 +164,16 @@ export function ShowcaseDecisionDialog({
             type="button"
             onClick={() => void submit()}
             disabled={isLoading}
-            className={
+            className={cn(
+              "h-11 rounded-xl px-6 text-sm font-bold text-white shadow-xs cursor-pointer transition-all active:scale-[0.98]",
               isReject
-                ? "rounded-xl bg-rose-600 text-white hover:bg-rose-700"
-                : "rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
-            }
+                ? "bg-rose-600 hover:bg-rose-700"
+                : "bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500",
+            )}
           >
             {isLoading ? (
               <>
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin mr-1.5" />
                 Saving…
               </>
             ) : isReject ? (
