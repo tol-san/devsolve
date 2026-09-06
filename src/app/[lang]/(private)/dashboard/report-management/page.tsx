@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import React, { useState } from "react";
-import { LayoutGrid, List, RefreshCw } from "lucide-react";
+import { LayoutGrid, List, MoveHorizontal, RefreshCw } from "lucide-react";
 
 import { motion } from "motion/react";
 
@@ -21,6 +21,7 @@ import {
   pageEnterItem,
 } from "@/components/ui/page-enter-motion";
 import { useReportManagement } from "@/hooks/useReportManagement";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 function ReportManagementContent() {
@@ -58,7 +59,9 @@ function ReportManagementContent() {
     refetch,
   } = useReportManagement();
 
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  const [userViewMode, setUserViewMode] = useState<"table" | "grid" | null>(null);
+  const isMobile = useIsMobile();
+  const viewMode = userViewMode ?? (isMobile ? "grid" : "table");
 
   const hasActiveFilters =
     searchTerm.trim().length > 0 ||
@@ -73,7 +76,7 @@ function ReportManagementContent() {
       initial="hidden"
       animate="visible"
       variants={pageEnterContainer}
-      className="space-y-6 w-full pb-12"
+      className="space-y-6 w-full pb-12 min-w-0 max-w-full overflow-hidden"
     >
       <motion.div variants={pageEnterItem}>
         <ReportManagementHeader />
@@ -110,17 +113,17 @@ function ReportManagementContent() {
         />
       </motion.div>
 
-      <motion.section variants={pageEnterItem} className="space-y-3">
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-3 sm:px-5 py-2.5 shadow-xs">
+      <motion.section variants={pageEnterItem} className="space-y-3 min-w-0 max-w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-3 sm:px-5 py-2.5 shadow-xs">
           <p className="text-sm font-medium text-foreground">
             Showing <strong className="font-semibold text-foreground">{filteredCount}</strong> of {totalCount} reports
           </p>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2">
             <div className="flex items-center p-1 bg-muted rounded-xl border border-border text-xs font-semibold">
               <button
                 type="button"
-                onClick={() => setViewMode("table")}
+                onClick={() => setUserViewMode("table")}
                 title="Table view"
                 className={cn(
                   "p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer",
@@ -134,7 +137,7 @@ function ReportManagementContent() {
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode("grid")}
+                onClick={() => setUserViewMode("grid")}
                 title="Cards view"
                 className={cn(
                   "p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer",
@@ -166,9 +169,9 @@ function ReportManagementContent() {
 
         {isLoading ? (
           viewMode === "table" ? (
-            <div className="overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
-              <div className="overflow-x-auto">
-                <div className="min-w-[1020px]">
+            <div className="w-full min-w-0 max-w-full overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
+              <div className="w-full overflow-x-auto overscroll-x-contain [scrollbar-width:thin]">
+                <div className="min-w-[860px]">
                   <div className="border-b border-border px-6 py-4">
                     <div className={reportListGridClass}>
                       {[
@@ -219,7 +222,7 @@ function ReportManagementContent() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-4.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3.5 sm:gap-4.5 min-w-0">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
@@ -263,9 +266,13 @@ function ReportManagementContent() {
             ) : null}
           </div>
         ) : viewMode === "table" ? (
-          <div className="overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
-            <div className="overflow-x-auto">
-              <div className="min-w-[1020px]">
+          <div className="w-full min-w-0 max-w-full overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-4 py-2 border-b border-border/60 bg-muted/30 lg:hidden">
+              <MoveHorizontal className="size-3.5 shrink-0 text-muted-foreground" />
+              <span>Scroll horizontally to view all columns</span>
+            </div>
+            <div className="w-full overflow-x-auto overscroll-x-contain [scrollbar-width:thin]">
+              <div className="min-w-[860px]">
                 <div className="border-b border-border px-6 py-4">
                   <div className={reportListGridClass}>
                     {[
@@ -316,7 +323,7 @@ function ReportManagementContent() {
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-4.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3.5 sm:gap-4.5 min-w-0">
               {paginatedReports.map((report, index) => (
                 <ManagedReportGridCard
                   key={report.id}

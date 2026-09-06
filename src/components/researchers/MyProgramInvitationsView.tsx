@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
+import { useGetProgramByIdQuery } from "@/lib/redux/services/program/programsApi";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,22 +50,34 @@ import { cn } from "@/lib/utils";
 type TabType = "pending" | "active" | "history";
 
 function ProgramOrganizationHeader({
+  programId,
   organizationId,
   compact = false,
 }: {
+  programId?: string;
   organizationId?: string;
   compact?: boolean;
 }) {
   const lp = useLocalePath();
-  const { data: org, isLoading } = useGetOrganizationByIdQuery(
-    organizationId ?? "",
-    { skip: !organizationId }
+  const { data: program } = useGetProgramByIdQuery(programId ?? "", {
+    skip: Boolean(organizationId) || !programId,
+  });
+
+  const effectiveOrgId =
+    organizationId || program?.organizationId || program?.organization?.id;
+  const directOrg = program?.organization;
+
+  const { data: orgData, isLoading } = useGetOrganizationByIdQuery(
+    effectiveOrgId ?? "",
+    { skip: !effectiveOrgId || Boolean(directOrg) }
   );
+
+  const org = directOrg || orgData;
   const [imageError, setImageError] = useState(false);
 
-  if (!organizationId) return null;
+  if (!effectiveOrgId && !org) return null;
 
-  if (isLoading) {
+  if (isLoading && !org) {
     return (
       <div className="flex items-center gap-2 animate-pulse pt-0.5">
         <div className="size-5 rounded-md bg-muted shrink-0" />
@@ -84,7 +97,9 @@ function ProgramOrganizationHeader({
       .join("")
       .toUpperCase() || "OR";
 
-  const companyHref = lp(`/company?id=${org.id}`);
+  const orgName = org.name || "Organization";
+  const orgWebsite = org.websiteUrl || (org as { domain?: string }).domain;
+  const companyHref = lp(org.id ? `/company?id=${org.id}` : "/company");
   const logoUrl = !imageError ? org.logoUrl : null;
 
   if (compact) {
@@ -98,7 +113,7 @@ function ProgramOrganizationHeader({
           {logoUrl ? (
             <Image
               src={logoUrl}
-              alt={org.name}
+              alt={orgName}
               width={16}
               height={16}
               className="w-full h-full object-cover"
@@ -110,7 +125,7 @@ function ProgramOrganizationHeader({
           )}
         </div>
         <span className="truncate group-hover/org:underline font-medium">
-          {org.name}
+          {orgName}
         </span>
       </Link>
     );
@@ -126,7 +141,7 @@ function ProgramOrganizationHeader({
         {logoUrl ? (
           <Image
             src={logoUrl}
-            alt={org.name}
+            alt={orgName}
             width={32}
             height={32}
             className="w-full h-full object-cover"
@@ -142,13 +157,15 @@ function ProgramOrganizationHeader({
       <div className="min-w-0">
         <div className="flex items-center gap-1">
           <h4 className="text-xs font-bold text-foreground group-hover/org:text-primary group-hover/org:underline transition-colors truncate">
-            {org.name}
+            {orgName}
           </h4>
           <Building2 className="size-3 text-muted-foreground shrink-0" />
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          {org.domain && <span className="truncate">{org.domain}</span>}
-          {org.domain && org.industry && <span>·</span>}
+          {orgWebsite && (
+            <span className="truncate">{orgWebsite.replace(/^https?:\/\//, "")}</span>
+          )}
+          {orgWebsite && org.industry && <span>·</span>}
           {org.industry && (
             <span className="capitalize">{org.industry.toLowerCase()}</span>
           )}
@@ -414,7 +431,10 @@ export function MyProgramInvitationsView() {
                                   @{item.programHandle}
                                 </p>
                               )}
-                              <ProgramOrganizationHeader organizationId={item.organizationId} />
+                              <ProgramOrganizationHeader
+                                programId={item.programId}
+                                organizationId={item.organizationId}
+                              />
                             </div>
 
                             <span
@@ -556,7 +576,10 @@ export function MyProgramInvitationsView() {
                                 @{item.programHandle}
                               </p>
                             )}
-                            <ProgramOrganizationHeader organizationId={item.organizationId} />
+                            <ProgramOrganizationHeader
+                              programId={item.programId}
+                              organizationId={item.organizationId}
+                            />
                           </div>
 
                           <span
@@ -665,6 +688,7 @@ export function MyProgramInvitationsView() {
                                     </span>
                                   )}
                                   <ProgramOrganizationHeader
+                                    programId={item.programId}
                                     organizationId={item.organizationId}
                                     compact
                                   />

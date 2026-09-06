@@ -16,38 +16,38 @@ export function ReportManagementHeader() {
         </p>
       </div>
 
-      <div className="flex shrink-0 flex-col gap-3 sm:flex-row lg:justify-end">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-2.5 sm:justify-end">
         <Link
           href="/dashboard/organization-security"
           className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "h-11 items-center justify-center gap-2 rounded-xl border-red-500/20 bg-red-500/5 px-4 font-semibold text-red-600 dark:text-red-400 shadow-none hover:bg-red-500/10 cursor-pointer"
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl border-red-500/20 bg-red-500/5 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-red-600 dark:text-red-400 shadow-none hover:bg-red-500/10 cursor-pointer"
           )}
         >
-          <ShieldAlert className="size-4" />
-          Malware Incidents
+          <ShieldAlert className="size-3.5 sm:size-4" />
+          <span>Malware Incidents</span>
         </Link>
 
         <Link
           href="/dashboard/report-management/review-queue"
           className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "h-11 items-center justify-center gap-2.5 rounded-xl border-border bg-card px-5 font-semibold text-foreground shadow-none hover:bg-muted cursor-pointer"
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl border-border bg-card px-3 sm:px-4 text-xs sm:text-sm font-semibold text-foreground shadow-none hover:bg-muted cursor-pointer"
           )}
         >
-          <ListChecks className="size-4" />
-          Review Queue
+          <ListChecks className="size-3.5 sm:size-4" />
+          <span>Review Queue</span>
         </Link>
 
         <Link
           href="/dashboard/report-management/export"
           className={cn(
-            buttonVariants({ variant: "outline", size: "lg" }),
-            "h-11 items-center justify-center gap-2.5 rounded-xl border-border bg-card px-5 font-semibold text-foreground shadow-none hover:bg-muted cursor-pointer"
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "h-9 sm:h-10 items-center justify-center gap-1.5 rounded-xl border-border bg-card px-3 sm:px-4 text-xs sm:text-sm font-semibold text-foreground shadow-none hover:bg-muted cursor-pointer"
           )}
         >
-          <Download className="size-4" />
-          Export
+          <Download className="size-3.5 sm:size-4" />
+          <span>Export</span>
         </Link>
       </div>
     </header>

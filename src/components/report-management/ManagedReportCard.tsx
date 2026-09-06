@@ -79,8 +79,45 @@ export function getWorkflowStatusBadge(report: ManagedReport) {
   );
 }
 
+export function formatAssetLabel(asset: string): string {
+  if (!asset) return "";
+  try {
+    if (asset.startsWith("http://") || asset.startsWith("https://")) {
+      const url = new URL(asset);
+      if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+        return url.pathname || url.hostname;
+      }
+      return `${url.hostname}${url.pathname !== "/" ? url.pathname : ""}`;
+    }
+  } catch {
+    // ignore
+  }
+  return asset;
+}
+
+export function formatReportTitle(title: string): string {
+  if (!title) return "Untitled Report";
+  if (title.startsWith("http://") || title.startsWith("https://")) {
+    try {
+      const firstHttp = title.indexOf("http", 4);
+      const cleanTitle = firstHttp > 0 ? title.slice(0, firstHttp) : title;
+      const url = new URL(cleanTitle);
+      return url.pathname.length > 1 ? url.pathname : cleanTitle;
+    } catch {
+      return title;
+    }
+  }
+  return title;
+}
+
 export function getSeverityBadge(report: ManagedReport) {
-  if (!report.severity) {
+  const isTrulyDisputed =
+    Boolean(report.dispute) ||
+    (Boolean(report.triageSeverity) &&
+      Boolean(report.reportedSeverity) &&
+      report.triageSeverity !== report.reportedSeverity);
+
+  if (isTrulyDisputed) {
     return (
       <DisputedSeverityPair
         reportedSeverity={report.reportedSeverity}
@@ -90,29 +127,82 @@ export function getSeverityBadge(report: ManagedReport) {
       />
     );
   }
-  switch (report.severity) {
+
+  const effectiveSeverity =
+    report.severity ||
+    (report.triageSeverity
+      ? report.triageSeverity.charAt(0) + report.triageSeverity.slice(1).toLowerCase()
+      : null) ||
+    (report.reportedSeverity
+      ? report.reportedSeverity.charAt(0) + report.reportedSeverity.slice(1).toLowerCase()
+      : null) ||
+    "Low";
+
+  const isProposed = !report.severity && !report.triageSeverity;
+
+  switch (effectiveSeverity) {
     case "Critical":
       return (
-        <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-red-600 text-white shadow-2xs">
-          CRITICAL
+        <Badge
+          variant={isProposed ? "outline" : "default"}
+          className={cn(
+            "h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold shadow-2xs gap-1",
+            isProposed
+              ? "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400"
+              : "bg-red-600 text-white"
+          )}
+        >
+          {isProposed && <span className="size-1.5 rounded-full bg-red-500 animate-pulse" />}
+          <span>CRITICAL</span>
+          {isProposed && <span className="text-[9px] font-medium opacity-80">(Rep)</span>}
         </Badge>
       );
     case "High":
       return (
-        <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-orange-500 text-white shadow-2xs">
-          HIGH
+        <Badge
+          variant={isProposed ? "outline" : "default"}
+          className={cn(
+            "h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold shadow-2xs gap-1",
+            isProposed
+              ? "border-orange-500/30 bg-orange-500/10 text-orange-600 dark:text-orange-400"
+              : "bg-orange-500 text-white"
+          )}
+        >
+          {isProposed && <span className="size-1.5 rounded-full bg-orange-500" />}
+          <span>HIGH</span>
+          {isProposed && <span className="text-[9px] font-medium opacity-80">(Rep)</span>}
         </Badge>
       );
     case "Medium":
       return (
-        <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-amber-500 text-white shadow-2xs">
-          MEDIUM
+        <Badge
+          variant={isProposed ? "outline" : "default"}
+          className={cn(
+            "h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold shadow-2xs gap-1",
+            isProposed
+              ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+              : "bg-amber-500 text-white"
+          )}
+        >
+          {isProposed && <span className="size-1.5 rounded-full bg-amber-500" />}
+          <span>MEDIUM</span>
+          {isProposed && <span className="text-[9px] font-medium opacity-80">(Rep)</span>}
         </Badge>
       );
     default:
       return (
-        <Badge className="h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold bg-blue-600 text-white shadow-2xs">
-          LOW
+        <Badge
+          variant={isProposed ? "outline" : "default"}
+          className={cn(
+            "h-7 min-w-[84px] justify-center rounded-full px-2.5 text-[11px] font-bold shadow-2xs gap-1",
+            isProposed
+              ? "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400"
+              : "bg-blue-600 text-white"
+          )}
+        >
+          {isProposed && <span className="size-1.5 rounded-full bg-blue-500" />}
+          <span>LOW</span>
+          {isProposed && <span className="text-[9px] font-medium opacity-80">(Rep)</span>}
         </Badge>
       );
   }
@@ -183,7 +273,7 @@ export function ManagedReportCard({
               <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="space-y-0.5">
                   <h3 className="truncate text-base font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {report.title}
+                    {formatReportTitle(report.title)}
                   </h3>
                   <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                     <span className="font-mono font-medium text-foreground">{reportId}</span>
@@ -208,7 +298,7 @@ export function ManagedReportCard({
                 className="inline-flex max-w-[165px] truncate rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-foreground"
                 title={asset}
               >
-                {asset}
+                {formatAssetLabel(asset)}
               </span>
             ))}
             {hiddenAssetsCount > 0 ? (

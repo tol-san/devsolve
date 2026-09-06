@@ -12,6 +12,8 @@ import {
   getSeverityBadge,
   getTypeBadgeClass,
   getDisplayReportId,
+  formatAssetLabel,
+  formatReportTitle,
 } from "./ManagedReportCard";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -35,12 +37,12 @@ export function ManagedReportGridCard({ report, index }: ManagedReportGridCardPr
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: Math.min(index * 0.04, 0.3) }}
       className={cn(
-        "group relative flex flex-col justify-between rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-primary/25",
+        "group relative flex flex-col justify-between rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 sm:p-5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-primary/25 min-w-0",
         isRetesting &&
           "ring-1 ring-cyan-500/40 bg-gradient-to-b from-cyan-500/[0.06] via-card to-card",
       )}
     >
-      <div className="space-y-4">
+      <div className="space-y-3.5 sm:space-y-4 min-w-0">
         {/* Top Header: Submitter + Status */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -78,32 +80,34 @@ export function ManagedReportGridCard({ report, index }: ManagedReportGridCardPr
             href={`/dashboard/report-management/${report.id}`}
             className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
           >
-            <h3 className="line-clamp-2 text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug">
-              {report.title}
+            <h3 className="line-clamp-2 text-sm sm:text-base font-bold text-foreground group-hover:text-primary transition-colors leading-snug break-all [word-break:break-word]">
+              {formatReportTitle(report.title)}
             </h3>
           </Link>
-          <p className="line-clamp-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          <p className="line-clamp-2 text-xs sm:text-sm text-muted-foreground leading-relaxed break-words">
             {report.summary || "No vulnerability summary provided."}
           </p>
         </div>
 
         {/* Meta Badges Row: ID, Type, Severity */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/50">
-          <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-muted text-foreground border border-border">
-            {reportId}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/50">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-muted text-foreground border border-border">
+              {reportId}
+            </span>
 
-          <Badge
-            variant="outline"
-            className={cn(
-              "h-6 px-2 text-[11px] font-bold rounded-full",
-              getTypeBadgeClass(report.type),
-            )}
-          >
-            {report.type}
-          </Badge>
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-6 px-2 text-[11px] font-bold rounded-full",
+                getTypeBadgeClass(report.type),
+              )}
+            >
+              {report.type}
+            </Badge>
+          </div>
 
-          <div className="ml-auto shrink-0">{getSeverityBadge(report)}</div>
+          <div className="shrink-0">{getSeverityBadge(report)}</div>
         </div>
 
         {/* Assets Section */}
@@ -115,7 +119,7 @@ export function ManagedReportGridCard({ report, index }: ManagedReportGridCardPr
                 className="inline-flex max-w-[200px] truncate rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-foreground"
                 title={asset}
               >
-                {asset}
+                {formatAssetLabel(asset)}
               </span>
             ))}
             {hiddenAssetsCount > 0 && (

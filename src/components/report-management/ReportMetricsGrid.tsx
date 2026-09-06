@@ -39,7 +39,7 @@ export function ReportMetricsGrid({
   ];
 
   return (
-    <section className="grid grid-cols-1 gap-3.5 md:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-2.5 sm:gap-3.5 lg:grid-cols-4 min-w-0">
       {metricItems.map((metric, index) => {
         const Icon = METRIC_ICONS[index];
         const isActive = activeQueue === metric.queueKey;
@@ -49,43 +49,45 @@ export function ReportMetricsGrid({
             type="button"
             key={metric.title}
             onClick={() => onMetricClick?.(metric.key)}
-            className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-[26px] cursor-pointer"
+            className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl sm:rounded-[26px] cursor-pointer min-w-0"
           >
             <Card
               size="sm"
               className={cn(
-                "rounded-[26px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
+                "rounded-2xl sm:rounded-[26px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md min-w-0",
                 "[--card-spacing:--spacing(0)]",
                 isActive && "ring-2 ring-primary bg-primary/[0.04]",
               )}
             >
-              <CardContent className="flex items-start justify-between px-5 py-5">
-                <div className="flex min-w-0 flex-col gap-3">
-                  <div className="flex items-center gap-2.5">
+              <CardContent className="flex items-start justify-between p-3 sm:p-4.5 md:p-5">
+                <div className="flex min-w-0 flex-col gap-2 sm:gap-3 w-full">
+                  <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                     <div
                       className={cn(
-                        "flex size-11 items-center justify-center rounded-2xl shadow-2xs transition-transform duration-200",
+                        "flex size-8 sm:size-11 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl shadow-2xs transition-transform duration-200",
                         index === 0 && "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20",
                         index === 1 && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
                         index === 2 && "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
                         index === 3 && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                       )}
                     >
-                      <Icon className="size-5" />
+                      <Icon className="size-4 sm:size-5" />
                     </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
                         {metric.title}
                       </span>
-                      <span className="text-[11px] text-muted-foreground/80">{METRIC_HELPERS[index]}</span>
+                      <span className="text-[10px] sm:text-[11px] text-muted-foreground/80 truncate hidden sm:block">
+                        {METRIC_HELPERS[index]}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex items-end gap-3">
                     {isLoading ? (
-                      <div className="h-9 w-20 animate-pulse rounded-xl bg-muted" />
+                      <div className="h-7 sm:h-9 w-12 sm:w-20 animate-pulse rounded-xl bg-muted" />
                     ) : (
-                      <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-none">
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground leading-none">
                         {metric.value}
                       </p>
                     )}

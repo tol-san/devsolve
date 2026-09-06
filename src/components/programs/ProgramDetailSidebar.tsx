@@ -2,16 +2,29 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Zap, Calendar, FileText, Loader2, Clock } from "lucide-react";
+import {
+  Zap,
+  Calendar,
+  FileText,
+  Loader2,
+  Clock,
+  Building2,
+  CheckCircle2,
+  Globe,
+  ArrowRight,
+} from "lucide-react";
 import { ProgramDetail } from "@/lib/types/programs/types";
 import { isPublished, isUnderReview } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { authClient } from "@/lib/auth/auth-client";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useGetMyProgramInvitationsQuery } from "@/lib/redux/services/programInvitationsApi";
+import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
 
 interface ProgramDetailSidebarProps {
   program: ProgramDetail;
@@ -83,6 +96,23 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
     !isOwnProgram &&
     (!isPrivate || isPrivateAccepted);
 
+  const effectiveOrgId = program.organization?.id || program.organizationId;
+  const { data: fetchedOrg } = useGetOrganizationByIdQuery(effectiveOrgId ?? "", {
+    skip: !effectiveOrgId || Boolean(program.organization?.logoUrl && program.organization?.name),
+  });
+  const org = program.organization || fetchedOrg;
+  const [imageError, setImageError] = React.useState(false);
+  const orgLogoUrl = !imageError ? (org?.logoUrl || program.logoUrl) : null;
+  const orgName = org?.name || program.organizationName || "Organization";
+  const initials =
+    orgName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || "OR";
+
   const handleSubmitReport = () => {
     const targetUrl = lp(`/dashboard/submit-report?programId=${program.id}`);
     if (session?.user) {
@@ -94,6 +124,84 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
 
   return (
     <aside className="space-y-6">
+      {/* Organization Profile Card */}
+      {(org || program.organizationName) && (
+        <section className="bg-card p-5 sm:p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span>Organization</span>
+            </h3>
+            {org?.verifiedAt && (
+              <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold rounded-full px-2 py-0.5 gap-1">
+                <CheckCircle2 className="size-3" />
+                <span>Verified</span>
+              </Badge>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="size-12 rounded-xl bg-muted border border-border flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+              {orgLogoUrl ? (
+                <Image
+                  src={orgLogoUrl}
+                  alt={orgName}
+                  width={48}
+                  height={48}
+                  className="size-10 object-contain"
+                  onError={() => setImageError(true)}
+                  unoptimized
+                />
+              ) : (
+                <span className="text-sm font-bold text-foreground">
+                  {initials}
+                </span>
+              )}
+            </div>
+
+            <div className="min-w-0 space-y-0.5 flex-1">
+              <h4 className="text-sm font-bold text-foreground truncate">
+                {orgName}
+              </h4>
+              {org?.websiteUrl && (
+                <a
+                  href={org.websiteUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 truncate"
+                >
+                  <Globe className="size-3 shrink-0" />
+                  <span className="truncate">{org.websiteUrl.replace(/^https?:\/\//, "")}</span>
+                </a>
+              )}
+            </div>
+          </div>
+
+          {org?.description && (
+            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+              {org.description}
+            </p>
+          )}
+
+          <div className="pt-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+            {org?.industry && (
+              <span className="font-medium bg-muted px-2 py-0.5 rounded-md text-[11px] text-foreground">
+                {org.industry}
+              </span>
+            )}
+            {effectiveOrgId && (
+              <Link
+                href={lp(`/company?id=${effectiveOrgId}`)}
+                className="text-primary font-semibold hover:underline inline-flex items-center gap-1 ml-auto text-xs"
+              >
+                <span>View Profile</span>
+                <ArrowRight className="size-3" />
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
+
       <section className="bg-card p-4 sm:p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-4">
         <h3 className="text-base font-bold text-foreground flex items-center gap-2">
           <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />

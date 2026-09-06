@@ -43,12 +43,12 @@ export function ReportManagementPagination({
   const end = Math.min(currentPage * rowsPerPage, filteredCount);
 
   return (
-    <footer className="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-muted-foreground">
+    <footer className="flex flex-col gap-3 px-4 sm:px-6 py-3.5 sm:py-4 sm:flex-row sm:items-center sm:justify-between text-center sm:text-left">
+      <p className="text-xs sm:text-sm text-muted-foreground">
         {start}-{end} of {filteredCount} reports
       </p>
 
-      <nav aria-label="Pagination" className="flex items-center gap-2 self-end sm:self-auto">
+      <nav aria-label="Pagination" className="flex items-center gap-1.5 sm:gap-2 justify-center sm:justify-end">
         <Button
           variant="outline"
           size="icon-sm"

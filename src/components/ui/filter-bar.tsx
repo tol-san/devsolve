@@ -121,7 +121,7 @@ export function FilterSelect({
   return (
     <div
       className={cn(
-        "inline-flex h-11 items-center gap-2 rounded-xl bg-muted/50 px-3 text-sm text-muted-foreground shadow-[0_1px_3px_rgba(15,23,42,0.04)]",
+        "inline-flex h-11 items-center gap-2 rounded-xl bg-muted/50 px-3 text-sm text-muted-foreground shadow-[0_1px_3px_rgba(15,23,42,0.04)] min-w-0",
         className,
       )}
     >
@@ -130,7 +130,7 @@ export function FilterSelect({
       <Select items={items} value={value} onValueChange={(next) => next && onValueChange(next)}>
         <SelectTrigger
           aria-label={label}
-          className="h-8 cursor-pointer border-none bg-transparent font-medium text-foreground shadow-none focus:ring-0"
+          className="h-8 flex-1 min-w-0 cursor-pointer border-none bg-transparent font-medium text-foreground shadow-none focus:ring-0 [&>span]:truncate"
         >
           <SelectValue />
         </SelectTrigger>

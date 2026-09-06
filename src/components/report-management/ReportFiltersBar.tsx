@@ -187,13 +187,14 @@ export function ReportFiltersBar({
           placeholder="Search by title, report ID (#RPT), researcher, or asset..."
         />
 
-        <FilterControls>
+        <FilterControls className="grid grid-cols-2 sm:grid-cols-4 lg:flex lg:flex-wrap items-center gap-2 w-full lg:w-auto min-w-0">
           <FilterSelect
             icon={Tag}
             label="Type"
             items={typeItems}
             value={typeFilter}
             onValueChange={(value) => onTypeFilterChange(value as TypeFilter)}
+            className="w-full lg:w-auto justify-between lg:justify-start min-w-0"
           />
           <FilterSelect
             icon={AlertTriangle}
@@ -203,6 +204,7 @@ export function ReportFiltersBar({
             onValueChange={(value) =>
               onSeverityFilterChange(value as SeverityFilter)
             }
+            className="w-full lg:w-auto justify-between lg:justify-start min-w-0"
           />
           <FilterSelect
             icon={ShieldCheck}
@@ -212,6 +214,7 @@ export function ReportFiltersBar({
             onValueChange={(value) =>
               onStatusFilterChange(value as StatusFilter)
             }
+            className="w-full lg:w-auto justify-between lg:justify-start min-w-0"
           />
           {onSortOptionChange && (
             <FilterSelect
@@ -222,6 +225,7 @@ export function ReportFiltersBar({
               onValueChange={(value) =>
                 onSortOptionChange(value as ReportSortOption)
               }
+              className="w-full lg:w-auto justify-between lg:justify-start min-w-0"
             />
           )}
         </FilterControls>
