@@ -61,33 +61,25 @@ export function DisputedSeverityPair({
     return (
       <div
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 dark:border-amber-500/20 text-xs shadow-2xs flex-wrap sm:flex-nowrap",
+          "inline-flex flex-col items-center justify-center gap-0.5 px-2.5 py-1 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 dark:border-amber-500/20 text-xs shadow-2xs max-w-full text-center shrink-0",
           className
         )}
       >
-        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 shrink-0">
+        <div className="flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 shrink-0 leading-none">
           <Scale className="size-3 text-amber-500 shrink-0" />
           <span>Disputed</span>
         </div>
-        <span className="text-muted-foreground/40 text-[10px]">|</span>
-        <div className="inline-flex items-center gap-1 text-[11px] font-semibold">
+        <div className="inline-flex items-center justify-center gap-1 text-[11px] font-semibold whitespace-nowrap leading-tight">
           <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(reportedSeverity))} />
           <span className="text-muted-foreground text-[10px] font-normal">Rep:</span>
-          <span className="font-extrabold text-foreground">{reportedLabel}</span>
-        </div>
-        <span className="text-[9px] font-extrabold uppercase text-muted-foreground/60 select-none">
-          vs
-        </span>
-        <div className="inline-flex items-center gap-1 text-[11px] font-semibold">
+          <span className="font-bold text-foreground">{reportedLabel}</span>
+          <span className="text-[9px] font-bold uppercase text-muted-foreground/60 select-none px-0.5">
+            vs
+          </span>
           <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(triageSeverity))} />
           <span className="text-muted-foreground text-[10px] font-normal">Org:</span>
-          <span className="font-extrabold text-foreground">{triageLabel}</span>
+          <span className="font-bold text-foreground">{triageLabel}</span>
         </div>
-        {cvssScore && (
-          <span className="font-mono text-[10px] text-muted-foreground pl-0.5">
-            ({cvssScore})
-          </span>
-        )}
       </div>
     );
   }

@@ -2,12 +2,14 @@
 
 export const dynamic = "force-dynamic";
 
-import { RefreshCw } from "lucide-react";
+import React, { useState } from "react";
+import { LayoutGrid, List, RefreshCw } from "lucide-react";
 
 import { motion } from "motion/react";
 
 import { RequireOrgPermission } from "@/components/auth/RequireOrgPermission";
 import { ManagedReportCard } from "@/components/report-management/ManagedReportCard";
+import { ManagedReportGridCard } from "@/components/report-management/ManagedReportGridCard";
 import { ReportFiltersBar } from "@/components/report-management/ReportFiltersBar";
 import { ReportManagementHeader } from "@/components/report-management/ReportManagementHeader";
 import { ReportManagementPagination } from "@/components/report-management/ReportManagementPagination";
@@ -19,12 +21,12 @@ import {
   pageEnterItem,
 } from "@/components/ui/page-enter-motion";
 import { useReportManagement } from "@/hooks/useReportManagement";
+import { cn } from "@/lib/utils";
 
 function ReportManagementContent() {
   const {
     searchTerm,
     setSearchTerm,
-    debouncedSearch,
     typeFilter,
     setTypeFilter,
     severityFilter,
@@ -55,6 +57,8 @@ function ReportManagementContent() {
     isError,
     refetch,
   } = useReportManagement();
+
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 
   const hasActiveFilters =
     searchTerm.trim().length > 0 ||
@@ -107,79 +111,123 @@ function ReportManagementContent() {
       </motion.div>
 
       <motion.section variants={pageEnterItem} className="space-y-3">
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-4 sm:px-6 py-3.5 shadow-xs">
+        <div className="flex items-center justify-between gap-3 rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-3 sm:px-5 py-2.5 shadow-xs">
           <p className="text-sm font-medium text-foreground">
             Showing <strong className="font-semibold text-foreground">{filteredCount}</strong> of {totalCount} reports
           </p>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-lg"
-            onClick={() => {
-              setCurrentPage(1);
-              void refetch();
-            }}
-            className="rounded-xl border-border bg-card text-muted-foreground shadow-none hover:bg-muted hover:text-foreground cursor-pointer"
-            aria-label="Refresh report list"
-          >
-            <RefreshCw className={isFetching ? "animate-spin" : undefined} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center p-1 bg-muted rounded-xl border border-border text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                title="Table view"
+                className={cn(
+                  "p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer",
+                  viewMode === "table"
+                    ? "bg-card text-foreground shadow-xs ring-1 ring-foreground/5"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <List className="size-4" />
+                <span className="hidden sm:inline">Table</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                title="Cards view"
+                className={cn(
+                  "p-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer",
+                  viewMode === "grid"
+                    ? "bg-card text-foreground shadow-xs ring-1 ring-foreground/5"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <LayoutGrid className="size-4" />
+                <span className="hidden sm:inline">Cards</span>
+              </button>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                setCurrentPage(1);
+                void refetch();
+              }}
+              className="size-9 rounded-xl border-border bg-card text-muted-foreground shadow-none hover:bg-muted hover:text-foreground cursor-pointer"
+              aria-label="Refresh report list"
+            >
+              <RefreshCw className={cn("size-4", isFetching && "animate-spin")} />
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
-            <div className="overflow-x-auto">
-              <div className="min-w-[950px]">
-                <div className="border-b border-border px-6 py-4">
-                  <div className={reportListGridClass}>
-                    {[
-                      { label: "Report", align: "text-left" },
-                      { label: "Assets", align: "text-left" },
-                      { label: "Type", align: "text-center" },
-                      { label: "Status", align: "text-center" },
-                      { label: "Severity", align: "text-center" },
-                    ].map(({ label, align }) => (
-                      <span
-                        key={label}
-                        className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground ${align}`}
+          viewMode === "table" ? (
+            <div className="overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
+              <div className="overflow-x-auto">
+                <div className="min-w-[1020px]">
+                  <div className="border-b border-border px-6 py-4">
+                    <div className={reportListGridClass}>
+                      {[
+                        { label: "Report", align: "text-left" },
+                        { label: "Assets", align: "text-left" },
+                        { label: "Type", align: "text-center" },
+                        { label: "Status", align: "text-center" },
+                        { label: "Severity", align: "text-center" },
+                      ].map(({ label, align }) => (
+                        <span
+                          key={label}
+                          className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground ${align}`}
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="divide-y divide-border bg-card">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <div
+                        key={`report-skeleton-${index}`}
+                        className={`px-6 py-5 ${reportListGridClass}`}
                       >
-                        {label}
-                      </span>
+                        <div className="space-y-3">
+                          <div className="h-5 w-2/3 animate-pulse rounded bg-muted" />
+                          <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
+                          <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <div className="h-7 w-24 animate-pulse rounded-full bg-muted" />
+                          <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
-
-                <div className="divide-y divide-border bg-card">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <div
-                      key={`report-skeleton-${index}`}
-                      className={`px-6 py-5 ${reportListGridClass}`}
-                    >
-                      <div className="space-y-3">
-                        <div className="h-5 w-2/3 animate-pulse rounded bg-muted" />
-                        <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
-                        <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <div className="h-7 w-24 animate-pulse rounded-full bg-muted" />
-                        <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-4.5">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-56 rounded-2xl bg-card ring-1 ring-foreground/5 dark:ring-foreground/10 animate-pulse p-5 space-y-4"
+                />
+              ))}
+            </div>
+          )
         ) : isError ? (
           <div className="flex min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-10 text-center shadow-xs">
             <h3 className="text-xl font-semibold text-foreground">
@@ -214,10 +262,10 @@ function ReportManagementContent() {
               </button>
             ) : null}
           </div>
-        ) : (
+        ) : viewMode === "table" ? (
           <div className="overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
             <div className="overflow-x-auto">
-              <div className="min-w-[950px]">
+              <div className="min-w-[1020px]">
                 <div className="border-b border-border px-6 py-4">
                   <div className={reportListGridClass}>
                     {[
@@ -256,6 +304,29 @@ function ReportManagementContent() {
             </div>
 
             <div className="border-t border-border">
+              <ReportManagementPagination
+                rowsPerPage={rowsPerPage}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageNumbers={pageNumbers}
+                onPageChange={setCurrentPage}
+                filteredCount={filteredCount}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-4.5">
+              {paginatedReports.map((report, index) => (
+                <ManagedReportGridCard
+                  key={report.id}
+                  report={report}
+                  index={index}
+                />
+              ))}
+            </div>
+
+            <div className="rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs overflow-hidden">
               <ReportManagementPagination
                 rowsPerPage={rowsPerPage}
                 currentPage={currentPage}

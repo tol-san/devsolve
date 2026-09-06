@@ -55,7 +55,8 @@ export function ReportMetricsGrid({
               size="sm"
               className={cn(
                 "rounded-[26px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
-                "[--card-spacing:--spacing(0)]"
+                "[--card-spacing:--spacing(0)]",
+                isActive && "ring-2 ring-primary bg-primary/[0.04]",
               )}
             >
               <CardContent className="flex items-start justify-between px-5 py-5">

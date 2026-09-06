@@ -2,27 +2,26 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, Eye, ShieldAlert, CircleAlert, CheckCircle2, ShieldCheck, Clock, RotateCcw, X } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Clock, RotateCcw } from "lucide-react";
 
 import type { ManagedReport } from "@/components/report-management/types";
 import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { reportListGridClass } from "@/components/report-management/report-list-layout";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-function getTypeBadgeClass(type: ManagedReport["type"]) {
+export function getTypeBadgeClass(type: ManagedReport["type"]) {
   return type === "Bounty"
     ? "border-blue-500/20 bg-blue-500/10 text-blue-700 dark:text-blue-300"
     : "border-purple-500/20 bg-purple-500/10 text-purple-700 dark:text-purple-300";
 }
 
-function getWorkflowStatusBadge(report: ManagedReport) {
+export function getWorkflowStatusBadge(report: ManagedReport) {
   if (report.queueState === "APPROVED") {
     return (
       <Badge
         variant="outline"
-        className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1.5"
+        className="h-7 min-w-[96px] justify-center rounded-full px-2.5 text-[11px] font-bold border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1.5"
       >
         <CheckCircle2 className="size-3 text-emerald-500" />
         <span>CONFIRMED</span>
@@ -30,11 +29,14 @@ function getWorkflowStatusBadge(report: ManagedReport) {
     );
   }
 
-  if (report.queueState === "RETESTING" || (report as any).state === "RETESTING") {
+  if (
+    report.queueState === "RETESTING" ||
+    (report as unknown as { state?: string }).state === "RETESTING"
+  ) {
     return (
       <Badge
         variant="outline"
-        className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 inline-flex items-center gap-1.5"
+        className="h-7 min-w-[96px] justify-center rounded-full px-2.5 text-[11px] font-bold border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 inline-flex items-center gap-1.5"
       >
         <RotateCcw className="size-3 text-cyan-500 animate-spin-slow" />
         <span>RETESTING</span>
@@ -46,7 +48,7 @@ function getWorkflowStatusBadge(report: ManagedReport) {
     return (
       <Badge
         variant="outline"
-        className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300 inline-flex items-center gap-1.5"
+        className="h-7 min-w-[96px] justify-center rounded-full px-2.5 text-[11px] font-bold border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300 inline-flex items-center gap-1.5"
       >
         <Clock className="size-3 text-blue-500" />
         <span>TRIAGING</span>
@@ -58,7 +60,7 @@ function getWorkflowStatusBadge(report: ManagedReport) {
     return (
       <Badge
         variant="outline"
-        className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-purple-500/25 bg-purple-500/10 text-purple-700 dark:text-purple-300 inline-flex items-center gap-1.5"
+        className="h-7 min-w-[96px] justify-center rounded-full px-2.5 text-[11px] font-bold border-purple-500/25 bg-purple-500/10 text-purple-700 dark:text-purple-300 inline-flex items-center gap-1.5"
       >
         <ShieldCheck className="size-3 text-purple-500" />
         <span>RESOLVED</span>
@@ -69,7 +71,7 @@ function getWorkflowStatusBadge(report: ManagedReport) {
   return (
     <Badge
       variant="outline"
-      className="h-7 min-w-[90px] justify-center rounded-full px-2.5 text-[11px] font-bold border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300 inline-flex items-center gap-1.5"
+      className="h-7 min-w-[96px] justify-center rounded-full px-2.5 text-[11px] font-bold border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300 inline-flex items-center gap-1.5"
     >
       <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
       <span>PENDING</span>
@@ -77,7 +79,7 @@ function getWorkflowStatusBadge(report: ManagedReport) {
   );
 }
 
-function getSeverityBadge(report: ManagedReport) {
+export function getSeverityBadge(report: ManagedReport) {
   if (!report.severity) {
     return (
       <DisputedSeverityPair
@@ -116,15 +118,15 @@ function getSeverityBadge(report: ManagedReport) {
   }
 }
 
-const badgeBaseClass =
-  "h-7 min-w-[84px] justify-center rounded-full px-3 text-[12px] font-semibold";
+export const badgeBaseClass =
+  "h-7 min-w-[80px] justify-center rounded-full px-3 text-[12px] font-semibold";
 
-type ManagedReportCardProps = {
+export type ManagedReportCardProps = {
   report: ManagedReport;
   isLast?: boolean;
 };
 
-function getDisplayReportId(report: ManagedReport) {
+export function getDisplayReportId(report: ManagedReport) {
   if (report.reportId?.trim()) return report.reportId;
 
   const rawId = String(report.id);
