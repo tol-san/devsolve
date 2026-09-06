@@ -19,9 +19,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -93,6 +94,13 @@ export function ProgramManagementCard({
   const isPrivate =
     program.visibility === "PRIVATE" || program.visibility === "INVITE_ONLY";
 
+  const { data: orgData } = useGetOrganizationByIdQuery(
+    program.organizationId ?? "",
+    { skip: !program.organizationId }
+  );
+  const displayOrgName = program.organizationName || orgData?.name;
+  const orgLogoUrl = orgData?.logoUrl;
+
   const formattedDate = useMemo(() => {
     const raw = program.createdAt;
     if (!raw || Number.isNaN(Date.parse(raw))) return "—";
@@ -110,12 +118,14 @@ export function ProgramManagementCard({
   const handleDelete = async () => {
     try {
       await deleteProgram(program.id).unwrap();
-      setDeleteOpen(false);
       toast.success("Program deleted", {
-        description: `${program.name} was removed from your organization.`,
+        description: `"${program.name}" has been permanently removed.`,
       });
-    } catch (error) {
-      toast.error("Delete failed", { description: errorMessageOf(error) });
+      setDeleteOpen(false);
+    } catch (err: unknown) {
+      toast.error("Deletion failed", {
+        description: errorMessageOf(err),
+      });
     }
   };
 
@@ -123,7 +133,7 @@ export function ProgramManagementCard({
     try {
       await approveProgram({ id: program.id }).unwrap();
       toast.success("Program approved", {
-        description: `"${program.name}" has been approved for publication.`,
+        description: `"${program.name}" has been published to the marketplace.`,
       });
     } catch (err: unknown) {
       const message = (err as { data?: { message?: string } })?.data?.message;
@@ -162,8 +172,15 @@ export function ProgramManagementCard({
           <div className="flex items-start gap-3 min-w-0 flex-1">
             <Link href={targetUrl} tabIndex={-1} className="shrink-0">
               <Avatar className="size-11 rounded-xl border border-border bg-muted/60 shadow-2xs group-hover:scale-105 transition-transform cursor-pointer">
+                {orgLogoUrl && (
+                  <AvatarImage
+                    src={orgLogoUrl}
+                    alt={displayOrgName || program.name}
+                    className="rounded-xl object-cover"
+                  />
+                )}
                 <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/20 text-sm font-bold text-foreground">
-                  {initialsOf(program.name)}
+                  {initialsOf(displayOrgName || program.name)}
                 </AvatarFallback>
               </Avatar>
             </Link>
@@ -178,13 +195,17 @@ export function ProgramManagementCard({
               </Link>
               <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
                 <span className="font-mono">@{program.handle}</span>
-                {scope === "admin" && program.organizationName && (
+                {displayOrgName && (
                   <>
                     <span>·</span>
-                    <span className="flex items-center gap-1 truncate font-medium">
+                    <Link
+                      href={program.organizationId ? `/company?id=${program.organizationId}` : "/company"}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 truncate font-medium hover:text-primary hover:underline transition-colors"
+                    >
                       <Building2 className="size-3 shrink-0" />
-                      <span className="truncate">{program.organizationName}</span>
-                    </span>
+                      <span className="truncate">{displayOrgName}</span>
+                    </Link>
                   </>
                 )}
               </div>

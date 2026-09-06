@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Lock,
@@ -17,9 +18,11 @@ import {
   ShieldCheck,
   Shield,
   ArrowRight,
+  Building2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
+import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +47,116 @@ import { apiErrorMessage } from "@/lib/api/error-message";
 import { cn } from "@/lib/utils";
 
 type TabType = "pending" | "active" | "history";
+
+function ProgramOrganizationHeader({
+  organizationId,
+  compact = false,
+}: {
+  organizationId?: string;
+  compact?: boolean;
+}) {
+  const lp = useLocalePath();
+  const { data: org, isLoading } = useGetOrganizationByIdQuery(
+    organizationId ?? "",
+    { skip: !organizationId }
+  );
+  const [imageError, setImageError] = useState(false);
+
+  if (!organizationId) return null;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 animate-pulse pt-0.5">
+        <div className="size-5 rounded-md bg-muted shrink-0" />
+        <div className="w-20 h-3 bg-muted rounded" />
+      </div>
+    );
+  }
+
+  if (!org) return null;
+
+  const initials =
+    (org.name || "Organization")
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || "OR";
+
+  const companyHref = lp(`/company?id=${org.id}`);
+  const logoUrl = !imageError ? org.logoUrl : null;
+
+  if (compact) {
+    return (
+      <Link
+        href={companyHref}
+        onClick={(e) => e.stopPropagation()}
+        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground group/org transition-colors"
+      >
+        <div className="size-4 rounded-sm border border-border bg-muted/60 flex items-center justify-center shrink-0 overflow-hidden text-[9px] font-bold">
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={org.name}
+              width={16}
+              height={16}
+              className="w-full h-full object-cover"
+              onError={() => setImageError(true)}
+              unoptimized
+            />
+          ) : (
+            <span>{initials}</span>
+          )}
+        </div>
+        <span className="truncate group-hover/org:underline font-medium">
+          {org.name}
+        </span>
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      href={companyHref}
+      onClick={(e) => e.stopPropagation()}
+      className="inline-flex items-center gap-2.5 group/org hover:opacity-95 transition-all cursor-pointer pt-1"
+    >
+      <div className="size-8 rounded-xl border border-border bg-card flex items-center justify-center shrink-0 overflow-hidden shadow-2xs group-hover/org:scale-105 transition-transform duration-200">
+        {logoUrl ? (
+          <Image
+            src={logoUrl}
+            alt={org.name}
+            width={32}
+            height={32}
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+            unoptimized
+          />
+        ) : (
+          <span className="text-[11px] font-bold text-foreground">
+            {initials}
+          </span>
+        )}
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1">
+          <h4 className="text-xs font-bold text-foreground group-hover/org:text-primary group-hover/org:underline transition-colors truncate">
+            {org.name}
+          </h4>
+          <Building2 className="size-3 text-muted-foreground shrink-0" />
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          {org.domain && <span className="truncate">{org.domain}</span>}
+          {org.domain && org.industry && <span>·</span>}
+          {org.industry && (
+            <span className="capitalize">{org.industry.toLowerCase()}</span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export function MyProgramInvitationsView() {
   const lp = useLocalePath();
@@ -288,8 +401,8 @@ export function MyProgramInvitationsView() {
                       >
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-semibold rounded-lg px-2 py-0.5 gap-1 mb-2">
+                            <div className="space-y-1.5 min-w-0 flex-1">
+                              <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-semibold rounded-lg px-2 py-0.5 gap-1 mb-1">
                                 <Lock className="size-3" />
                                 <span>Private Program Invitation</span>
                               </Badge>
@@ -301,6 +414,7 @@ export function MyProgramInvitationsView() {
                                   @{item.programHandle}
                                 </p>
                               )}
+                              <ProgramOrganizationHeader organizationId={item.organizationId} />
                             </div>
 
                             <span
@@ -429,8 +543,8 @@ export function MyProgramInvitationsView() {
                     >
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg px-2 py-0.5 gap-1 mb-2">
+                          <div className="space-y-1.5 min-w-0 flex-1">
+                            <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-lg px-2 py-0.5 gap-1 mb-1">
                               <CheckCircle2 className="size-3" />
                               <span>Active Private Scope Member</span>
                             </Badge>
@@ -442,6 +556,7 @@ export function MyProgramInvitationsView() {
                                 @{item.programHandle}
                               </p>
                             )}
+                            <ProgramOrganizationHeader organizationId={item.organizationId} />
                           </div>
 
                           <span
@@ -539,15 +654,21 @@ export function MyProgramInvitationsView() {
                         {historyList.map((item) => (
                           <tr key={item.id} className="hover:bg-muted/30 transition-colors">
                             <td className="py-3.5 px-4 sm:px-6">
-                              <div>
+                              <div className="space-y-1">
                                 <p className="font-semibold text-foreground text-sm">
                                   {item.programName || "Security Program"}
                                 </p>
-                                {item.programHandle && (
-                                  <span className="text-xs font-mono text-muted-foreground">
-                                    @{item.programHandle}
-                                  </span>
-                                )}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {item.programHandle && (
+                                    <span className="text-xs font-mono text-muted-foreground">
+                                      @{item.programHandle}
+                                    </span>
+                                  )}
+                                  <ProgramOrganizationHeader
+                                    organizationId={item.organizationId}
+                                    compact
+                                  />
+                                </div>
                               </div>
                             </td>
                             <td className="py-3.5 px-4">

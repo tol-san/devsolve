@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bookmark, Building2 } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { Program } from "@/lib/types/programs/types";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ import {
   useAddBookmarkMutation,
   useRemoveBookmarkMutation,
 } from "@/lib/redux/services/bookmarksApi";
+import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
 
 interface ProgramCardProps {
   program: Program;
@@ -24,11 +25,19 @@ interface ProgramCardProps {
 export function ProgramCard({ program }: ProgramCardProps) {
   const t = useT();
   const lp = useLocalePath();
+  const orgId = program.organizationId || program.organization?.id;
+  const { data: orgData } = useGetOrganizationByIdQuery(orgId ?? "", {
+    skip: !orgId,
+  });
+
   const [imageError, setImageError] = React.useState(false);
-  const logoUrl = !imageError ? (program.organization?.logoUrl || program.logoUrl) : null;
+  const logoUrl = !imageError
+    ? (program.organization?.logoUrl || program.logoUrl || orgData?.logoUrl)
+    : null;
   const orgName =
     program.organizationName ||
     program.organization?.name ||
+    orgData?.name ||
     t("programs.card.organization");
   const initials =
     orgName
@@ -39,7 +48,6 @@ export function ProgramCard({ program }: ProgramCardProps) {
       .join("")
       .toUpperCase() || "OR";
 
-  const orgId = program.organizationId || program.organization?.id;
   const companyHref = lp(orgId ? `/company?id=${orgId}` : "/company");
 
   const { data: isBookmarked } = useGetBookmarkStatusQuery({ type: "PROGRAM", targetId: program.id });
@@ -191,6 +199,14 @@ export function ProgramCard({ program }: ProgramCardProps) {
                 <span className="text-[13px] text-muted-foreground capitalize">
                   {program.state?.toLowerCase() || t("programs.card.open")}
                 </span>
+                {(orgData?.domain || orgData?.industry || program.organization?.industry) && (
+                  <>
+                    <span className="text-xs text-muted-foreground hidden sm:inline">•</span>
+                    <span className="text-[12px] text-muted-foreground truncate max-w-[130px] hidden sm:inline capitalize">
+                      {orgData?.domain || (orgData?.industry || program.organization?.industry)?.toLowerCase()}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </Link>
