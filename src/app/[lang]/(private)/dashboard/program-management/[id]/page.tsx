@@ -648,7 +648,7 @@ function ProgramDetailPageContent({
               </AnimatePresence>
             </section>
 
-            <ProgramDetailSidebar program={program} />
+            <ProgramDetailSidebar program={program} isOwnProgram={true} />
           </main>
         </motion.div>
       </main>

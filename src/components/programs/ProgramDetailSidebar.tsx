@@ -9,22 +9,48 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth/auth-client";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 
 interface ProgramDetailSidebarProps {
   program: ProgramDetail;
+  isOwnProgram?: boolean;
 }
 
 export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
   program,
+  isOwnProgram: isOwnProgramProp,
 }) => {
   const router = useRouter();
   const lp = useLocalePath();
   const { data: session } = authClient.useSession();
   const { handleLogin, isLoggingIn } = useKeycloakLogin();
+  const { memberships, membership, hasCompanyAccess } = useCompanyAccess();
+
+  const programOrgId = program.organizationId || program.organization?.id;
+  const isCompanyOwnerOfProgram = Boolean(
+    hasCompanyAccess &&
+      ((programOrgId &&
+        (memberships?.some(
+          (m) => m.organizationId.toLowerCase() === programOrgId.toLowerCase(),
+        ) ||
+          membership?.organizationId?.toLowerCase() ===
+            programOrgId.toLowerCase())) ||
+        (program.organizationName &&
+          (memberships?.some(
+            (m) =>
+              m.organizationName?.toLowerCase() ===
+              program.organizationName?.toLowerCase(),
+          ) ||
+            membership?.organizationName?.toLowerCase() ===
+              program.organizationName?.toLowerCase()))),
+  );
+
+  const isOwnProgram = isOwnProgramProp ?? isCompanyOwnerOfProgram;
 
   const isPendingReview =
     isUnderReview(program) || program.submissionState === "PENDING_REVIEW";
-  const canSubmitReport = isPublished(program) && !isPendingReview;
+  const canSubmitReport =
+    isPublished(program) && !isPendingReview && !isOwnProgram;
 
   const handleSubmitReport = () => {
     const targetUrl = lp(`/dashboard/submit-report?programId=${program.id}`);

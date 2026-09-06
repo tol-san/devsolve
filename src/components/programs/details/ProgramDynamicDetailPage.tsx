@@ -21,6 +21,7 @@ import { ProgramBountyMatrixTab } from "@/components/programs/details/ProgramBou
 import { ProgramRulesTab } from "@/components/programs/details/ProgramRulesTab";
 import { ProgramThanksTab } from "@/components/programs/details/ProgramThanksTab";
 import { isUnderReview } from "@/lib/programs/draft-status";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { Button } from "@/components/ui/button";
 import { usePathname, useSearchParams } from "next/navigation";
 
@@ -36,6 +37,7 @@ export default function ProgramDetailPage({
   const resolvedParams = params ? use(params) : null;
   const programId = directProgramId || resolvedParams?.id || "";
   const [activeTab, setActiveTab] = useState<ProgramDetailTabId>("overview");
+  const { memberships, membership, hasCompanyAccess } = useCompanyAccess();
 
   const {
     data: publicProgram,
@@ -152,6 +154,27 @@ export default function ProgramDetailPage({
   const isPending =
     isUnderReview(program) || program?.submissionState === "PENDING_REVIEW";
 
+  const programOrgId = program?.organizationId || program?.organization?.id;
+  const isOwnProgram = Boolean(
+    companyProgram ||
+      (hasCompanyAccess &&
+        ((programOrgId &&
+          (memberships?.some(
+            (m) =>
+              m.organizationId.toLowerCase() === programOrgId.toLowerCase(),
+          ) ||
+            membership?.organizationId?.toLowerCase() ===
+              programOrgId.toLowerCase())) ||
+          (program?.organizationName &&
+            (memberships?.some(
+              (m) =>
+                m.organizationName?.toLowerCase() ===
+                program.organizationName?.toLowerCase(),
+            ) ||
+              membership?.organizationName?.toLowerCase() ===
+                program.organizationName?.toLowerCase())))),
+  );
+
   return (
     <div className="min-h-screen text-foreground font-sans">
       <main className="w-full py-8 ">
@@ -206,7 +229,7 @@ export default function ProgramDetailPage({
               </AnimatePresence>
             </section>
 
-            <ProgramDetailSidebar program={program} />
+            <ProgramDetailSidebar program={program} isOwnProgram={isOwnProgram} />
           </main>
         </motion.div>
       </main>
