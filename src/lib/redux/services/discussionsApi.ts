@@ -5,6 +5,7 @@ import {
   TopicCount,
 } from "@/lib/types/dicussion/types";
 import { authorNameOf } from "@/lib/discussions/format";
+import { attachmentUrl } from "@/lib/api/attachment-url";
 import type {
   ShowcaseEngagement,
   ShowcaseViewer,
@@ -50,10 +51,21 @@ interface ProblemApiResponse {
   solutionCount?: number;
   commentCount?: number;
   voteScore?: number;
+  bookmarkCount?: number;
   isBookmarkedByViewer?: boolean;
   viewerVote?: string | null;
   status?: "PUBLISHED" | "RESOLVED" | "CLOSED";
   tags?: { name: string }[];
+  attachments?: {
+    id: string;
+    originalFileName?: string;
+    mimeType?: string;
+    downloadUrl?: string;
+  }[];
+  technologies?: { id: string; name: string; version?: string }[];
+  problemType?: string;
+  severity?: string;
+  sdlcPhase?: string;
   publishedAt?: string;
   createdAt?: string;
 }
@@ -132,17 +144,56 @@ function toProblemPost(
     (typeof rawAny.authorAvatarUrl === "string" ? rawAny.authorAvatarUrl : "") ||
     (typeof rawAny.avatarUrl === "string" ? rawAny.avatarUrl : "") ||
     "";
+
+  // Extract thumbnail from attachments or markdown description
+  const attachments = (raw.attachments || (Array.isArray(rawAny.attachments) ? rawAny.attachments : [])) as {
+    id: string;
+    originalFileName?: string;
+    mimeType?: string;
+    downloadUrl?: string;
+  }[];
+
+  const imageAttachment = attachments.find(
+    (a) =>
+      a.mimeType?.startsWith("image/") ||
+      /\.(png|jpe?g|webp|gif|svg)$/i.test(a.originalFileName || a.downloadUrl || ""),
+  );
+
+  let thumbnailUrl: string | undefined = undefined;
+  if (imageAttachment) {
+    thumbnailUrl =
+      attachmentUrl(imageAttachment.downloadUrl) ||
+      (imageAttachment.id
+        ? `/api/problems/${raw.id}/attachments/${imageAttachment.id}/download`
+        : undefined);
+  } else if (raw.description) {
+    const match = raw.description.match(/!\[.*?\]\((https?:\/\/[^\s\)]+)\)/);
+    if (match?.[1]) {
+      thumbnailUrl = match[1];
+    }
+  }
+
+  // Combine tags and technologies for rich display
+  const rawTags = (raw.tags ?? []).map((t) => t.name);
+  const rawTechs = (raw.technologies ?? []).map((t) => t.name);
+  const combinedTags = Array.from(new Set([...rawTags, ...rawTechs])).filter(Boolean);
+
   return {
     id: raw.id,
     title: raw.title,
     category: "Problems",
     topic: raw.category?.name ?? "General",
     description: raw.description ?? "",
-    tags: (raw.tags ?? []).map((t) => t.name),
+    tags: combinedTags,
     votes: raw.voteScore ?? 0,
     answersCount: raw.solutionCount ?? 0,
     viewsCount: raw.viewCount ?? 0,
     status: raw.status === "RESOLVED" ? "Solved" : "Open",
+    thumbnailUrl,
+    bookmarkCount: raw.bookmarkCount ?? (rawAny.bookmarkCount as number | undefined) ?? 0,
+    problemType: raw.problemType || (typeof rawAny.problemType === "string" ? rawAny.problemType : undefined),
+    severity: raw.severity || (typeof rawAny.severity === "string" ? rawAny.severity : undefined),
+    sdlcPhase: raw.sdlcPhase || (typeof rawAny.sdlcPhase === "string" ? rawAny.sdlcPhase : undefined),
     author: {
       id: raw.author?.id || (typeof rawAny.authorId === "string" ? rawAny.authorId : undefined),
       name: authorNameOf(raw.author, "Community Member"),

@@ -1,76 +1,37 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { auth } from "@/lib/auth/auth";
+import { type NextRequest } from "next/server";
 
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
-const PROVIDER_ID = "keycloak";
+import {
+  bearerTokenFor,
+  forwardQuery,
+  relay,
+  unauthorized,
+  unreachable,
+  upstreamFetch,
+} from "@/lib/api/proxy";
 
-async function bearerTokenFor(request: NextRequest): Promise<string | null> {
-  const session = await auth.api.getSession({ headers: request.headers });
-  if (!session) return null;
-
-  try {
-    const { accessToken } = await auth.api.getAccessToken({
-      body: { providerId: PROVIDER_ID },
-      headers: request.headers,
-    });
-    return accessToken ?? null;
-  } catch {
-    return null;
-  }
-}
-
-const unauthorized = () =>
-  NextResponse.json({ message: "Not authenticated" }, { status: 401 });
-
+/**
+ * The report queue. Uses `pageNumber`/`pageSize` — not Spring's `page`/`size`.
+ *
+ * A 403 here means the caller is signed in but is not an ADMIN. It is relayed
+ * as a 403 so the console can say so; an empty 200 would read as "no reports
+ * to review", which is the opposite of the truth.
+ */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
   if (!token) return unauthorized();
 
-  const { searchParams } = new URL(request.url);
-  const queryString = searchParams.toString();
-  const targetUrl = `${BACKEND_API_URL}/admin/flags${
-    queryString ? `?${queryString}` : ""
-  }`;
+  const query = forwardQuery(request.nextUrl.searchParams, [
+    "status",
+    "flaggableType",
+    "reason",
+    "pageNumber",
+    "pageSize",
+  ]);
 
   try {
-    const upstream = await fetch(targetUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      cache: "no-store",
-    });
-
-    if (upstream.status === 404 || upstream.status === 403) {
-      return NextResponse.json(
-        { items: [], content: [], totalElements: 0, totalPages: 0 },
-        { status: 200 }
-      );
-    }
-
-    const raw = await upstream.text();
-    let body: unknown = null;
-    if (raw) {
-      try {
-        body = JSON.parse(raw);
-      } catch {
-        body = { message: raw };
-      }
-    }
-
-    if (!upstream.ok) {
-      return NextResponse.json(
-        { items: [], content: [], totalElements: 0, totalPages: 0 },
-        { status: 200 }
-      );
-    }
-
-    return NextResponse.json(body, { status: upstream.status });
+    const upstream = await upstreamFetch(`/admin/flags${query}`, token);
+    return relay(upstream, "Unable to load the report queue.");
   } catch {
-    return NextResponse.json(
-      { items: [], content: [], totalElements: 0, totalPages: 0 },
-      { status: 200 }
-    );
+    return unreachable("moderation");
   }
 }

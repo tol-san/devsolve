@@ -58,7 +58,7 @@ export function ProblemTechnologiesSection({
         className={CARD_CLASS}
         aria-labelledby="problem-environment-heading"
       >
-        <CardHeader className="border-b border-border/70 pb-4">
+        <CardHeader className="p-5 sm:p-6 pb-4 sm:pb-4 border-b border-border/70">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
@@ -92,7 +92,7 @@ export function ProblemTechnologiesSection({
           </div>
         </CardHeader>
 
-        <CardContent className="pt-6 space-y-5">
+        <CardContent className="p-5 sm:p-6 pt-5 space-y-5">
           {/* Quick-add chips */}
           <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border/50 bg-muted/20 p-3">
             <span className="text-xs font-semibold text-muted-foreground mr-1">

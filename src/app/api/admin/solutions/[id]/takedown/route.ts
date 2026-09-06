@@ -11,17 +11,9 @@ import {
   upstreamFetch,
   validationFailed,
 } from "@/lib/api/proxy";
-import { accountModerationSchema } from "@/lib/validations/moderation";
+import { takedownSchema } from "@/lib/validations/moderation";
 
-/**
- * Account moderation: warn / suspend / remove / ban / reinstate a user.
- *
- * The upstream path is `/admin/{userId}/moderation-actions` — it reads as a
- * generic id but only ever accepts a user id. This proxy deliberately exposes
- * the unambiguous `/api/admin/users/{userId}/moderation-actions` to the client
- * so the ambiguity stops at this file. If the backend renames the endpoint,
- * only the template literal below changes.
- */
+/** Permanently removes a published solution. Returns the audit record. */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -30,8 +22,8 @@ export async function POST(
   if (!token) return unauthorized();
 
   const { id } = await params;
-  const userId = asUuid(id);
-  if (!userId) return badRequest("A valid user id is required");
+  const solutionId = asUuid(id);
+  if (!solutionId) return badRequest("A valid solution id is required");
 
   let payload: unknown;
   try {
@@ -40,16 +32,16 @@ export async function POST(
     return badJson();
   }
 
-  const parsed = accountModerationSchema.safeParse(payload);
+  const parsed = takedownSchema.safeParse(payload);
   if (!parsed.success) return validationFailed(parsed.error);
 
   try {
     const upstream = await upstreamFetch(
-      `/admin/${userId}/moderation-actions`,
+      `/admin/solutions/${solutionId}/takedown`,
       token,
       { method: "POST", body: JSON.stringify(parsed.data) },
     );
-    return relay(upstream, "That account action could not be recorded.");
+    return relay(upstream, "The solution could not be taken down.");
   } catch {
     return unreachable("moderation");
   }

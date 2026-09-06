@@ -11,6 +11,7 @@ import type {
   HacktivityStats,
 } from "@/lib/types/hacktivity/types";
 import { toFeed } from "@/lib/hacktivity/transform";
+import { attachmentUrl } from "@/lib/api/attachment-url";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
@@ -170,17 +171,50 @@ export function problemToDiscussionPost(raw: ProblemResponse): DiscussionPost {
     (typeof rawAny.authorAvatarUrl === "string" ? rawAny.authorAvatarUrl : "") ||
     (typeof rawAny.avatarUrl === "string" ? rawAny.avatarUrl : "") ||
     "";
+
+  const attachments = (raw.attachments || (Array.isArray(rawAny.attachments) ? rawAny.attachments : [])) as {
+    id?: string;
+    originalFileName?: string;
+    mimeType?: string;
+    downloadUrl?: string;
+  }[];
+
+  const imageAttachment = attachments.find(
+    (a) =>
+      a.mimeType?.startsWith("image/") ||
+      /\.(png|jpe?g|webp|gif|svg)$/i.test(a.originalFileName || a.downloadUrl || ""),
+  );
+
+  let thumbnailUrl: string | undefined = undefined;
+  if (imageAttachment) {
+    thumbnailUrl =
+      attachmentUrl(imageAttachment.downloadUrl) ||
+      (imageAttachment.id && id
+        ? `/api/problems/${id}/attachments/${imageAttachment.id}/download`
+        : undefined);
+  } else if (raw.description) {
+    const match = raw.description.match(/!\[.*?\]\((https?:\/\/[^\s\)]+)\)/);
+    if (match?.[1]) {
+      thumbnailUrl = match[1];
+    }
+  }
+
+  const rawTags = (raw.tags ?? []).map((t) => t.name).filter(Boolean) as string[];
+  const rawTechs = (raw.technologies ?? []).map((t) => t.name).filter(Boolean) as string[];
+  const combinedTags = Array.from(new Set([...rawTags, ...rawTechs]));
+
   return {
     id,
     title: raw.title ?? "",
     category: "Problems",
     topic: raw.category?.name ?? "General",
     description: raw.description ?? "",
-    tags: (raw.tags ?? []).map((t) => t.name).filter(Boolean) as string[],
+    tags: combinedTags,
     votes: raw.voteScore ?? 0,
     answersCount: raw.solutionCount ?? 0,
     viewsCount: raw.viewCount ?? 0,
     status: raw.status === "RESOLVED" ? "Solved" : "Open",
+    thumbnailUrl,
     author: {
       id: raw.author?.id || (typeof rawAny.authorId === "string" ? rawAny.authorId : undefined),
       name: authorNameOf(raw.author, "Community Member"),

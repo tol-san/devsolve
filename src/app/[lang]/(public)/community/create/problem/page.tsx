@@ -11,7 +11,6 @@ import {
   Paperclip,
   SendHorizonal,
   SlidersHorizontal,
-  Sparkles,
 } from "lucide-react";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { CreateProblemForm } from "@/components/discussions/create/CreateProblemForm";
@@ -39,15 +38,15 @@ export default function PublicCreateProblemPage() {
 
         {/* ── Hero Header ─────────────────────────────────────────────── */}
         <div className="border-b border-border/40">
-          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
-            {/* Breadcrumb */}
+            {/* Breadcrumb Navigation */}
             <motion.nav
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
               aria-label="Breadcrumb"
-              className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-5"
+              className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-4"
             >
               <Link
                 href="/community"
@@ -73,63 +72,24 @@ export default function PublicCreateProblemPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
-              className="flex flex-col lg:flex-row lg:items-end justify-between gap-6"
+              className="space-y-2 max-w-3xl"
             >
-              <div className="max-w-2xl">
-                {/* Badge kicker */}
-                <div className="flex items-center gap-2.5 mb-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-0.5 text-xs font-semibold text-primary">
-                    <AlertCircle className="size-3" />
-                    New Community Problem
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <Sparkles className="size-3 text-amber-500" />
-                    Autosave enabled
-                  </span>
-                </div>
-
-                <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl leading-[1.15]">
-                  Describe what went wrong
-                  <span className="text-primary">.</span>
-                </h1>
-                <p className="mt-3 text-sm sm:text-base leading-relaxed text-muted-foreground">
-                  Give clear context, reproduction steps, and error logs. The more specific
-                  your details are, the faster the community can replicate and solve it.
-                </p>
-              </div>
-
-              {/* Quick-Nav Section Anchors (Desktop) */}
-              <div className="hidden xl:flex flex-wrap items-center gap-2 shrink-0">
-                {QUICK_NAV.map((nav) => {
-                  const Icon = nav.icon;
-                  return (
-                    <button
-                      key={nav.id}
-                      type="button"
-                      onClick={() => handleScrollTo(nav.id)}
-                      className="group flex items-center gap-2 rounded-xl border border-border/60 bg-card/80 px-3 py-2 text-xs backdrop-blur-xs transition-all hover:border-primary/40 hover:bg-card hover:shadow-xs cursor-pointer"
-                      title={`Jump to ${nav.label}`}
-                    >
-                      <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted text-[10px] font-bold text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        {nav.num}
-                      </span>
-                      <Icon className="size-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                      <div className="flex flex-col text-left">
-                        <span className="font-semibold text-foreground leading-none">{nav.label}</span>
-                        <span className="text-[10px] text-muted-foreground leading-tight mt-0.5">{nav.desc}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl leading-[1.15]">
+                Describe what went wrong
+                <span className="text-primary">.</span>
+              </h1>
+              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
+                Give clear context, reproduction steps, and error logs. The more specific
+                your details are, the faster the community can replicate and solve it.
+              </p>
             </motion.div>
 
-            {/* Quick-Nav strip for mobile/tablet */}
+            {/* Quick-Nav Stepper Bar: Evenly distributed 6-step nav */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="xl:hidden mt-6 flex items-center gap-2 overflow-x-auto pb-1"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.1 }}
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-5 sm:pt-6 border-t border-border/40 mt-6"
             >
               {QUICK_NAV.map((nav) => {
                 const Icon = nav.icon;
@@ -138,11 +98,23 @@ export default function PublicCreateProblemPage() {
                     key={nav.id}
                     type="button"
                     onClick={() => handleScrollTo(nav.id)}
-                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border/70 bg-card/90 px-2.5 py-1.5 text-xs text-foreground font-medium transition-colors hover:border-primary/40 cursor-pointer"
+                    className="group flex items-center gap-2.5 rounded-xl border border-border/60 bg-card/70 p-2.5 text-xs backdrop-blur-xs transition-all hover:border-primary/40 hover:bg-card hover:shadow-xs cursor-pointer text-left"
+                    title={`Jump to ${nav.label}`}
                   >
-                    <span className="text-[10px] font-mono text-muted-foreground">{nav.num}</span>
-                    <Icon className="size-3 text-muted-foreground" />
-                    <span>{nav.label}</span>
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-muted text-[11px] font-bold text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                      {nav.num}
+                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1">
+                        <Icon className="size-3 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+                        <span className="font-semibold text-foreground truncate leading-tight group-hover:text-primary transition-colors">
+                          {nav.label}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground truncate mt-0.5">
+                        {nav.desc}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
@@ -152,7 +124,7 @@ export default function PublicCreateProblemPage() {
         </div>
 
         {/* ── Form Body ───────────────────────────────────────────────── */}
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

@@ -47,7 +47,7 @@ export const SEVERITY_SELECT_ITEMS = [
 ];
 
 export const CARD_CLASS =
-  "rounded-2xl border border-border/70 bg-card/85 backdrop-blur-xs shadow-xs hover:border-border transition-all duration-200";
+  "rounded-2xl border border-border/70 bg-card/85 backdrop-blur-xs shadow-xs hover:border-border transition-all duration-200 py-0 gap-0";
 
 export const CONTROL_CLASS =
   "h-11 rounded-xl border-border/80 bg-background text-foreground placeholder:text-muted-foreground/80 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary text-sm sm:text-base transition-all shadow-2xs";

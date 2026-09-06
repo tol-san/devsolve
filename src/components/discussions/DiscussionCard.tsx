@@ -8,14 +8,17 @@ import { motion } from "motion/react";
 import { toast } from "sonner";
 import {
   Bookmark,
+  Bug,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Code,
   Eye,
   FilePen,
   Flame,
   MessageSquare,
   Pencil,
+  ShieldAlert,
   Trash2,
   XCircle,
   ZoomIn,
@@ -238,6 +241,8 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
   const titleId = `discussion-title-${post.id}`;
   const topicColor = getTopicColor(post.topic || post.category);
   const topicLabel = post.topic || (isShowcase ? "Showcase" : "Problems");
+  const codeSnippetMatch = post.description?.match(/```(?:[a-z]*\n)?([\s\S]*?)```/);
+  const codeSnippet = codeSnippetMatch ? codeSnippetMatch[1].trim() : null;
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
@@ -280,412 +285,678 @@ export const DiscussionCard: React.FC<DiscussionCardProps> = ({
         aria-hidden="true"
       />
 
-      <div className={cn("relative pointer-events-none flex flex-col gap-3 sm:gap-3.5", variant === "card" && "h-full justify-between")}>
-        {/* Top Header: Author info, Topic & Badges on left; Owner affordances & Bookmark on right */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pointer-events-auto">
-            <div className="relative shrink-0">
-              {authorProfileHref ? (
-                <Link
-                  href={authorProfileHref}
-                  onClick={(e) => e.stopPropagation()}
-                  className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block"
-                >
+      <div className={cn("relative pointer-events-none flex flex-col", variant === "card" ? "h-full justify-between" : "gap-3 sm:gap-3.5")}>
+        {/* Top Content: Header, Notice, Title, Description, Media Preview, Tags */}
+        <div className="flex flex-col gap-2.5 sm:gap-3">
+          {/* Top Header: Author info, Topic & Badges on left; Owner affordances & Bookmark on right */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 pointer-events-auto flex-1">
+              <div className="relative shrink-0 mt-0.5">
+                {authorProfileHref ? (
+                  <Link
+                    href={authorProfileHref}
+                    onClick={(e) => e.stopPropagation()}
+                    className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block"
+                  >
+                    <CardAuthorAvatar author={post.author} />
+                  </Link>
+                ) : (
                   <CardAuthorAvatar author={post.author} />
-                </Link>
-              ) : (
-                <CardAuthorAvatar author={post.author} />
-              )}
-              {post.status === "Solved" ? (
-                <span
-                  title="Solved"
-                  className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs"
-                >
-                  <CheckCircle2 className="size-2.5" />
-                </span>
-              ) : post.author.reputation && post.author.reputation > 500 ? (
-                <span
-                  title="Top Contributor"
-                  className="absolute -bottom-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-white text-[9px] font-bold shadow-xs"
-                >
-                  ★
-                </span>
-              ) : null}
-            </div>
-
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0 text-xs sm:text-sm">
-              {authorProfileHref ? (
-                <Link
-                  href={authorProfileHref}
-                  onClick={(e) => e.stopPropagation()}
-                  className="font-semibold text-foreground hover:text-primary transition-colors truncate max-w-[140px] sm:max-w-[200px]"
-                >
-                  {authorName}
-                </Link>
-              ) : (
-                <span className="font-semibold text-foreground truncate max-w-[140px] sm:max-w-[200px]">
-                  {authorName}
-                </span>
-              )}
-              <span className="text-muted-foreground/60 text-xs">·</span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                <span
-                  className="size-1.5 sm:size-2 rounded-full shrink-0"
-                  style={{ backgroundColor: topicColor }}
-                  aria-hidden="true"
-                />
-                <span>{topicLabel}</span>
-              </span>
-              <span className="text-muted-foreground/60 text-xs">·</span>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {relativeTime(post.sortTimestamp)}
-              </span>
-
-              {/* Showcase Owner Badge: "Yours" */}
-              {isShowcase && post.viewer?.owner && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-xs font-semibold text-blue-600 dark:text-blue-400">
-                  Yours
-                </span>
-              )}
-
-              {/* Showcase Pending Edit Badge */}
-              {isShowcase && post.hasUnpublishedRevision && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  <FilePen className="size-3" aria-hidden="true" />
-                  <span>Edit awaiting review</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Top Right: Solved Badge, Edit/Delete affordances & Bookmark button */}
-          <div className="flex items-center gap-1.5 shrink-0 pointer-events-auto">
-            {post.status === "Solved" && (
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="size-3" />
-                <span>Solved</span>
-              </span>
-            )}
-
-            {/* Owner affordances: Edit button */}
-            {isShowcase && post.viewer?.canEdit && (
-              <Link
-                href={lp(`/dashboard/showcases/${post.id}/edit`)}
-                onClick={(e) => e.stopPropagation()}
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "h-8 px-2 sm:px-2.5 rounded-xl text-xs font-semibold gap-1 hover:bg-muted text-foreground cursor-pointer shadow-2xs border-border/80",
                 )}
-                title="Edit showcase"
-              >
-                <Pencil className="size-3.5" aria-hidden="true" />
-                <span className="hidden sm:inline">Edit</span>
-              </Link>
-            )}
+                {post.status === "Solved" ? (
+                  <span
+                    title="Solved"
+                    className="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xs"
+                  >
+                    <CheckCircle2 className="size-2.5" />
+                  </span>
+                ) : post.author.reputation && post.author.reputation > 500 ? (
+                  <span
+                    title="Top Contributor"
+                    className="absolute -bottom-1 -right-1 flex size-3.5 items-center justify-center rounded-full bg-amber-500 text-white text-[9px] font-bold shadow-xs"
+                  >
+                    ★
+                  </span>
+                ) : null}
+              </div>
 
-            {/* Owner affordances: Delete button */}
-            {isShowcase && post.viewer?.canDelete && (
+              {variant === "card" ? (
+                /* Card Header Info: Dedicated 2-row layout preventing wrapping misalignment */
+                <div className="flex flex-col min-w-0 justify-center gap-1 flex-1">
+                  {/* Row 1: Author name & status pills */}
+                  <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                    {authorProfileHref ? (
+                      <Link
+                        href={authorProfileHref}
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-semibold text-foreground hover:text-primary transition-colors truncate max-w-[150px] sm:max-w-[190px] text-xs sm:text-sm"
+                      >
+                        {authorName}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-foreground truncate max-w-[150px] sm:max-w-[190px] text-xs sm:text-sm">
+                        {authorName}
+                      </span>
+                    )}
+
+                    {/* Showcase Owner Badge: "Yours" */}
+                    {isShowcase && post.viewer?.owner && (
+                      <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-blue-500/10 border border-blue-500/20 text-[10px] sm:text-[11px] font-semibold text-blue-600 dark:text-blue-400 shrink-0">
+                        Yours
+                      </span>
+                    )}
+
+                    {/* Showcase Pending Edit Badge */}
+                    {isShowcase && post.hasUnpublishedRevision && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.2 text-[10px] sm:text-[11px] font-semibold text-amber-600 dark:text-amber-400 shrink-0">
+                        <FilePen className="size-3" aria-hidden="true" />
+                        <span className="hidden sm:inline">Edit pending</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Row 2: Category pill · Relative Time */}
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2 py-0.5 text-[11px] sm:text-xs font-medium text-muted-foreground max-w-[150px] sm:max-w-[180px] min-w-0 shrink">
+                      <span
+                        className="size-1.5 sm:size-2 rounded-full shrink-0"
+                        style={{ backgroundColor: topicColor }}
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{topicLabel}</span>
+                    </span>
+                    <span className="text-muted-foreground/60 text-xs shrink-0">·</span>
+                    <span className="text-[11px] sm:text-xs text-muted-foreground whitespace-nowrap shrink-0">
+                      {relativeTime(post.sortTimestamp)}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                /* Feed Header Info: Responsive inline layout */
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0 text-xs sm:text-sm">
+                  {authorProfileHref ? (
+                    <Link
+                      href={authorProfileHref}
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-semibold text-foreground hover:text-primary transition-colors truncate max-w-[140px] sm:max-w-[200px]"
+                    >
+                      {authorName}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-foreground truncate max-w-[140px] sm:max-w-[200px]">
+                      {authorName}
+                    </span>
+                  )}
+                  <span className="text-muted-foreground/60 text-xs">·</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                    <span
+                      className="size-1.5 sm:size-2 rounded-full shrink-0"
+                      style={{ backgroundColor: topicColor }}
+                      aria-hidden="true"
+                    />
+                    <span>{topicLabel}</span>
+                  </span>
+                  <span className="text-muted-foreground/60 text-xs">·</span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {relativeTime(post.sortTimestamp)}
+                  </span>
+
+                  {/* Showcase Owner Badge: "Yours" */}
+                  {isShowcase && post.viewer?.owner && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                      Yours
+                    </span>
+                  )}
+
+                  {/* Showcase Pending Edit Badge */}
+                  {isShowcase && post.hasUnpublishedRevision && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                      <FilePen className="size-3" aria-hidden="true" />
+                      <span>Edit awaiting review</span>
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Top Right: Solved Badge, Edit/Delete affordances & Bookmark button */}
+            <div className="flex items-center gap-1.5 shrink-0 pointer-events-auto mt-0.5">
+              {post.status === "Solved" && (
+                <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="size-3" />
+                  <span>Solved</span>
+                </span>
+              )}
+
+              {/* Owner affordances: Edit button */}
+              {isShowcase && post.viewer?.canEdit && (
+                <Link
+                  href={lp(`/dashboard/showcases/${post.id}/edit`)}
+                  onClick={(e) => e.stopPropagation()}
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "h-8 px-2 sm:px-2.5 rounded-xl text-xs font-semibold gap-1 hover:bg-muted text-foreground cursor-pointer shadow-2xs border-border/80",
+                  )}
+                  title="Edit showcase"
+                >
+                  <Pencil className="size-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Edit</span>
+                </Link>
+              )}
+
+              {/* Owner affordances: Delete button */}
+              {isShowcase && post.viewer?.canDelete && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsConfirmingDelete(true);
+                  }}
+                  className="h-8 w-8 rounded-xl text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
+                  title="Delete showcase"
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                </Button>
+              )}
+
+              {/* Bookmark button */}
               <Button
                 type="button"
-                variant="ghost"
                 size="icon-sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsConfirmingDelete(true);
-                }}
-                className="h-8 w-8 rounded-xl text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 cursor-pointer"
-                title="Delete showcase"
+                variant="ghost"
+                onClick={handleBookmark}
+                disabled={isBookmarking}
+                aria-pressed={localBookmarked}
+                aria-label={t(
+                  localBookmarked
+                    ? "community.card.removeBookmark"
+                    : "community.card.bookmark",
+                )}
+                className={cn(
+                  "rounded-xl cursor-pointer hover:bg-muted text-muted-foreground hover:text-foreground transition-colors",
+                  localBookmarked && "text-primary hover:text-primary",
+                )}
               >
-                <Trash2 className="size-4" aria-hidden="true" />
+                <Bookmark
+                  aria-hidden="true"
+                  className={cn("size-4", localBookmarked && "fill-current")}
+                />
               </Button>
+            </div>
+          </div>
+
+          {/* Rejection / Status notice if relevant */}
+          {myAnswer && myAnswer.review === "REJECTED" && (
+            <div className="pointer-events-auto relative z-10">
+              <Link
+                href={MY_COMMUNITY_HREF}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors",
+                  "bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25",
+                )}
+              >
+                <XCircle aria-hidden="true" className="size-3.5" />
+                {t("community.card.answerRejected")}
+              </Link>
+            </div>
+          )}
+
+          {/* Title */}
+          <h3
+            id={titleId}
+            className={cn(
+              "font-bold tracking-tight text-foreground transition-colors group-hover:text-primary break-words [word-break:break-word] leading-snug",
+              variant === "card"
+                ? "text-base sm:text-lg line-clamp-1"
+                : "text-base sm:text-lg lg:text-xl",
             )}
-
-            {/* Bookmark button */}
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              onClick={handleBookmark}
-              disabled={isBookmarking}
-              aria-pressed={localBookmarked}
-              aria-label={t(
-                localBookmarked
-                  ? "community.card.removeBookmark"
-                  : "community.card.bookmark",
-              )}
-              className={cn(
-                "rounded-xl cursor-pointer hover:bg-muted text-muted-foreground hover:text-foreground transition-colors",
-                localBookmarked && "text-primary hover:text-primary",
-              )}
-            >
-              <Bookmark
-                aria-hidden="true"
-                className={cn("size-4", localBookmarked && "fill-current")}
-              />
-            </Button>
-          </div>
-        </div>
-
-        {/* Rejection / Status notice if relevant */}
-        {myAnswer && myAnswer.review === "REJECTED" && (
-          <div className="pointer-events-auto relative z-10">
-            <Link
-              href={MY_COMMUNITY_HREF}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors",
-                "bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25",
-              )}
-            >
-              <XCircle aria-hidden="true" className="size-3.5" />
-              {t("community.card.answerRejected")}
-            </Link>
-          </div>
-        )}
-
-        {/* Title */}
-        <h3
-          id={titleId}
-          className="text-base sm:text-lg lg:text-xl font-bold tracking-tight text-foreground transition-colors group-hover:text-primary break-words [word-break:break-word] leading-snug"
-        >
-          <Link
-            href={targetHref}
-            className="pointer-events-auto hover:text-primary transition-colors focus:outline-none"
           >
-            {post.title}
-          </Link>
-        </h3>
+            <Link
+              href={targetHref}
+              className="pointer-events-auto hover:text-primary transition-colors focus:outline-none"
+            >
+              {post.title}
+            </Link>
+          </h3>
 
-        {/* Description */}
-        {post.description && (
-          <p className="line-clamp-2 sm:line-clamp-3 text-sm sm:text-base leading-relaxed text-muted-foreground break-words [word-break:break-word]">
-            {post.description}
-          </p>
-        )}
+          {/* Description */}
+          {post.description && (
+            <p
+              className={cn(
+                "leading-relaxed text-muted-foreground break-words [word-break:break-word]",
+                variant === "card"
+                  ? "text-sm line-clamp-2"
+                  : "line-clamp-2 sm:line-clamp-3 text-sm sm:text-base",
+              )}
+            >
+              {post.description}
+            </p>
+          )}
 
-        {/* Showcase Media Preview - Shows full uncropped photo with click to preview */}
-        {isShowcase && post.thumbnailUrl && (
-          <div
-            role="button"
-            tabIndex={0}
-            aria-label="Preview full showcase image"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setPreviewImage({
-                src: post.thumbnailUrl!,
-                alt: post.title,
-              });
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
+          {/* Media Preview - Full uncropped image with click to preview for both Showcase and Problem */}
+          {post.thumbnailUrl && (
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label={t("community.card.preview")}
+              onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 setPreviewImage({
                   src: post.thumbnailUrl!,
                   alt: post.title,
                 });
-              }
-            }}
-            className="relative pointer-events-auto w-full aspect-[16/10] sm:aspect-[16/9] max-h-[440px] min-h-[200px] overflow-hidden rounded-xl border border-border/80 bg-blue-950/20 dark:bg-blue-950/40 my-2 group/media flex items-center justify-center cursor-zoom-in transition-all hover:border-primary/50 shadow-2xs"
-          >
-            {/* Ambient blurred backdrop so any aspect ratio fills seamlessly */}
-            <Image
-              src={post.thumbnailUrl}
-              alt=""
-              fill
-              aria-hidden="true"
-              sizes="100px"
-              quality={20}
-              className="object-cover blur-2xl opacity-40 dark:opacity-30 scale-110 pointer-events-none select-none"
-            />
-
-            {/* Soft blue ambient glow overlay */}
-            <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-600/15 mix-blend-overlay pointer-events-none" />
-
-            {/* Full uncropped photo */}
-            <Image
-              src={post.thumbnailUrl}
-              alt={`${post.title} ${t("community.card.preview")}`}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 850px"
-              quality={95}
-              className="object-contain p-1.5 sm:p-2.5 transition-transform duration-300 group-hover/media:scale-[1.015]"
-            />
-
-            {/* Click to preview floating badge */}
-            <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 pointer-events-none z-10">
-              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/90 text-[11px] font-semibold text-foreground shadow-xs border border-border/80 backdrop-blur-xs group-hover/media:bg-primary group-hover/media:text-primary-foreground group-hover/media:border-primary transition-all">
-                <ZoomIn className="size-3.5" />
-                <span>Preview</span>
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Tags */}
-        {tags && tags.length > 0 && (
-          <div
-            className="flex flex-wrap gap-1.5 pt-0.5"
-            aria-label={t("community.card.tags")}
-          >
-            {tags.slice(0, 5).map((tag) => (
-              <Badge
-                key={tag}
-                variant="tag"
-                className="rounded-md font-mono text-xs font-medium bg-muted/50 hover:bg-muted text-muted-foreground border-border/70 transition-colors"
-              >
-                {tag}
-              </Badge>
-            ))}
-            {tags.length > 5 && (
-              <span className="text-xs text-muted-foreground font-mono self-center px-1">
-                +{tags.length - 5}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Bottom Action Bar */}
-        <div className={cn("flex items-center justify-between gap-3 pt-2.5 sm:pt-3 border-t border-border/40 text-muted-foreground", variant === "card" && "mt-auto")}>
-          {isShowcase ? (
-            /* Showcase Card Footer: Vote buttons + score · bookmarks · comments · views */
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap pointer-events-auto">
-              {/* Compact Card-level Vote Action (Up/Down) */}
-              <div className="inline-flex items-center rounded-xl border border-border/70 bg-card p-0.5 shadow-2xs">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleVote(1)}
-                  disabled={isVoting}
-                  aria-pressed={currentUserVote === 1}
-                  aria-label="Upvote showcase"
-                  className={cn(
-                    "size-7.5 rounded-lg transition-colors cursor-pointer",
-                    currentUserVote === 1
-                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                  )}
-                >
-                  <ChevronUp className="size-4" />
-                </Button>
-                <div className="h-4 w-px bg-border/60 mx-0.5" />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleVote(-1)}
-                  disabled={isVoting}
-                  aria-pressed={currentUserVote === -1}
-                  aria-label="Downvote showcase"
-                  className={cn(
-                    "size-7.5 rounded-lg transition-colors cursor-pointer",
-                    currentUserVote === -1
-                      ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                  )}
-                >
-                  <ChevronDown className="size-4" />
-                </Button>
-              </div>
-
-              {/* Stats row: score (engagement.voteScore) · bookmarks · comments · views */}
-              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs text-muted-foreground">
-                {/* Score with its own Flame icon, negative scores not clamped to 0 */}
-                <span
-                  title="Vote Score"
-                  className={cn(
-                    "inline-flex items-center gap-1 font-bold tabular-nums",
-                    voteScore > 0
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : voteScore < 0
-                        ? "text-rose-600 dark:text-rose-400"
-                        : "text-foreground",
-                  )}
-                >
-                  <Flame className="size-3.5 text-amber-500 shrink-0" aria-hidden="true" />
-                  <span>{voteScore > 0 ? `+${voteScore}` : voteScore} score</span>
-                </span>
-
-                <span className="text-muted-foreground/60">·</span>
-
-                {/* Bookmarks */}
-                <span className="inline-flex items-center gap-1 font-medium">
-                  <Bookmark className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
-                  <span className="tabular-nums">
-                    {bookmarkCount} {bookmarkCount === 1 ? "bookmark" : "bookmarks"}
-                  </span>
-                </span>
-
-                <span className="text-muted-foreground/60">·</span>
-
-                {/* Comments */}
-                <Link
-                  href={targetHref}
-                  className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors"
-                >
-                  <MessageSquare className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
-                  <span className="tabular-nums">
-                    {post.answersCount} {post.answersCount === 1 ? "comment" : "comments"}
-                  </span>
-                </Link>
-
-                {/* Views */}
-                {post.viewsCount !== undefined && (
-                  <>
-                    <span className="text-muted-foreground/60">·</span>
-                    <span className="inline-flex items-center gap-1 font-medium">
-                      <Eye className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
-                      <span className="tabular-nums">{post.viewsCount.toLocaleString()} views</span>
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Problem Card Footer */
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <VoteControl
-                voteCount={voteScore}
-                upvotes={upvoteCount}
-                downvotes={downvoteCount}
-                currentVote={currentUserVote}
-                onVote={handleVote}
-                isLoading={isVoting}
-                upvoteLabel={t("community.card.upvote")}
-                downvoteLabel={t("community.card.downvote")}
-                className="pointer-events-auto"
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setPreviewImage({
+                    src: post.thumbnailUrl!,
+                    alt: post.title,
+                  });
+                }
+              }}
+              className="relative pointer-events-auto w-full aspect-[16/10] sm:aspect-[16/9] max-h-[440px] min-h-[190px] overflow-hidden rounded-xl border border-border/80 bg-blue-950/20 dark:bg-blue-950/40 my-1 group/media flex items-center justify-center cursor-zoom-in transition-all hover:border-primary/50 shadow-2xs"
+            >
+              {/* Ambient blurred backdrop so any aspect ratio fills seamlessly */}
+              <Image
+                src={post.thumbnailUrl}
+                alt=""
+                fill
+                aria-hidden="true"
+                sizes="100px"
+                quality={75}
+                className="object-cover blur-2xl opacity-40 dark:opacity-30 scale-110 pointer-events-none select-none"
+                unoptimized={post.thumbnailUrl.startsWith("/api/")}
               />
 
-              <Link
-                href={targetHref}
-                className="pointer-events-auto inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl border border-border/70 bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shadow-2xs active:scale-98"
-              >
-                <MessageSquare
-                  aria-hidden="true"
-                  className="size-3.5 text-muted-foreground/80 shrink-0"
-                />
-                <span>
-                  {post.answersCount} {answerNoun}
-                </span>
-              </Link>
+              {/* Soft blue ambient glow overlay */}
+              <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-600/15 mix-blend-overlay pointer-events-none" />
 
-              {post.viewsCount !== undefined && post.viewsCount > 0 && (
-                <div className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground px-1.5">
-                  <Eye className="size-3.5 text-muted-foreground/70" />
-                  <span>{post.viewsCount.toLocaleString()}</span>
-                </div>
+              {/* Full uncropped photo */}
+              <Image
+                src={post.thumbnailUrl}
+                alt={`${post.title} ${t("community.card.preview")}`}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 850px"
+                quality={90}
+                className="object-contain p-1.5 sm:p-2.5 transition-transform duration-300 group-hover/media:scale-[1.015]"
+                unoptimized={post.thumbnailUrl.startsWith("/api/")}
+              />
+
+              {/* Click to preview floating badge */}
+              <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 pointer-events-none z-10">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/90 text-[11px] font-semibold text-foreground shadow-xs border border-border/80 backdrop-blur-xs group-hover/media:bg-primary group-hover/media:text-primary-foreground group-hover/media:border-primary transition-all">
+                  <ZoomIn className="size-3.5" />
+                  <span>Preview</span>
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Card View Fallback for posts without images: Code Snippet or Metadata Badges */}
+          {variant === "card" && !post.thumbnailUrl && codeSnippet && (
+            <div className="relative overflow-hidden rounded-xl border border-border/70 bg-muted/30 p-2.5 sm:p-3 font-mono text-[11px] text-muted-foreground my-1 select-none pointer-events-none">
+              <div className="flex items-center gap-1 mb-1 text-[10px] text-muted-foreground/80 font-semibold uppercase tracking-wider">
+                <Code className="size-3" />
+                <span>Code Snippet</span>
+              </div>
+              <pre className="font-mono text-xs text-foreground/90 whitespace-pre-wrap break-all leading-relaxed line-clamp-3">
+                {codeSnippet}
+              </pre>
+            </div>
+          )}
+
+          {variant === "card" && !post.thumbnailUrl && !codeSnippet && (post.problemType || post.severity) && (
+            <div className="flex items-center gap-2 flex-wrap my-0.5">
+              {post.problemType && (
+                <span className="inline-flex items-center gap-1 rounded-lg border border-border/80 bg-muted/40 px-2.5 py-1 text-xs font-semibold text-foreground">
+                  <Bug className="size-3 text-muted-foreground" />
+                  <span>{post.problemType}</span>
+                </span>
+              )}
+              {post.severity && (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-semibold",
+                    post.severity === "CRITICAL" || post.severity === "HIGH"
+                      ? "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400"
+                      : "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400",
+                  )}
+                >
+                  <ShieldAlert className="size-3" />
+                  <span>{post.severity}</span>
+                </span>
               )}
             </div>
           )}
 
-          {/* Right: Participant Avatars Stack */}
-          <div className="pointer-events-auto">
-            <ParticipantAvatarStack
-              author={post.author}
-              answersCount={post.answersCount}
-            />
-          </div>
+          {/* Tags */}
+          {tags && tags.length > 0 && (
+            <div
+              className="flex flex-wrap gap-1.5 pt-0.5"
+              aria-label={t("community.card.tags")}
+            >
+              {tags.slice(0, 5).map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="tag"
+                  className="rounded-md font-mono text-xs font-medium bg-muted/50 hover:bg-muted text-muted-foreground border-border/70 transition-colors"
+                >
+                  {tag}
+                </Badge>
+              ))}
+              {tags.length > 5 && (
+                <span className="text-xs text-muted-foreground font-mono self-center px-1">
+                  +{tags.length - 5}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Action Bar */}
+        <div
+          className={cn(
+            "flex items-center justify-between gap-3 pt-2.5 sm:pt-3 border-t border-border/40 text-muted-foreground",
+            variant === "card" ? "mt-auto pt-3" : "",
+          )}
+        >
+          {isShowcase ? (
+            variant === "card" ? (
+              /* Showcase Card Footer: Single-line, consistent layout */
+              <div className="flex items-center justify-between w-full pointer-events-auto">
+                {/* Left: Vote buttons + score */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="inline-flex items-center rounded-xl border border-border/70 bg-card p-0.5 shadow-2xs">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleVote(1)}
+                      disabled={isVoting}
+                      aria-pressed={currentUserVote === 1}
+                      aria-label="Upvote showcase"
+                      className={cn(
+                        "size-7 rounded-lg transition-colors cursor-pointer",
+                        currentUserVote === 1
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                      )}
+                    >
+                      <ChevronUp className="size-3.5" />
+                    </Button>
+                    <div className="h-3.5 w-px bg-border/60 mx-0.5" />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleVote(-1)}
+                      disabled={isVoting}
+                      aria-pressed={currentUserVote === -1}
+                      aria-label="Downvote showcase"
+                      className={cn(
+                        "size-7 rounded-lg transition-colors cursor-pointer",
+                        currentUserVote === -1
+                          ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                      )}
+                    >
+                      <ChevronDown className="size-3.5" />
+                    </Button>
+                  </div>
+
+                  <span
+                    title="Vote Score"
+                    className={cn(
+                      "inline-flex items-center gap-1 font-bold text-xs tabular-nums",
+                      voteScore > 0
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : voteScore < 0
+                          ? "text-rose-600 dark:text-rose-400"
+                          : "text-foreground",
+                    )}
+                  >
+                    <Flame className="size-3.5 text-amber-500 shrink-0" aria-hidden="true" />
+                    <span>{voteScore > 0 ? `+${voteScore}` : voteScore} score</span>
+                  </span>
+                </div>
+
+                {/* Right: Bookmarks, comments, views */}
+                <div className="flex items-center gap-2 sm:gap-2.5 text-xs text-muted-foreground shrink-0">
+                  <span
+                    className="inline-flex items-center gap-1 font-medium"
+                    title={`${bookmarkCount} ${bookmarkCount === 1 ? "bookmark" : "bookmarks"}`}
+                  >
+                    <Bookmark className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                    <span className="tabular-nums">{bookmarkCount}</span>
+                  </span>
+
+                  <span className="text-muted-foreground/40">·</span>
+
+                  <Link
+                    href={targetHref}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors"
+                    title={`${post.answersCount} ${post.answersCount === 1 ? "comment" : "comments"}`}
+                  >
+                    <MessageSquare className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                    <span className="tabular-nums">{post.answersCount}</span>
+                  </Link>
+
+                  {post.viewsCount !== undefined && (
+                    <>
+                      <span className="text-muted-foreground/40">·</span>
+                      <span
+                        className="inline-flex items-center gap-1 font-medium"
+                        title={`${post.viewsCount.toLocaleString()} views`}
+                      >
+                        <Eye className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                        <span className="tabular-nums">{post.viewsCount.toLocaleString()}</span>
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Showcase Feed Footer: Vote buttons + score · bookmarks · comments · views */
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap pointer-events-auto">
+                {/* Compact Card-level Vote Action (Up/Down) */}
+                <div className="inline-flex items-center rounded-xl border border-border/70 bg-card p-0.5 shadow-2xs">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleVote(1)}
+                    disabled={isVoting}
+                    aria-pressed={currentUserVote === 1}
+                    aria-label="Upvote showcase"
+                    className={cn(
+                      "size-7.5 rounded-lg transition-colors cursor-pointer",
+                      currentUserVote === 1
+                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    )}
+                  >
+                    <ChevronUp className="size-4" />
+                  </Button>
+                  <div className="h-4 w-px bg-border/60 mx-0.5" />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleVote(-1)}
+                    disabled={isVoting}
+                    aria-pressed={currentUserVote === -1}
+                    aria-label="Downvote showcase"
+                    className={cn(
+                      "size-7.5 rounded-lg transition-colors cursor-pointer",
+                      currentUserVote === -1
+                        ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    )}
+                  >
+                    <ChevronDown className="size-4" />
+                  </Button>
+                </div>
+
+                {/* Stats row: score (engagement.voteScore) · bookmarks · comments · views */}
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs text-muted-foreground">
+                  {/* Score with its own Flame icon, negative scores not clamped to 0 */}
+                  <span
+                    title="Vote Score"
+                    className={cn(
+                      "inline-flex items-center gap-1 font-bold tabular-nums",
+                      voteScore > 0
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : voteScore < 0
+                          ? "text-rose-600 dark:text-rose-400"
+                          : "text-foreground",
+                    )}
+                  >
+                    <Flame className="size-3.5 text-amber-500 shrink-0" aria-hidden="true" />
+                    <span>{voteScore > 0 ? `+${voteScore}` : voteScore} score</span>
+                  </span>
+
+                  <span className="text-muted-foreground/60">·</span>
+
+                  {/* Bookmarks */}
+                  <span className="inline-flex items-center gap-1 font-medium">
+                    <Bookmark className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                    <span className="tabular-nums">
+                      {bookmarkCount} {bookmarkCount === 1 ? "bookmark" : "bookmarks"}
+                    </span>
+                  </span>
+
+                  <span className="text-muted-foreground/60">·</span>
+
+                  {/* Comments */}
+                  <Link
+                    href={targetHref}
+                    className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors"
+                  >
+                    <MessageSquare className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                    <span className="tabular-nums">
+                      {post.answersCount} {post.answersCount === 1 ? "comment" : "comments"}
+                    </span>
+                  </Link>
+
+                  {/* Views */}
+                  {post.viewsCount !== undefined && (
+                    <>
+                      <span className="text-muted-foreground/60">·</span>
+                      <span className="inline-flex items-center gap-1 font-medium">
+                        <Eye className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                        <span className="tabular-nums">{post.viewsCount.toLocaleString()} views</span>
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          ) : (
+            /* Problem Card Footer */
+            variant === "card" ? (
+              <div className="flex items-center justify-between w-full pointer-events-auto">
+                <VoteControl
+                  voteCount={voteScore}
+                  upvotes={upvoteCount}
+                  downvotes={downvoteCount}
+                  currentVote={currentUserVote}
+                  onVote={handleVote}
+                  isLoading={isVoting}
+                  upvoteLabel={t("community.card.upvote")}
+                  downvoteLabel={t("community.card.downvote")}
+                  className="pointer-events-auto"
+                />
+
+                <div className="flex items-center gap-2.5 sm:gap-3 text-xs text-muted-foreground shrink-0">
+                  {post.bookmarkCount !== undefined && post.bookmarkCount > 0 && (
+                    <>
+                      <span
+                        className="inline-flex items-center gap-1 font-medium"
+                        title={`${post.bookmarkCount} ${post.bookmarkCount === 1 ? "bookmark" : "bookmarks"}`}
+                      >
+                        <Bookmark className="size-3.5 text-muted-foreground/80 shrink-0" aria-hidden="true" />
+                        <span className="tabular-nums">{post.bookmarkCount}</span>
+                      </span>
+                      <span className="text-muted-foreground/40">·</span>
+                    </>
+                  )}
+
+                  <Link
+                    href={targetHref}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors"
+                    title={`${post.answersCount} ${answerNoun}`}
+                  >
+                    <MessageSquare className="size-3.5 text-muted-foreground/80 shrink-0" />
+                    <span className="tabular-nums">{post.answersCount}</span>
+                  </Link>
+
+                  {post.viewsCount !== undefined && post.viewsCount > 0 && (
+                    <>
+                      <span className="text-muted-foreground/40">·</span>
+                      <span
+                        className="inline-flex items-center gap-1 font-medium"
+                        title={`${post.viewsCount.toLocaleString()} views`}
+                      >
+                        <Eye className="size-3.5 text-muted-foreground/80 shrink-0" />
+                        <span className="tabular-nums">{post.viewsCount.toLocaleString()}</span>
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <VoteControl
+                  voteCount={voteScore}
+                  upvotes={upvoteCount}
+                  downvotes={downvoteCount}
+                  currentVote={currentUserVote}
+                  onVote={handleVote}
+                  isLoading={isVoting}
+                  upvoteLabel={t("community.card.upvote")}
+                  downvoteLabel={t("community.card.downvote")}
+                  className="pointer-events-auto"
+                />
+
+                <Link
+                  href={targetHref}
+                  className="pointer-events-auto inline-flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-xl border border-border/70 bg-card hover:bg-muted text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shadow-2xs active:scale-98"
+                >
+                  <MessageSquare
+                    aria-hidden="true"
+                    className="size-3.5 text-muted-foreground/80 shrink-0"
+                  />
+                  <span>
+                    {post.answersCount} {answerNoun}
+                  </span>
+                </Link>
+
+                {post.viewsCount !== undefined && post.viewsCount > 0 && (
+                  <div className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground px-1.5">
+                    <Eye className="size-3.5 text-muted-foreground/70" />
+                    <span>{post.viewsCount.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            )
+          )}
+
+          {/* Right: Participant Avatars Stack (only for feed variant) */}
+          {variant !== "card" && (
+            <div className="pointer-events-auto">
+              <ParticipantAvatarStack
+                author={post.author}
+                answersCount={post.answersCount}
+              />
+            </div>
+          )}
         </div>
       </div>
 

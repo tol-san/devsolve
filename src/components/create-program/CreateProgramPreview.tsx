@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Shield, ArrowRight, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Shield, Eye } from "lucide-react";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import type { ProgramType, ScopeTarget } from "./types";
 
@@ -151,27 +150,6 @@ export function CreateProgramPreview({
               {getRewardRange()}
             </span>
           </div>
-
-          {programType === "BOUNTY" ? (
-            <Button
-              type="button"
-              size="sm"
-              className="bg-foreground text-background hover:bg-foreground/90 text-xs font-bold rounded-xl px-4 h-9 cursor-pointer"
-            >
-              See Details
-              <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-border text-foreground hover:bg-muted text-xs font-semibold rounded-xl px-4 h-9 cursor-pointer"
-            >
-              See Details
-              <ArrowRight className="w-3.5 h-3.5 ml-1 text-muted-foreground" />
-            </Button>
-          )}
         </div>
       </div>
     </div>

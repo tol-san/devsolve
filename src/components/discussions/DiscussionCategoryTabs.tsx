@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid, LayoutList } from "lucide-react";
 import type {
   DiscussionCategory,
   DiscussionSort,
@@ -40,6 +42,8 @@ interface DiscussionCategoryTabsProps {
   onSortChange: (sort: DiscussionSort) => void;
   totalCount: number;
   isLoading?: boolean;
+  viewMode?: "list" | "card";
+  onViewModeChange?: (mode: "list" | "card") => void;
 }
 
 export function DiscussionCategoryTabs({
@@ -49,6 +53,8 @@ export function DiscussionCategoryTabs({
   onSortChange,
   totalCount,
   isLoading = false,
+  viewMode = "list",
+  onViewModeChange,
 }: DiscussionCategoryTabsProps) {
   const t = useT();
 
@@ -151,6 +157,49 @@ export function DiscussionCategoryTabs({
             </SelectGroup>
           </SelectContent>
         </Select>
+
+        {onViewModeChange && (
+          <div
+            role="group"
+            aria-label="View mode"
+            className="flex items-center rounded-xl border border-border/80 bg-muted/40 p-0.5 shadow-2xs"
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onViewModeChange("list")}
+              aria-pressed={viewMode === "list"}
+              aria-label="List view"
+              title="List view"
+              className={cn(
+                "h-8 w-8 rounded-lg transition-all cursor-pointer",
+                viewMode === "list"
+                  ? "bg-card text-foreground shadow-xs font-semibold ring-1 ring-foreground/5"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+              )}
+            >
+              <LayoutList className="size-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onViewModeChange("card")}
+              aria-pressed={viewMode === "card"}
+              aria-label="Card view"
+              title="Card view"
+              className={cn(
+                "h-8 w-8 rounded-lg transition-all cursor-pointer",
+                viewMode === "card"
+                  ? "bg-card text-foreground shadow-xs font-semibold ring-1 ring-foreground/5"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+              )}
+            >
+              <LayoutGrid className="size-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

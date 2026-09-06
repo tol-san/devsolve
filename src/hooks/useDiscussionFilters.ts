@@ -24,6 +24,7 @@ export function useDiscussionFilters(defaultCategory: DiscussionCategory = "All"
   const [sort, setSort] = useState<DiscussionSort>(DEFAULT_SORT);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(DEFAULT_LIMIT);
+  const [viewMode, setViewMode] = useState<"list" | "card">("list");
 
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -117,6 +118,8 @@ export function useDiscussionFilters(defaultCategory: DiscussionCategory = "All"
     searchQuery,
     page,
     limit,
+    viewMode,
+    setViewMode,
     hasActiveFilters,
     setCategory: handleSetCategory,
     setTopic: handleSetTopic,

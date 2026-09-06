@@ -12,10 +12,12 @@ import {
   Eye,
   RotateCcw,
   ShieldCheck,
+  Trash2,
   XCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { TakedownDialog } from "@/components/admin/TakedownDialog";
 import { Card } from "@/components/ui/card";
 import {
   Select,
@@ -245,7 +247,12 @@ function QueueRow({
   busy: boolean;
   onDecide: (decision: ProblemDecision) => void;
 }) {
+  const [takingDown, setTakingDown] = useState(false);
   const isPending = item.status === "PENDING_APPROVAL";
+  // Approve/reject only moves PENDING_APPROVAL content. Once a problem is
+  // live the moderation endpoint returns a conflict, so the only action left
+  // is a takedown.
+  const isLive = item.status === "PUBLISHED" || item.status === "RESOLVED";
   const description = item.description ?? "";
   const warnings = item.contentWarnings ?? [];
   const technologies = item.technologies ?? [];
@@ -365,8 +372,31 @@ function QueueRow({
               </button>
             </>
           )}
+
+          {isLive && item.id && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setTakingDown(true)}
+              className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-xl border border-rose-500/30 px-3 text-xs font-bold text-rose-600 transition hover:bg-rose-500/10 disabled:opacity-50 dark:text-rose-400"
+            >
+              <Trash2 className="size-3.5" />
+              Take down
+            </button>
+          )}
         </div>
       </div>
+
+      {item.id && (
+        <TakedownDialog
+          open={takingDown}
+          onOpenChange={setTakingDown}
+          targetType="PROBLEM"
+          targetId={item.id}
+          targetTitle={item.title}
+          targetAuthor={authorNameOf(item.author)}
+        />
+      )}
     </motion.div>
   );
 }

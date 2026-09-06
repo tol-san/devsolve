@@ -3,10 +3,10 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bookmark, ArrowRight, Building2 } from "lucide-react";
+import { Bookmark, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Program } from "@/lib/types/programs/types";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { splitLocale } from "@/lib/i18n/config";
 import { useLocalePath, useT } from "@/lib/i18n/I18nProvider";
 import { authClient } from "@/lib/auth/auth-client";
@@ -52,6 +52,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
 
   const toggleBookmark = async (e: React.MouseEvent) => {
     e.preventDefault(); 
+    e.stopPropagation();
     if (!session?.user) {
       void handleLogin(
         typeof window !== "undefined"
@@ -107,12 +108,31 @@ export function ProgramCard({ program }: ProgramCardProps) {
   };
 
   const pathname = usePathname();
+  const router = useRouter();
   const { rest } = splitLocale(pathname);
   const isDashboard = rest.startsWith("/dashboard");
   const basePath = lp(isDashboard ? "/dashboard/programs" : "/programs");
+  const targetHref = `${basePath}/${program.id}`;
+
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button, a, input, [role='button']")) {
+      return;
+    }
+    router.push(targetHref);
+  };
 
   return (
-    <div className="group relative bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1.5 hover:ring-blue-500/40 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/40 h-full">
+    <div
+      onClick={handleCardClick}
+      className="group relative bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 p-6 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1.5 hover:ring-blue-500/40 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/40 h-full cursor-pointer"
+    >
+      <Link
+        href={targetHref}
+        className="absolute inset-0 z-0 rounded-2xl outline-none"
+        tabIndex={-1}
+        aria-hidden="true"
+      />
 
       <button
         onClick={toggleBookmark}
@@ -124,7 +144,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
             ? t("programs.card.removeBookmark")
             : t("programs.card.bookmark")
         }
-        className="absolute top-5 right-5 p-2 rounded-xl text-muted-foreground hover:text-blue-600 hover:bg-blue-50/80 active:scale-95 transition-all duration-200 z-10 disabled:opacity-60 dark:hover:text-blue-400 dark:hover:bg-blue-500/10"
+        className="absolute top-5 right-5 p-2 rounded-xl text-muted-foreground hover:text-blue-600 hover:bg-blue-50/80 active:scale-95 transition-all duration-200 z-10 disabled:opacity-60 dark:hover:text-blue-400 dark:hover:bg-blue-500/10 cursor-pointer"
       >
         <Bookmark
           className={`w-5 h-5 transition-colors ${
@@ -135,11 +155,12 @@ export function ProgramCard({ program }: ProgramCardProps) {
         />
       </button>
 
-      <div className="space-y-4">
+      <div className="space-y-4 relative z-10 pointer-events-none">
         <div className="flex items-start gap-3.5 pr-8">
           <Link
             href={companyHref}
-            className="flex items-start gap-3.5 group/org cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-start gap-3.5 group/org cursor-pointer pointer-events-auto"
           >
             <div className="w-11 h-11 bg-card border border-border rounded-xl flex items-center justify-center shrink-0 overflow-hidden shadow-2xs group-hover/org:scale-105 transition-all duration-300">
               {logoUrl ? (
@@ -176,7 +197,7 @@ export function ProgramCard({ program }: ProgramCardProps) {
         </div>
 
         <div className="space-y-1.5">
-          <h3 className="font-bold text-foreground text-[17px] leading-snug line-clamp-1 transition-colors">
+          <h3 className="font-bold text-foreground text-[17px] leading-snug line-clamp-1 transition-colors group-hover:text-primary">
             {program.name}
           </h3>
           <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed">
@@ -219,21 +240,13 @@ export function ProgramCard({ program }: ProgramCardProps) {
         </div>
       </div>
 
-      <div className="mt-6 pt-4 border-t border-border flex items-center justify-between">
+      <div className="mt-6 pt-4 border-t border-border flex items-center justify-between relative z-10 pointer-events-none">
         <div>
           <p className="text-xs text-muted-foreground font-medium">
             {t("programs.card.rewards")}
           </p>
           {renderRewards()}
         </div>
-
-        <Link
-          href={`${basePath}/${program.id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground bg-muted ring-1 ring-foreground/5 dark:ring-foreground/10 px-4 py-2 rounded-xl group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-md active:scale-95 transition-all duration-200"
-        >
-          <span>{t("programs.card.seeDetails")}</span>
-          <ArrowRight className="w-3.5 h-3.5  -translate-x-1 group-hover group-hover:translate-x-0 transition-all duration-200" />
-        </Link>
       </div>
     </div>
   );

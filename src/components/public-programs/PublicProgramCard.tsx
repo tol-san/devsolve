@@ -36,7 +36,8 @@ export function PublicProgramCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className="flex h-full flex-col rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-slate-300 hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
+      onClick={() => onSeeDetails(program)}
+      className="flex h-full flex-col rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,0.04)] transition-all duration-200 hover:border-slate-300 hover:shadow-[0_8px_24px_rgba(15,23,42,0.06)] cursor-pointer"
     >
       <div className="flex flex-1 flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
@@ -143,15 +144,6 @@ export function PublicProgramCard({
             {(program.assetCategories || []).join(" / ")}
           </div>
         </div>
-
-        <Button
-          type="button"
-          onClick={() => onSeeDetails(program)}
-          className="h-10 w-full rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(37,99,235,0.2)] hover:bg-blue-700"
-        >
-          See Details
-          <ArrowRight data-icon="inline-end" />
-        </Button>
       </div>
     </motion.article>
   );

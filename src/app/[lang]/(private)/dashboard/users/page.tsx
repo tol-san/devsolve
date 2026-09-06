@@ -22,11 +22,13 @@ import {
 } from "@/components/admin/users/UserFiltersBar";
 import { UserDataTable } from "@/components/admin/users/UserDataTable";
 import { getUserColumns } from "@/components/admin/users/userColumns";
+import { authClient } from "@/lib/auth/auth-client";
 import { ModerationActionDialog } from "@/components/admin/ModerationActionDialog";
 
 import type { ModerationActionType } from "@/lib/types/admin/types";
 
 export default function AdminUsersPage() {
+  const { data: session } = authClient.useSession();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
   const [sortOption, setSortOption] = useState<UserSortOption>("NEWEST");
@@ -195,18 +197,28 @@ export default function AdminUsersPage() {
     setPageIndex(0);
   }, []);
 
+  /**
+   * Reinstating needs nothing but a reason, so it goes straight through.
+   * A suspension needs an `expiresAt` the table cannot ask for — without one
+   * the API returns 400 — so it opens the moderation dialog instead.
+   */
   const handleUpdateStatus = useCallback(
     async (id: string, status: "ACTIVE" | "SUSPENDED") => {
+      if (status === "SUSPENDED") {
+        const user = users.find((candidate) => candidate.id === id);
+        if (user) setModerateTarget({ user, actionType: "SUSPEND" });
+        return;
+      }
+
       try {
         await updateUser({
           id,
-          status,
-          reason: `Status set to ${status} via Admin Users dashboard.`,
+          status: "ACTIVE",
+          reason: "Account reinstated via the admin console.",
         }).unwrap();
-        toast.success(
-          status === "ACTIVE" ? "Account activated." : "Account suspended.",
-          { description: "User status updated successfully." }
-        );
+        toast.success("Account activated.", {
+          description: "User status updated successfully.",
+        });
         void refetchUsers();
         void refetchOverall();
       } catch (err: unknown) {
@@ -216,7 +228,7 @@ export default function AdminUsersPage() {
         toast.error(message);
       }
     },
-    [updateUser, refetchUsers, refetchOverall]
+    [updateUser, users, refetchUsers, refetchOverall]
   );
 
   const handleModerateUser = useCallback(
@@ -231,8 +243,9 @@ export default function AdminUsersPage() {
       getUserColumns({
         onUpdateStatus: handleUpdateStatus,
         onModerateUser: handleModerateUser,
+        currentUserId: session?.user?.id,
       }),
-    [handleUpdateStatus, handleModerateUser]
+    [handleUpdateStatus, handleModerateUser, session?.user?.id]
   );
 
   const suspendedCount = statusCounts.suspended;

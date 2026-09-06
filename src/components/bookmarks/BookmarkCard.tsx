@@ -174,7 +174,7 @@ export const BookmarkCard: React.FC<BookmarkCardProps> = ({ item, onRemove }) =>
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
-      className="group relative flex flex-col justify-between gap-4 rounded-2xl bg-card p-5 shadow-2xs ring-1 ring-foreground/5 transition-all duration-200 hover:shadow-md hover:ring-foreground/10 dark:ring-foreground/10 dark:hover:ring-foreground/20"
+      className="group relative flex flex-col justify-between gap-4 rounded-2xl bg-card p-5 sm:p-6 shadow-2xs ring-1 ring-foreground/5 transition-all duration-200 hover:shadow-md hover:ring-foreground/10 dark:ring-foreground/10 dark:hover:ring-foreground/20 h-full"
     >
       <Link
         href={item.url || "/community"}

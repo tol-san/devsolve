@@ -38,6 +38,8 @@ const ROLE_OPTIONS: {
 interface ColumnCallbacks {
   onUpdateStatus?: (id: string, status: "ACTIVE" | "SUSPENDED") => void;
   onModerateUser?: (user: AdminUserItem, actionType?: ModerationActionType) => void;
+  /** The signed-in admin, so their own row cannot offer self-moderation. */
+  currentUserId?: string;
   onUpdateRole?: (
     id: string,
     role: "USER" | "COMPANY" | "ADMIN" | "MODERATOR"
@@ -47,13 +49,36 @@ interface ColumnCallbacks {
 function UserActionsCell({
   user,
   onModerateUser,
+  currentUserId,
 }: {
   user: AdminUserItem;
   onModerateUser?: (user: AdminUserItem, actionType?: ModerationActionType) => void;
+  currentUserId?: string;
 }) {
   const isRemoved = user.status === "REMOVED";
   const isSuspended = user.status === "SUSPENDED";
-  const isActive = user.status === "ACTIVE";
+
+  // The API rejects moderating yourself (400) or another admin (403). Say so
+  // on the row rather than letting an admin click into an error.
+  const isSelf = Boolean(currentUserId && user.id === currentUserId);
+  const isAdmin = user.role === "ADMIN";
+
+  if (isSelf || isAdmin) {
+    return (
+      <div className="flex items-center justify-end">
+        <span
+          title={
+            isSelf
+              ? "You cannot moderate your own account"
+              : "Administrators cannot be moderated from here"
+          }
+          className="text-xs font-medium text-muted-foreground"
+        >
+          {isSelf ? "You" : "Admin"}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-end">
@@ -124,6 +149,7 @@ function UserActionsCell({
 
 export function getUserColumns({
   onModerateUser,
+  currentUserId,
 }: ColumnCallbacks): ColumnDef<AdminUserItem>[] {
   return [
     {
@@ -283,6 +309,7 @@ export function getUserColumns({
         <UserActionsCell
           user={row.original}
           onModerateUser={onModerateUser}
+          currentUserId={currentUserId}
         />
       ),
     },

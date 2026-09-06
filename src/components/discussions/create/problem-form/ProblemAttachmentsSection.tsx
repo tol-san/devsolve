@@ -54,7 +54,7 @@ export function ProblemAttachmentsSection({
         className={CARD_CLASS}
         aria-labelledby="problem-attachments-heading"
       >
-        <CardHeader className="border-b border-border/70 pb-4">
+        <CardHeader className="p-5 sm:p-6 pb-4 sm:pb-4 border-b border-border/70">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
@@ -88,7 +88,7 @@ export function ProblemAttachmentsSection({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4 pt-6">
+        <CardContent className="p-5 sm:p-6 pt-5 space-y-4">
           {existingCount > 0 && (
             <ExistingAttachments
               attachments={existingAttachments!}

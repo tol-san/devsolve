@@ -28,6 +28,10 @@ export interface DiscussionPost {
   viewsCount: number;
   status?: "Solved" | "Open";
   thumbnailUrl?: string;
+  bookmarkCount?: number;
+  problemType?: string;
+  severity?: string;
+  sdlcPhase?: string;
   author: {
     id?: string;
     name: string;

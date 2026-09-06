@@ -28,6 +28,8 @@ export default function DiscussionsPage() {
     searchQuery,
     page,
     limit,
+    viewMode,
+    setViewMode,
     hasActiveFilters,
     setCategory,
     setTopic,
@@ -97,6 +99,8 @@ export default function DiscussionsPage() {
             sort={sort}
             onSortChange={setSort}
             totalCount={discussions?.totalCount ?? 0}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
           />
           <DiscussionActiveFilters
             category={category}
@@ -135,7 +139,7 @@ export default function DiscussionsPage() {
           className="flex min-w-0 scroll-mt-6 flex-col gap-5 lg:col-start-1 lg:row-start-2"
         >
           {isInitialLoading ? (
-            <DiscussionSkeleton />
+            <DiscussionSkeleton viewMode={viewMode} />
           ) : (
             <>
               <div
@@ -147,22 +151,43 @@ export default function DiscussionsPage() {
               >
                 <AnimatePresence mode="wait" initial={false}>
                   {discussions?.data && discussions.data.length > 0 ? (
-                    <motion.div
-                      key={`feed-${category}-${topic}-${tag}-${searchQuery}-${sort}-${page}-${limit}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="flex flex-col rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs overflow-hidden ring-1 ring-foreground/5"
-                    >
-                      {discussions.data.map((post, index) => (
-                        <DiscussionCard
-                          key={post.id}
-                          post={post}
-                          index={index}
-                        />
-                      ))}
-                    </motion.div>
+                    viewMode === "card" ? (
+                      <motion.div
+                        key={`feed-${category}-${topic}-${tag}-${searchQuery}-${sort}-${page}-${limit}-card`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="grid grid-cols-1 gap-5 md:grid-cols-2"
+                      >
+                        {discussions.data.map((post, index) => (
+                          <DiscussionCard
+                            key={post.id}
+                            post={post}
+                            index={index}
+                            variant="card"
+                          />
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key={`feed-${category}-${topic}-${tag}-${searchQuery}-${sort}-${page}-${limit}-list`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex flex-col rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs overflow-hidden ring-1 ring-foreground/5"
+                      >
+                        {discussions.data.map((post, index) => (
+                          <DiscussionCard
+                            key={post.id}
+                            post={post}
+                            index={index}
+                            variant="feed"
+                          />
+                        ))}
+                      </motion.div>
+                    )
                   ) : (
                     <motion.div
                       key="empty"

@@ -32,25 +32,32 @@ export const adminUsersApi = baseApi.injectEndpoints({
       CreateModerationActionParams
     >({
       query: ({ id, action, reason, expiresAt }) => ({
-        url: `/admin/${id}/moderation-actions`,
+        url: `/admin/users/${id}/moderation-actions`,
         method: "POST",
         body: { action, reason, expiresAt },
       }),
-      invalidatesTags: ["AdminUser"],
+      invalidatesTags: ["AdminUser", "ModerationAction"],
     }),
+    /**
+     * Reinstate/warn only. A SUSPEND needs an `expiresAt`, which this shortcut
+     * has no way to collect — sending one without it is a guaranteed 400, so
+     * suspensions go through AccountModerationDialog instead.
+     */
     updateAdminUserStatus: builder.mutation<
       unknown,
-      { id: string; status: "ACTIVE" | "SUSPENDED" | "PENDING"; reason?: string }
+      { id: string; status: "ACTIVE" | "PENDING"; reason?: string }
     >({
       query: ({ id, status, reason }) => ({
-        url: `/admin/${id}/moderation-actions`,
+        url: `/admin/users/${id}/moderation-actions`,
         method: "POST",
         body: {
-          action: status === "ACTIVE" ? "REINSTATE" : status === "SUSPENDED" ? "SUSPEND" : "WARN",
-          reason: reason || `Account ${status === "ACTIVE" ? "reinstated" : status.toLowerCase()} via Admin Users dashboard.`,
+          action: status === "ACTIVE" ? "REINSTATE" : "WARN",
+          reason:
+            reason ||
+            `Account ${status === "ACTIVE" ? "reinstated" : "warned"} via the admin console.`,
         },
       }),
-      invalidatesTags: ["AdminUser"],
+      invalidatesTags: ["AdminUser", "ModerationAction"],
     }),
   }),
 });

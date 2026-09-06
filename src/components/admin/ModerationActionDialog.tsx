@@ -33,6 +33,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateModerationActionMutation } from "@/lib/redux/services/admin/moderationActionsApi";
+import { useTakeDownContentMutation } from "@/lib/redux/services/admin/takedownApi";
+import { isTakedownTarget } from "@/lib/validations/moderation";
 import { useUpdateContentReportActionMutation } from "@/lib/redux/services/admin/moderationApi";
 import type {
   ModerationActionType,
@@ -216,10 +218,12 @@ function ModerationActionForm({
 
   const [createModerationAction, { isLoading: isCreatingAction }] =
     useCreateModerationActionMutation();
+  const [takeDownContent, { isLoading: isTakingDown }] =
+    useTakeDownContentMutation();
   const [updateContentReport, { isLoading: isUpdatingReport }] =
     useUpdateContentReportActionMutation();
 
-  const isSubmitting = isCreatingAction || isUpdatingReport;
+  const isSubmitting = isCreatingAction || isUpdatingReport || isTakingDown;
 
   const targetId = report?.id || target?.id || "";
   const targetName = report?.author || target?.name || "Target Entity";
@@ -305,16 +309,34 @@ function ModerationActionForm({
         const targetType =
           (target?.type as ModerationActionTargetType) || "USER";
 
-        await createModerationAction({
-          id: targetId,
-          body: {
+        if (values.action === "REMOVE" && isTakedownTarget(targetType)) {
+          const result = await takeDownContent({
             targetType,
             targetId,
-            action: values.action,
             reason: values.reason.trim(),
-            expiresAt: formattedExpiresAt,
-          },
-        }).unwrap();
+          }).unwrap();
+
+          if (result.alreadyGone) {
+            toast.info("Already removed", {
+              description:
+                "That content was taken down or deleted before you confirmed.",
+            });
+            onSuccess?.();
+            onClose();
+            return;
+          }
+        } else {
+          await createModerationAction({
+            id: targetId,
+            body: {
+              targetType,
+              targetId,
+              action: values.action,
+              reason: values.reason.trim(),
+              expiresAt: formattedExpiresAt,
+            },
+          }).unwrap();
+        }
       }
 
       toast.success(`Moderation action '${values.action}' applied successfully.`);

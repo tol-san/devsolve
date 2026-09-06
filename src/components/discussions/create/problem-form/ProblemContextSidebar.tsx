@@ -99,7 +99,7 @@ export function ProblemContextSidebar({
         className={CARD_CLASS}
         aria-labelledby="problem-context-heading"
       >
-        <CardHeader className="border-b border-border/70 pb-4">
+        <CardHeader className="p-5 pb-3.5 border-b border-border/70">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
@@ -126,10 +126,11 @@ export function ProblemContextSidebar({
           </div>
         </CardHeader>
 
-        <CardContent className="pt-5">
-          <FieldGroup className="space-y-5">
+        <CardContent className="p-5 pt-4">
+          <FieldGroup className="gap-4">
             {/* Category */}
             <Field
+              className="gap-1.5"
               data-invalid={Boolean(errors.categoryId)}
               data-disabled={
                 submitting ||
@@ -220,6 +221,7 @@ export function ProblemContextSidebar({
 
             {/* Problem Type */}
             <Field
+              className="gap-1.5"
               data-invalid={Boolean(errors.problemType)}
               data-disabled={submitting || undefined}
             >
@@ -334,6 +336,7 @@ export function ProblemContextSidebar({
 
             {/* Severity */}
             <Field
+              className="gap-1.5"
               data-invalid={Boolean(errors.severity)}
               data-disabled={submitting || undefined}
             >
@@ -406,6 +409,7 @@ export function ProblemContextSidebar({
 
             {/* SDLC Phase */}
             <Field
+              className="gap-1.5"
               data-invalid={Boolean(errors.sdlcPhase)}
               data-disabled={submitting || undefined}
             >

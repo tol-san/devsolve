@@ -115,7 +115,7 @@ export function ProblemSubmitCard({
         className={CARD_CLASS}
         aria-labelledby="submit-problem-heading"
       >
-        <CardHeader className="border-b border-border/70 pb-4">
+        <CardHeader className="p-5 pb-3.5 border-b border-border/70">
           <div className="flex items-center justify-between gap-3">
             <CardTitle>
               <h2
@@ -168,7 +168,7 @@ export function ProblemSubmitCard({
           </div>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-2.5 pt-5">
+        <CardContent className="p-5 pt-4 flex flex-col gap-2">
           <RequirementRow label="Title (10–180 chars)" met={titleReady} />
           <RequirementRow
             label="Description (30+ chars)"
@@ -227,7 +227,7 @@ export function ProblemSubmitCard({
           )}
         </CardContent>
 
-        <CardFooter className="flex-col gap-2.5 border-t border-border/70 pt-4">
+        <CardFooter className="p-5 pt-4 border-t border-border/70 flex-col gap-2.5">
           {isDraftProblem && (
             <div className="w-full flex items-center justify-between text-xs text-muted-foreground pb-2 border-b border-border/70">
               <span className="inline-flex items-center gap-1">

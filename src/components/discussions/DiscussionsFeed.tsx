@@ -64,6 +64,8 @@ export function DiscussionsFeed({
     setPage,
     setLimit,
     resetFilters,
+    viewMode,
+    setViewMode,
     discussionsResult,
     topicsResult,
     tagsResult,
@@ -129,6 +131,8 @@ export function DiscussionsFeed({
               onSortChange={setSort}
               totalCount={discussions?.totalCount ?? 0}
               isLoading={isInitialLoading}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
             />
             <DiscussionMobileFilters
               topics={topics}
@@ -177,7 +181,7 @@ export function DiscussionsFeed({
             className="flex min-w-0 scroll-mt-6 flex-col gap-5 lg:col-start-1 lg:row-start-2"
           >
             {isInitialLoading ? (
-              <DiscussionSkeleton />
+              <DiscussionSkeleton viewMode={viewMode} />
             ) : (
               <>
                 <div
@@ -189,27 +193,53 @@ export function DiscussionsFeed({
                 >
                   <AnimatePresence mode="wait" initial={false}>
                     {discussions?.data && discussions.data.length > 0 ? (
-                      <motion.div
-                        key={`feed-${category}-${topic}-${tag}-${searchQuery}-${sort}-${page}-${limit}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className="flex flex-col rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs overflow-hidden ring-1 ring-foreground/5"
-                      >
-                        {discussions.data.map((post, index) => (
-                          <DiscussionCard
-                            key={post.id}
-                            post={post}
-                            index={index}
-                            myAnswer={
-                              post.category === "Problems"
-                                ? unresolvedFor(post.id)
-                                : undefined
-                            }
-                          />
-                        ))}
-                      </motion.div>
+                      viewMode === "card" ? (
+                        <motion.div
+                          key={`feed-${category}-${topic}-${tag}-${searchQuery}-${sort}-${page}-${limit}-card`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                          className="grid grid-cols-1 gap-5 md:grid-cols-2"
+                        >
+                          {discussions.data.map((post, index) => (
+                            <DiscussionCard
+                              key={post.id}
+                              post={post}
+                              index={index}
+                              variant="card"
+                              myAnswer={
+                                post.category === "Problems"
+                                  ? unresolvedFor(post.id)
+                                  : undefined
+                              }
+                            />
+                          ))}
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key={`feed-${category}-${topic}-${tag}-${searchQuery}-${sort}-${page}-${limit}-list`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.15 }}
+                          className="flex flex-col rounded-2xl sm:rounded-3xl border border-border/80 bg-card shadow-xs overflow-hidden ring-1 ring-foreground/5"
+                        >
+                          {discussions.data.map((post, index) => (
+                            <DiscussionCard
+                              key={post.id}
+                              post={post}
+                              index={index}
+                              variant="feed"
+                              myAnswer={
+                                post.category === "Problems"
+                                  ? unresolvedFor(post.id)
+                                  : undefined
+                              }
+                            />
+                          ))}
+                        </motion.div>
+                      )
                     ) : (
                       <motion.div
                         key="empty"

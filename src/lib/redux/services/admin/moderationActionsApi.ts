@@ -5,6 +5,7 @@ import {
   ModerationActionResponse,
   PageModerationActionResponse,
 } from "@/lib/types/admin/types";
+import { unwrapPage } from "./adminFlagsApi";
 
 export const moderationActionsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -38,12 +39,32 @@ export const moderationActionsApi = baseApi.injectEndpoints({
       ],
     }),
 
+    getTargetModerationHistory: builder.query<
+      ModerationActionResponse[],
+      { targetType: GetModerationHistoryParams["targetType"]; targetId: string }
+    >({
+      query: ({ targetType, targetId }) => {
+        const params = new URLSearchParams({
+          targetId,
+          pageNumber: "0",
+          pageSize: "20",
+        });
+        if (targetType) params.set("targetType", targetType);
+        return `/admin/moderation-actions?${params.toString()}`;
+      },
+      transformResponse: (response: unknown) =>
+        unwrapPage<ModerationActionResponse>(response).items,
+      providesTags: (_result, _error, { targetId }) => [
+        { type: "ModerationAction", id: targetId },
+      ],
+    }),
+
     createModerationAction: builder.mutation<
       ModerationActionResponse,
       { id: string; body: CreateModerationActionRequest }
     >({
       query: ({ id, body }) => ({
-        url: `/admin/${id}/moderation-actions`,
+        url: `/admin/users/${id}/moderation-actions`,
         method: "POST",
         body,
       }),
@@ -55,5 +76,6 @@ export const moderationActionsApi = baseApi.injectEndpoints({
 export const {
   useGetModerationHistoryQuery,
   useGetModerationActionByIdQuery,
+  useGetTargetModerationHistoryQuery,
   useCreateModerationActionMutation,
 } = moderationActionsApi;
