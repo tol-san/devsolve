@@ -61,7 +61,7 @@ export const reviewDetailHref = (showcaseId: string) =>
   `/dashboard/content-moderation/showcases/${showcaseId}`;
 
 export function ShowcaseReviewQueue() {
-  const [status, setStatus] = useState<StatusTab>("PENDING");
+  const [status, setStatus] = useState<StatusTab>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [submissionTypeFilter, setSubmissionTypeFilter] =
@@ -92,9 +92,6 @@ export function ShowcaseReviewQueue() {
     reviewStatus: "REJECTED",
     pageSize: 1,
   });
-  const { data: allData } = useGetShowcaseReviewQueueQuery({
-    pageSize: 1,
-  });
 
   const pendingCount =
     status === "PENDING" && data?.totalElements !== undefined
@@ -114,7 +111,7 @@ export function ShowcaseReviewQueue() {
   const allCount =
     status === "ALL" && data?.totalElements !== undefined
       ? data.totalElements
-      : allData?.totalElements ?? (pendingCount + approvedCount + rejectedCount);
+      : (pendingCount + approvedCount + rejectedCount);
 
   // Fetch categories for filter dropdown
   const { data: categories = [] } = useGetActiveCategoriesQuery("SHOWCASE");
