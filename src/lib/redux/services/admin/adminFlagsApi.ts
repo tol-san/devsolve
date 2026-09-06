@@ -1,23 +1,40 @@
 import { baseApi } from "../baseApi";
 import type {
   AdminFlaggableType,
+  BulkActionResult,
+  FlagReporter,
+  FlagSort,
   FlagSource,
   FlagStatus,
+  FlagSummary,
+  FlagTarget,
+  GroupedFlagItem,
 } from "@/lib/validations/moderation";
 import type { FlagReason } from "@/lib/validations/engagement";
+
+export type {
+  BulkActionResult,
+  FlagReporter,
+  FlagSort,
+  FlagSummary,
+  FlagTarget,
+  GroupedFlagItem,
+};
 
 /** The report queue row, exactly as the API returns it — no lossy remapping. */
 export interface FlagResponse {
   id: string;
-  /** SYSTEM flags come from the profanity filter and have no reporter. */
   source: FlagSource;
-  reporterId: string | null;
-  reporterName: string | null;
+  reporter: FlagReporter | null;
   flaggableType: AdminFlaggableType;
   flaggableId: string;
   reason: FlagReason;
   description: string | null;
   status: FlagStatus;
+  target: FlagTarget;
+  reportCountOnTarget: number | null;
+  pendingReportCountOnTarget: number | null;
+  allReasons: FlagReason[] | null;
   reviewedBy: string | null;
   reviewedAt: string | null;
   resolutionNote: string | null;
@@ -28,12 +45,19 @@ export interface AdminFlagQuery {
   status?: FlagStatus;
   flaggableType?: AdminFlaggableType;
   reason?: FlagReason;
+  search?: string;
+  sort?: FlagSort;
   pageNumber?: number;
   pageSize?: number;
 }
 
 export interface FlagPage {
   items: FlagResponse[];
+  total: number;
+}
+
+export interface GroupedFlagPage {
+  items: GroupedFlagItem[];
   total: number;
 }
 
@@ -56,11 +80,16 @@ export function unwrapPage<T>(json: unknown): { items: T[]; total: number } {
   return { items, total };
 }
 
-function flagQueryString(input: AdminFlagQuery | void): string {
+function flagQueryString(
+  input: AdminFlagQuery | void,
+  defaultSort?: FlagSort,
+): string {
   const {
     status,
     flaggableType,
     reason,
+    search,
+    sort = defaultSort,
     pageNumber = 0,
     pageSize = 20,
   } = input ?? {};
@@ -73,13 +102,15 @@ function flagQueryString(input: AdminFlagQuery | void): string {
   if (status) params.set("status", status);
   if (flaggableType) params.set("flaggableType", flaggableType);
   if (reason) params.set("reason", reason);
+  if (search && search.trim()) params.set("search", search.trim().slice(0, 200));
+  if (sort) params.set("sort", sort);
   return params.toString();
 }
 
 export const adminFlagsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getAdminFlags: builder.query<FlagPage, AdminFlagQuery | void>({
-      query: (input) => `/admin/flags?${flagQueryString(input)}`,
+      query: (input) => `/admin/flags?${flagQueryString(input, "NEWEST")}`,
       transformResponse: (response: unknown) =>
         unwrapPage<FlagResponse>(response),
       providesTags: (result) => [
@@ -89,6 +120,25 @@ export const adminFlagsApi = baseApi.injectEndpoints({
           id: flag.id,
         })),
       ],
+    }),
+
+    getGroupedAdminFlags: builder.query<GroupedFlagPage, AdminFlagQuery | void>({
+      query: (input) =>
+        `/admin/flags/grouped?${flagQueryString(input, "MOST_REPORTED")}`,
+      transformResponse: (response: unknown) =>
+        unwrapPage<GroupedFlagItem>(response),
+      providesTags: (result) => [
+        { type: "ContentReport" as const, id: "GROUPED_LIST" },
+        ...(result?.items ?? []).map((item) => ({
+          type: "ContentReport" as const,
+          id: `${item.flaggableType}:${item.flaggableId}`,
+        })),
+      ],
+    }),
+
+    getAdminFlagsSummary: builder.query<FlagSummary, void>({
+      query: () => `/admin/flags/summary`,
+      providesTags: [{ type: "ContentReport" as const, id: "SUMMARY" }],
     }),
 
     getAdminFlag: builder.query<FlagResponse, string>({
@@ -101,6 +151,8 @@ export const adminFlagsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, id) => [
         { type: "ContentReport", id },
         { type: "ContentReport", id: "LIST" },
+        { type: "ContentReport", id: "GROUPED_LIST" },
+        { type: "ContentReport", id: "SUMMARY" },
         "ModerationAction",
       ],
     }),
@@ -117,8 +169,52 @@ export const adminFlagsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: "ContentReport", id },
         { type: "ContentReport", id: "LIST" },
+        { type: "ContentReport", id: "GROUPED_LIST" },
+        { type: "ContentReport", id: "SUMMARY" },
         "ModerationAction",
-        // A resolve with removeContent:true takes the post down too.
+        "Problem",
+        "Showcase",
+        "Solution",
+        "Comment",
+        "Program",
+      ],
+    }),
+
+    dismissFlagTarget: builder.mutation<
+      BulkActionResult,
+      { flaggableType: AdminFlaggableType; flaggableId: string }
+    >({
+      query: ({ flaggableType, flaggableId }) => ({
+        url: `/admin/flags/targets/${flaggableType}/${flaggableId}/dismiss`,
+        method: "PATCH",
+      }),
+      invalidatesTags: [
+        { type: "ContentReport", id: "LIST" },
+        { type: "ContentReport", id: "GROUPED_LIST" },
+        { type: "ContentReport", id: "SUMMARY" },
+        "ModerationAction",
+      ],
+    }),
+
+    resolveFlagTarget: builder.mutation<
+      BulkActionResult,
+      {
+        flaggableType: AdminFlaggableType;
+        flaggableId: string;
+        resolutionNote: string;
+        removeContent: boolean;
+      }
+    >({
+      query: ({ flaggableType, flaggableId, resolutionNote, removeContent }) => ({
+        url: `/admin/flags/targets/${flaggableType}/${flaggableId}/resolve`,
+        method: "PATCH",
+        body: { resolutionNote, removeContent },
+      }),
+      invalidatesTags: [
+        { type: "ContentReport", id: "LIST" },
+        { type: "ContentReport", id: "GROUPED_LIST" },
+        { type: "ContentReport", id: "SUMMARY" },
+        "ModerationAction",
         "Problem",
         "Showcase",
         "Solution",
@@ -132,7 +228,11 @@ export const adminFlagsApi = baseApi.injectEndpoints({
 
 export const {
   useGetAdminFlagsQuery,
+  useGetGroupedAdminFlagsQuery,
+  useGetAdminFlagsSummaryQuery,
   useGetAdminFlagQuery,
   useDismissFlagMutation,
   useResolveFlagMutation,
+  useDismissFlagTargetMutation,
+  useResolveFlagTargetMutation,
 } = adminFlagsApi;

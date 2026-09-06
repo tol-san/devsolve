@@ -9,6 +9,8 @@ import * as z from "zod";
  * admin-side union is wider.
  */
 
+import type { FlagReason } from "@/lib/validations/engagement";
+
 export const ADMIN_FLAGGABLE_TYPES = [
   "PROGRAM",
   "PROBLEM",
@@ -22,8 +24,68 @@ export type AdminFlaggableType = (typeof ADMIN_FLAGGABLE_TYPES)[number];
 export const FLAG_STATUSES = ["PENDING", "REVIEWED", "DISMISSED"] as const;
 export type FlagStatus = (typeof FLAG_STATUSES)[number];
 
-export const FLAG_SOURCES = ["USER", "SYSTEM"] as const;
+export const FLAG_SOURCES = ["USER", "AUTOMATED", "SYSTEM"] as const;
 export type FlagSource = (typeof FLAG_SOURCES)[number];
+
+export const FLAG_CONTENT_STATUSES = [
+  "PUBLISHED",
+  "PENDING",
+  "DRAFT",
+  "REJECTED",
+  "REMOVED",
+  "DELETED",
+] as const;
+export type FlagContentStatus = (typeof FLAG_CONTENT_STATUSES)[number];
+
+export const FLAG_SORTS = ["NEWEST", "OLDEST", "MOST_REPORTED"] as const;
+export type FlagSort = (typeof FLAG_SORTS)[number];
+
+export interface FlagReporter {
+  id: string;
+  name: string;
+  avatarUrl?: string | null;
+  reputation: number;
+}
+
+export interface FlagTarget {
+  title: string | null;
+  snippet: string | null;
+  authorId: string | null;
+  authorName: string | null;
+  authorAvatarUrl: string | null;
+  contentStatus: FlagContentStatus;
+  createdAt: string | null;
+  thumbnailUrl: string | null;
+  directUrl: string | null;
+}
+
+export interface GroupedFlagItem {
+  flaggableType: AdminFlaggableType;
+  flaggableId: string;
+  target: FlagTarget;
+  reportCount: number;
+  pendingCount: number;
+  reasons: FlagReason[];
+  automated: boolean;
+  firstReportedAt: string;
+  lastReportedAt: string;
+  latestFlagId: string;
+}
+
+export interface BulkActionResult {
+  flaggableType: AdminFlaggableType;
+  flaggableId: string;
+  affected: number;
+  contentRemoved: boolean;
+}
+
+export interface FlagSummary {
+  totalPending: number;
+  totalResolved: number;
+  totalDismissed: number;
+  byReason: Record<FlagReason, number>;
+  byType: Record<AdminFlaggableType, number>;
+}
 
 /** Every takedown reason and resolution note shares this 2000-char ceiling. */
 const REASON_TEXT = z

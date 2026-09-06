@@ -10,11 +10,7 @@ import {
 } from "@/lib/api/proxy";
 
 /**
- * The report queue. Uses `pageNumber`/`pageSize` — not Spring's `page`/`size`.
- *
- * A 403 here means the caller is signed in but is not an ADMIN. It is relayed
- * as a 403 so the console can say so; an empty 200 would read as "no reports
- * to review", which is the opposite of the truth.
+ * The grouped report queue (one row per reported content target).
  */
 export async function GET(request: NextRequest) {
   const token = await bearerTokenFor(request);
@@ -31,8 +27,8 @@ export async function GET(request: NextRequest) {
   ]);
 
   try {
-    const upstream = await upstreamFetch(`/admin/flags${query}`, token);
-    return relay(upstream, "Unable to load the report queue.");
+    const upstream = await upstreamFetch(`/admin/flags/grouped${query}`, token);
+    return relay(upstream, "Unable to load the grouped report queue.");
   } catch {
     return unreachable("moderation");
   }

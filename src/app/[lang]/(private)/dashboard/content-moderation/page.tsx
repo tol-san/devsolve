@@ -23,7 +23,7 @@ import { ProblemReviewQueue } from "@/components/admin/problems/ProblemReviewQue
 import { SolutionReviewQueue } from "@/components/admin/solutions/SolutionReviewQueue";
 import { AutoApprovalSettings } from "@/components/admin/auto-approval/AutoApprovalSettings";
 import { SecurityIncidentsTable } from "@/components/security-incidents/SecurityIncidentsTable";
-import { useGetAdminFlagsQuery } from "@/lib/redux/services/admin/adminFlagsApi";
+import { useGetAdminFlagsSummaryQuery } from "@/lib/redux/services/admin/adminFlagsApi";
 import { useGetShowcaseReviewQueueQuery } from "@/lib/redux/services/admin/showcaseReviewApi";
 import { useGetProblemReviewQueueQuery } from "@/lib/redux/services/admin/problemReviewApi";
 import { useGetAdminSolutionsQuery } from "@/lib/redux/services/admin/solutionAdminApi";
@@ -116,10 +116,7 @@ function ContentManagement() {
   );
 
   // Only the badge count is needed here; ReportQueue fetches its own page.
-  const { data: reportQueue } = useGetAdminFlagsQuery({
-    status: "PENDING",
-    pageSize: 1,
-  });
+  const { data: flagSummary } = useGetAdminFlagsSummaryQuery();
 
   const { data: showcaseQueue } = useGetShowcaseReviewQueueQuery({
     reviewStatus: "PENDING",
@@ -138,7 +135,7 @@ function ContentManagement() {
   });
 
   const counts: Record<TabId, number | undefined> = {
-    queue: reportQueue?.total ?? 0,
+    queue: flagSummary?.totalPending ?? 0,
     showcases: showcaseQueue?.totalElements ?? 0,
     problems: problemQueue?.totalElements ?? 0,
     solutions: solutionQueue?.totalElements ?? 0,
