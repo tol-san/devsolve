@@ -66,10 +66,10 @@ export function ReportConfirmationCard({
       transition={{ duration: 0.2 }}
     >
       <Card className="rounded-2xl border border-border bg-card shadow-2xs hover:shadow-xs transition">
-        <CardContent className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
+        <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-start gap-3.5 flex-1 min-w-0">
             <div
-              className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs ${
+              className={`size-11 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs ${
                 report.avatarColor ||
                 (report.severity === "Critical"
                   ? "bg-rose-500 text-white"
@@ -81,96 +81,118 @@ export function ReportConfirmationCard({
               {report.researcherName ? report.researcherName.replace("@", "").slice(0, 2).toUpperCase() : "DS"}
             </div>
 
-            <div className="space-y-1.5">
-              <div className="flex flex-wrap items-center gap-2.5">
+            <div className="space-y-2 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
                 {report.reportCode && (
-                  <span className="font-mono text-xs font-bold text-muted-foreground">
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
                     {report.reportCode}
                   </span>
                 )}
-                <Link
-                  href={`/dashboard/report-confirmation/${report.id}`}
-                  className="text-base font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition"
+                <Badge
+                  variant="outline"
+                  className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(report.status)}`}
                 >
-                  {report.title}
-                </Link>
-                {report.severity ? (
-                  <Badge className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${getSeverityBadge(report.severity)}`}>
-                    {report.severity}
-                  </Badge>
-                ) : (
-                  <DisputedSeverityPair
-                    reportedSeverity={report.reportedSeverity || report.hackerClaimedSeverity?.tier}
-                    triageSeverity={report.triageSeverity || report.companyConfirmedSeverity?.tier}
-                    size="sm"
-                  />
-                )}
-                <Badge variant="outline" className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(report.status)}`}>
                   {report.status}
                 </Badge>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-muted-foreground" />
-                  Researcher: <strong className="text-foreground font-semibold">{report.researcherName}</strong>
+              <h3 className="min-w-0">
+                <Link
+                  href={`/dashboard/report-confirmation/${report.id}`}
+                  className="text-base font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition line-clamp-1 break-words leading-snug"
+                >
+                  {report.title}
+                </Link>
+              </h3>
+
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground font-medium">
+                <span className="flex items-center gap-1.5">
+                  <User className="size-3.5 text-muted-foreground shrink-0" />
+                  <span>Researcher:</span>
+                  <strong className="text-foreground font-semibold">{report.researcherName}</strong>
                 </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
-                  Target: <strong className="text-foreground font-semibold">{report.companyName}</strong>
+
+                <span className="hidden sm:inline text-muted-foreground/40">•</span>
+
+                <span className="flex items-center gap-1.5">
+                  <Building2 className="size-3.5 text-muted-foreground shrink-0" />
+                  <span>Target:</span>
+                  <strong className="text-foreground font-semibold">{report.companyName}</strong>
                 </span>
-                <span>•</span>
-                <span>Category: {report.category}</span>
-                <span>•</span>
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
-                  <Coins className="w-3.5 h-3.5" />
+
+                <span className="hidden sm:inline text-muted-foreground/40">•</span>
+
+                <span>Category: <strong className="text-foreground font-semibold">{report.category}</strong></span>
+
+                <span className="hidden sm:inline text-muted-foreground/40">•</span>
+
+                <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
+                  <Coins className="size-3.5 shrink-0" />
                   {report.rewardAmount ? `Reward: ${report.rewardAmount}` : `Est: ${report.rewardEstimate}`}
                 </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                  {report.submittedAt}
+
+                <span className="hidden sm:inline text-muted-foreground/40">•</span>
+
+                <span className="flex items-center gap-1.5">
+                  <Clock className="size-3.5 text-muted-foreground shrink-0" />
+                  <span>{report.submittedAt}</span>
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
-            {report.status === "PENDING" && onQuickAction && (
-              <>
-                <Button
+          <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-stretch sm:items-center md:items-end lg:items-center gap-3.5 shrink-0 w-full md:w-auto pt-3 md:pt-0 border-t border-border/50 md:border-0">
+            <div className="shrink-0 flex justify-start md:justify-end">
+              {report.severity ? (
+                <Badge className={`rounded-full px-2.5 py-1 text-xs font-bold ${getSeverityBadge(report.severity)}`}>
+                  {report.severity}
+                </Badge>
+              ) : (
+                <DisputedSeverityPair
+                  reportedSeverity={report.reportedSeverity || report.hackerClaimedSeverity?.tier}
+                  triageSeverity={report.triageSeverity || report.companyConfirmedSeverity?.tier}
                   size="sm"
-                  variant="outline"
-                  onClick={() => onQuickAction(report, "REJECTED")}
-                  className="h-9 px-3 rounded-xl border-border text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold cursor-pointer"
-                >
-                  <XCircle className="w-3.5 h-3.5 mr-1" />
-                  Reject
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onQuickAction(report, "CONFIRMED")}
-                  className="h-9 px-3 rounded-xl border-border text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-semibold cursor-pointer"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                  Confirm
-                </Button>
-              </>
-            )}
+                />
+              )}
+            </div>
 
-            <Link href={`/dashboard/report-confirmation/${report.id}`}>
-              <Button
-                className="h-9 px-4 rounded-xl bg-foreground hover:bg-foreground/90 text-background text-xs font-semibold cursor-pointer shadow-2xs"
-              >
-                Review & Triage
-                <ChevronRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            </Link>
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+              {report.status === "PENDING" && onQuickAction && (
+                <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onQuickAction(report, "REJECTED")}
+                    className="h-9.5 flex-1 sm:flex-initial px-3 rounded-xl border-border text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold cursor-pointer justify-center"
+                  >
+                    <XCircle className="size-3.5 mr-1" />
+                    Reject
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onQuickAction(report, "CONFIRMED")}
+                    className="h-9.5 flex-1 sm:flex-initial px-3 rounded-xl border-border text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-semibold cursor-pointer justify-center"
+                  >
+                    <CheckCircle2 className="size-3.5 mr-1" />
+                    Confirm
+                  </Button>
+                </div>
+              )}
+
+              <Link href={`/dashboard/report-confirmation/${report.id}`} className="w-full sm:w-auto">
+                <Button
+                  className="h-9.5 w-full sm:w-auto px-4 rounded-xl bg-foreground hover:bg-foreground/90 text-background text-xs font-semibold cursor-pointer shadow-2xs justify-center"
+                >
+                  Review &amp; Triage
+                  <ChevronRight className="size-3.5 ml-1" />
+                </Button>
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
     </motion.div>
   );
 }
+
