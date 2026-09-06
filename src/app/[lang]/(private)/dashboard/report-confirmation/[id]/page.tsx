@@ -19,6 +19,7 @@ import {
   useUpdateConfirmReportMutation,
   useResolveAdminDisputeMutation,
 } from "@/lib/redux/services/adminApi";
+import { formatDateTime } from "@/lib/format/datetime";
 import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import SeverityBadge from "@/components/reports/SeverityBadge";
 import { Button } from "@/components/ui/button";
@@ -223,72 +224,76 @@ export default function ReportConfirmationDetailPage() {
       </header>
 
       <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-5 shadow-2xs">
-        <div className="flex items-start gap-4">
-          <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-base shrink-0 shadow-2xs ${
-              report.avatarColor || "bg-purple-600 text-white"
-            }`}
-          >
-            {report.researcherName.replace("@", "").slice(0, 2).toUpperCase()}
-          </div>
-
-          <div className="space-y-2 flex-1">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="font-mono text-sm font-bold text-muted-foreground">
-                {report.reportCode || `DS-${report.id}`}
-              </span>
-              {report.severity ? (
-                <SeverityBadge severity={report.severity} />
-              ) : (
-                <DisputedSeverityPair
-                  reportedSeverity={report.reportedSeverity || hackerSev.tier}
-                  triageSeverity={report.triageSeverity || companySev.tier}
-                  cvssScore={report.cvssScore}
-                  size="sm"
-                />
-              )}
-              <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs font-semibold border-border">
-                {report.category}
-              </Badge>
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
+          <div className="flex items-start gap-4 flex-1 min-w-0">
+            <div
+              className={`size-14 rounded-2xl flex items-center justify-center font-bold text-base shrink-0 shadow-2xs ${
+                report.avatarColor || "bg-purple-600 text-white"
+              }`}
+            >
+              {report.researcherName ? report.researcherName.replace("@", "").slice(0, 2).toUpperCase() : "DS"}
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">
-              {report.title}
-            </h2>
+            <div className="space-y-2 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="font-mono text-sm font-bold text-muted-foreground px-2.5 py-0.5 rounded-md bg-muted border border-border">
+                  {report.reportCode || `DS-${report.id}`}
+                </span>
+                <Badge variant="outline" className="rounded-md px-3 py-0.5 text-xs font-semibold border-border">
+                  {report.category}
+                </Badge>
+              </div>
+
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug break-words">
+                {report.title}
+              </h2>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex items-center md:items-start justify-start md:justify-end">
+            {report.severity ? (
+              <SeverityBadge severity={report.severity} />
+            ) : (
+              <DisputedSeverityPair
+                reportedSeverity={report.reportedSeverity || hackerSev.tier}
+                triageSeverity={report.triageSeverity || companySev.tier}
+                cvssScore={report.cvssScore}
+                size="sm"
+              />
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border text-sm">
-          <div className="space-y-1">
-            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-              <User className="w-3.5 h-3.5" /> Researcher
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-border text-sm">
+          <div className="space-y-1 min-w-0">
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <User className="size-3.5 shrink-0" /> Researcher
             </span>
-            <p className="font-bold text-foreground">{report.researcherName}</p>
+            <p className="font-bold text-foreground truncate">{report.researcherName}</p>
           </div>
 
-          <div className="space-y-1">
-            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-              <Building2 className="w-3.5 h-3.5" /> Target Program
+          <div className="space-y-1 min-w-0">
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <Building2 className="size-3.5 shrink-0" /> Target Program
             </span>
-            <p className="font-bold text-foreground truncate">
+            <p className="font-bold text-foreground truncate" title={report.companyName}>
               {report.companyName} {report.programName && `(${report.programName})`}
             </p>
           </div>
 
-          <div className="space-y-1">
-            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-              <Coins className="w-3.5 h-3.5 text-emerald-500" /> Confirmed Reward
+          <div className="space-y-1 min-w-0">
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <Coins className="size-3.5 text-emerald-500 shrink-0" /> Confirmed Reward
             </span>
-            <p className="font-extrabold text-emerald-600 dark:text-emerald-400 text-base">{rewardAmount}</p>
+            <p className="font-extrabold text-emerald-600 dark:text-emerald-400 text-base truncate">{rewardAmount}</p>
           </div>
 
-          <div className="space-y-1">
-            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" /> Timeline
+          <div className="space-y-1 min-w-0">
+            <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+              <Clock className="size-3.5 shrink-0" /> Timeline
             </span>
-            <p className="font-medium text-foreground text-xs">
-              Submitted {report.submittedAt}
-              {report.acceptedAt && ` • Accepted ${report.acceptedAt}`}
+            <p className="font-medium text-foreground text-xs truncate">
+              Submitted {report.submittedAt ? (report.submittedAt.includes("T") || report.submittedAt.includes("-") ? formatDateTime(report.submittedAt) : report.submittedAt) : "Recently"}
             </p>
           </div>
         </div>
@@ -396,12 +401,12 @@ export default function ReportConfirmationDetailPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-border/70 flex items-center justify-between gap-3">
+            <div className="pt-3 border-t border-border/70 flex flex-wrap items-center justify-between gap-3">
               <span className="text-sm font-medium text-muted-foreground">
                 Reward based on confirmed severity
               </span>
               {rewardAmount ? (
-                <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 whitespace-nowrap shrink-0">
                   {rewardAmount}
                 </span>
               ) : (
@@ -495,20 +500,20 @@ export default function ReportConfirmationDetailPage() {
                 <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-2xs">
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                      <FileText className="w-4.5 h-4.5 text-blue-600" />
+                      <FileText className="w-4.5 h-4.5 text-blue-600 shrink-0" />
                       Vulnerability Description
                     </h3>
-                    <p className="text-sm text-foreground leading-relaxed bg-muted/40 p-4 rounded-xl border border-border">
+                    <p className="text-sm text-foreground leading-relaxed bg-muted/40 p-4 rounded-xl border border-border break-words whitespace-pre-wrap">
                       {report.description}
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                      <Flame className="w-4.5 h-4.5 text-rose-500" />
-                      Security & Threat Impact
+                      <Flame className="w-4.5 h-4.5 text-rose-500 shrink-0" />
+                      Security &amp; Threat Impact
                     </h3>
-                    <p className="text-sm text-foreground leading-relaxed bg-muted/40 p-4 rounded-xl border border-border">
+                    <p className="text-sm text-foreground leading-relaxed bg-muted/40 p-4 rounded-xl border border-border break-words whitespace-pre-wrap">
                       {report.impact}
                     </p>
                   </div>
