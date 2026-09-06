@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { attachmentUrl } from "@/lib/api/attachment-url";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import {
   BookOpen,
@@ -566,28 +567,37 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                                   preview();
                                 }
                               }}
-                              className="relative flex h-48 w-full cursor-zoom-in items-center justify-center overflow-hidden bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              className="relative flex w-full aspect-[16/10] sm:aspect-[16/9] min-h-[190px] max-h-[380px] cursor-zoom-in items-center justify-center overflow-hidden bg-blue-950/20 dark:bg-blue-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary group/photo"
                               title="Click to preview full screen"
                             >
-                              <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-                                <img
-                                  src={fileUrl}
-                                  alt=""
-                                  aria-hidden="true"
-                                  className="size-full object-cover blur-2xl opacity-25 dark:opacity-20 scale-125 transition-transform duration-500 group-hover:scale-135"
-                                  loading="lazy"
-                                />
-                                <div className="absolute inset-0 bg-background/35 backdrop-blur-[1px]" />
-                              </div>
-
-                              <img
+                              {/* Ambient blurred backdrop so any aspect ratio fills seamlessly */}
+                              <Image
                                 src={fileUrl}
-                                alt={file.fileName ?? "Attachment photo"}
-                                className="relative z-10 max-h-[88%] max-w-[92%] rounded-lg object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.02]"
-                                loading="lazy"
+                                alt=""
+                                fill
+                                aria-hidden="true"
+                                sizes="100px"
+                                quality={70}
+                                className="object-cover blur-2xl opacity-60 dark:opacity-45 scale-120 pointer-events-none select-none transition-transform duration-500 group-hover/photo:scale-130"
+                                unoptimized={fileUrl.startsWith("/api/")}
                               />
 
-                              <div className="absolute top-2 right-2 z-20 flex items-center gap-1 rounded-full border border-border/70 bg-background/85 px-2 py-0.5 text-[11px] font-medium text-foreground backdrop-blur-md shadow-xs opacity-0 transition-all duration-200 group-hover:opacity-100">
+                              {/* Soft ambient overlay */}
+                              <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-600/15 mix-blend-overlay pointer-events-none" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10 pointer-events-none" />
+
+                              {/* Full uncropped photo */}
+                              <Image
+                                src={fileUrl}
+                                alt={file.fileName ?? "Attachment photo"}
+                                fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 600px"
+                                quality={90}
+                                className="object-contain p-2 sm:p-3 drop-shadow-md transition-transform duration-300 group-hover/photo:scale-[1.02]"
+                                unoptimized={fileUrl.startsWith("/api/")}
+                              />
+
+                              <div className="absolute top-2 right-2 z-20 flex items-center gap-1 rounded-full border border-border/70 bg-background/85 px-2 py-0.5 text-[11px] font-medium text-foreground backdrop-blur-md shadow-xs opacity-0 transition-all duration-200 group-hover/photo:opacity-100">
                                 <Maximize2 className="size-3 text-primary" />
                                 <span>Preview</span>
                               </div>

@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { attachmentUrl } from "@/lib/api/attachment-url";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { motion } from "motion/react";
 import { toast } from "sonner";
@@ -903,7 +904,7 @@ function Loaded({
                             key={file.id ?? `${file.originalFileName}-${i}`}
                             className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-card/60 backdrop-blur-xs shadow-2xs transition-all duration-200 hover:border-primary/40 hover:shadow-md"
                           >
-                            {/* Visual photo presentation area */}
+                            {/* Visual photo presentation area with ambient blurred background */}
                             <div
                               role="button"
                               tabIndex={0}
@@ -914,31 +915,38 @@ function Loaded({
                                   preview();
                                 }
                               }}
-                              className="relative flex h-52 sm:h-60 w-full cursor-zoom-in items-center justify-center overflow-hidden bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              className="relative flex w-full aspect-[16/10] sm:aspect-[16/9] min-h-[220px] max-h-[420px] cursor-zoom-in items-center justify-center overflow-hidden bg-blue-950/20 dark:bg-blue-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary group/photo"
                               title="Click to preview full screen"
                             >
-                              {/* Ambient blurred backdrop for aesthetic fit without letterbox bars */}
-                              {fileUrl && (
-                                <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-                                  <img
+                              {fileUrl ? (
+                                <>
+                                  {/* Ambient blurred backdrop so any aspect ratio fills seamlessly */}
+                                  <Image
                                     src={fileUrl}
                                     alt=""
+                                    fill
                                     aria-hidden="true"
-                                    className="size-full object-cover blur-2xl opacity-25 dark:opacity-20 scale-125 transition-transform duration-500 group-hover:scale-135"
-                                    loading="lazy"
+                                    sizes="120px"
+                                    quality={70}
+                                    className="object-cover blur-2xl opacity-60 dark:opacity-45 scale-120 pointer-events-none select-none transition-transform duration-500 group-hover/photo:scale-130"
+                                    unoptimized={fileUrl.startsWith("/api/")}
                                   />
-                                  <div className="absolute inset-0 bg-background/35 backdrop-blur-[1px]" />
-                                </div>
-                              )}
 
-                              {/* Crisp foreground image */}
-                              {fileUrl ? (
-                                <img
-                                  src={fileUrl}
-                                  alt={file.originalFileName ?? "Attachment photo"}
-                                  className="relative z-10 max-h-[88%] max-w-[92%] rounded-lg object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-[1.02]"
-                                  loading="lazy"
-                                />
+                                  {/* Soft ambient overlay */}
+                                  <div className="absolute inset-0 bg-blue-500/10 dark:bg-blue-600/15 mix-blend-overlay pointer-events-none" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10 pointer-events-none" />
+
+                                  {/* Full uncropped photo */}
+                                  <Image
+                                    src={fileUrl}
+                                    alt={file.originalFileName ?? "Attachment photo"}
+                                    fill
+                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 650px"
+                                    quality={90}
+                                    className="object-contain p-2.5 sm:p-3.5 drop-shadow-md transition-transform duration-300 group-hover/photo:scale-[1.02]"
+                                    unoptimized={fileUrl.startsWith("/api/")}
+                                  />
+                                </>
                               ) : (
                                 <div className="flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
                                   <ImageIcon className="size-8 stroke-[1.5]" />
@@ -947,7 +955,7 @@ function Loaded({
                               )}
 
                               {/* Floating preview badge */}
-                              <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5 rounded-full border border-border/70 bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-md shadow-xs opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 translate-y-1">
+                              <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5 rounded-full border border-border/70 bg-background/85 px-2.5 py-1 text-xs font-medium text-foreground backdrop-blur-md shadow-xs opacity-0 transition-all duration-200 group-hover/photo:opacity-100 group-hover/photo:translate-y-0 translate-y-1">
                                 <Maximize2 className="size-3 text-primary" />
                                 <span>Preview</span>
                               </div>
