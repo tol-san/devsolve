@@ -159,7 +159,7 @@ export function ManagedReportCard({
       }}
     >
       <div className="px-6 py-4.5 transition-colors duration-200 group-hover:bg-muted/40">
-        <div className={cn(reportListGridClass, "hidden lg:grid items-center")}>
+        <div className={cn(reportListGridClass, "items-center")}>
           <div className="min-w-0">
             <div className="flex items-start gap-3.5">
               <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted border border-border shadow-2xs">
@@ -231,56 +231,6 @@ export function ManagedReportCard({
 
           <div className="flex items-center justify-center">
             {getSeverityBadge(report)}
-          </div>
-        </div>
-
-        <div className="space-y-3 lg:hidden">
-          <div className="flex items-start gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-muted border border-border">
-              {report.programLogo ? (
-                <Image
-                  src={report.programLogo}
-                  alt={`${report.title} logo`}
-                  width={44}
-                  height={44}
-                  className="size-10 object-contain"
-                />
-              ) : (
-                <span className="text-sm font-bold text-foreground">
-                  {report.authorInitials}
-                </span>
-              )}
-            </div>
-
-            <div className="min-w-0 flex-1 space-y-2.5">
-              <div className="space-y-1">
-                <h3 className="truncate text-base font-semibold leading-snug text-foreground">
-                  {report.title}
-                </h3>
-                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                  <span className="font-mono">{reportId}</span>
-                  <span className="text-muted-foreground/60">&bull;</span>
-                  <span className="truncate">{report.author}</span>
-                  <span className="text-muted-foreground/60">&bull;</span>
-                  <span>{report.submittedAt}</span>
-                </p>
-              </div>
-
-              <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                {report.summary}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <Badge
-                  variant="outline"
-                  className={cn(badgeBaseClass, getTypeBadgeClass(report.type))}
-                >
-                  {report.type}
-                </Badge>
-                {getWorkflowStatusBadge(report)}
-                {getSeverityBadge(report)}
-              </div>
-            </div>
           </div>
         </div>
       </div>

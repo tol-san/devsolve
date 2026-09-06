@@ -60,45 +60,48 @@ export function DisputedSeverityPair({
   return (
     <div
       className={cn(
-        "inline-flex flex-wrap items-center gap-1.5 p-1 rounded-xl bg-card border border-amber-500/30 dark:border-amber-500/20 shadow-2xs",
+        "inline-flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 dark:border-amber-500/20 shadow-2xs text-center min-w-[150px] sm:min-w-[160px]",
         className,
       )}
     >
-      <div className="flex items-center gap-1 text-[11px] font-bold text-amber-800 dark:text-amber-300 px-1.5 py-0.5">
+      <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
         <Scale className="size-3 text-amber-500 shrink-0" />
-        <span className="hidden sm:inline">Disputed</span>
+        <span>Disputed</span>
       </div>
 
       <Badge
         variant="outline"
         className={cn(
-          "font-semibold rounded-lg flex items-center gap-1.5 transition-colors",
-          isSm ? "text-[11px] px-2 py-0.5" : "text-xs px-2.5 py-1",
+          "w-full justify-center font-semibold rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap",
+          isSm ? "text-[10px] px-2 py-0.5" : "text-xs px-2.5 py-1",
           getTierStyle(reportedSeverity),
         )}
       >
         <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(reportedSeverity))} />
-        <span>Researcher:</span>
-        <strong className="font-extrabold">{reportedLabel}</strong>
-        {cvssScore && <span className="font-mono text-[10px] opacity-80">({cvssScore})</span>}
+        <span className="font-normal opacity-90">Researcher:</span>
+        <strong className="font-extrabold tracking-wide">{reportedLabel}</strong>
+        {cvssScore && <span className="font-mono text-[9px] opacity-80">({cvssScore})</span>}
       </Badge>
 
-      <span className="text-[11px] font-bold text-muted-foreground">vs</span>
+      <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground/80 text-center select-none leading-none">
+        vs
+      </span>
 
       <Badge
         variant="outline"
         className={cn(
-          "font-semibold rounded-lg flex items-center gap-1.5 transition-colors",
-          isSm ? "text-[11px] px-2 py-0.5" : "text-xs px-2.5 py-1",
+          "w-full justify-center font-semibold rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap",
+          isSm ? "text-[10px] px-2 py-0.5" : "text-xs px-2.5 py-1",
           getTierStyle(triageSeverity),
         )}
       >
         <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(triageSeverity))} />
-        <span>Organization:</span>
-        <strong className="font-extrabold">{triageLabel}</strong>
+        <span className="font-normal opacity-90">Organization:</span>
+        <strong className="font-extrabold tracking-wide">{triageLabel}</strong>
       </Badge>
     </div>
   );
 }
 
 export default DisputedSeverityPair;
+

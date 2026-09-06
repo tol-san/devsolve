@@ -55,7 +55,6 @@ export function ReportMetricsGrid({
               size="sm"
               className={cn(
                 "rounded-[26px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md",
-                isActive && "ring-2 ring-primary bg-primary/5",
                 "[--card-spacing:--spacing(0)]"
               )}
             >
@@ -65,7 +64,7 @@ export function ReportMetricsGrid({
                     <div
                       className={cn(
                         "flex size-11 items-center justify-center rounded-2xl shadow-2xs transition-transform duration-200",
-                        index === 0 && "bg-muted text-foreground",
+                        index === 0 && "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20",
                         index === 1 && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
                         index === 2 && "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
                         index === 3 && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
