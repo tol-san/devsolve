@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { enrichReportsWithWeakness } from "@/lib/server/db";
+import {
+  enrichReportsWithWeakness,
+  enrichReportsWithProgramAndOrg,
+} from "@/lib/server/db";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const PROVIDER_ID = "keycloak";
@@ -68,17 +71,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const envelope = (typeof body === "object" && body !== null ? body : {}) as Record<string, any>;
-    const items = Array.isArray(envelope.content)
-      ? envelope.content
-      : Array.isArray(envelope.items)
-      ? envelope.items
-      : Array.isArray(body)
-      ? (body as any[])
-      : [];
+    const envelope = (typeof body === "object" && body !== null ? body : {}) as Record<string, unknown>;
+    const items = (
+      Array.isArray(envelope.content)
+        ? envelope.content
+        : Array.isArray(envelope.items)
+        ? envelope.items
+        : Array.isArray(body)
+        ? body
+        : []
+    ).filter((item): item is Record<string, unknown> & { id: string } => typeof item === "object" && item !== null && typeof (item as { id?: unknown }).id === "string");
 
     if (items.length > 0) {
       await enrichReportsWithWeakness(items);
+      await enrichReportsWithProgramAndOrg(items);
     }
 
     return NextResponse.json(body, { status: upstream.status });

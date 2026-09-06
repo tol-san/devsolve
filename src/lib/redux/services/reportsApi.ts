@@ -314,32 +314,43 @@ function toReportItem(
   report: ReportApiResponse,
   programName: string,
   organizationId?: string,
+  organizationName?: string,
+  organizationLogoUrl?: string,
+  organizationSlug?: string,
+  organizationWebsiteUrl?: string,
 ): ReportItem {
   const status = toStatus(report.state);
+  const effectiveOrgName =
+    organizationName ||
+    (report as any).organizationName ||
+    (report as any).org_name ||
+    undefined;
+  const effectiveOrgLogo =
+    organizationLogoUrl ||
+    (report as any).organizationLogoUrl ||
+    (report as any).org_logo ||
+    undefined;
+
   return {
     id: report.id,
     reportId: toReportId(report.id),
     title: report.title,
     program: programName,
     programId: report.programId,
-    organizationId,
-    organizationName:
-      (report as any).organizationName ||
-      (report as any).org_name ||
-      undefined,
-    organizationLogoUrl:
-      (report as any).organizationLogoUrl ||
-      (report as any).org_logo ||
-      undefined,
+    organizationId: organizationId || (report as any).organizationId,
+    organizationName: effectiveOrgName,
+    organizationLogoUrl: effectiveOrgLogo,
     organizationSlug:
+      organizationSlug ||
       (report as any).organizationSlug ||
       (report as any).slug ||
       undefined,
     organizationWebsiteUrl:
+      organizationWebsiteUrl ||
       (report as any).organizationWebsiteUrl ||
       (report as any).website_url ||
       undefined,
-    avatarLetter: programName.slice(0, 1).toUpperCase(),
+    avatarLetter: (effectiveOrgName || programName || "O").slice(0, 1).toUpperCase(),
     type: "Bounty",
     severity: toSeverity(report.severity),
     reportedSeverity: report.reportedSeverity ?? null,
@@ -577,21 +588,65 @@ export const reportsApi = baseApi.injectEndpoints({
         const programResults = await Promise.all(programIds.map((id) => fetchWithBQ(`/programs/${id}`)));
         const programNames = new Map<string, string>();
         const programOrgs = new Map<string, string>();
+        const programOrgNames = new Map<string, string>();
+        const programOrgLogos = new Map<string, string>();
+        const programOrgSlugs = new Map<string, string>();
+        const programOrgWebsites = new Map<string, string>();
+
         programIds.forEach((id, index) => {
           const result = programResults[index];
           if (result.error) return;
           const program = result.data as ProgramApiResponse;
           programNames.set(id, program.name);
-          if (program.organizationId) programOrgs.set(id, program.organizationId);
+          const orgId = program.organizationId || (program as any).organization?.id;
+          if (orgId) programOrgs.set(id, orgId);
+          const orgName = (program as any).organizationName || (program as any).organization?.name;
+          if (orgName) programOrgNames.set(id, orgName);
+          const orgLogo = (program as any).organization?.logoUrl || (program as any).logoUrl;
+          if (orgLogo) programOrgLogos.set(id, orgLogo);
+          const orgSlug = (program as any).organization?.slug;
+          if (orgSlug) programOrgSlugs.set(id, orgSlug);
+          const orgWeb = (program as any).organization?.websiteUrl;
+          if (orgWeb) programOrgWebsites.set(id, orgWeb);
         });
 
-        let results = raw.map((report) =>
-          toReportItem(
+        let results = raw.map((report) => {
+          const progName =
+            programNames.get(report.programId) ??
+            (report as any).programName ??
+            (report as any).program_name ??
+            "Security Program";
+          const orgId =
+            programOrgs.get(report.programId) ??
+            (report as any).organizationId ??
+            (report as any).organization_id;
+          const orgName =
+            programOrgNames.get(report.programId) ??
+            (report as any).organizationName ??
+            (report as any).organization_name;
+          const orgLogo =
+            programOrgLogos.get(report.programId) ??
+            (report as any).organizationLogoUrl ??
+            (report as any).organization_logo_url;
+          const orgSlug =
+            programOrgSlugs.get(report.programId) ??
+            (report as any).organizationSlug ??
+            (report as any).organization_slug;
+          const orgWeb =
+            programOrgWebsites.get(report.programId) ??
+            (report as any).organizationWebsiteUrl ??
+            (report as any).organization_website_url;
+
+          return toReportItem(
             report,
-            programNames.get(report.programId) ?? "Unknown Program",
-            programOrgs.get(report.programId),
-          ),
-        );
+            progName,
+            orgId,
+            orgName,
+            orgLogo,
+            orgSlug,
+            orgWeb,
+          );
+        });
 
         if (params?.search) {
           const q = params.search.toLowerCase();

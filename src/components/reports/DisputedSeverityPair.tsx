@@ -57,10 +57,45 @@ export function DisputedSeverityPair({
   const reportedLabel = reportedSeverity ? reportedSeverity.toUpperCase() : "UNSET";
   const triageLabel = triageSeverity ? triageSeverity.toUpperCase() : "PENDING";
 
+  if (isSm) {
+    return (
+      <div
+        className={cn(
+          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 dark:border-amber-500/20 text-xs shadow-2xs flex-wrap sm:flex-nowrap",
+          className
+        )}
+      >
+        <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 shrink-0">
+          <Scale className="size-3 text-amber-500 shrink-0" />
+          <span>Disputed</span>
+        </div>
+        <span className="text-muted-foreground/40 text-[10px]">|</span>
+        <div className="inline-flex items-center gap-1 text-[11px] font-semibold">
+          <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(reportedSeverity))} />
+          <span className="text-muted-foreground text-[10px] font-normal">Rep:</span>
+          <span className="font-extrabold text-foreground">{reportedLabel}</span>
+        </div>
+        <span className="text-[9px] font-extrabold uppercase text-muted-foreground/60 select-none">
+          vs
+        </span>
+        <div className="inline-flex items-center gap-1 text-[11px] font-semibold">
+          <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(triageSeverity))} />
+          <span className="text-muted-foreground text-[10px] font-normal">Org:</span>
+          <span className="font-extrabold text-foreground">{triageLabel}</span>
+        </div>
+        {cvssScore && (
+          <span className="font-mono text-[10px] text-muted-foreground pl-0.5">
+            ({cvssScore})
+          </span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "inline-flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 dark:border-amber-500/20 shadow-2xs text-center min-w-[150px] sm:min-w-[160px]",
+        "inline-flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/30 dark:border-amber-500/20 shadow-2xs text-center min-w-[150px] sm:min-w-[160px]",
         className,
       )}
     >
@@ -72,8 +107,7 @@ export function DisputedSeverityPair({
       <Badge
         variant="outline"
         className={cn(
-          "w-full justify-center font-semibold rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap",
-          isSm ? "text-[10px] px-2 py-0.5" : "text-xs px-2.5 py-1",
+          "w-full justify-center font-semibold rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap text-xs px-2.5 py-1",
           getTierStyle(reportedSeverity),
         )}
       >
@@ -90,8 +124,7 @@ export function DisputedSeverityPair({
       <Badge
         variant="outline"
         className={cn(
-          "w-full justify-center font-semibold rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap",
-          isSm ? "text-[10px] px-2 py-0.5" : "text-xs px-2.5 py-1",
+          "w-full justify-center font-semibold rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap text-xs px-2.5 py-1",
           getTierStyle(triageSeverity),
         )}
       >

@@ -137,6 +137,91 @@ export async function enrichReportsWithWeakness<T extends { id: string; suggeste
   return reports;
 }
 
+interface DbReportRow {
+  report_id: string;
+  program_id: string | null;
+  program_name: string | null;
+  program_handle: string | null;
+  program_visibility: string | null;
+  organization_id: string | null;
+  organization_name: string | null;
+  organization_logo_url: string | null;
+  organization_slug: string | null;
+  organization_domain: string | null;
+  organization_industry: string | null;
+}
+
+export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
+  reports: T[]
+): Promise<T[]> {
+  if (!reports || reports.length === 0) return reports;
+
+  const reportIds = reports.map((r) => r.id).filter(Boolean);
+  if (reportIds.length === 0) return reports;
+
+  try {
+    const res = await dbPool.query<DbReportRow>(
+      `SELECT 
+         r.id as report_id,
+         p.id as program_id,
+         p.name as program_name,
+         p.handle as program_handle,
+         p.visibility as program_visibility,
+         o.id as organization_id,
+         o.name as organization_name,
+         o.logo_url as organization_logo_url,
+         o.slug as organization_slug,
+         o.domain as organization_domain,
+         o.industry as organization_industry
+       FROM reports r
+       LEFT JOIN programs p ON p.id = r.program_id
+       LEFT JOIN organizations o ON o.id = p.organization_id
+       WHERE r.id = ANY($1::uuid[])`,
+      [reportIds]
+    );
+
+    const map = new Map<string, DbReportRow>();
+    for (const row of res.rows) {
+      map.set(row.report_id, row);
+    }
+
+    for (const r of reports) {
+      const dbRow = map.get(r.id);
+      if (dbRow) {
+        const item = r as Record<string, unknown>;
+        if (dbRow.program_name && !item.programName) {
+          item.programName = dbRow.program_name;
+        }
+        if (dbRow.program_handle && !item.programHandle) {
+          item.programHandle = dbRow.program_handle;
+        }
+        if (dbRow.organization_id) {
+          item.organizationId = dbRow.organization_id;
+        }
+        if (dbRow.organization_name) {
+          item.organizationName = dbRow.organization_name;
+        }
+        if (dbRow.organization_logo_url) {
+          item.organizationLogoUrl = dbRow.organization_logo_url;
+        }
+        if (dbRow.organization_slug) {
+          item.organizationSlug = dbRow.organization_slug;
+        }
+        if (dbRow.organization_domain) {
+          item.organizationDomain = dbRow.organization_domain;
+        }
+        if (dbRow.organization_industry) {
+          item.organizationIndustry = dbRow.organization_industry;
+        }
+      }
+    }
+  } catch (err) {
+    console.error("[db] Failed to enrich reports with program and org:", err);
+  }
+
+  return reports;
+}
+
 export async function enrichDraftsWithWeakness<T extends { id: string; suggestedWeakness?: any }>(
   drafts: T[]
 ): Promise<T[]> {

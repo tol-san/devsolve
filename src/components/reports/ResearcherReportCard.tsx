@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "motion/react";
 import {
   Eye,
@@ -9,11 +10,12 @@ import {
   DollarSign,
   Award,
   ChevronRight,
-  Globe,
   Clock,
-  Sparkles,
+  Building2,
 } from "lucide-react";
 import { ReportItem } from "@/lib/redux/services/reportsApi";
+import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
+import { useGetProgramByIdQuery } from "@/lib/redux/services/program/programsApi";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,8 +35,56 @@ export function ResearcherReportCard({
   index,
   onQuickView,
 }: ResearcherReportCardProps) {
+  const [imageError, setImageError] = useState(false);
   const isRetesting =
-    report.status === "RETESTING" || (report as any).rawStatus === "RETESTING";
+    report.status === "RETESTING" || report.rawStatus === "RETESTING";
+
+  // If program is "Unknown Program" or missing, attempt to fetch program info
+  const needsProgramFetch =
+    !report.program || report.program === "Unknown Program" || !report.organizationId;
+  const { data: programData } = useGetProgramByIdQuery(report.programId ?? "", {
+    skip: !report.programId || !needsProgramFetch,
+  });
+
+  const effectiveOrgId =
+    report.organizationId ||
+    programData?.organizationId ||
+    programData?.organization?.id;
+
+  // If org logo or name is missing, attempt to fetch organization info
+  const needsOrgFetch =
+    !report.organizationLogoUrl || !report.organizationName;
+  const { data: orgData } = useGetOrganizationByIdQuery(effectiveOrgId ?? "", {
+    skip: !effectiveOrgId || !needsOrgFetch,
+  });
+
+  const displayOrgName =
+    report.organizationName ||
+    orgData?.name ||
+    programData?.organizationName ||
+    programData?.organization?.name;
+
+  const displayProgramName =
+    report.program && report.program !== "Unknown Program"
+      ? report.program
+      : programData?.name || "Security Program";
+
+  const displayLogoUrl = !imageError
+    ? report.organizationLogoUrl ||
+      orgData?.logoUrl ||
+      programData?.organization?.logoUrl ||
+      programData?.logoUrl
+    : null;
+
+  const initials = (displayOrgName || displayProgramName || "OR")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase() || "OR";
+
+  const companyHref = effectiveOrgId ? `/company?id=${effectiveOrgId}` : "/company";
 
   return (
     <motion.article
@@ -42,32 +92,76 @@ export function ResearcherReportCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: Math.min(index * 0.04, 0.3) }}
       className={cn(
-        "group relative flex flex-col justify-between rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-5 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg",
+        "group relative flex flex-col justify-between rounded-2xl bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 p-5 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:ring-primary/20",
         isRetesting &&
           "ring-1 ring-cyan-500/40 bg-gradient-to-b from-cyan-500/[0.07] via-card to-card"
       )}
     >
-      <div className="space-y-3">
+      <div className="space-y-3.5">
+        {/* Header: Organization Logo + Org/Program Info + Quick View */}
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Avatar className="size-9 rounded-xl bg-blue-100 text-blue-700 font-bold text-xs shrink-0 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20">
-              <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300 rounded-xl font-bold">
-                {report.avatarLetter}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <span className="text-xs font-semibold text-muted-foreground truncate block">
-                {report.program}
-              </span>
-              <Link
-                href={`/dashboard/my-reports/${report.id}`}
-                className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
-              >
-                {report.reportId}
-                {isRetesting && (
-                  <span className="size-1.5 rounded-full bg-cyan-500 animate-ping inline-block" />
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            <Link
+              href={companyHref}
+              onClick={(e) => e.stopPropagation()}
+              className="size-10 rounded-xl border border-border bg-card flex items-center justify-center shrink-0 overflow-hidden shadow-2xs group-hover:scale-105 transition-transform duration-200 cursor-pointer"
+            >
+              {displayLogoUrl ? (
+                <Image
+                  src={displayLogoUrl}
+                  alt={displayOrgName || "Organization"}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                  unoptimized
+                />
+              ) : (
+                <Avatar className="size-full rounded-xl bg-gradient-to-br from-primary/10 to-primary/20 text-foreground font-bold text-xs">
+                  <AvatarFallback className="rounded-xl font-bold bg-transparent text-foreground">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </Link>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {displayOrgName ? (
+                  <Link
+                    href={companyHref}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs font-bold text-foreground hover:text-primary hover:underline transition-colors truncate max-w-[170px] inline-flex items-center gap-1"
+                  >
+                    <Building2 className="size-3 text-muted-foreground shrink-0" />
+                    <span className="truncate">{displayOrgName}</span>
+                  </Link>
+                ) : (
+                  <span className="text-xs font-bold text-foreground truncate max-w-[170px]">
+                    {displayProgramName}
+                  </span>
                 )}
-              </Link>
+                {displayOrgName && displayProgramName && displayProgramName !== displayOrgName && (
+                  <>
+                    <span className="text-xs text-muted-foreground/50">·</span>
+                    <span className="text-xs text-muted-foreground truncate max-w-[140px]">
+                      {displayProgramName}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 mt-0.5">
+                <Link
+                  href={`/dashboard/my-reports/${report.id}`}
+                  className="font-mono text-xs font-bold text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  <span>{report.reportId}</span>
+                  {isRetesting && (
+                    <span className="size-1.5 rounded-full bg-cyan-500 animate-ping inline-block" />
+                  )}
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -82,13 +176,15 @@ export function ResearcherReportCard({
           </Button>
         </div>
 
-        <Link href={`/dashboard/my-reports/${report.id}`} className="block group">
-          <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+        {/* Report Title */}
+        <Link href={`/dashboard/my-reports/${report.id}`} className="block group/title">
+          <h3 className="text-[15px] sm:text-base font-bold text-foreground line-clamp-2 group-hover/title:text-primary transition-colors leading-snug">
             {report.title}
           </h3>
         </Link>
 
-        <div className="flex flex-wrap items-center gap-2 pt-1">
+        {/* Severity, Status & Type Badges */}
+        <div className="flex flex-wrap items-center gap-2 pt-0.5">
           {report.severity ? (
             <SeverityBadge severity={report.severity} />
           ) : (
@@ -102,7 +198,7 @@ export function ResearcherReportCard({
           {report.type && (
             <Badge
               variant="secondary"
-              className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground"
+              className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border/50"
             >
               {report.type}
             </Badge>
@@ -110,26 +206,27 @@ export function ResearcherReportCard({
         </div>
       </div>
 
+      {/* Footer: Bounty/Reputation + Date + View Button */}
       <div className="mt-5 pt-4 border-t border-border/70 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2 text-xs">
-          {report.isBountyHighlight ? (
+          {report.bountyOrRep?.startsWith("$") ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shadow-2xs">
               <DollarSign className="size-3.5" />
               <span>{report.bountyOrRep}</span>
             </span>
-          ) : report.bountyOrRep === "Reputation" ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold text-indigo-600 bg-indigo-500/10 dark:text-indigo-300 border border-indigo-500/20">
-              <Award className="size-3.5" />
-              <span>Reputation</span>
+          ) : report.bountyOrRep?.includes("Reputation") ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 shadow-2xs">
+              <Award className="size-3.5 text-indigo-500" />
+              <span>{report.bountyOrRep}</span>
             </span>
           ) : (
-            <span className="text-xs font-medium text-muted-foreground">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-muted-foreground bg-muted/60 border border-border/60">
               {report.bountyOrRep}
             </span>
           )}
 
-          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Clock className="size-3" />
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Clock className="size-3 shrink-0" />
             <span>{report.lastActivityDate}</span>
           </div>
         </div>
@@ -145,14 +242,14 @@ export function ResearcherReportCard({
             </Button>
           </Link>
         ) : (
-          <Link href={`/dashboard/my-reports/${report.id}`} className="w-full">
+          <Link href={`/dashboard/my-reports/${report.id}`} className="w-full group/btn">
             <Button
               variant="outline"
               size="sm"
-              className="w-full rounded-xl text-xs font-semibold h-8.5 justify-between px-3 cursor-pointer hover:bg-muted transition-colors"
+              className="w-full rounded-xl text-xs font-semibold h-9 justify-between px-3.5 cursor-pointer hover:bg-muted hover:border-primary/40 transition-all shadow-2xs"
             >
               <span>View Report Details</span>
-              <ChevronRight className="size-3.5 text-muted-foreground" />
+              <ChevronRight className="size-3.5 text-muted-foreground group-hover/btn:translate-x-0.5 group-hover/btn:text-primary transition-all" />
             </Button>
           </Link>
         )}
