@@ -129,51 +129,55 @@ function ReportManagementContent() {
 
         {isLoading ? (
           <div className="overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
-            <div className="hidden border-b border-border px-6 py-4 lg:block">
-              <div className={reportListGridClass}>
-                {[
-                  { label: "Report", align: "text-left" },
-                  { label: "Assets", align: "text-left" },
-                  { label: "Type", align: "text-center" },
-                  { label: "Status", align: "text-center" },
-                  { label: "Severity", align: "text-center" },
-                ].map(({ label, align }) => (
-                  <span
-                    key={label}
-                    className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground ${align}`}
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="divide-y divide-border bg-card">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div
-                  key={`report-skeleton-${index}`}
-                  className="grid gap-4 px-6 py-5 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1.4fr)_0.8fr_0.8fr_0.8fr]"
-                >
-                  <div className="space-y-3">
-                    <div className="h-5 w-2/3 animate-pulse rounded bg-muted" />
-                    <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
-                    <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <div className="h-7 w-24 animate-pulse rounded-full bg-muted" />
-                    <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+            <div className="overflow-x-auto">
+              <div className="min-w-[950px]">
+                <div className="border-b border-border px-6 py-4">
+                  <div className={reportListGridClass}>
+                    {[
+                      { label: "Report", align: "text-left" },
+                      { label: "Assets", align: "text-left" },
+                      { label: "Type", align: "text-center" },
+                      { label: "Status", align: "text-center" },
+                      { label: "Severity", align: "text-center" },
+                    ].map(({ label, align }) => (
+                      <span
+                        key={label}
+                        className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground ${align}`}
+                      >
+                        {label}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              ))}
+
+                <div className="divide-y divide-border bg-card">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div
+                      key={`report-skeleton-${index}`}
+                      className={`px-6 py-5 ${reportListGridClass}`}
+                    >
+                      <div className="space-y-3">
+                        <div className="h-5 w-2/3 animate-pulse rounded bg-muted" />
+                        <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
+                        <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <div className="h-7 w-24 animate-pulse rounded-full bg-muted" />
+                        <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         ) : isError ? (
@@ -212,39 +216,43 @@ function ReportManagementContent() {
           </div>
         ) : (
           <div className="overflow-hidden rounded-[14px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs">
-            <div className="hidden border-b border-border px-6 py-4 lg:block">
-              <div className={reportListGridClass}>
-                {[
-                  { label: "Report", align: "text-left" },
-                  { label: "Assets", align: "text-left" },
-                  { label: "Type", align: "text-center" },
-                  { label: "Status", align: "text-center" },
-                  { label: "Severity", align: "text-center" },
-                ].map(({ label, align }) => (
-                  <span
-                    key={label}
-                    className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground ${align}`}
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <div className="overflow-x-auto">
+              <div className="min-w-[950px]">
+                <div className="border-b border-border px-6 py-4">
+                  <div className={reportListGridClass}>
+                    {[
+                      { label: "Report", align: "text-left" },
+                      { label: "Assets", align: "text-left" },
+                      { label: "Type", align: "text-center" },
+                      { label: "Status", align: "text-center" },
+                      { label: "Severity", align: "text-center" },
+                    ].map(({ label, align }) => (
+                      <span
+                        key={label}
+                        className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground ${align}`}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-            <div className="bg-card">
-              {paginatedReports.map((report, index) => (
-                <motion.div
-                  key={report.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.04 }}
-                >
-                  <ManagedReportCard
-                    report={report}
-                    isLast={index === paginatedReports.length - 1}
-                  />
-                </motion.div>
-              ))}
+                <div className="bg-card">
+                  {paginatedReports.map((report, index) => (
+                    <motion.div
+                      key={report.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, delay: index * 0.04 }}
+                    >
+                      <ManagedReportCard
+                        report={report}
+                        isLast={index === paginatedReports.length - 1}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="border-t border-border">

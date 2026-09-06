@@ -1,2 +1,3 @@
 export const reportListGridClass =
-  "lg:grid lg:grid-cols-[minmax(430px,2.4fr)_minmax(250px,1.2fr)_120px_120px_120px] lg:items-center lg:gap-5";
+  "grid grid-cols-[minmax(340px,2.4fr)_minmax(200px,1.2fr)_110px_120px_160px] items-center gap-4";
+

@@ -254,27 +254,65 @@ export default function ReportManagementDetailPage() {
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-5 shadow-xs">
-        <div className="space-y-2.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              variant="outline"
-              className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
-            >
-              {cleanReportId}
-            </Badge>
+      <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-6 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <div className="space-y-3 flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge
+                variant="outline"
+                className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+              >
+                {cleanReportId}
+              </Badge>
 
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-xs font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1.5",
-                statusCfg.className,
-              )}
-            >
-              <StatusIcon className="size-3.5 shrink-0" />
-              <span>{statusCfg.label}</span>
-            </Badge>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5",
+                  statusCfg.className,
+                )}
+              >
+                <StatusIcon className="size-3.5 shrink-0" />
+                <span>{statusCfg.label}</span>
+              </Badge>
+            </div>
 
+            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight break-words leading-snug">
+              {apiReport.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-muted-foreground font-medium pt-0.5">
+              <span className="flex items-center gap-1.5">
+                <Shield className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>Program:</span>
+                <strong className="text-foreground">{apiReport.program}</strong>
+              </span>
+
+              <span className="text-muted-foreground/40">&bull;</span>
+
+              <span className="flex items-center gap-1.5">
+                <User className="size-3.5 shrink-0" />
+                <span>Researcher:</span>
+                <strong className="text-foreground">
+                  {apiReport.reporterName || "Researcher"}
+                </strong>
+                {apiReport.reporterUsername && (
+                  <span className="text-muted-foreground">
+                    (@{apiReport.reporterUsername})
+                  </span>
+                )}
+              </span>
+
+              <span className="text-muted-foreground/40">&bull;</span>
+
+              <span className="flex items-center gap-1.5">
+                <Calendar className="size-3.5 shrink-0" />
+                <span>Submitted {displaySubmitted}</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex items-center md:items-start justify-start md:justify-end">
             {apiReport.severity ? (
               <SeverityBadge severity={apiReport.severity} />
             ) : (
@@ -282,47 +320,15 @@ export default function ReportManagementDetailPage() {
                 reportedSeverity={apiReport.reportedSeverity || apiReport.claimedSeverity}
                 triageSeverity={apiReport.triageSeverity || apiReport.confirmedSeverity}
                 cvssScore={apiReport.cvssScore}
-                size="md"
+                size="sm"
               />
             )}
           </div>
-
-          <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight break-words">
-            {apiReport.title}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs sm:text-sm text-muted-foreground font-medium pt-1">
-            <span className="flex items-center gap-1.5">
-              <Shield className="size-3.5 text-blue-600 dark:text-blue-400" />
-              <span>Program:</span>
-              <strong className="text-foreground">{apiReport.program}</strong>
-            </span>
-
-            <span>&bull;</span>
-
-            <span className="flex items-center gap-1.5">
-              <User className="size-3.5" />
-              <span>Researcher:</span>
-              <strong className="text-foreground">
-                {apiReport.reporterName || "Researcher"}
-              </strong>
-              {apiReport.reporterUsername && (
-                <span className="text-muted-foreground">
-                  (@{apiReport.reporterUsername})
-                </span>
-              )}
-            </span>
-
-            <span>&bull;</span>
-
-            <span className="flex items-center gap-1.5">
-              <Calendar className="size-3.5" />
-              <span>Submitted {displaySubmitted}</span>
-            </span>
-          </div>
         </div>
 
-        <ReportStatusTracker status={apiReport.status} />
+        <div className="pt-2 border-t border-border/60">
+          <ReportStatusTracker status={apiReport.status} />
+        </div>
       </div>
 
       {rawState === "NEW" && (
