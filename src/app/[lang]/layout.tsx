@@ -45,7 +45,7 @@ const inter = Inter({
 });
 
 const khmer = Kantumruy_Pro({
-  subsets: ["khmer"],
+  subsets: ["khmer", "latin"],
   variable: "--font-khmer",
   display: "swap",
 });
