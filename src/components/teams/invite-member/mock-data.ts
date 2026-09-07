@@ -85,6 +85,24 @@ export const INVITE_PERMISSION_OPTIONS: InvitePermissionOption[] = [
     description:
       "Allows the member to assign bounty payouts or other rewards to valid submissions.",
   },
+  {
+    value: "DELETE_PROGRAM",
+    title: "Delete programs",
+    description:
+      "Allows permanent removal of draft or inactive organization programs.",
+  },
+  {
+    value: "MANAGE_RESEARCHERS",
+    title: "Manage researchers",
+    description:
+      "Allows inviting, coordinating, and managing external security researchers.",
+  },
+  {
+    value: "MANAGE_MEMBERS",
+    title: "Manage members",
+    description:
+      "Allows inviting and configuring team members within this organization.",
+  },
 ];
 
 export const MAX_PERMISSIONS_BY_ROLE: Record<

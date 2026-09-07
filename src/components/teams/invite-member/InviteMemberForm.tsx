@@ -67,11 +67,14 @@ import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { formatDateTime } from "@/lib/format/datetime";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { absoluteUrl } from "@/lib/seo/site";
+import { formatApiErrorMessage, parseApiError } from "@/lib/api/error-response";
 import {
+  useGetOrganizationRolesQuery,
   useInviteOrganizationMemberMutation,
   useRemoveMemberMutation,
   useSearchMemberCandidatesQuery,
   type MemberCandidate,
+  type OrganizationInvitationPermission,
 } from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 
@@ -80,10 +83,13 @@ const permissionValues = [
   "CREATE_PROGRAM",
   "EDIT_PROGRAM",
   "MANAGE_PROGRAM_STATE",
+  "DELETE_PROGRAM",
   "VIEW_REPORTS",
   "TRIAGE_REPORTS",
   "MANAGE_DISCLOSURE",
   "AWARD_REWARDS",
+  "MANAGE_RESEARCHERS",
+  "MANAGE_MEMBERS",
 ] as const;
 
 const inviteMemberSchema = z.object({
@@ -100,7 +106,7 @@ const inviteMemberSchema = z.object({
   permissions: z
     .array(z.enum(permissionValues))
     .min(1, "Select at least one permission.")
-    .max(8, "You can select up to 8 permissions."),
+    .max(11, "You can select up to 11 permissions."),
 });
 
 type InviteMemberFormValues = z.infer<
@@ -132,61 +138,6 @@ const roleCapabilities = {
   MEMBER: ["Programs", "Reports", "Collaboration"],
   VIEWER: ["Programs", "Reports", "Read only"],
 } as const;
-
-function getErrorMessage(error: unknown): string {
-  if (
-    !error ||
-    typeof error !== "object" ||
-    !("status" in error)
-  ) {
-    return "Unable to send the invitation. Please try again.";
-  }
-
-  const apiError = error as FetchBaseQueryError & {
-    data?: {
-      message?: string;
-      error?: string;
-      details?: string;
-    };
-  };
-
-  const rawMessage =
-    apiError.data?.message ??
-    apiError.data?.error ??
-    apiError.data?.details ??
-    "";
-
-  if (apiError.status === 404) {
-    return "No DevSolve account uses that email address. They need to register first, then you can invite them.";
-  }
-
-  if (apiError.status === 409) {
-    if (
-      !rawMessage ||
-      rawMessage.includes("conflicts with data that already exists") ||
-      rawMessage.toLowerCase().includes("conflict")
-    ) {
-      return "This person is already a member of your organization, or an active invitation has already been sent to them.";
-    }
-    return (
-      rawMessage.trim() ||
-      "That invitation cannot be sent right now. They may already be on the team, or an invitation may still be outstanding."
-    );
-  }
-
-  if (
-    apiError.status === 401 ||
-    apiError.status === 403
-  ) {
-    return "You do not have permission to invite organization members.";
-  }
-
-  if (rawMessage.trim()) {
-    return rawMessage;
-  }
-
-  return "Unable to send the invitation. Please try again.";
-}
 
 export function InviteMemberForm() {
   const router = useRouter();
@@ -236,11 +187,31 @@ export function InviteMemberForm() {
       role: "MEMBER",
       permissions: [
         ...DEFAULT_PERMISSIONS_BY_ROLE.MEMBER,
-      ],
+      ] as InviteMemberFormValues["permissions"],
     },
   });
 
   const { membership } = useCompanyAccess();
+  const { data: organizationRoles } = useGetOrganizationRolesQuery();
+  const [offendingPermissions, setOffendingPermissions] = useState<string[]>([]);
+
+  function getRoleCeiling(role: InviteRoleOption["role"]): OrganizationInvitationPermission[] {
+    const info = organizationRoles?.find((r) => r.role === role);
+    return (
+      info?.allowedPermissions ??
+      (MAX_PERMISSIONS_BY_ROLE[role] as OrganizationInvitationPermission[]) ??
+      []
+    );
+  }
+
+  function getRoleDefaults(role: InviteRoleOption["role"]): OrganizationInvitationPermission[] {
+    const info = organizationRoles?.find((r) => r.role === role);
+    return (
+      info?.defaultPermissions ??
+      (DEFAULT_PERMISSIONS_BY_ROLE[role] as OrganizationInvitationPermission[]) ??
+      []
+    );
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -330,6 +301,7 @@ export function InviteMemberForm() {
   async function onSubmit(
     values: InviteMemberFormValues,
   ) {
+    setOffendingPermissions([]);
     try {
       const response =
         await inviteOrganizationMember(values).unwrap();
@@ -358,24 +330,39 @@ export function InviteMemberForm() {
         userId,
       });
     } catch (error) {
-      const message = getErrorMessage(error);
-      const isEmailRelated =
-        (error as FetchBaseQueryError)?.status === 409 ||
-        (error as FetchBaseQueryError)?.status === 404;
+      const parsed = parseApiError(error);
 
-      if (isEmailRelated) {
+      // Handle 400 violations
+      if (parsed.status === 400 && Object.keys(parsed.violations).length > 0) {
+        for (const [field, msg] of Object.entries(parsed.violations)) {
+          if (field === "email" || field === "role" || field === "permissions") {
+            setError(field, { message: msg });
+          } else {
+            setError("root", { message: msg });
+          }
+        }
+      } else if (parsed.status === 422) {
+        setOffendingPermissions(parsed.offendingPermissions ?? []);
+        setError("permissions", {
+          message: parsed.message,
+        });
+      } else if (parsed.status === 409) {
         setError("email", {
-          message,
+          message: parsed.message,
+        });
+      } else if (parsed.status === 404) {
+        setError("email", {
+          message: "No DevSolve account uses that email address. They need to register first, then you can invite them.",
         });
       } else {
         setError("root", {
-          message,
+          message: parsed.message,
         });
       }
 
       toast.destructive({
         title: "Invitation failed",
-        description: message,
+        description: parsed.message,
       });
     }
   }
@@ -398,23 +385,21 @@ export function InviteMemberForm() {
     setValue(
       "permissions",
       [
-        ...(
-          DEFAULT_PERMISSIONS_BY_ROLE[nextRole] ??
-          []
-        ),
-      ],
+        ...getRoleDefaults(nextRole),
+      ] as InviteMemberFormValues["permissions"],
       {
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,
       },
     );
+    setOffendingPermissions([]);
   }
 
   function handlePermissionChange(values: string[]) {
-    const roleCeiling = MAX_PERMISSIONS_BY_ROLE[selectedRole] ?? [];
+    const roleCeiling = getRoleCeiling(selectedRole);
     const validValues = values.filter((v) =>
-      roleCeiling.includes(v as (typeof roleCeiling)[number]),
+      roleCeiling.includes(v as OrganizationInvitationPermission),
     );
 
     setValue(
@@ -450,14 +435,15 @@ export function InviteMemberForm() {
       reset({
         email: "",
         role: "MEMBER",
-        permissions: [...DEFAULT_PERMISSIONS_BY_ROLE.MEMBER],
+        permissions: [...getRoleDefaults("MEMBER")] as InviteMemberFormValues["permissions"],
       });
     } catch (error) {
       toast.destructive({
         title: "Failed to cancel invitation",
-        description:
-          getErrorMessage(error) ||
+        description: formatApiErrorMessage(
+          error,
           "Could not cancel invitation. Please try from Team Management.",
+        ),
       });
     }
   }
@@ -475,7 +461,7 @@ export function InviteMemberForm() {
           reset({
             email: "",
             role: "MEMBER",
-            permissions: [...DEFAULT_PERMISSIONS_BY_ROLE.MEMBER],
+            permissions: [...getRoleDefaults("MEMBER")] as InviteMemberFormValues["permissions"],
           });
         }}
       />
@@ -1021,17 +1007,18 @@ export function InviteMemberForm() {
                       >
                         {INVITE_PERMISSION_OPTIONS.map(
                           (option) => {
-                            const isAllowed = (
-                              MAX_PERMISSIONS_BY_ROLE[selectedRole] ?? []
-                            ).includes(option.value);
+                            const isAllowed = getRoleCeiling(selectedRole).includes(option.value);
+                            const isOffending = offendingPermissions.includes(option.value);
                             return (
                               <PermissionTableRow
                                 key={option.value}
                                 option={option}
+                                role={selectedRole}
                                 selected={selectedPermissions.includes(
                                   option.value,
                                 )}
                                 disabled={!isAllowed}
+                                isOffending={isOffending}
                               />
                             );
                           },
@@ -1127,17 +1114,23 @@ export function InviteMemberForm() {
 
 type PermissionTableRowProps = {
   option: InvitePermissionOption;
+  role?: string;
   selected: boolean;
   disabled?: boolean;
+  isOffending?: boolean;
 };
 
 function PermissionTableRow({
   option,
+  role,
   selected,
   disabled = false,
+  isOffending = false,
 }: PermissionTableRowProps) {
   const category =
     getPermissionCategory(option.value);
+  const roleDisplay =
+    role === "VIEWER" ? "Viewer" : role === "MEMBER" ? "Member" : "Manager";
 
   return (
     <ToggleGroupItem
@@ -1165,6 +1158,7 @@ function PermissionTableRow({
         }}
         className={cn(
           "flex items-center justify-between gap-4 rounded-xl border border-transparent px-3.5 py-3 transition-all duration-200",
+          isOffending && "border-red-500/40 bg-red-500/10 dark:bg-red-950/20",
           selected
             ? "border-blue-500/20 bg-blue-50/70 dark:bg-blue-950/20 shadow-none"
             : disabled
@@ -1178,9 +1172,11 @@ function PermissionTableRow({
               <p
                 className={cn(
                   "truncate text-sm font-semibold transition-colors duration-200 sm:text-base",
-                  selected
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400",
+                  isOffending
+                    ? "text-red-600 dark:text-red-400 font-bold"
+                    : selected
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400",
                 )}
               >
                 {option.title}
@@ -1189,15 +1185,25 @@ function PermissionTableRow({
               <PermissionCategoryBadge
                 category={category}
               />
+
+              {isOffending ? (
+                <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                  Disallowed
+                </Badge>
+              ) : null}
             </div>
 
             <p
               title={option.description}
               className="mt-0.5 line-clamp-1 text-sm text-muted-foreground"
             >
-              {disabled ? (
+              {isOffending ? (
+                <span className="font-medium text-red-600 dark:text-red-400">
+                  Disallowed by server for {roleDisplay} role.
+                </span>
+              ) : disabled ? (
                 <span className="font-medium text-amber-600 dark:text-amber-400">
-                  Not available for this role &mdash; promote to grant.
+                  Not available for {roleDisplay} role &mdash; promote to grant.
                 </span>
               ) : (
                 option.description

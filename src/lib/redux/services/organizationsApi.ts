@@ -115,16 +115,19 @@ export type InviteOrganizationMemberRequest = {
   email: string;
   role: OrganizationInvitationRole;
   permissions: OrganizationInvitationPermission[];
+  organizationId?: string;
 };
 
 export type UpdateMemberRoleRequest = {
   userId: string;
   role: OrganizationInvitationRole;
+  organizationId?: string;
 };
 
 export type UpdateMemberPermissionsRequest = {
   userId: string;
   permissions: OrganizationInvitationPermission[];
+  organizationId?: string;
 };
 
 export type OrganizationRoleResponse = {
@@ -146,6 +149,7 @@ export interface MemberCandidate {
 
 export type RemoveMemberRequest = {
   userId: string;
+  organizationId?: string;
 };
 
 export type OrganizationInvitationMember = {
@@ -385,10 +389,12 @@ export const organizationsApi = proxyApi.injectEndpoints({
     }),
     getOrganizationMembers: builder.query<
       OrganizationInvitationMember[],
-      void
+      { organizationId?: string } | void
     >({
-      query: () => ({
-        url: "/organizations/me/members",
+      query: (arg) => ({
+        url: arg?.organizationId
+          ? `/organizations/me/members?organizationId=${encodeURIComponent(arg.organizationId)}`
+          : "/organizations/me/members",
         method: "GET",
       }),
       transformResponse: (
@@ -402,8 +408,10 @@ export const organizationsApi = proxyApi.injectEndpoints({
       InviteOrganizationMemberResponse,
       InviteOrganizationMemberRequest
     >({
-      query: (body) => ({
-        url: "/organizations/me/members/invitations",
+      query: ({ organizationId, ...body }) => ({
+        url: organizationId
+          ? `/organizations/me/members/invitations?organizationId=${encodeURIComponent(organizationId)}`
+          : "/organizations/me/members/invitations",
         method: "POST",
         body,
       }),
@@ -466,8 +474,10 @@ export const organizationsApi = proxyApi.injectEndpoints({
       OrganizationInvitationMember,
       UpdateMemberRoleRequest
     >({
-      query: ({ userId, role }) => ({
-        url: `/organizations/me/members/${userId}/role`,
+      query: ({ userId, role, organizationId }) => ({
+        url: organizationId
+          ? `/organizations/me/members/${userId}/role?organizationId=${encodeURIComponent(organizationId)}`
+          : `/organizations/me/members/${userId}/role`,
         method: "PATCH",
         body: { role },
       }),
@@ -477,16 +487,20 @@ export const organizationsApi = proxyApi.injectEndpoints({
       OrganizationInvitationMember,
       UpdateMemberPermissionsRequest
     >({
-      query: ({ userId, permissions }) => ({
-        url: `/organizations/me/members/${userId}/permissions`,
+      query: ({ userId, permissions, organizationId }) => ({
+        url: organizationId
+          ? `/organizations/me/members/${userId}/permissions?organizationId=${encodeURIComponent(organizationId)}`
+          : `/organizations/me/members/${userId}/permissions`,
         method: "PATCH",
         body: { permissions },
       }),
       invalidatesTags: ["OrganizationMembers"],
     }),
     removeMember: builder.mutation<void, RemoveMemberRequest>({
-      query: ({ userId }) => ({
-        url: `/organizations/me/members/${userId}`,
+      query: ({ userId, organizationId }) => ({
+        url: organizationId
+          ? `/organizations/me/members/${userId}?organizationId=${encodeURIComponent(organizationId)}`
+          : `/organizations/me/members/${userId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["OrganizationMembers"],
@@ -541,9 +555,14 @@ export const organizationsApi = proxyApi.injectEndpoints({
       }),
       providesTags: ["Organization"],
     }),
-    getOrganizationRoles: builder.query<OrganizationRoleResponse[], void>({
-      query: () => ({
-        url: "/organizations/roles",
+    getOrganizationRoles: builder.query<
+      OrganizationRoleResponse[],
+      { organizationId?: string } | void
+    >({
+      query: (arg) => ({
+        url: arg?.organizationId
+          ? `/organizations/roles?organizationId=${encodeURIComponent(arg.organizationId)}`
+          : "/organizations/roles",
         method: "GET",
       }),
       providesTags: ["OrganizationRoles"],
