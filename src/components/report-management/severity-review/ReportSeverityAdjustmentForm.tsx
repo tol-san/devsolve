@@ -79,6 +79,14 @@ const SEVERITY_DEFAULTS: Record<
   Info: { bounty: "0", label: "Informational (Recognition Only)" },
 };
 
+const SEVERITY_RANK: Record<SeverityOption, number> = {
+  Critical: 4,
+  High: 3,
+  Medium: 2,
+  Low: 1,
+  Info: 0,
+};
+
 function normalizeSeverity(sev?: string): SeverityOption {
   if (!sev) return "Medium";
   const lower = sev.toLowerCase();
@@ -137,6 +145,12 @@ export function ReportSeverityAdjustmentForm({
   const [improvementSuggestions, setImprovementSuggestions] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
+  const researcherClaimedSeverity = normalizeSeverity(
+    detail?.reportedSeverity || detail?.severity || undefined
+  );
+  const isDowngrade =
+    SEVERITY_RANK[selectedSeverity] < SEVERITY_RANK[researcherClaimedSeverity];
+
   useEffect(() => {
     if (detail?.severity) {
       const sev = normalizeSeverity(detail.severity);
@@ -166,6 +180,7 @@ export function ReportSeverityAdjustmentForm({
   const searchParams = useSearchParams();
   const actionParam = searchParams?.get("action");
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [showDowngradeInfoModal, setShowDowngradeInfoModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showMoreInfoModal, setShowMoreInfoModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
@@ -228,6 +243,9 @@ export function ReportSeverityAdjustmentForm({
   const handleSeverityChange = (option: SeverityOption) => {
     setSelectedSeverity(option);
     setBountyAmount(SEVERITY_DEFAULTS[option]?.bounty || "750");
+    if (SEVERITY_RANK[option] < SEVERITY_RANK[researcherClaimedSeverity]) {
+      setShowDowngradeInfoModal(true);
+    }
   };
 
   const handleConfirmApproval = async () => {
@@ -250,17 +268,27 @@ export function ReportSeverityAdjustmentForm({
         bountyAmount: `$${numericBounty}`,
         files: selectedFiles,
         weaknessId: reclassifiedWeaknessId || undefined,
+        isDowngrade,
+        deferReward: isDowngrade,
       }).unwrap();
 
       setShowApprovalModal(false);
       setApprovalSuccess(true);
       onOutcomeChange?.("approved");
+      if (isDowngrade) {
+        toast.info(
+          "Triage submitted. A final severity is required before recording a reward — bounty will be queued until settled."
+        );
+      }
     } catch (err) {
       console.error("Failed to approve report:", err);
       setShowApprovalModal(false);
-      toast.error(
-        apiErrorMessage(err, "The report could not be approved. Try again."),
-      );
+      const errMsg = apiErrorMessage(err, "The report could not be approved. Try again.");
+      if (errMsg.toLowerCase().includes("final severity is required")) {
+        setShowDowngradeInfoModal(true);
+      } else {
+        toast.error(errMsg);
+      }
     }
   };
 
@@ -312,6 +340,145 @@ export function ReportSeverityAdjustmentForm({
   };
 
   if (approvalSuccess) {
+    if (isDowngrade) {
+      return (
+        <Card className="rounded-3xl border border-amber-500/30 bg-card p-4 sm:p-8 md:p-10 text-card-foreground shadow-2xl overflow-hidden relative min-w-0">
+          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-amber-500/15 blur-3xl rounded-full pointer-events-none" />
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="relative z-10 flex flex-col items-center text-center space-y-6 sm:space-y-7 min-w-0"
+          >
+            <div className="flex size-16 sm:size-20 items-center justify-center rounded-3xl bg-amber-500/15 text-amber-600 dark:text-amber-400 ring-8 ring-amber-500/10 shadow-lg shrink-0">
+              <Scale className="size-8 sm:size-10" />
+            </div>
+
+            <div className="space-y-2.5 sm:space-y-3 max-w-2xl min-w-0">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Badge className="bg-amber-600 hover:bg-amber-600 text-white font-bold text-xs px-3 py-1 rounded-full shadow-xs">
+                  TRIAGED · AWAITING REPORTER
+                </Badge>
+                <Badge variant="outline" className="font-mono text-xs font-bold border-border bg-muted/50 px-2.5 py-0.5">
+                  {cleanReportId}
+                </Badge>
+                <Badge variant="outline" className="text-xs border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-semibold px-2.5 py-0.5 rounded-full">
+                  Reward Queued
+                </Badge>
+              </div>
+
+              <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground leading-tight break-words">
+                Triage Decision Recorded & Awaiting Settlement
+              </h2>
+              <p className="text-xs sm:text-base text-muted-foreground leading-relaxed">
+                The report triage was recorded with proposed severity{" "}
+                <strong className="text-foreground font-bold">{selectedSeverity}</strong>. Because this was adjusted lower than the researcher&apos;s claimed severity (<strong className="text-foreground">{researcherClaimedSeverity}</strong>), the report is subject to a 14-day researcher review. Per platform policy, <strong className="text-foreground">a final severity is required before recording a reward</strong>. The intended bounty of{" "}
+                <strong className="text-amber-600 dark:text-amber-400 font-bold">${bountyAmount} USD</strong> will be dispatched once the final severity is confirmed.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5 w-full text-left min-w-0">
+              <div className="p-3.5 sm:p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
+                  Proposed Severity
+                </span>
+                <div className="min-w-0">
+                  <p className="text-base font-bold text-foreground truncate">{selectedSeverity}</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5 truncate">Pending Confirmation</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 sm:p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+                <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1 truncate">
+                  <Coins className="size-3.5 shrink-0" />
+                  <span>Bounty Award</span>
+                </span>
+                <div className="min-w-0">
+                  <p className="text-base font-extrabold text-amber-600 dark:text-amber-400 truncate">${bountyAmount} USD</p>
+                  <p className="text-xs text-amber-600/80 dark:text-amber-400/80 font-semibold mt-0.5 truncate">Queued (Pending Final Severity)</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 sm:p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+                <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1 truncate">
+                  <Scale className="size-3.5 shrink-0" />
+                  <span>Dispute Status</span>
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm font-black text-amber-600 dark:text-amber-400 truncate tracking-tight">
+                    AWAITING_REPORTER
+                  </p>
+                  <p className="text-xs text-muted-foreground font-medium mt-0.5 truncate">14-Day Review Window</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 sm:p-4 rounded-2xl border border-border bg-muted/40 flex flex-col justify-between space-y-2 min-w-0 overflow-hidden">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 truncate">
+                  <User className="size-3.5 shrink-0" />
+                  <span>Researcher</span>
+                </span>
+                <div className="min-w-0">
+                  <Link
+                    href={`/profile/${encodeURIComponent(profileIdentifier)}`}
+                    className="text-base font-bold text-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:underline truncate block"
+                  >
+                    {detail.submitter}
+                  </Link>
+                  <p className="text-xs text-muted-foreground font-mono truncate">@{username}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full rounded-2xl border border-border bg-muted/30 p-4 sm:p-5 text-left space-y-3.5 min-w-0">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Automated Triage Actions Logged
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div className="flex items-center gap-2 font-medium text-foreground">
+                  <Check className="size-4 text-amber-500 shrink-0" />
+                  <span>Triage severity set to {selectedSeverity} (was {researcherClaimedSeverity})</span>
+                </div>
+                <div className="flex items-center gap-2 font-medium text-foreground">
+                  <Check className="size-4 text-amber-500 shrink-0" />
+                  <span>Bounty payout queued: ${bountyAmount} USD (Settlement pending)</span>
+                </div>
+                <div className="flex items-center gap-2 font-medium text-foreground">
+                  <Check className="size-4 text-amber-500 shrink-0" />
+                  <span>Dispute confirmation notice sent to {detail.submitter}</span>
+                </div>
+                <div className="flex items-center gap-2 font-medium text-foreground">
+                  <Check className="size-4 text-amber-500 shrink-0" />
+                  <span>Report entered Awaiting Reporter review (14-day window)</span>
+                </div>
+              </div>
+
+              {decisionReason && (
+                <div className="pt-2 border-t border-border text-xs text-muted-foreground">
+                  <strong className="text-foreground">Triage Rationale:</strong> {decisionReason}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2 w-full">
+              <Link href={`/dashboard/report-management/${detail.id}`} className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm h-10 px-5 cursor-pointer gap-2 shadow-xs justify-center">
+                  <span>View Updated Report Details</span>
+                  <ArrowRight className="size-4" />
+                </Button>
+              </Link>
+              <Link href="/dashboard/report-management" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto rounded-xl border-border bg-card font-semibold text-xs sm:text-sm h-10 px-4 cursor-pointer gap-2 justify-center">
+                  <ArrowLeft className="size-4" />
+                  <span>Back to Queue</span>
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        </Card>
+      );
+    }
+
     return (
       <Card className="rounded-3xl border border-emerald-500/30 bg-card p-4 sm:p-8 md:p-10 text-card-foreground shadow-2xl overflow-hidden relative min-w-0">
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none" />
@@ -363,7 +530,11 @@ export function ReportSeverityAdjustmentForm({
               </span>
               <div className="min-w-0">
                 <p className="text-base font-bold text-foreground truncate">{selectedSeverity}</p>
-                <p className="text-xs text-muted-foreground font-mono mt-0.5 truncate">{detail.cvssScore} CVSS</p>
+                <p className="text-xs text-muted-foreground font-mono mt-0.5 truncate">
+                  {detail?.cvssScore && detail.cvssScore !== "N/A"
+                    ? `${detail.cvssScore} CVSS`
+                    : "Confirmed"}
+                </p>
               </div>
             </div>
 
@@ -415,7 +586,12 @@ export function ReportSeverityAdjustmentForm({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
               <div className="flex items-center gap-2 font-medium text-foreground">
                 <Check className="size-4 text-emerald-500 shrink-0" />
-                <span>Severity updated to {selectedSeverity} ({detail.cvssScore})</span>
+                <span>
+                  Severity updated to {selectedSeverity}
+                  {detail?.cvssScore && detail.cvssScore !== "N/A"
+                    ? ` (${detail.cvssScore})`
+                    : ""}
+                </span>
               </div>
               <div className="flex items-center gap-2 font-medium text-foreground">
                 <Check className="size-4 text-emerald-500 shrink-0" />
@@ -670,13 +846,37 @@ export function ReportSeverityAdjustmentForm({
                 <FieldDescription className="text-xs sm:text-sm text-muted-foreground mt-3">
                   Claimed researcher severity:{" "}
                   <span className="font-semibold text-foreground">
-                    {detail?.severity || "Medium"} ({detail?.cvssScore || "N/A"})
+                    {researcherClaimedSeverity}
+                    {detail?.cvssScore && detail.cvssScore !== "N/A"
+                      ? ` (${detail.cvssScore})`
+                      : ""}
                   </span>
                   . Company decision rating:{" "}
                   <span className="font-semibold text-blue-600 dark:text-blue-400">
                     {selectedSeverity}
                   </span>
                 </FieldDescription>
+                {isDowngrade && (
+                  <div className="mt-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="flex items-start sm:items-center gap-2.5 text-xs sm:text-sm text-amber-900 dark:text-amber-200 min-w-0">
+                      <Scale className="size-4 sm:size-4.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+                      <div className="min-w-0 leading-relaxed">
+                        <strong className="font-bold">Severity Downgrade ({researcherClaimedSeverity} → {selectedSeverity}):</strong>{" "}
+                        <span>A final severity is required before recording a reward. Triage initiates a 14-day confirmation window.</span>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDowngradeInfoModal(true)}
+                      className="text-xs font-semibold h-7 sm:h-8 px-3 rounded-lg border-amber-500/30 bg-background/80 hover:bg-amber-500/20 text-amber-800 dark:text-amber-200 shrink-0 cursor-pointer gap-1.5 self-start sm:self-center"
+                    >
+                      <AlertCircle className="size-3.5" />
+                      <span>Policy Info</span>
+                    </Button>
+                  </div>
+                )}
               </FieldContent>
             </Field>
 
@@ -707,6 +907,14 @@ export function ReportSeverityAdjustmentForm({
                     awards it automatically from the finding&apos;s severity
                     when the report is resolved.
                   </FieldDescription>
+                  {isDowngrade && (
+                    <div className="mt-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 p-2.5 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                      <Coins className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                      <span>
+                        <strong>Reward queued:</strong> A final severity is required before recording a reward. This ${bountyAmount} USD bounty will be recorded once the severity is finalized.
+                      </span>
+                    </div>
+                  )}
                 </FieldContent>
               </Field>
             </div>
@@ -912,13 +1120,24 @@ export function ReportSeverityAdjustmentForm({
                       ? "An administrator must resolve the severity dispute first"
                       : undefined
                 }
-                className="w-full rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white cursor-pointer px-3 sm:px-4 shadow-xs gap-2 text-xs sm:text-sm h-10 justify-center"
+                className={cn(
+                  "w-full rounded-xl text-white font-bold cursor-pointer px-3 sm:px-4 shadow-xs gap-2 text-xs sm:text-sm h-10 justify-center",
+                  isDowngrade
+                    ? "bg-amber-600 hover:bg-amber-700 dark:bg-amber-600"
+                    : "bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600"
+                )}
               >
-                <CheckCircle2 className="size-4 shrink-0" />
+                {isDowngrade ? (
+                  <Scale className="size-4 shrink-0" />
+                ) : (
+                  <CheckCircle2 className="size-4 shrink-0" />
+                )}
                 <span className="truncate">
                   {isAlreadyConfirmed
                     ? "Update severity"
-                    : "Approve Report & Issue Bounty"}
+                    : isDowngrade
+                      ? "Submit Triage (Queue Reward)"
+                      : "Approve Report & Issue Bounty"}
                 </span>
               </Button>
             </div>
@@ -940,14 +1159,30 @@ export function ReportSeverityAdjustmentForm({
               className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between border-b border-border bg-emerald-500/10 px-4 sm:px-5 py-3.5 sm:py-4 shrink-0">
+              <div
+                className={cn(
+                  "flex items-center justify-between border-b border-border px-4 sm:px-5 py-3.5 sm:py-4 shrink-0",
+                  isDowngrade ? "bg-amber-500/10" : "bg-emerald-500/10"
+                )}
+              >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
-                    <CheckCircle2 className="size-5" />
+                  <div
+                    className={cn(
+                      "flex size-9 items-center justify-center rounded-xl shrink-0",
+                      isDowngrade
+                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                        : "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                    )}
+                  >
+                    {isDowngrade ? (
+                      <Scale className="size-5" />
+                    ) : (
+                      <CheckCircle2 className="size-5" />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-bold text-sm sm:text-base text-foreground truncate">
-                      Confirm Report Approval
+                      {isDowngrade ? "Confirm Triage Decision" : "Confirm Report Approval"}
                     </h3>
                     <p className="text-xs text-muted-foreground font-mono truncate">
                       Report {cleanReportId}
@@ -966,21 +1201,51 @@ export function ReportSeverityAdjustmentForm({
 
               <div className="p-4 sm:p-6 space-y-4 text-xs sm:text-sm leading-relaxed overflow-y-auto min-w-0">
                 <p className="text-muted-foreground">
-                  You are about to officially approve this vulnerability report and authorize the reward payment to <strong>{submitterName}</strong>.
+                  {isDowngrade
+                    ? `You are about to triage this report at ${selectedSeverity} and submit your review feedback to ${submitterName}.`
+                    : `You are about to officially approve this vulnerability report and authorize the reward payment to ${submitterName}.`}
                 </p>
+
+                {isDowngrade && (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 space-y-1.5 text-xs text-amber-900 dark:text-amber-200">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <Scale className="size-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                      <span>A final severity is required before recording a reward</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
+                      Lowering severity from <strong>{researcherClaimedSeverity}</strong> to <strong>{selectedSeverity}</strong> initiates a 14-day researcher dispute review. Your triage assessment will be saved, and the bounty award of <strong>${bountyAmount} USD</strong> will be queued and recorded after the final severity is settled.
+                    </p>
+                  </div>
+                )}
 
                 <div className="rounded-xl border border-border bg-muted/40 p-3.5 sm:p-4 space-y-2.5 min-w-0">
                   <div className="flex items-center justify-between text-xs sm:text-sm">
-                    <span className="text-muted-foreground">Final Severity:</span>
-                    <Badge className="bg-blue-600 text-white font-bold text-xs">
-                      {selectedSeverity}
-                    </Badge>
+                    <span className="text-muted-foreground">
+                      {isDowngrade ? "Proposed Severity:" : "Final Severity:"}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <Badge className={cn("text-white font-bold text-xs", isDowngrade ? "bg-amber-600" : "bg-blue-600")}>
+                        {selectedSeverity}
+                      </Badge>
+                      {isDowngrade && (
+                        <span className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold">
+                          (Pending 14-Day Review)
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-muted-foreground">Bounty Award:</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      ${bountyAmount} USD
-                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        ${bountyAmount} USD
+                      </span>
+                      {isDowngrade && (
+                        <span className="block text-[10px] text-amber-700 dark:text-amber-400 font-medium">
+                          Queued (Held until settled)
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-muted-foreground">Researcher:</span>
@@ -1020,17 +1285,28 @@ export function ReportSeverityAdjustmentForm({
                   size="sm"
                   onClick={handleConfirmApproval}
                   disabled={isApproving}
-                  className="w-full sm:w-auto rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-5 gap-2 cursor-pointer shadow-xs justify-center"
+                  className={cn(
+                    "w-full sm:w-auto rounded-xl text-white font-bold text-xs h-9 px-5 gap-2 cursor-pointer shadow-xs justify-center",
+                    isDowngrade
+                      ? "bg-amber-600 hover:bg-amber-700"
+                      : "bg-emerald-600 hover:bg-emerald-700"
+                  )}
                 >
                   {isApproving ? (
                     <>
                       <Loader2 className="size-3.5 animate-spin" />
-                      <span>Approving...</span>
+                      <span>{isDowngrade ? "Submitting Triage..." : "Approving..."}</span>
                     </>
                   ) : (
                     <>
-                      <Check className="size-3.5" />
-                      <span>Confirm & Issue Bounty</span>
+                      {isDowngrade ? (
+                        <Scale className="size-3.5" />
+                      ) : (
+                        <Check className="size-3.5" />
+                      )}
+                      <span>
+                        {isDowngrade ? "Confirm Triage (Hold Reward)" : "Confirm & Issue Bounty"}
+                      </span>
                     </>
                   )}
                 </Button>
@@ -1198,6 +1474,121 @@ export function ReportSeverityAdjustmentForm({
                       <span>Confirm Rejection</span>
                     </>
                   )}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDowngradeInfoModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"
+            onClick={() => setShowDowngradeInfoModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-border bg-amber-500/10 px-4 sm:px-5 py-3.5 sm:py-4 shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                    <Scale className="size-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-sm sm:text-base text-foreground truncate">
+                      Final Severity Required Before Rewarding
+                    </h3>
+                    <p className="text-xs text-muted-foreground font-mono truncate">
+                      Severity Downgrade & Dispute Policy Notice
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowDowngradeInfoModal(false)}
+                  className="size-8 rounded-lg text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+
+              <div className="p-4 sm:p-6 space-y-4 text-xs sm:text-sm leading-relaxed overflow-y-auto min-w-0">
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 sm:p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 dark:text-amber-200">
+                    <AlertCircle className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Severity Assessment Comparison</span>
+                  </div>
+                  <div className="flex items-center gap-3 pt-1">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Researcher Claimed</span>
+                      <Badge variant="outline" className="border-border bg-card font-bold text-xs w-fit">
+                        {researcherClaimedSeverity}
+                      </Badge>
+                    </div>
+                    <ArrowRight className="size-4 text-muted-foreground shrink-0 mt-3" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[11px] text-amber-700 dark:text-amber-400 uppercase tracking-wider font-semibold">Company Proposed</span>
+                      <Badge className="bg-amber-500 text-white font-bold text-xs w-fit shadow-xs">
+                        {selectedSeverity} (Downgraded)
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 text-muted-foreground">
+                  <p>
+                    You have assessed this finding as <strong className="text-foreground">{selectedSeverity}</strong>, which is lower than the researcher&apos;s submitted severity of <strong className="text-foreground">{researcherClaimedSeverity}</strong>.
+                  </p>
+                  <div className="p-3 rounded-xl border border-border bg-muted/40 space-y-1.5">
+                    <div className="font-semibold text-foreground flex items-center gap-1.5">
+                      <Coins className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>Why is immediate reward recording held?</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      <strong>A final severity is required before recording a reward.</strong> When an organization downgrades severity, the report enters an <strong>Awaiting Reporter</strong> dispute status giving the researcher 14 days to accept the adjustment or provide counter-evidence. Because the final rating is not yet settled, the platform cannot record the bounty payout immediately.
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl border border-border bg-muted/40 space-y-1.5">
+                    <div className="font-semibold text-foreground flex items-center gap-1.5">
+                      <CheckCircle2 className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span>What happens when you proceed?</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Your technical triage assessment, notes, and intended bounty award of <strong className="text-emerald-600 dark:text-emerald-400">${bountyAmount} USD</strong> will be submitted. The bounty reward will be held in queue and automatically recorded once the researcher confirms or the 14-day review window elapses.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3 border-t border-border bg-card px-4 sm:px-5 py-3.5 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedSeverity(researcherClaimedSeverity);
+                    setBountyAmount(SEVERITY_DEFAULTS[researcherClaimedSeverity]?.bounty || "750");
+                    setShowDowngradeInfoModal(false);
+                  }}
+                  className="w-full sm:w-auto rounded-xl text-xs h-9 px-4 cursor-pointer justify-center"
+                >
+                  Keep {researcherClaimedSeverity} Severity
+                </Button>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setShowDowngradeInfoModal(false)}
+                  className="w-full sm:w-auto rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-9 px-5 gap-2 cursor-pointer shadow-xs justify-center"
+                >
+                  <span>Understood, Continue with {selectedSeverity}</span>
                 </Button>
               </div>
             </motion.div>

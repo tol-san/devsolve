@@ -58,7 +58,10 @@ export function ReportSeverityReviewHeader({
                 variant="outline"
                 className="border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-semibold"
               >
-                Submitted {detail?.severity || "Medium"} ({detail?.cvssScore || "N/A"})
+                Submitted {detail?.severity || "Medium"}
+                {detail?.cvssScore && detail.cvssScore !== "N/A"
+                  ? ` (${detail.cvssScore})`
+                  : ""}
               </Badge>
             </div>
 
@@ -117,7 +120,10 @@ export function ReportSeverityReviewHeader({
                   Submitted Severity
                 </span>
                 <span className="text-sm sm:text-base font-semibold text-foreground truncate block">
-                  {detail?.severity || "Medium"} ({detail?.cvssScore || "N/A"})
+                  {detail?.severity || "Medium"}
+                  {detail?.cvssScore && detail.cvssScore !== "N/A"
+                    ? ` (${detail.cvssScore})`
+                    : ""}
                 </span>
               </div>
             </div>

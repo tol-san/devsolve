@@ -928,6 +928,8 @@ export const reportsApi = baseApi.injectEndpoints({
         bountyAmount?: string;
         files?: string[];
         weaknessId?: string;
+        isDowngrade?: boolean;
+        deferReward?: boolean;
       }
     >({
       async queryFn(payload, _api, _extraOptions, fetchWithBQ) {
@@ -947,7 +949,11 @@ export const reportsApi = baseApi.injectEndpoints({
           return { error: triageResult.error };
         }
 
-        if (payload.bountyAmount) {
+        if (
+          payload.bountyAmount &&
+          !payload.isDowngrade &&
+          !payload.deferReward
+        ) {
           const numericAmount = parseFloat(
             payload.bountyAmount.replace(/[^0-9.]/g, "")
           );
@@ -964,7 +970,20 @@ export const reportsApi = baseApi.injectEndpoints({
             });
 
             if (rewardResult.error) {
-              return { error: rewardResult.error };
+              const errMsg =
+                (rewardResult.error as any)?.data?.message ||
+                JSON.stringify(rewardResult.error);
+              if (
+                errMsg.includes(
+                  "final severity is required before recording a reward"
+                )
+              ) {
+                console.warn(
+                  "Bounty reward held: A final severity is required before recording a reward."
+                );
+              } else {
+                return { error: rewardResult.error };
+              }
             }
           }
         }

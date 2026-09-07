@@ -205,7 +205,10 @@ export function ReportSeverityReviewSidebar({
                 variant="outline"
                 className="border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 text-xs"
               >
-                {detail?.severity || "Medium"} ({detail?.cvssScore || "N/A"})
+                {detail?.severity || "Medium"}
+                {detail?.cvssScore && detail.cvssScore !== "N/A"
+                  ? ` (${detail.cvssScore})`
+                  : ""}
               </Badge>
               <Badge
                 variant="outline"
