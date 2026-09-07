@@ -233,8 +233,7 @@ export const submitReportSchema = z.object({
   summaryPoC: z
     .string()
     .min(20, "Please provide a description/summary (at least 20 characters).")
-    .refine(isCleanText, profanityMessage("The summary"))
-    .refine(isReadableText, readabilityMessage("The summary")),
+    .refine(isCleanText, profanityMessage("The summary")),
   reproduceStepsList: z
     .array(z.string())
     .refine(

@@ -114,8 +114,7 @@ export const buildStepSchema = z.object({
     .string()
     .trim()
     .min(1, "Step description is required")
-    .refine(isCleanText, profanityMessage("Step description"))
-    .refine(isReadableText, readabilityMessage("Step description")),
+    .refine(isCleanText, profanityMessage("Step description")),
   codeSnippet: z.string().optional(),
   codeLanguage: z.string().optional(),
   imageUrl: z
@@ -174,8 +173,7 @@ export const createShowcaseSchema = z
       .string()
       .trim()
       .min(1, "An overview is required")
-      .refine(isCleanText, profanityMessage("The overview"))
-      .refine(isReadableText, readabilityMessage("The overview")),
+      .refine(isCleanText, profanityMessage("The overview")),
     techStack: z
       .array(z.string())
       .max(MAX_TECH, `Up to ${MAX_TECH} technologies`),
@@ -225,8 +223,7 @@ export const showcaseCreateSchema = z.object({
     .string()
     .trim()
     .min(1, "An overview is required")
-    .refine(isCleanText, profanityMessage("The overview"))
-    .refine(isReadableText, readabilityMessage("The overview")),
+    .refine(isCleanText, profanityMessage("The overview")),
   coverImageUrl: wireText(500, "Cover image URL"),
   liveUrl: wireText(500, "Live URL"),
   repoUrl: wireText(500, "Repository URL"),
@@ -251,8 +248,7 @@ export const showcaseStepCreateSchema = z.object({
     .string()
     .trim()
     .min(1, "Step description is required")
-    .refine(isCleanText, profanityMessage("Step description"))
-    .refine(isReadableText, readabilityMessage("Step description")),
+    .refine(isCleanText, profanityMessage("Step description")),
   codeSnippet: z.string().optional(),
   imageUrl: wireText(500, "Image URL"),
   diagramUrl: wireText(500, "Diagram URL"),

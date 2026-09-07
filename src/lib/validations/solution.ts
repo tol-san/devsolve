@@ -95,8 +95,7 @@ export const solutionCreateSchema = z.object({
     .string()
     .min(30, "Explain the answer in at least 30 characters")
     .max(30_000, "The answer must not exceed 30000 characters")
-    .refine(isCleanText, profanityMessage("The answer"))
-    .refine(isReadableText, readabilityMessage("The answer")),
+    .refine(isCleanText, profanityMessage("The answer")),
   approachType: z.enum(APPROACH_TYPES, {
     message: `approachType must be one of ${APPROACH_TYPES.join(", ")}`,
   }),
