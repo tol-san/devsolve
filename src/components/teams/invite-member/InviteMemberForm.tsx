@@ -444,7 +444,7 @@ export function InviteMemberForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Card className="order-1 overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 xl:col-start-1">
+        <Card className="order-1 overflow-visible rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 xl:col-start-1">
           <CardHeader className="border-b border-border px-6 py-5 sm:px-7">
             <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
               Member information
@@ -579,7 +579,12 @@ export function InviteMemberForm() {
                       </div>
 
                       {isDropdownOpen && (
-                        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-card p-2 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10">
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.15, ease: "easeOut" }}
+                          className="mt-3 max-h-80 overflow-y-auto rounded-2xl border border-border bg-muted/30 p-2 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10"
+                        >
                           <div className="flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                             <span>
                               {debouncedQuery
@@ -728,7 +733,7 @@ export function InviteMemberForm() {
                               </button>
                             </div>
                           )}
-                        </div>
+                        </motion.div>
                       )}
                     </div>
                   )}
