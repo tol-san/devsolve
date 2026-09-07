@@ -439,15 +439,15 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                       {i + 1}
                     </span>
                     <div className="min-w-0 flex-1 space-y-2">
-                      <div className="font-mono text-sm font-semibold text-foreground break-all">
+                      <div className="text-sm font-medium leading-relaxed text-foreground break-words">
                         {step.instruction}
                       </div>
                       {step.expectedResult && (
-                        <div className="flex items-start gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs">
+                        <div className="flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm leading-relaxed">
                           <span className="font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
                             Expected:
                           </span>
-                          <span className="text-foreground/80 font-medium">{step.expectedResult}</span>
+                          <span className="text-foreground/90 font-medium break-words">{step.expectedResult}</span>
                         </div>
                       )}
                     </div>
