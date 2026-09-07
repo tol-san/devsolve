@@ -153,6 +153,7 @@ interface DbReportRow {
   reported_severity: string | null;
   severity: string | null;
   report_title: string | null;
+  suggested_weakness: string | null;
 }
 
 export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
@@ -172,6 +173,7 @@ export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
            r.reported_severity,
            r.severity,
            r.title as report_title,
+           r.suggested_weakness,
            p.id as program_id,
            p.name as program_name,
            p.handle as program_handle,
@@ -254,6 +256,10 @@ export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
         if (dbRow.severity) {
           const sev = String(dbRow.severity).toUpperCase();
           if (!item.severity) item.severity = sev;
+        }
+        if (dbRow.suggested_weakness && !item.suggestedWeakness) {
+          item.suggestedWeakness = dbRow.suggested_weakness;
+          item.suggested_weakness = dbRow.suggested_weakness;
         }
       }
 

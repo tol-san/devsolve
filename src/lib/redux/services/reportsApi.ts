@@ -670,8 +670,22 @@ export const reportsApi = baseApi.injectEndpoints({
             | undefined,
         );
 
-        const programIds = Array.from(new Set(raw.map((report) => report.programId).filter(Boolean)));
-        const programResults = await Promise.all(programIds.map((id) => fetchWithBQ(`/programs/${id}`)));
+        // Only fetch programs if any reports are actually missing program details
+        const missingProgramIds = Array.from(
+          new Set(
+            raw
+              .filter(
+                (report) =>
+                  report.programId &&
+                  !report.program?.name &&
+                  !(report as any).programName &&
+                  !(report as any).program_name
+              )
+              .map((report) => report.programId)
+              .filter(Boolean)
+          )
+        );
+
         const programNames = new Map<string, string>();
         const programOrgs = new Map<string, string>();
         const programOrgNames = new Map<string, string>();
@@ -679,49 +693,60 @@ export const reportsApi = baseApi.injectEndpoints({
         const programOrgSlugs = new Map<string, string>();
         const programOrgWebsites = new Map<string, string>();
 
-        programIds.forEach((id, index) => {
-          const result = programResults[index];
-          if (result.error) return;
-          const program = result.data as ProgramApiResponse;
-          programNames.set(id, program.name);
-          const orgId = program.organizationId || (program as any).organization?.id;
-          if (orgId) programOrgs.set(id, orgId);
-          const orgName = (program as any).organizationName || (program as any).organization?.name;
-          if (orgName) programOrgNames.set(id, orgName);
-          const orgLogo = (program as any).organization?.logoUrl || (program as any).logoUrl;
-          if (orgLogo) programOrgLogos.set(id, orgLogo);
-          const orgSlug = (program as any).organization?.slug;
-          if (orgSlug) programOrgSlugs.set(id, orgSlug);
-          const orgWeb = (program as any).organization?.websiteUrl;
-          if (orgWeb) programOrgWebsites.set(id, orgWeb);
-        });
+        if (missingProgramIds.length > 0) {
+          const programResults = await Promise.all(
+            missingProgramIds.map((id) => fetchWithBQ(`/programs/${id}`))
+          );
+          missingProgramIds.forEach((id, index) => {
+            const result = programResults[index];
+            if (result.error) return;
+            const program = result.data as ProgramApiResponse;
+            programNames.set(id, program.name);
+            const orgId = program.organizationId || (program as any).organization?.id;
+            if (orgId) programOrgs.set(id, orgId);
+            const orgName = (program as any).organizationName || (program as any).organization?.name;
+            if (orgName) programOrgNames.set(id, orgName);
+            const orgLogo = (program as any).organization?.logoUrl || (program as any).logoUrl;
+            if (orgLogo) programOrgLogos.set(id, orgLogo);
+            const orgSlug = (program as any).organization?.slug;
+            if (orgSlug) programOrgSlugs.set(id, orgSlug);
+            const orgWeb = (program as any).organization?.websiteUrl;
+            if (orgWeb) programOrgWebsites.set(id, orgWeb);
+          });
+        }
 
         let results = raw.map((report) => {
           const progName =
-            programNames.get(report.programId) ??
             (report as any).programName ??
             (report as any).program_name ??
+            report.program?.name ??
+            programNames.get(report.programId) ??
             "Security Program";
           const orgId =
-            programOrgs.get(report.programId) ??
             (report as any).organizationId ??
-            (report as any).organization_id;
+            (report as any).organization_id ??
+            report.program?.organizationId ??
+            programOrgs.get(report.programId);
           const orgName =
-            programOrgNames.get(report.programId) ??
             (report as any).organizationName ??
-            (report as any).organization_name;
+            (report as any).organization_name ??
+            report.program?.organizationName ??
+            programOrgNames.get(report.programId);
           const orgLogo =
-            programOrgLogos.get(report.programId) ??
             (report as any).organizationLogoUrl ??
-            (report as any).organization_logo_url;
+            (report as any).organization_logo_url ??
+            report.program?.organizationLogoUrl ??
+            programOrgLogos.get(report.programId);
           const orgSlug =
-            programOrgSlugs.get(report.programId) ??
             (report as any).organizationSlug ??
-            (report as any).organization_slug;
+            (report as any).organization_slug ??
+            (report.program as any)?.organizationSlug ??
+            programOrgSlugs.get(report.programId);
           const orgWeb =
-            programOrgWebsites.get(report.programId) ??
             (report as any).organizationWebsiteUrl ??
-            (report as any).organization_website_url;
+            (report as any).organization_website_url ??
+            (report.program as any)?.organizationWebsiteUrl ??
+            programOrgWebsites.get(report.programId);
 
           return toReportItem(
             report,
