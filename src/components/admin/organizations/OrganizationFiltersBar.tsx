@@ -32,7 +32,7 @@ const TABS: {
 }[] = [
   { key: "ALL", label: "All", countKey: "all" },
   { key: "PENDING", label: "Pending KYC", countKey: "pending" },
-  { key: "APPROVED", label: "Approved", countKey: "approved" },
+  { key: "APPROVED", label: "Active", countKey: "approved" },
   { key: "REJECTED", label: "Rejected", countKey: "rejected" },
 ];
 

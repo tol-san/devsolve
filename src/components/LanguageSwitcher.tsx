@@ -4,16 +4,9 @@ import React from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import cambodiaFlag from "../../public/cambodia.gif";
-import { Check } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import {
-  LOCALES,
   LOCALE_NAMES,
   LOCALE_SHORT,
   localise,
@@ -62,63 +55,41 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleSelect = (code: Locale) => {
-    if (code === locale) return;
-    rememberLocale(code);
-    router.push(localise(pathname ?? "/", code));
+  const nextLocale: Locale = locale === "en" ? "km" : "en";
+  const CurrentFlag = FLAGS[locale];
+
+  const handleToggle = () => {
+    rememberLocale(nextLocale);
+    router.push(localise(pathname ?? "/", nextLocale));
     router.refresh();
   };
 
-  const CurrentFlag = FLAGS[locale];
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <button
-            type="button"
-            aria-label={`Language selector (current: ${LOCALE_NAMES[locale]})`}
-            title={`Switch language (current: ${LOCALE_SHORT[locale]})`}
-            className={cn(
-              "flex h-9 shrink-0 cursor-pointer items-center justify-center px-1 border-0 bg-transparent shadow-none transition-transform duration-150 hover:scale-110 active:scale-95 focus-visible:outline-none",
-              className,
-            )}
-          />
-        }
-      >
-        <CurrentFlag className="h-5 w-7.5 shrink-0 object-cover rounded-xs" />
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent
-        align="end"
-        sideOffset={6}
-        className="w-36 rounded-xl border border-border/80 bg-card/95 p-1 shadow-lg ring-1 ring-foreground/5 dark:ring-foreground/10 backdrop-blur-xl"
-      >
-        {LOCALES.map((code) => {
-          const Flag = FLAGS[code];
-          const isSelected = code === locale;
-
-          return (
-            <DropdownMenuItem
-              key={code}
-              onClick={() => handleSelect(code)}
-              className={cn(
-                "flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors",
-                isSelected
-                  ? "bg-primary/10 text-primary font-semibold"
-                  : "text-foreground hover:bg-muted",
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <Flag className="h-3.5 w-5 shrink-0 object-cover" />
-                <span>{LOCALE_NAMES[code]}</span>
-              </div>
-              {isSelected && <Check className="size-3.5 text-primary" />}
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <motion.button
+      type="button"
+      whileTap={{ scale: 0.92 }}
+      whileHover={{ scale: 1.05 }}
+      onClick={handleToggle}
+      aria-label={`Switch language to ${LOCALE_NAMES[nextLocale]}`}
+      title={`Switch language to ${LOCALE_NAMES[nextLocale]} (current: ${LOCALE_SHORT[locale]})`}
+      className={cn(
+        "group relative inline-flex size-9 sm:size-10 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-foreground shadow-none transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+        className,
+      )}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={locale}
+          initial={{ opacity: 0, scale: 0.8, rotate: -8 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          exit={{ opacity: 0, scale: 0.8, rotate: 8 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          className="flex items-center justify-center"
+        >
+          <CurrentFlag className="h-4.5 w-6.5 shrink-0 object-cover rounded-[3px] border border-border/60 shadow-2xs overflow-hidden" />
+        </motion.div>
+      </AnimatePresence>
+    </motion.button>
   );
 }
 

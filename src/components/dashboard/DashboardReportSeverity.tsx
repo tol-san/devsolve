@@ -49,15 +49,20 @@ export const DashboardReportSeverity: React.FC<DashboardReportSeverityProps> = (
   ];
 
   return (
-    <div className="flex flex-col justify-between h-full rounded-2xl border border-border/80 bg-card/80 p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10">
+    <div className="flex flex-col justify-between h-full rounded-2xl border border-border/80 bg-card shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 p-5">
       <div>
         <div className="flex items-center justify-between pb-4 border-b border-border/70">
-          <h2 className="text-base font-semibold text-foreground">
-            {t("dashboard.reportSeverity.title")}
-          </h2>
-          <span className="text-xs font-semibold text-muted-foreground">
-            CVSS distribution
-          </span>
+          <div>
+            <h2 className="text-base font-bold text-foreground">
+              {t("dashboard.reportSeverity.title")}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              CVSS impact tier distribution
+            </p>
+          </div>
+          <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+            {total} Filings
+          </Badge>
         </div>
 
         <div className="space-y-4 mt-5">
@@ -85,7 +90,7 @@ export const DashboardReportSeverity: React.FC<DashboardReportSeverityProps> = (
                   </div>
                 </div>
 
-                <div className="w-full h-2 bg-muted/80 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: item.count > 0 ? `${Math.max(percentage, 5)}%` : "0%" }}

@@ -155,7 +155,7 @@ export interface CompanyVerificationItem {
   businessType: string;
   registrationDate: string;
   submittedAt?: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: "PENDING" | "APPROVED" | "ACTIVE" | "REJECTED";
   documentsCount?: number;
   notes?: string;
   contactName?: string;
@@ -185,6 +185,10 @@ export interface ReportConfirmationItem {
   reportCode?: string;
   title: string;
   researcherName: string;
+  researcherUsername?: string;
+  researcherAvatarUrl?: string;
+  researcherId?: string;
+  researcherReputation?: number;
   companyName: string;
   programName?: string;
   avatarColor?: string;

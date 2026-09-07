@@ -50,8 +50,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             className={cn(
               "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-full border shadow-2xs",
               isCompany
-                ? "border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400"
-                : "border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400",
+                ? "border-primary/30 bg-primary/10 text-primary"
+                : "border-primary/20 bg-primary/10 text-primary",
             )}
           >
             {isCompany ? (
@@ -118,7 +118,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           href={isCompany ? "/dashboard/create-program" : "/dashboard/submit-report"}
           className={cn(
             buttonVariants({ size: "default" }),
-            "h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 font-semibold text-white shadow-sm shadow-blue-500/20 transition-all cursor-pointer w-full sm:w-auto justify-center",
+            "h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 font-semibold text-primary-foreground shadow-xs shadow-primary/20 transition-all cursor-pointer w-full sm:w-auto justify-center",
           )}
         >
           <PlusCircle className="size-4" data-icon="inline-start" />

@@ -78,7 +78,6 @@ export function DashboardKpiRow({ kpi }: DashboardKpiRowProps) {
       trend: kpi.totalReports.trend,
       changePercentage: kpi.totalReports.changePercentage,
       icon: FileText,
-      iconColor: "text-blue-500 bg-blue-500/10 border-blue-500/20",
     },
     {
       title: "Accepted Reports",
@@ -87,7 +86,6 @@ export function DashboardKpiRow({ kpi }: DashboardKpiRowProps) {
       trend: kpi.acceptedReports.trend,
       changePercentage: kpi.acceptedReports.changePercentage,
       icon: CheckCircle2,
-      iconColor: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
     },
     {
       title: "Rejected Reports",
@@ -97,7 +95,6 @@ export function DashboardKpiRow({ kpi }: DashboardKpiRowProps) {
       changePercentage: kpi.rejectedReports.changePercentage,
       invertGood: true,
       icon: XCircle,
-      iconColor: "text-rose-500 bg-rose-500/10 border-rose-500/20",
     },
     {
       title: "Bounties Paid",
@@ -106,7 +103,6 @@ export function DashboardKpiRow({ kpi }: DashboardKpiRowProps) {
       trend: kpi.totalBountiesPaid.trend,
       changePercentage: kpi.totalBountiesPaid.changePercentage,
       icon: DollarSign,
-      iconColor: "text-amber-500 bg-amber-500/10 border-amber-500/20",
     },
     {
       title: "Active Researchers",
@@ -115,7 +111,6 @@ export function DashboardKpiRow({ kpi }: DashboardKpiRowProps) {
       trend: kpi.activeResearchers.trend,
       changePercentage: kpi.activeResearchers.changePercentage,
       icon: Users,
-      iconColor: "text-purple-500 bg-purple-500/10 border-purple-500/20",
     },
   ];
 
@@ -129,34 +124,35 @@ export function DashboardKpiRow({ kpi }: DashboardKpiRowProps) {
             key={card.title}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -3, transition: { duration: 0.18 } }}
             transition={{ duration: 0.25, delay: idx * 0.04 }}
             className={cn(
-              "rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between gap-3 min-w-0",
+              "group relative overflow-hidden rounded-2xl border border-border/80 bg-card/90 backdrop-blur-md p-4 sm:p-5 shadow-2xs ring-1 ring-foreground/5 dark:ring-foreground/10 hover:border-primary/50 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 select-none flex flex-col justify-between gap-3 min-w-0",
               isFifthOnTwoCol && "sm:col-span-2 md:col-span-1",
             )}
           >
-            <div className="flex items-start justify-between gap-2">
+            {/* Ambient radial color glow in corner combining primary blue + emerald accent */}
+            <div className="pointer-events-none absolute -right-6 -top-6 size-24 rounded-full bg-gradient-to-br from-primary/15 via-emerald-500/10 to-transparent opacity-50 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
+
+            <div className="relative z-10 flex items-start justify-between gap-2">
               <span
-                className="text-xs sm:text-sm font-semibold text-muted-foreground leading-snug line-clamp-2 min-w-0"
+                className="text-xs sm:text-sm font-semibold text-foreground/80 leading-snug line-clamp-2 min-w-0 group-hover:text-foreground transition-colors"
                 title={card.title}
               >
                 {card.title}
               </span>
               <div
-                className={cn(
-                  "size-8 sm:size-9 rounded-xl flex items-center justify-center border shadow-2xs shrink-0",
-                  card.iconColor,
-                )}
+                className="size-9 rounded-xl flex items-center justify-center border border-primary/20 bg-primary/10 text-primary shadow-2xs shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
               >
-                <Icon className="size-4 sm:size-4.5" />
+                <Icon className="size-4.5" />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground tabular-nums truncate">
+            <div className="relative z-10 space-y-2 mt-1">
+              <div className="text-2xl sm:text-3xl font-extrabold tracking-tight font-sans leading-none text-foreground tabular-nums truncate transition-colors group-hover:text-primary">
                 {card.value}
               </div>
-              <div className="flex items-center justify-between gap-1.5 min-w-0">
+              <div className="flex items-center justify-between gap-1.5 min-w-0 pt-2 border-t border-border/50">
                 <span
                   className="text-xs text-muted-foreground truncate min-w-0"
                   title={card.subtext}

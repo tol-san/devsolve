@@ -10,7 +10,7 @@ import {
   UserPlus,
   ChevronRight,
   CheckCircle2,
-  Sparkles,
+  type LucideIcon,
 } from "lucide-react";
 import { ActionQueueItem } from "@/lib/types/dashboard/types";
 import { Badge } from "@/components/ui/badge";
@@ -22,34 +22,11 @@ interface DashboardActionQueueProps {
   totalCount: number;
 }
 
-const getActionIcon = (type: ActionQueueItem["type"]) => {
-  switch (type) {
-    case "triage":
-      return {
-        icon: AlertCircle,
-        bg: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20",
-      };
-    case "review":
-      return {
-        icon: Clock,
-        bg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
-      };
-    case "retest":
-      return {
-        icon: RefreshCw,
-        bg: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
-      };
-    case "invite":
-      return {
-        icon: UserPlus,
-        bg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
-      };
-    default:
-      return {
-        icon: AlertCircle,
-        bg: "bg-primary/10 text-primary border border-primary/20",
-      };
-  }
+const ACTION_ICONS: Record<string, LucideIcon> = {
+  triage: AlertCircle,
+  review: Clock,
+  retest: RefreshCw,
+  invite: UserPlus,
 };
 
 export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
@@ -57,44 +34,24 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
   totalCount,
 }) => {
   const t = useT();
-  const hasUrgent = items.some((i) => i.status === "urgent" && i.count > 0);
+  const maxCount = Math.max(...items.map((i) => i.count), 0);
 
   return (
-    <div className="flex flex-col justify-between h-full rounded-2xl border border-border/80 bg-card/80 p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10">
+    <div className="flex flex-col justify-between h-full rounded-2xl border border-border/80 bg-card shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 p-5">
       <div>
-        <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-border/70">
-          <div className="flex items-center gap-2.5 w-full sm:w-auto">
-            <h2 className="text-base font-semibold text-foreground">
+        <div className="flex items-center justify-between pb-4 border-b border-border/70">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-base font-bold text-foreground">
               {t("dashboard.actionQueue.title")}
             </h2>
-            {totalCount > 0 ? (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-2xs shrink-0 whitespace-nowrap",
-                  hasUrgent
-                    ? "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                    : "border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400",
-                )}
-              >
-                {hasUrgent && (
-                  <span className="size-1.5 rounded-full bg-rose-500 animate-pulse" />
-                )}
-                <span>{totalCount}</span>
-              </Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-medium px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap"
-              >
-                Clear
-              </Badge>
-            )}
+            <Badge className="bg-primary/10 text-primary border-primary/20 rounded-full px-2.5 py-0.5 text-xs font-bold shadow-2xs">
+              {totalCount} {totalCount === 1 ? "Task" : "Tasks"}
+            </Badge>
           </div>
 
           <Link
             href="/dashboard/my-reports"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0 whitespace-nowrap"
+            className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
           >
             View reports
           </Link>
@@ -102,7 +59,7 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
 
         {items.length === 0 || totalCount === 0 ? (
           <div className="flex min-h-56 flex-col items-center justify-center gap-3 px-4 py-8 text-center">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-2xs">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 shadow-2xs">
               <CheckCircle2 className="size-6" />
             </div>
             <div className="space-y-1">
@@ -122,16 +79,16 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-border/50 mt-1">
+          <div className="space-y-2.5 mt-3.5">
             {items.map((item, idx) => {
-              const config = getActionIcon(item.type);
-              const Icon = config.icon;
+              const Icon = ACTION_ICONS[item.type] ?? AlertCircle;
               const translatedTitle = t(`dashboard.actionQueue.${item.type}`);
               const itemTitle =
                 translatedTitle !== `dashboard.actionQueue.${item.type}`
                   ? translatedTitle
                   : item.title;
-              const isItemUrgent = item.status === "urgent" && item.count > 0;
+              const isPrimary = item.count === maxCount && maxCount > 0;
+              const hasItems = item.count > 0;
 
               return (
                 <motion.div
@@ -142,24 +99,44 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
                 >
                   <Link
                     href={item.linkHref}
-                    className="flex items-center justify-between py-3.5 px-2.5 rounded-xl hover:bg-muted/60 transition-colors group"
+                    className={cn(
+                      "flex items-center justify-between p-3.5 rounded-xl border transition cursor-pointer group",
+                      isPrimary
+                        ? "border-primary/40 bg-primary/[0.04] ring-1 ring-primary/20 hover:bg-primary/[0.08] hover:border-primary/60 shadow-2xs"
+                        : hasItems
+                        ? "border-border/70 bg-card hover:bg-primary/[0.03] hover:border-primary/30"
+                        : "border-border/40 bg-card/60 hover:bg-muted/20",
+                    )}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-3.5 min-w-0">
                       <div
                         className={cn(
-                          "flex size-9 shrink-0 items-center justify-center rounded-xl shadow-2xs",
-                          config.bg,
+                          "size-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                          isPrimary
+                            ? "bg-primary text-primary-foreground shadow-2xs border border-primary/40"
+                            : hasItems
+                            ? "bg-primary/10 text-primary border border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground"
+                            : "bg-muted text-muted-foreground border border-border/30",
                         )}
                       >
-                        <Icon className="size-4" />
+                        <Icon className="size-5" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                          <h4
+                            className={cn(
+                              "text-sm font-bold transition truncate",
+                              isPrimary
+                                ? "text-primary dark:text-primary-foreground font-extrabold"
+                                : "text-foreground group-hover:text-primary",
+                            )}
+                          >
                             {itemTitle}
-                          </p>
-                          {isItemUrgent && (
-                            <span className="size-1.5 shrink-0 rounded-full bg-rose-500 animate-pulse" />
+                          </h4>
+                          {isPrimary && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-primary/15 text-primary border border-primary/30 shrink-0">
+                              Top Queue
+                            </span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground truncate">
@@ -168,11 +145,27 @@ export const DashboardActionQueue: React.FC<DashboardActionQueueProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span className="rounded-lg border border-border/80 bg-muted px-2.5 py-0.5 text-xs font-bold text-foreground tabular-nums">
+                    <div className="flex items-center gap-3 shrink-0 ml-3">
+                      <Badge
+                        className={cn(
+                          "rounded-full px-2.5 py-0.5 text-xs font-bold transition-colors",
+                          isPrimary
+                            ? "bg-primary text-primary-foreground shadow-2xs border border-primary/40 font-bold"
+                            : hasItems
+                            ? "bg-primary/10 text-primary border border-primary/20 font-semibold"
+                            : "bg-muted text-muted-foreground border border-border/30 font-normal",
+                        )}
+                      >
                         {item.count}
-                      </span>
-                      <ChevronRight className="size-4 text-muted-foreground group-hover:translate-x-0.5 group-hover:text-foreground transition-all" />
+                      </Badge>
+                      <ChevronRight
+                        className={cn(
+                          "size-4 transition-transform group-hover:translate-x-0.5",
+                          isPrimary
+                            ? "text-primary"
+                            : "text-muted-foreground group-hover:text-primary",
+                        )}
+                      />
                     </div>
                   </Link>
                 </motion.div>

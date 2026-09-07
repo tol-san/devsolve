@@ -72,7 +72,7 @@ export function AutoApprovalHoldNotice({
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: "easeOut" }}
-        className={`rounded-2xl border border-border/80 bg-muted/30 p-4 sm:p-5 shadow-xs ${className}`}
+        className={`relative overflow-hidden rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 ${className}`}
         role="region"
         aria-label="Submission review status explanation"
       >
@@ -114,11 +114,12 @@ export function AutoApprovalHoldNotice({
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className={`rounded-2xl border border-amber-500/35 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 shadow-xs ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-amber-500/30 bg-card p-4 sm:p-5 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 ${className}`}
       role="region"
       aria-label="Submission review status explanation"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="pointer-events-none absolute -right-8 -top-8 size-40 rounded-full bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent opacity-60 blur-2xl" />
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5 min-w-0">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/25 mt-0.5">
             <AlertTriangle className="size-4.5" aria-hidden="true" />

@@ -381,9 +381,10 @@ export default function ReportManagementDetailPage() {
       </div>
 
       {rawState === "NEW" && (
-        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="size-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+        <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10">
+          <div className="pointer-events-none absolute -right-8 -top-8 size-40 rounded-full bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent opacity-60 blur-2xl" />
+          <div className="relative z-10 flex items-start sm:items-center gap-3">
+            <div className="size-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-2xs">
               <AlertTriangle className="size-5" />
             </div>
             <div>
@@ -404,7 +405,7 @@ export default function ReportManagementDetailPage() {
 
           <Link
             href={`/dashboard/report-management/${reportId}/severity-review`}
-            className="shrink-0"
+            className="relative z-10 shrink-0"
           >
             <Button
               size="sm"

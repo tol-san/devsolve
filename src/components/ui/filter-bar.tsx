@@ -1,12 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { motion } from "motion/react";
 import { Search, X, type LucideIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Select,
   SelectContent,
@@ -222,38 +222,55 @@ export function FilterTabs<T extends string>({
   label: string;
   className?: string;
 }) {
+  const instanceId = React.useId().replace(/:/g, "_");
+
   return (
-    <div className="w-full min-w-0 max-w-full overflow-x-auto rounded-xl bg-muted p-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-      <div className="flex w-max min-w-full items-center gap-1">
-        <ToggleGroup
-          multiple={false}
-          value={[value]}
-          onValueChange={(values) => {
-            const next = values[values.length - 1] as T | undefined;
-            if (next) onChange(next);
-          }}
-          spacing={1}
-          aria-label={label}
-          className={cn("w-full flex items-center gap-1", className)}
-        >
-          {tabs.map((tab) => (
-            <ToggleGroupItem
+    <div className="w-full min-w-0 max-w-full overflow-x-auto rounded-xl bg-muted/70 p-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div
+        role="tablist"
+        aria-label={label}
+        className={cn("flex w-max min-w-full items-center gap-1", className)}
+      >
+        {tabs.map((tab) => {
+          const isActive = value === tab.value;
+          return (
+            <button
               key={tab.value}
-              value={tab.value}
-              className="h-8.5 sm:h-9 shrink-0 cursor-pointer rounded-lg px-2.5 sm:px-3 text-xs sm:text-sm font-semibold text-muted-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-2xs gap-1.5"
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(tab.value)}
+              className={cn(
+                "relative h-8.5 sm:h-9 shrink-0 cursor-pointer rounded-lg px-2.5 sm:px-3 text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 outline-none focus-visible:ring-2 focus-visible:ring-ring select-none",
+                isActive
+                  ? "text-foreground font-bold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/40"
+              )}
             >
-              <span>{tab.label}</span>
+              {isActive && (
+                <motion.span
+                  layoutId={`filter-tab-pill-${instanceId}`}
+                  className="absolute inset-0 rounded-lg bg-card shadow-xs ring-1 ring-border/60"
+                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                />
+              )}
+              <span className="relative z-10">{tab.label}</span>
               {typeof tab.count === "number" ? (
                 <Badge
-                  variant={value === tab.value ? "default" : "secondary"}
-                  className="rounded-full tabular-nums text-[10px] sm:text-xs h-5 px-1.5"
+                  variant={isActive ? "default" : "secondary"}
+                  className={cn(
+                    "relative z-10 rounded-full tabular-nums text-[10px] sm:text-xs h-5 px-1.5 transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground font-bold shadow-2xs"
+                      : "bg-muted-foreground/15 text-muted-foreground border-transparent hover:bg-muted-foreground/25"
+                  )}
                 >
                   {tab.count}
                 </Badge>
               ) : null}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

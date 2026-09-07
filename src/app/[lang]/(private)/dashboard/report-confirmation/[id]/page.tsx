@@ -226,13 +226,49 @@ export default function ReportConfirmationDetailPage() {
       <Card className="rounded-2xl border border-border bg-card p-6 sm:p-8 space-y-5 shadow-2xs">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
           <div className="flex items-start gap-4 flex-1 min-w-0">
-            <div
-              className={`size-14 rounded-2xl flex items-center justify-center font-bold text-base shrink-0 shadow-2xs ${
-                report.avatarColor || "bg-purple-600 text-white"
-              }`}
-            >
-              {report.researcherName ? report.researcherName.replace("@", "").slice(0, 2).toUpperCase() : "DS"}
-            </div>
+            {report.researcherUsername ? (
+              <Link
+                href={`/profile/${encodeURIComponent(report.researcherUsername)}`}
+                title={`View @${report.researcherUsername}'s profile`}
+                className="group shrink-0 block"
+              >
+                {report.researcherAvatarUrl ? (
+                  <div className="size-14 rounded-2xl overflow-hidden border border-border shadow-2xs group-hover:border-primary/50 group-hover:ring-2 group-hover:ring-primary/20 transition duration-200">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={report.researcherAvatarUrl}
+                      alt={report.researcherName}
+                      className="size-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`size-14 rounded-2xl flex items-center justify-center font-bold text-base shadow-2xs group-hover:border-primary/50 transition duration-200 ${
+                      report.avatarColor || "bg-purple-600 text-white"
+                    }`}
+                  >
+                    {report.researcherName ? report.researcherName.replace("@", "").slice(0, 2).toUpperCase() : "DS"}
+                  </div>
+                )}
+              </Link>
+            ) : report.researcherAvatarUrl ? (
+              <div className="size-14 rounded-2xl overflow-hidden border border-border shadow-2xs shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={report.researcherAvatarUrl}
+                  alt={report.researcherName}
+                  className="size-full object-cover"
+                />
+              </div>
+            ) : (
+              <div
+                className={`size-14 rounded-2xl flex items-center justify-center font-bold text-base shrink-0 shadow-2xs ${
+                  report.avatarColor || "bg-purple-600 text-white"
+                }`}
+              >
+                {report.researcherName ? report.researcherName.replace("@", "").slice(0, 2).toUpperCase() : "DS"}
+              </div>
+            )}
 
             <div className="space-y-2 flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -269,7 +305,20 @@ export default function ReportConfirmationDetailPage() {
             <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
               <User className="size-3.5 shrink-0" /> Researcher
             </span>
-            <p className="font-bold text-foreground truncate">{report.researcherName}</p>
+            {report.researcherUsername ? (
+              <Link
+                href={`/profile/${encodeURIComponent(report.researcherUsername)}`}
+                className="font-bold text-foreground hover:text-primary hover:underline transition truncate block"
+                title={`View @${report.researcherUsername}'s profile`}
+              >
+                <span>{report.researcherName}</span>{" "}
+                <span className="font-normal text-muted-foreground text-xs">
+                  (@{report.researcherUsername})
+                </span>
+              </Link>
+            ) : (
+              <p className="font-bold text-foreground truncate">{report.researcherName}</p>
+            )}
           </div>
 
           <div className="space-y-1 min-w-0">
@@ -277,7 +326,8 @@ export default function ReportConfirmationDetailPage() {
               <Building2 className="size-3.5 shrink-0" /> Target Program
             </span>
             <p className="font-bold text-foreground truncate" title={report.companyName}>
-              {report.companyName} {report.programName && `(${report.programName})`}
+              {report.companyName}{" "}
+              {report.programName && report.programName !== report.companyName && `(${report.programName})`}
             </p>
           </div>
 

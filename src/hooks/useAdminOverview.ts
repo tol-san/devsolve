@@ -132,26 +132,26 @@ export function useAdminOverview() {
         {
           name: "Confirmed",
           value: adminData.reportStatusBreakdown.confirmed,
-          color: "#10b981",
-          barBg: "bg-emerald-500",
+          color: "#2563eb",
+          barBg: "bg-primary",
         },
         {
           name: "Pending",
           value: adminData.reportStatusBreakdown.pending,
-          color: "#f59e0b",
-          barBg: "bg-amber-500",
-        },
-        {
-          name: "Rejected",
-          value: adminData.reportStatusBreakdown.rejected,
-          color: "#ef4444",
-          barBg: "bg-rose-500",
+          color: "#3b82f6",
+          barBg: "bg-blue-500",
         },
         {
           name: "In Review",
           value: adminData.reportStatusBreakdown.inReview,
-          color: "#3b82f6",
-          barBg: "bg-blue-500",
+          color: "#60a5fa",
+          barBg: "bg-blue-400",
+        },
+        {
+          name: "Rejected",
+          value: adminData.reportStatusBreakdown.rejected,
+          color: "#94a3b8",
+          barBg: "bg-slate-400",
         },
       ]
     : [];

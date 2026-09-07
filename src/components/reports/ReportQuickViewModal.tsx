@@ -292,8 +292,9 @@ export function ReportQuickViewModal({
 
           <div className="p-5 sm:p-6 space-y-5 overflow-y-auto">
             {isRetesting && (
-              <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent p-4 sm:p-4.5 space-y-3 shadow-xs">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-card p-4 sm:p-4.5 space-y-3 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10">
+                <div className="pointer-events-none absolute -right-8 -top-8 size-40 rounded-full bg-gradient-to-br from-cyan-500/15 via-blue-500/5 to-transparent opacity-60 blur-2xl" />
+                <div className="relative z-10 flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3">
                     <div className="size-10 rounded-xl bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-xs">
                       <RotateCcw className="size-5 animate-spin-slow" />

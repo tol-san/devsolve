@@ -58,18 +58,17 @@ const getSeverityBadgeClass = (severity?: string) => {
 
 export const DashboardSecurityFeed: React.FC<DashboardSecurityFeedProps> = ({ feed }) => {
   return (
-    <div className="flex flex-col justify-between h-full rounded-2xl border border-border/80 bg-card/80 p-5 shadow-2xs backdrop-blur-md ring-1 ring-foreground/5 dark:ring-foreground/10">
+    <div className="flex flex-col justify-between h-full rounded-2xl border border-border/80 bg-card shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 p-5">
       <div>
         <div className="flex items-center justify-between pb-4 border-b border-border/70">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-foreground">
+            <h2 className="text-base font-bold text-foreground">
               Security Pulse
             </h2>
             <Badge
-              variant="outline"
-              className="flex items-center gap-1.5 border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold px-2 py-0.5 rounded-full"
+              className="flex items-center gap-1.5 border border-primary/20 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 rounded-full"
             >
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
               <span>Live</span>
             </Badge>
           </div>
@@ -93,15 +92,15 @@ export const DashboardSecurityFeed: React.FC<DashboardSecurityFeedProps> = ({ fe
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2, delay: idx * 0.04 }}
-                  className="py-3 px-2 hover:bg-muted/40 rounded-xl transition-colors flex items-start gap-3"
+                  className="py-3 px-2 hover:bg-primary/[0.03] rounded-xl transition-colors flex items-start gap-3 group"
                 >
-                  <div className={cn("size-8 shrink-0 flex items-center justify-center rounded-xl mt-0.5 shadow-2xs", config.bg)}>
+                  <div className="size-9 shrink-0 flex items-center justify-center rounded-xl mt-0.5 border border-primary/20 bg-primary/10 text-primary shadow-2xs group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                     <Icon className="size-4" />
                   </div>
 
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className="text-sm font-semibold text-foreground leading-snug truncate">
+                      <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-snug truncate">
                         {item.title}
                       </p>
                       <span className="text-xs text-muted-foreground shrink-0 tabular-nums">

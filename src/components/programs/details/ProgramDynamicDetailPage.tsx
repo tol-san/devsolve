@@ -28,12 +28,15 @@ import { ProgramScopeTab } from "@/components/programs/details/ProgramScopeTab";
 import { ProgramBountyMatrixTab } from "@/components/programs/details/ProgramBountyMatrixTab";
 import { ProgramRulesTab } from "@/components/programs/details/ProgramRulesTab";
 import { ProgramThanksTab } from "@/components/programs/details/ProgramThanksTab";
+import { ProgramSubmissionsTab } from "@/components/programs/details/ProgramSubmissionsTab";
 import { isUnderReview } from "@/lib/programs/draft-status";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { usePathname, useSearchParams } from "next/navigation";
+import { authClient } from "@/lib/auth/auth-client";
+import { useGetReportsQuery } from "@/lib/redux/services/reportsApi";
 
 export default function ProgramDetailPage({
   params,
@@ -77,9 +80,32 @@ export default function ProgramDetailPage({
       );
     }) ?? null;
 
+  const { data: session } = authClient.useSession();
+  const { data: allUserReports = [], isLoading: isReportsLoading } = useGetReportsQuery(
+    undefined,
+    { skip: !session?.user }
+  );
+
   const fetchedProgram = publicProgram || companyProgram;
   const isFetching = (isPublicLoading || isCompanyLoading) && !fetchedProgram;
   const program: ProgramDetail | null = fetchedProgram || null;
+
+  const myProgramReports = React.useMemo(() => {
+    if (!program || !allUserReports?.length) return [];
+    const lowerId = program.id?.toLowerCase();
+    const lowerName = program.name?.toLowerCase();
+    const lowerHandle = program.handle?.toLowerCase();
+
+    return allUserReports.filter((r) => {
+      const repProgId = r.programId?.toLowerCase();
+      const repProgName = r.program?.toLowerCase();
+      return (
+        (lowerId && repProgId === lowerId) ||
+        (lowerName && repProgName === lowerName) ||
+        (lowerHandle && repProgName === lowerHandle)
+      );
+    });
+  }, [program, allUserReports]);
 
   const isLoading =
     isFetching ||
@@ -332,13 +358,26 @@ export default function ProgramDetailPage({
             activeTab={activeTab}
             onTabChange={setActiveTab}
             showThanksTab={!isPending}
+            showSubmissionsTab={Boolean(session?.user)}
+            submissionsCount={myProgramReports.length}
           />
 
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <section className="lg:col-span-2 space-y-8">
               <AnimatePresence mode="wait">
                 {activeTab === "overview" && (
-                  <ProgramOverviewTab program={program} />
+                  <ProgramOverviewTab
+                    program={program}
+                    submissionsCount={myProgramReports.length}
+                    onViewSubmissions={() => setActiveTab("submissions")}
+                  />
+                )}
+                {activeTab === "submissions" && (
+                  <ProgramSubmissionsTab
+                    program={program}
+                    reports={myProgramReports}
+                    isLoading={isReportsLoading}
+                  />
                 )}
                 {activeTab === "scope" && <ProgramScopeTab program={program} />}
                 {activeTab === "bounty-matrix" && (
@@ -359,7 +398,11 @@ export default function ProgramDetailPage({
               </AnimatePresence>
             </section>
 
-            <ProgramDetailSidebar program={program} isOwnProgram={isOwnProgram} />
+            <ProgramDetailSidebar
+              program={program}
+              isOwnProgram={isOwnProgram}
+              userReports={myProgramReports}
+            />
           </main>
         </motion.div>
       </main>

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { getReportWeakness } from "@/lib/server/db";
+import { getReportWeakness, getUserProfilesByIds } from "@/lib/server/db";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const PROVIDER_ID = "keycloak";
@@ -123,7 +123,8 @@ export async function GET(
       reportData.reporter_id ||
       reportData.reporter?.id;
 
-    if (repId && (!reportData.reporterName && !reportData.reporter?.name)) {
+    if (repId) {
+      let profileData: any = null;
       try {
         const profRes = await fetch(`${BACKEND_API_URL}/user-profiles/${repId}`, {
           headers: {
@@ -134,24 +135,40 @@ export async function GET(
         });
 
         if (profRes.ok) {
-          const profile = await profRes.json();
-          reportData.authorName = profile.fullName || reportData.authorName;
-          reportData.researcherName = profile.fullName || reportData.researcherName;
-          reportData.submitterName = profile.fullName || reportData.submitterName;
-          reportData.reporterEmail = profile.email || reportData.reporterEmail;
-          reportData.reporterAvatarUrl = profile.avatarUrl || reportData.reporterAvatarUrl;
-          if (!reportData.reporter) {
-            reportData.reporter = {
-              id: profile.id,
-              name: profile.fullName,
-              username: profile.username,
-              email: profile.email,
-              avatarUrl: profile.avatarUrl,
-            };
-          }
+          profileData = await profRes.json();
         }
       } catch {
         // optional enrichment
+      }
+
+      if (!profileData) {
+        const dbMap = await getUserProfilesByIds([repId]);
+        profileData = dbMap.get(repId) || null;
+      }
+
+      if (profileData) {
+        reportData.authorName = profileData.fullName || profileData.username || reportData.authorName;
+        reportData.researcherName = profileData.fullName || profileData.username || reportData.researcherName;
+        reportData.submitterName = profileData.fullName || profileData.username || reportData.submitterName;
+        reportData.reporterEmail = profileData.email || reportData.reporterEmail;
+        reportData.reporterAvatarUrl = profileData.avatarUrl || reportData.reporterAvatarUrl;
+        reportData.reporterUsername = profileData.username || reportData.reporterUsername;
+        reportData.reporter = {
+          id: profileData.id,
+          name: profileData.fullName || profileData.username,
+          username: profileData.username,
+          email: profileData.email,
+          avatarUrl: profileData.avatarUrl,
+          reputation: profileData.reputation,
+        };
+        reportData.researcher = {
+          id: profileData.id,
+          fullName: profileData.fullName,
+          username: profileData.username,
+          email: profileData.email,
+          avatarUrl: profileData.avatarUrl,
+          reputation: profileData.reputation,
+        };
       }
     }
 

@@ -167,63 +167,59 @@ export function ProgramManagementCard({
       className="group relative flex flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-2xs transition-all duration-200 hover:border-primary/40 hover:shadow-md dark:hover:shadow-black/30"
     >
       <div className="space-y-3.5">
-        {/* Top: Identity & Review Status */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0 flex-1">
-            <Link href={targetUrl} tabIndex={-1} className="shrink-0">
-              <Avatar className="size-11 rounded-xl border border-border bg-muted/60 shadow-2xs group-hover:scale-105 transition-transform cursor-pointer">
-                {orgLogoUrl && (
-                  <AvatarImage
-                    src={orgLogoUrl}
-                    alt={displayOrgName || program.name}
-                    className="rounded-xl object-cover"
-                  />
-                )}
-                <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/20 text-sm font-bold text-foreground">
-                  {initialsOf(displayOrgName || program.name)}
-                </AvatarFallback>
-              </Avatar>
+        {/* Top: Header with Avatar & Title */}
+        <div className="flex items-start gap-3">
+          <Link href={targetUrl} tabIndex={-1} className="shrink-0">
+            <Avatar className="size-12 rounded-xl border border-border bg-muted/60 shadow-2xs transition-transform group-hover:scale-105 cursor-pointer">
+              {orgLogoUrl && (
+                <AvatarImage
+                  src={orgLogoUrl}
+                  alt={displayOrgName || program.name}
+                  className="rounded-xl object-cover"
+                />
+              )}
+              <AvatarFallback className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/20 text-sm font-bold text-foreground">
+                {initialsOf(displayOrgName || program.name)}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <Link
+              href={targetUrl}
+              className="block truncate text-base font-bold text-foreground transition-colors hover:text-primary leading-snug"
+              title={program.name}
+            >
+              {program.name}
             </Link>
 
-            <div className="min-w-0 flex-1">
-              <Link
-                href={targetUrl}
-                className="block truncate text-base font-bold text-foreground transition-colors hover:text-primary leading-snug"
-                title={program.name}
-              >
-                {program.name}
-              </Link>
-              <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
-                <span className="font-mono">@{program.handle}</span>
-                {displayOrgName && (
-                  <>
-                    <span>·</span>
-                    <Link
-                      href={program.organizationId ? `/company?id=${program.organizationId}` : "/company"}
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 truncate font-medium hover:text-primary hover:underline transition-colors"
-                    >
-                      <Building2 className="size-3 shrink-0" />
-                      <span className="truncate">{displayOrgName}</span>
-                    </Link>
-                  </>
-                )}
-              </div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
+              {displayOrgName && (
+                <>
+                  <Link
+                    href={program.organizationId ? `/company?id=${program.organizationId}` : "/company"}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 font-semibold text-foreground/80 hover:text-primary transition-colors truncate"
+                  >
+                    <Building2 className="size-3 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{displayOrgName}</span>
+                  </Link>
+                  <span>·</span>
+                </>
+              )}
+              <span className="font-mono text-muted-foreground/75 truncate">@{program.handle}</span>
             </div>
-          </div>
-
-          <div className="shrink-0">
-            <ProgramReviewBadge status={program.submissionState} />
           </div>
         </div>
 
-        {/* Chips: Lifecycle, Visibility, Engagement Type */}
+        {/* Badges Strip: Review status, Lifecycle, Engagement, Visibility */}
         <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          <ProgramReviewBadge status={program.submissionState} />
           <ProgramStateBadge state={program.state} />
 
           <Badge
             variant="outline"
-            className="gap-1 rounded-lg border-border bg-muted/40 px-2 py-0.5 text-xs font-semibold text-foreground"
+            className="gap-1 rounded-lg border-border bg-muted/40 px-2 py-0.5 text-xs font-semibold text-foreground shadow-2xs"
           >
             {isBounty ? (
               <>
@@ -241,9 +237,9 @@ export function ProgramManagementCard({
           <Badge
             variant="outline"
             className={cn(
-              "gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold",
+              "gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold shadow-2xs",
               isPrivate
-                ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                ? "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400"
                 : "border-border bg-muted/40 text-muted-foreground",
             )}
           >
@@ -291,16 +287,70 @@ export function ProgramManagementCard({
       </div>
 
       {/* Bottom Footer: Date & Actions */}
-      <div className="mt-4 pt-3.5 border-t border-border/80 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Calendar className="size-3.5 shrink-0" />
-          <span>{formattedDate}</span>
-        </div>
+      <div className="mt-4 pt-3.5 border-t border-border/80">
+        {scope === "admin" && program.submissionState === "PENDING_REVIEW" ? (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
+                <span>{formattedDate}</span>
+              </div>
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 whitespace-nowrap">
+                <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
+                Awaiting Approval
+              </span>
+            </div>
 
-        <div className="flex items-center gap-2">
-          {scope === "owner" ? (
-            <>
-              {canDelete && (
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isApproving || isRejecting}
+                onClick={handleApprove}
+                className="h-8.5 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400 px-2 text-xs font-bold gap-1 cursor-pointer transition-colors shadow-2xs"
+              >
+                {isApproving ? (
+                  <LoaderCircle className="size-3.5 animate-spin" />
+                ) : (
+                  <Check className="size-3.5" />
+                )}
+                <span>Approve</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isApproving || isRejecting}
+                onClick={() => setRejectOpen(true)}
+                className="h-8.5 rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-700 hover:bg-rose-500/20 dark:text-rose-400 px-2 text-xs font-bold gap-1 cursor-pointer transition-colors shadow-2xs"
+              >
+                <X className="size-3.5" />
+                <span>Reject</span>
+              </Button>
+
+              <Link
+                href={targetUrl}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "h-8.5 rounded-xl border-border bg-card px-2.5 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted cursor-pointer transition-colors gap-1 justify-center",
+                )}
+              >
+                <span>Review</span>
+                <ArrowRight className="size-3 text-muted-foreground" />
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap shrink-0">
+              <Calendar className="size-3.5 shrink-0 text-muted-foreground" />
+              <span>{formattedDate}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {scope === "owner" && canDelete && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -311,40 +361,6 @@ export function ProgramManagementCard({
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
-              )}
-            </>
-          ) : (
-            <>
-              {program.submissionState === "PENDING_REVIEW" && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={isApproving || isRejecting}
-                    onClick={handleApprove}
-                    className="h-8 rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400 px-2.5 text-xs font-bold gap-1 cursor-pointer"
-                  >
-                    {isApproving ? (
-                      <LoaderCircle className="size-3.5 animate-spin" />
-                    ) : (
-                      <Check className="size-3.5" />
-                    )}
-                    <span>Approve</span>
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={isApproving || isRejecting}
-                    onClick={() => setRejectOpen(true)}
-                    className="h-8 rounded-xl border-rose-500/30 bg-rose-500/10 text-rose-700 hover:bg-rose-500/20 dark:text-rose-400 px-2.5 text-xs font-bold gap-1 cursor-pointer"
-                  >
-                    <X className="size-3.5" />
-                    <span>Reject</span>
-                  </Button>
-                </>
               )}
 
               <Link
@@ -357,9 +373,9 @@ export function ProgramManagementCard({
                 <span>Review</span>
                 <ArrowRight className="size-3 text-muted-foreground" />
               </Link>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Dialog for Owner */}

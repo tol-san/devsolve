@@ -405,12 +405,12 @@ export default function LeaderboardPodium({
               {PERIOD_LABEL_SHORT[period]} leaders
             </span>
           </div>
-          <h2
+          <h1
             id="podium-heading"
             className="text-2xl font-bold tracking-[-0.03em] text-foreground sm:text-3xl"
           >
             Champions<span className="text-blue-600 dark:text-blue-400">.</span>
-          </h2>
+          </h1>
         </div>
         <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
           Ranked on reputation points, so a Critical counts the same whichever

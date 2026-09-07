@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { ReportConfirmationItem } from "@/lib/types/admin/types";
 import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import {
@@ -144,15 +145,44 @@ export function ReportConfirmationDetailDrawer({
           </DialogTitle>
 
           <DialogDescription className="text-sm text-muted-foreground flex flex-wrap items-center gap-4 pt-1">
-            <span className="flex items-center gap-1">
-              <User className="w-4 h-4 text-muted-foreground" />
-              Researcher: <strong className="text-foreground dark:text-foreground font-semibold">{report.researcherName}</strong>
+            <span className="flex items-center gap-1.5">
+              {report.researcherAvatarUrl ? (
+                <div className="size-5 rounded-full overflow-hidden shrink-0 border border-border">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={report.researcherAvatarUrl}
+                    alt={report.researcherName}
+                    className="size-full object-cover"
+                  />
+                </div>
+              ) : (
+                <User className="size-4 text-muted-foreground" />
+              )}
+              <span>Researcher:</span>
+              {report.researcherUsername ? (
+                <Link
+                  href={`/profile/${encodeURIComponent(report.researcherUsername)}`}
+                  target="_blank"
+                  className="text-foreground font-semibold hover:text-primary hover:underline transition inline-flex items-center gap-1"
+                >
+                  <span>{report.researcherName}</span>
+                  <span className="text-muted-foreground font-normal text-xs">
+                    (@{report.researcherUsername})
+                  </span>
+                </Link>
+              ) : (
+                <strong className="text-foreground dark:text-foreground font-semibold">
+                  {report.researcherName}
+                </strong>
+              )}
             </span>
             <span>•</span>
             <span className="flex items-center gap-1">
               <Building2 className="w-4 h-4 text-muted-foreground" />
               Target: <strong className="text-foreground dark:text-foreground font-semibold">{report.companyName}</strong>
-              {report.programName && <span className="text-muted-foreground"> ({report.programName})</span>}
+              {report.programName && report.programName !== report.companyName && (
+                <span className="text-muted-foreground"> ({report.programName})</span>
+              )}
             </span>
           </DialogDescription>
         </DialogHeader>

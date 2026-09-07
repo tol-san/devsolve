@@ -2,11 +2,12 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { ArrowLeft, Users, ShieldAlert } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   useGetAdminUsersQuery,
@@ -27,9 +28,22 @@ import { ModerationActionDialog } from "@/components/admin/ModerationActionDialo
 
 import type { ModerationActionType } from "@/lib/types/admin/types";
 
-export default function AdminUsersPage() {
+function AdminUsersContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session } = authClient.useSession();
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+
+  const urlStatus = searchParams.get("status")?.toUpperCase();
+  const initialStatus: StatusFilter = useMemo(() => {
+    if (urlStatus === "ACTIVE") return "ACTIVE";
+    if (urlStatus === "SUSPENDED") return "SUSPENDED";
+    if (urlStatus === "PENDING") return "PENDING";
+    if (urlStatus === "REMOVED") return "REMOVED";
+    return "ALL";
+  }, [urlStatus]);
+
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus);
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
   const [sortOption, setSortOption] = useState<UserSortOption>("NEWEST");
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,6 +54,11 @@ export default function AdminUsersPage() {
     user: AdminUserItem;
     actionType: ModerationActionType;
   } | null>(null);
+
+  // Sync state if URL search param changes
+  useEffect(() => {
+    setStatusFilter(initialStatus);
+  }, [initialStatus]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -169,10 +188,21 @@ export default function AdminUsersPage() {
     };
   }, [overallResponse, response]);
 
-  const handleStatusFilterChange = useCallback((status: StatusFilter) => {
-    setStatusFilter(status);
-    setPageIndex(0);
-  }, []);
+  const handleStatusFilterChange = useCallback(
+    (status: StatusFilter) => {
+      setStatusFilter(status);
+      setPageIndex(0);
+      const params = new URLSearchParams(searchParams.toString());
+      if (status === "ALL") {
+        params.delete("status");
+      } else {
+        params.set("status", status);
+      }
+      const newQuery = params.toString();
+      router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const handleRoleFilterChange = useCallback((role: RoleFilter) => {
     setRoleFilter(role);
@@ -195,7 +225,11 @@ export default function AdminUsersPage() {
     setSearchQuery("");
     setDebouncedSearch("");
     setPageIndex(0);
-  }, []);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("status");
+    const newQuery = params.toString();
+    router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   /**
    * Reinstating needs nothing but a reason, so it goes straight through.
@@ -285,9 +319,9 @@ export default function AdminUsersPage() {
         {suspendedCount > 0 && (
           <Badge
             variant="outline"
-            className="h-9 shrink-0 gap-2 rounded-xl border-orange-500/30 bg-orange-500/10 px-3 text-sm font-semibold text-orange-600 dark:text-orange-400"
+            className="h-9 shrink-0 gap-2 rounded-xl border-rose-500/25 bg-rose-500/10 px-3 text-sm font-semibold text-rose-600 dark:text-rose-400"
           >
-            <span className="size-2 rounded-full bg-orange-500 animate-pulse" />
+            <span className="size-2 rounded-full bg-rose-500 animate-pulse" />
             <span>
               {suspendedCount} suspended account{suspendedCount > 1 ? "s" : ""}
             </span>
@@ -299,6 +333,8 @@ export default function AdminUsersPage() {
         <UserStatCards
           users={overallUsers.length > 0 ? overallUsers : users}
           totalCount={overallResponse?.totalElements ?? response?.totalElements}
+          onSelectStatus={handleStatusFilterChange}
+          activeStatusFilter={statusFilter}
         />
       )}
       {isLoading && (
@@ -306,7 +342,7 @@ export default function AdminUsersPage() {
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-24 bg-muted/60 rounded-2xl border border-border"
+              className="h-32 bg-muted/40 rounded-2xl border border-border"
             />
           ))}
         </div>
@@ -328,7 +364,7 @@ export default function AdminUsersPage() {
       <main className="flex flex-col gap-3">
         {isLoading || isFetching ? (
           <div className="space-y-3 animate-pulse">
-            <div className="h-64 bg-muted/60 rounded-2xl border border-border" />
+            <div className="h-64 bg-muted/40 rounded-2xl border border-border" />
           </div>
         ) : (
           <UserDataTable
@@ -369,5 +405,31 @@ export default function AdminUsersPage() {
         }}
       />
     </motion.div>
+  );
+}
+
+function AdminUsersFallback() {
+  return (
+    <div className="space-y-6 w-full pb-12 animate-pulse">
+      <div className="h-16 rounded-2xl border border-border bg-muted/40" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="h-32 rounded-2xl border border-border bg-muted/40"
+          />
+        ))}
+      </div>
+      <div className="h-28 rounded-2xl border border-border bg-muted/40" />
+      <div className="h-96 rounded-2xl border border-border bg-muted/40" />
+    </div>
+  );
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense fallback={<AdminUsersFallback />}>
+      <AdminUsersContent />
+    </Suspense>
   );
 }

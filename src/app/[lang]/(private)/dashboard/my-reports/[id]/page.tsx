@@ -164,8 +164,9 @@ export default function ReportDetailPage() {
       />
 
       {canSubmitVerdict && (
-        <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-transparent p-5 sm:p-6 space-y-4 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-card p-5 sm:p-6 space-y-4 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10">
+          <div className="pointer-events-none absolute -right-8 -top-8 size-48 rounded-full bg-gradient-to-br from-cyan-500/15 via-blue-500/5 to-transparent opacity-60 blur-2xl" />
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex size-11 items-center justify-center rounded-2xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 shrink-0">
                 <RotateCcw className="size-5 animate-spin-slow" />

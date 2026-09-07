@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import React, { Suspense, useState, use } from "react";
+import React, { Suspense, useState, useMemo, use } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -67,6 +67,8 @@ import { ProgramBountyMatrixTab } from "@/components/programs/details/ProgramBou
 import { ProgramRulesTab } from "@/components/programs/details/ProgramRulesTab";
 import { ProgramGuestListTab } from "@/components/programs/management/ProgramGuestListTab";
 import { ProgramThanksTab } from "@/components/programs/details/ProgramThanksTab";
+import { ProgramSubmissionsTab } from "@/components/programs/details/ProgramSubmissionsTab";
+import { useGetReportsQuery } from "@/lib/redux/services/reportsApi";
 import { toast } from "sonner";
 import { apiErrorMessage } from "@/lib/api/error-message";
 
@@ -121,6 +123,28 @@ function ProgramDetailPageContent({
   };
 
   const program = adminDetail ?? publicDetail ?? companyDetail;
+
+  const { data: allUserReports = [], isLoading: isReportsLoading } = useGetReportsQuery(
+    undefined,
+    { skip: !user }
+  );
+
+  const myProgramReports = useMemo(() => {
+    if (!program || !allUserReports?.length) return [];
+    const lowerId = program.id?.toLowerCase();
+    const lowerName = program.name?.toLowerCase();
+    const lowerHandle = program.handle?.toLowerCase();
+
+    return allUserReports.filter((r) => {
+      const repProgId = r.programId?.toLowerCase();
+      const repProgName = r.program?.toLowerCase();
+      return (
+        (lowerId && repProgId === lowerId) ||
+        (lowerName && repProgName === lowerName) ||
+        (lowerHandle && repProgName === lowerHandle)
+      );
+    });
+  }, [program, allUserReports]);
 
   const isLoading = isAdminScope
     ? isAdminDetailLoading
@@ -611,6 +635,8 @@ function ProgramDetailPageContent({
             activeTab={activeTab}
             onTabChange={setActiveTab}
             showThanksTab={!isPending}
+            showSubmissionsTab={true}
+            submissionsCount={myProgramReports.length}
             showInvitationsTab={
               !isAdminScope &&
               (isCompanyUser ||
@@ -624,7 +650,18 @@ function ProgramDetailPageContent({
             <section className="lg:col-span-2 space-y-8">
               <AnimatePresence mode="wait">
                 {activeTab === "overview" && (
-                  <ProgramOverviewTab program={program} />
+                  <ProgramOverviewTab
+                    program={program}
+                    submissionsCount={myProgramReports.length}
+                    onViewSubmissions={() => setActiveTab("submissions")}
+                  />
+                )}
+                {activeTab === "submissions" && (
+                  <ProgramSubmissionsTab
+                    program={program}
+                    reports={myProgramReports}
+                    isLoading={isReportsLoading}
+                  />
                 )}
                 {activeTab === "scope" && <ProgramScopeTab program={program} />}
                 {activeTab === "bounty-matrix" && (
@@ -648,7 +685,11 @@ function ProgramDetailPageContent({
               </AnimatePresence>
             </section>
 
-            <ProgramDetailSidebar program={program} isOwnProgram={true} />
+            <ProgramDetailSidebar
+              program={program}
+              isOwnProgram={true}
+              userReports={myProgramReports}
+            />
           </main>
         </motion.div>
       </main>

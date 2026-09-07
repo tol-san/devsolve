@@ -1,17 +1,25 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { motion } from "motion/react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Bug, ArrowRight, Zap } from "lucide-react";
 import { ProgramDetail } from "@/lib/types/programs/types";
+import { Button } from "@/components/ui/button";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 
 interface ProgramOverviewTabProps {
   program: ProgramDetail;
+  submissionsCount?: number;
+  onViewSubmissions?: () => void;
 }
 
 export const ProgramOverviewTab: React.FC<ProgramOverviewTabProps> = ({
   program,
+  submissionsCount = 0,
+  onViewSubmissions,
 }) => {
+  const lp = useLocalePath();
 
   return (
     <motion.div
@@ -22,6 +30,47 @@ export const ProgramOverviewTab: React.FC<ProgramOverviewTabProps> = ({
       transition={{ duration: 0.2 }}
       className="bg-card rounded-2xl p-6 sm:p-8 ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-8"
     >
+      {/* Active Submissions Banner if user has submitted reports */}
+      {submissionsCount > 0 && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Bug className="size-5" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-foreground">
+                You have {submissionsCount} submission{submissionsCount > 1 ? "s" : ""} on this program
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Review your reports, check triage progression, and track potential rewards.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {onViewSubmissions && (
+              <Button
+                onClick={onViewSubmissions}
+                variant="outline"
+                size="sm"
+                className="rounded-xl font-semibold text-xs gap-1.5 cursor-pointer"
+              >
+                <span>View Submissions</span>
+                <ArrowRight className="size-3.5" />
+              </Button>
+            )}
+            <Link href={lp(`/dashboard/submit-report?programId=${program.id}`)}>
+              <Button
+                size="sm"
+                className="rounded-xl font-semibold text-xs bg-blue-600 hover:bg-blue-700 text-white gap-1.5 shadow-xs cursor-pointer"
+              >
+                <Zap className="size-3.5" />
+                <span>Submit Report</span>
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3">
         <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
           About the Program
@@ -30,7 +79,7 @@ export const ProgramOverviewTab: React.FC<ProgramOverviewTabProps> = ({
           Test our cloud infrastructure, API gateways, and core web services for vulnerabilities.
         </p>
         <p className="text-base text-muted-foreground leading-relaxed font-normal">
-          { program.description}
+          {program.description}
         </p>
       </div>
 

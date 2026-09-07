@@ -13,13 +13,16 @@ export const PROGRAM_DETAILS_TABS = [
 
 export type ProgramDetailTabId =
   | (typeof PROGRAM_DETAILS_TABS)[number]["id"]
-  | "invitations";
+  | "invitations"
+  | "submissions";
 
 interface ProgramDetailTabNavProps {
   activeTab: ProgramDetailTabId;
   onTabChange: (tabId: ProgramDetailTabId) => void;
   showInvitationsTab?: boolean;
   showThanksTab?: boolean;
+  showSubmissionsTab?: boolean;
+  submissionsCount?: number;
   tabs?: { id: ProgramDetailTabId; label: string }[];
 }
 
@@ -28,6 +31,8 @@ export const ProgramDetailTabNav: React.FC<ProgramDetailTabNavProps> = ({
   onTabChange,
   showInvitationsTab = false,
   showThanksTab = true,
+  showSubmissionsTab = false,
+  submissionsCount = 0,
   tabs: customTabs,
 }) => {
   React.useEffect(() => {
@@ -40,11 +45,17 @@ export const ProgramDetailTabNav: React.FC<ProgramDetailTabNavProps> = ({
     if (customTabs) return customTabs;
     const base: { id: ProgramDetailTabId; label: string }[] =
       PROGRAM_DETAILS_TABS.filter((tab) => tab.id !== "thanks" || showThanksTab);
+    if (showSubmissionsTab) {
+      base.push({
+        id: "submissions",
+        label: submissionsCount > 0 ? `My Submissions (${submissionsCount})` : "My Submissions",
+      });
+    }
     if (showInvitationsTab) {
       base.push({ id: "invitations", label: "Guest List" });
     }
     return base;
-  }, [customTabs, showInvitationsTab, showThanksTab]);
+  }, [customTabs, showInvitationsTab, showThanksTab, showSubmissionsTab, submissionsCount]);
 
   return (
     <nav className="border-b border-border bg-card rounded-2xl px-2 pt-1 shadow-2xs overflow-hidden">

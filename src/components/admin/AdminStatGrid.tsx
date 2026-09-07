@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
+import { motion } from "motion/react";
 import {
   Building2,
   Globe,
@@ -8,18 +10,42 @@ import {
   Users,
   MessageSquare,
   Swords,
+  ArrowUpRight,
+  type LucideIcon,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import type { AdminStatMetric } from "@/lib/types/admin/types";
 
-const STAT_ICONS: Record<AdminStatMetric["type"], LucideIcon> = {
-  organizations: Building2,
-  programs: Globe,
-  total_reports: FileText,
-  users: Users,
-  community_posts: MessageSquare,
-  disputes: Swords,
+type StatConfig = {
+  icon: LucideIcon;
+  href: string;
+};
+
+const STAT_CONFIGS: Record<AdminStatMetric["type"], StatConfig> = {
+  organizations: {
+    icon: Building2,
+    href: "/dashboard/company-verification",
+  },
+  programs: {
+    icon: Globe,
+    href: "/dashboard/program-management?scope=admin",
+  },
+  total_reports: {
+    icon: FileText,
+    href: "/dashboard/report-confirmation",
+  },
+  users: {
+    icon: Users,
+    href: "/dashboard/users",
+  },
+  community_posts: {
+    icon: MessageSquare,
+    href: "/dashboard/content-moderation",
+  },
+  disputes: {
+    icon: Swords,
+    href: "/dashboard/content-moderation",
+  },
 };
 
 interface AdminStatGridProps {
@@ -28,38 +54,66 @@ interface AdminStatGridProps {
 
 export function AdminStatGrid({ stats }: AdminStatGridProps) {
   return (
-    <Card className="rounded-[20px] border border-slate-200/80 bg-white p-4 sm:p-6 shadow-2xs dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-neutral-800">
-        {stats.map((stat, idx) => {
-          const Icon = STAT_ICONS[stat.type];
-          return (
-            <div
-              key={stat.id}
-              className={`flex flex-col justify-between ${
-                idx > 0 ? "sm:pl-4 lg:pl-6" : ""
-              } ${idx >= 2 ? "pt-4 sm:pt-0" : ""}`}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+      {stats.map((stat, idx) => {
+        const config = STAT_CONFIGS[stat.type] ?? STAT_CONFIGS.organizations;
+        const Icon = config.icon;
+        const isNotice = /pending|awaiting|urgent|action|open/i.test(stat.subtext);
+
+        return (
+          <motion.div
+            key={stat.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -3, transition: { duration: 0.18 } }}
+            transition={{ duration: 0.3, delay: idx * 0.04 }}
+            className="h-full"
+          >
+            <Link
+              href={config.href}
+              className="group relative flex flex-col justify-between h-full overflow-hidden rounded-2xl border border-border/80 bg-card/90 backdrop-blur-md p-4 sm:p-5 shadow-2xs ring-1 ring-foreground/5 dark:ring-foreground/10 hover:border-primary/50 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 select-none"
+              title={`Go to ${stat.title}`}
             >
-              <div>
-                <div className="size-8 rounded-lg bg-indigo-50/80 flex items-center justify-center text-indigo-600 mb-2.5 dark:bg-indigo-500/10 dark:text-indigo-300">
-                  <Icon className="size-4 text-indigo-600 dark:text-indigo-300" />
+              {/* Ambient radial color glow in corner combining primary blue + emerald accent */}
+              <div className="pointer-events-none absolute -right-6 -top-6 size-28 rounded-full bg-gradient-to-br from-primary/15 via-emerald-500/10 to-transparent opacity-50 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
+
+              {/* Top Row: Icon + Arrow */}
+              <div className="relative z-10 flex items-center justify-between mb-3.5">
+                <div className="flex size-10 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary shadow-2xs transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-xs">
+                  <Icon className="size-5" />
                 </div>
 
-                <div className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-neutral-100">
+                <div className="flex items-center text-muted-foreground/40 transition-all duration-200 group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  <ArrowUpRight className="size-4" />
+                </div>
+              </div>
+
+              {/* Middle: Big Metric Value & Title */}
+              <div className="relative z-10 space-y-1">
+                <div className="text-2xl sm:text-3xl font-extrabold tracking-tight font-sans leading-none text-foreground transition-colors group-hover:text-primary">
                   {stat.value}
                 </div>
-
-                <div className="text-xs font-semibold text-slate-500 mt-0.5 dark:text-neutral-400">
+                <div className="text-xs sm:text-sm font-semibold text-foreground/80 transition-colors group-hover:text-foreground truncate">
                   {stat.title}
                 </div>
               </div>
 
-              <div className="text-xs text-slate-400 font-normal mt-1 dark:text-neutral-500">
-                {stat.subtext}
+              {/* Bottom: Accent Emerald Status Pill Badge */}
+              <div className="relative z-10 mt-3.5 pt-2.5 border-t border-border/50">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold border border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 max-w-full truncate shadow-2xs">
+                  <span
+                    className={cn(
+                      "size-1.5 rounded-full shrink-0 bg-emerald-500",
+                      isNotice && "animate-pulse"
+                    )}
+                  />
+                  <span className="truncate">{stat.subtext}</span>
+                </span>
               </div>
-            </div>
-          );
-        })}
-      </div>
-    </Card>
+            </Link>
+          </motion.div>
+        );
+      })}
+    </div>
   );
 }

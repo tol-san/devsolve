@@ -108,18 +108,33 @@ export default function MyCommunityPage() {
       {heldVerdicts.length > 0 && (
         <section
           aria-label="Posts needing your attention"
-          className="rounded-2xl border border-amber-500/35 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 sm:p-5 shadow-xs space-y-3"
+          className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-card p-5 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 space-y-4"
         >
-          <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300">
-              <Sparkles className="size-4" aria-hidden="true" />
+          {/* Subtle ambient amber corner warmth on solid bg-card */}
+          <div className="pointer-events-none absolute -right-8 -top-8 size-40 rounded-full bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent opacity-60 blur-2xl" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/70">
+            <div className="flex items-center gap-3">
+              <span className="flex size-9 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-2xs">
+                <Sparkles className="size-4.5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  Needs your attention
+                </h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Automated checks flagged these posts for review or revisions before they can be published
+                </p>
+              </div>
+            </div>
+
+            <span className="self-start sm:self-center inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 shadow-2xs">
+              <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span>{heldVerdicts.length} {heldVerdicts.length === 1 ? "post requires action" : "posts require action"}</span>
             </span>
-            <h2 className="text-base font-bold text-foreground">
-              Needs your attention ({heldVerdicts.length})
-            </h2>
           </div>
 
-          <div className="divide-y divide-border/60">
+          <div className="relative z-10 space-y-2.5">
             {heldVerdicts.map((item) => {
               const editUrl =
                 item.target === "PROBLEM"
@@ -133,21 +148,21 @@ export default function MyCommunityPage() {
               return (
                 <div
                   key={`${item.target}_${item.contentId}`}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 first:pt-1 last:pb-0"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 p-3.5 sm:p-4 rounded-xl border border-border/80 bg-muted/30 hover:bg-muted/60 hover:border-amber-500/40 transition-all duration-200 shadow-2xs"
                 >
-                  <div className="space-y-1 min-w-0">
+                  <div className="space-y-1.5 min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                      <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300 border border-amber-500/25 shadow-2xs">
                         {item.target}
                       </span>
                       <Link
                         href={detailUrl}
-                        className="text-sm font-semibold text-foreground hover:underline truncate"
+                        className="text-sm font-bold text-foreground hover:text-primary transition-colors truncate"
                       >
                         {item.title || "Untitled"}
                       </Link>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                       {item.message}
                     </p>
                   </div>
@@ -156,10 +171,10 @@ export default function MyCommunityPage() {
                     href={editUrl}
                     className={cn(
                       buttonVariants({ variant: "outline", size: "sm" }),
-                      "shrink-0 rounded-xl border-amber-500/30 text-xs font-semibold hover:bg-amber-500/10 hover:text-amber-900 dark:hover:text-amber-200 cursor-pointer shadow-2xs self-start sm:self-center",
+                      "shrink-0 h-9 px-3.5 rounded-xl border-border bg-card hover:bg-muted hover:border-amber-500/40 text-foreground text-xs font-semibold shadow-2xs transition-all self-start sm:self-center cursor-pointer",
                     )}
                   >
-                    <Pencil className="size-3 mr-1.5" aria-hidden="true" />
+                    <Pencil className="size-3.5 mr-1.5 text-muted-foreground" aria-hidden="true" />
                     <span>Edit and resubmit</span>
                   </Link>
                 </div>
@@ -170,8 +185,8 @@ export default function MyCommunityPage() {
       )}
 
       {needsAttention > 0 && heldVerdicts.length === 0 && (
-        <div className="flex gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm font-medium text-rose-700 dark:text-rose-300">
-          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <div className="flex gap-3 rounded-2xl border border-rose-500/30 bg-card p-4.5 shadow-sm ring-1 ring-rose-500/15 text-sm font-medium text-rose-700 dark:text-rose-300">
+          <AlertCircle className="mt-0.5 size-4.5 shrink-0 text-rose-500" aria-hidden="true" />
           <span>
             {needsAttention === 1
               ? "One post was sent back with changes to make before it can go live."

@@ -459,3 +459,42 @@ export async function getShowcaseFromDb(id: string): Promise<any | null> {
   }
 }
 
+export interface DbUserProfile {
+  id: string;
+  fullName: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  email: string | null;
+  reputation: number | null;
+}
+
+export async function getUserProfilesByIds(
+  ids: string[]
+): Promise<Map<string, DbUserProfile>> {
+  const map = new Map<string, DbUserProfile>();
+  const validIds = Array.from(
+    new Set(ids.filter((id) => Boolean(id && typeof id === "string" && id.trim().length > 0)))
+  );
+  if (validIds.length === 0) return map;
+  try {
+    const res = await dbPool.query(
+      `SELECT id, full_name, username, avatar_url, email, reputation FROM user_profiles WHERE id = ANY($1::uuid[])`,
+      [validIds]
+    );
+    for (const row of res.rows) {
+      map.set(row.id, {
+        id: row.id,
+        fullName: row.full_name ?? null,
+        username: row.username ?? null,
+        avatarUrl: row.avatar_url ?? null,
+        email: row.email ?? null,
+        reputation: row.reputation != null ? Number(row.reputation) : null,
+      });
+    }
+  } catch (err) {
+    console.error("[db] Failed to fetch user profiles by ids:", err);
+  }
+  return map;
+}
+
+

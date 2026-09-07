@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import LeaderboardClient from "@/components/Leaderboard/LeaderboardClient";
-import PointsLegend from "@/components/Leaderboard/PointsLegend";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { JsonLd, collectionSchema } from "@/lib/seo/jsonld";
@@ -43,30 +42,7 @@ export default async function LeaderboardPage({
         })}
       />
 
-      <section className="relative overflow-hidden border-b border-border">
-        <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-8 lg:px-8">
-          <div className="min-w-0">
-            <div className="mb-1.5 flex items-center gap-2">
-              <span className="h-px w-6 bg-blue-600" />
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
-                {copy.eyebrow}
-              </span>
-            </div>
-
-            <h1 className="text-2xl font-bold tracking-[-0.035em] text-foreground sm:text-3xl">
-              {copy.heading}<span className="text-blue-600 dark:text-blue-400">.</span>
-            </h1>
-
-            <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-muted-foreground">
-              {copy.description}
-            </p>
-          </div>
-
-          <PointsLegend className="shrink-0 sm:max-w-md sm:justify-end" />
-        </div>
-      </section>
-
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <LeaderboardClient />
       </div>
     </div>

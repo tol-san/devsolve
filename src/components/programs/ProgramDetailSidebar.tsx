@@ -14,8 +14,10 @@ import {
   CheckCircle2,
   Globe,
   ArrowRight,
+  ShieldAlert,
 } from "lucide-react";
 import { ProgramDetail } from "@/lib/types/programs/types";
+import { ReportItem } from "@/lib/types/reports/types";
 import { isPublished, isUnderReview } from "@/lib/programs/draft-status";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,21 +27,45 @@ import { useKeycloakLogin } from "@/hooks/useKeycloakLogin";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { useGetMyProgramInvitationsQuery } from "@/lib/redux/services/programInvitationsApi";
 import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsApi";
+import { useGetReportsQuery } from "@/lib/redux/services/reportsApi";
 
 interface ProgramDetailSidebarProps {
   program: ProgramDetail;
   isOwnProgram?: boolean;
+  userReports?: ReportItem[];
 }
 
 export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
   program,
   isOwnProgram: isOwnProgramProp,
+  userReports: userReportsProp,
 }) => {
   const router = useRouter();
   const lp = useLocalePath();
   const { data: session } = authClient.useSession();
   const { handleLogin, isLoggingIn } = useKeycloakLogin();
   const { memberships, membership, hasCompanyAccess } = useCompanyAccess();
+
+  const { data: allReports = [] } = useGetReportsQuery(undefined, {
+    skip: !session?.user || Boolean(userReportsProp),
+  });
+
+  const effectiveUserReports = React.useMemo(() => {
+    if (userReportsProp) return userReportsProp;
+    if (!session?.user || !allReports?.length) return [];
+    const lowerId = program.id?.toLowerCase();
+    const lowerName = program.name?.toLowerCase();
+    const lowerHandle = program.handle?.toLowerCase();
+    return allReports.filter((r) => {
+      const repProgId = r.programId?.toLowerCase();
+      const repProgName = r.program?.toLowerCase();
+      return (
+        (lowerId && repProgId === lowerId) ||
+        (lowerName && repProgName === lowerName) ||
+        (lowerHandle && repProgName === lowerHandle)
+      );
+    });
+  }, [userReportsProp, session?.user, allReports, program.id, program.name, program.handle]);
 
   const isPrivate =
     program.visibility === "PRIVATE" || program.visibility === "INVITE_ONLY";
@@ -90,11 +116,8 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
   const isPrivateAccepted =
     isPrivate && matchedInvitation?.status === "ACCEPTED";
 
-  const canSubmitReport =
-    isPublished(program) &&
-    !isPendingReview &&
-    !isOwnProgram &&
-    (!isPrivate || isPrivateAccepted);
+  // Allow report submission unless an invite is pending acceptance
+  const canSubmitReport = !isInvitedPending;
 
   const effectiveOrgId = program.organization?.id || program.organizationId;
   const { data: fetchedOrg } = useGetOrganizationByIdQuery(effectiveOrgId ?? "", {
@@ -268,6 +291,51 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
         </section>
       )}
 
+      {/* Your Submissions Section */}
+      {effectiveUserReports.length > 0 && (
+        <section className="bg-card p-4 sm:p-6 rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 shadow-xs space-y-3.5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span>Your Submissions</span>
+            </h3>
+            <Badge variant="secondary" className="text-xs font-bold">
+              {effectiveUserReports.length} {effectiveUserReports.length === 1 ? "Report" : "Reports"}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            You have submitted {effectiveUserReports.length} vulnerability {effectiveUserReports.length === 1 ? "report" : "reports"} to this program.
+          </p>
+          <div className="space-y-2 pt-0.5">
+            {effectiveUserReports.slice(0, 3).map((rep) => (
+              <Link
+                key={rep.id}
+                href={lp(`/dashboard/my-reports/${rep.id}`)}
+                className="flex items-center justify-between p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors border border-border/60 text-xs group"
+              >
+                <div className="min-w-0 pr-2">
+                  <p className="font-semibold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 truncate">
+                    {rep.title || rep.reportId}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground font-mono">
+                    {rep.reportId}
+                  </p>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-background border border-border text-foreground shrink-0">
+                  {rep.status}
+                </span>
+              </Link>
+            ))}
+          </div>
+          <Link href={lp("/dashboard/my-reports")} className="block pt-1">
+            <Button variant="outline" className="w-full rounded-xl text-xs font-semibold gap-1.5 cursor-pointer">
+              <span>View All My Reports</span>
+              <ArrowRight className="size-3" />
+            </Button>
+          </Link>
+        </section>
+      )}
+
       {canSubmitReport && (
         <section className="bg-gradient-to-br from-blue-900 via-slate-900 to-slate-900 text-white p-6 rounded-2xl shadow-md space-y-4 relative overflow-hidden">
           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-600/20 rounded-full blur-2xl" />
@@ -276,6 +344,17 @@ export const ProgramDetailSidebar: React.FC<ProgramDetailSidebarProps> = ({
             <p className="text-sm text-slate-300 leading-relaxed">
               Read the scope and rules carefully before testing.
             </p>
+            {isPendingReview && (
+              <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-200 text-xs space-y-0.5">
+                <p className="font-bold flex items-center gap-1 text-amber-300">
+                  <Clock className="size-3" />
+                  Program Pending Review
+                </p>
+                <p className="text-[11px] opacity-90">
+                  This program is awaiting verification. Submissions are accepted and will be triaged once approved.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="block relative z-10">

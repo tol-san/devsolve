@@ -49,32 +49,32 @@ export function ReportMetricsGrid({
             type="button"
             key={metric.title}
             onClick={() => onMetricClick?.(metric.key)}
-            className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl sm:rounded-[24px] cursor-pointer min-w-0"
+            className="group w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl cursor-pointer min-w-0"
           >
             <Card
               size="sm"
               className={cn(
-                "rounded-2xl sm:rounded-[24px] bg-card text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border-none py-0 shadow-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md min-w-0 w-full overflow-hidden",
+                "relative rounded-2xl bg-card/90 backdrop-blur-md text-card-foreground ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border/80 py-0 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md hover:shadow-primary/5 min-w-0 w-full overflow-hidden select-none",
                 "[--card-spacing:--spacing(0)]",
-                isActive && "ring-2 ring-primary bg-primary/[0.04]",
+                isActive && "ring-2 ring-primary border-primary/40 bg-primary/[0.04]",
               )}
             >
-              <CardContent className="flex items-start justify-between p-3.5 sm:p-4.5 min-w-0 w-full">
+              {/* Ambient radial color glow combining primary + accent */}
+              <div className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br from-primary/15 via-emerald-500/10 to-transparent opacity-40 blur-xl transition-opacity group-hover:opacity-100" />
+
+              <CardContent className="relative z-10 flex items-start justify-between p-3.5 sm:p-4.5 min-w-0 w-full">
                 <div className="flex min-w-0 flex-col gap-2 sm:gap-2.5 w-full">
                   <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 w-full">
                     <div
                       className={cn(
-                        "flex size-8 sm:size-9.5 shrink-0 items-center justify-center rounded-xl shadow-2xs transition-transform duration-200",
-                        index === 0 && "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20",
-                        index === 1 && "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
-                        index === 2 && "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
-                        index === 3 && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                        "flex size-8 sm:size-9.5 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary shadow-2xs transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground",
+                        isActive && "bg-primary text-primary-foreground",
                       )}
                     >
                       <Icon className="size-4 sm:size-4.5" />
                     </div>
                     <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                      <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground truncate" title={metric.title}>
+                      <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors truncate" title={metric.title}>
                         {metric.title}
                       </span>
                       <span className="text-[10px] sm:text-[11px] text-muted-foreground/80 truncate hidden xs:block">
@@ -87,7 +87,7 @@ export function ReportMetricsGrid({
                     {isLoading ? (
                       <div className="h-7 sm:h-8 w-14 sm:w-20 animate-pulse rounded-lg bg-muted" />
                     ) : (
-                      <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-foreground leading-none">
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-foreground group-hover:text-primary transition-colors leading-none">
                         {metric.value}
                       </p>
                     )}

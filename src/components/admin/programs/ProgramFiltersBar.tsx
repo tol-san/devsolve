@@ -1,7 +1,5 @@
 import React from "react";
 import { ArrowUpDown, Filter, LayoutGrid, Table as TableIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   ActiveFilters,
   FilterBar,
@@ -9,6 +7,7 @@ import {
   FilterRow,
   FilterSearch,
   FilterSelect,
+  FilterTabs,
   type ActiveFilter,
 } from "@/components/ui/filter-bar";
 import {
@@ -98,41 +97,16 @@ export const ProgramFiltersBar: React.FC<ProgramFiltersBarProps> = ({
 
   return (
     <FilterBar>
-      <ToggleGroup
-        multiple={false}
-        value={[submissionStateFilter]}
-        onValueChange={(values) => {
-          const next = values[values.length - 1] as
-            | ProgramSubmissionState
-            | "ALL"
-            | undefined;
-          if (next) {
-            onSubmissionStateChange(next);
-          }
-        }}
-        spacing={1}
-        aria-label="Review state"
-        className="w-full min-w-0 overflow-x-auto rounded-xl bg-muted p-1"
-      >
-        {REVIEW_TABS.map((tab) => {
-          const isActive = submissionStateFilter === tab.key;
-          return (
-            <ToggleGroupItem
-              key={tab.key}
-              value={tab.key}
-              className="h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-semibold text-muted-foreground data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-2xs"
-            >
-              <span>{tab.label}</span>
-              <Badge
-                variant={isActive ? "default" : "secondary"}
-                className="rounded-full tabular-nums"
-              >
-                {counts[tab.countKey] ?? 0}
-              </Badge>
-            </ToggleGroupItem>
-          );
-        })}
-      </ToggleGroup>
+      <FilterTabs
+        label="Review state"
+        value={submissionStateFilter}
+        onChange={onSubmissionStateChange}
+        tabs={REVIEW_TABS.map((tab) => ({
+          value: tab.key,
+          label: tab.label,
+          count: counts[tab.countKey] ?? 0,
+        }))}
+      />
 
       <FilterRow>
         <FilterSearch

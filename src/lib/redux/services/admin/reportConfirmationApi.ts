@@ -16,8 +16,18 @@ type DisplayTier = NonNullable<ReportConfirmationItem["severity"]>;
 type ManagementRow = {
   id: string;
   reportId?: string;
+  programId?: string;
+  programName?: string;
+  programHandle?: string;
+  organizationId?: string;
+  organizationName?: string;
+  organizationLogoUrl?: string;
   title?: string;
   author?: string;
+  authorUsername?: string | null;
+  authorAvatarUrl?: string | null;
+  authorId?: string | null;
+  authorReputation?: number | null;
   type?: string;
   severity?: DisplayTier | null;
   reportedSeverity?: ApiTier | string | null;
@@ -102,9 +112,13 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
               id: r.id,
               reportCode: r.reportId || `RPT-${r.id.slice(0, 8)}`,
               title: r.title || "Untitled Vulnerability Report",
-              researcherName: r.author || "Security Researcher",
-              companyName: "DevSolve Security",
-              programName: r.type ? `${r.type} Program` : "Bug Bounty Program",
+              researcherName: r.author || (r.authorUsername ? `@${r.authorUsername}` : "Security Researcher"),
+              researcherUsername: r.authorUsername || undefined,
+              researcherAvatarUrl: r.authorAvatarUrl || undefined,
+              researcherId: r.authorId || undefined,
+              researcherReputation: r.authorReputation != null ? r.authorReputation : undefined,
+              companyName: r.organizationName || r.programName || "DevSolve Security",
+              programName: r.programName || (r.type ? `${r.type} Program` : "Bug Bounty Program"),
               severity: r.severity ?? null,
               reportedSeverity: toTier(r.reportedSeverity),
               triageSeverity: toTier(r.triageSeverity),
@@ -157,12 +171,47 @@ export const reportConfirmationApi = baseApi.injectEndpoints({
             title: raw.title || "Untitled Vulnerability Report",
             researcherName:
               raw.reporter?.name ||
+              raw.reporter?.fullName ||
+              raw.researcher?.fullName ||
               raw.researcherName ||
               raw.authorName ||
               raw.submitterName ||
+              raw.author ||
               "Security Researcher",
-            companyName: raw.organizationName || "DevSolve Security",
-            programName: raw.programName ? `${raw.programName}` : "Bug Bounty Program",
+            researcherUsername:
+              raw.researcher?.username ||
+              raw.reporter?.username ||
+              raw.authorUsername ||
+              raw.submitterUsername ||
+              undefined,
+            researcherAvatarUrl:
+              raw.researcher?.avatarUrl ||
+              raw.reporter?.avatarUrl ||
+              raw.authorAvatarUrl ||
+              raw.submitterAvatarUrl ||
+              undefined,
+            researcherId:
+              raw.researcher?.id ||
+              raw.reporter?.id ||
+              raw.authorId ||
+              raw.reporterId ||
+              undefined,
+            researcherReputation:
+              raw.researcher?.reputation ??
+              raw.reporter?.reputation ??
+              raw.authorReputation ??
+              undefined,
+            companyName:
+              raw.organizationName ||
+              raw.organization?.name ||
+              raw.program?.organizationName ||
+              raw.programName ||
+              raw.program?.name ||
+              (foundMock ? foundMock.companyName : "DevSolve Security"),
+            programName:
+              raw.programName ||
+              raw.program?.name ||
+              (foundMock ? foundMock.programName : "Bug Bounty Program"),
             severity: agreedTier,
             reportedSeverity: toTier(raw.reportedSeverity),
             triageSeverity: toTier(raw.triageSeverity),
