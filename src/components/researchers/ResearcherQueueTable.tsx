@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Users } from "lucide-react";
+import { Eye, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { MotivationPreviewDialog } from "@/components/researchers/MotivationPreviewDialog";
 import { ResearcherAccessBadge } from "@/components/researchers/ResearcherAccessBadge";
 import { ReviewDecisionDialog } from "@/components/researchers/ReviewDecisionDialog";
 import { formatDateTime } from "@/lib/format/datetime";
@@ -34,6 +35,8 @@ export function ResearcherQueueTable({
     record: ResearcherAccessRecord;
     decision: ReviewDecision;
   } | null>(null);
+  const [previewRecord, setPreviewRecord] =
+    useState<ResearcherAccessRecord | null>(null);
 
   if (!records.length) {
     return (
@@ -89,17 +92,41 @@ export function ResearcherQueueTable({
                     )}
                   </TableCell>
 
-                  <TableCell className="max-w-md px-4 py-4 whitespace-normal sm:px-6">
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground">
-                      {record.motivation?.trim() || (
-                        <span className="text-muted-foreground">
-                          Approved without a request
-                        </span>
-                      )}
-                    </p>
+                  <TableCell className="max-w-xs sm:max-w-sm px-4 py-4 whitespace-normal sm:px-6">
+                    {record.motivation?.trim() ? (
+                      <div className="space-y-1.5">
+                        <p
+                          onClick={() => setPreviewRecord(record)}
+                          className="text-sm leading-snug text-foreground/90 line-clamp-2 cursor-pointer hover:text-foreground transition-colors"
+                          title="Click to read full request"
+                        >
+                          {record.motivation.trim()}
+                        </p>
+                        {(record.motivation.trim().length > 80 ||
+                          record.motivation.includes("\n")) && (
+                          <button
+                            type="button"
+                            onClick={() => setPreviewRecord(record)}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer group select-none"
+                          >
+                            <Eye className="size-3.5 transition-transform group-hover:scale-110" />
+                            <span>View full request</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">
+                        Approved without a request
+                      </span>
+                    )}
                     {reviewed && (
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        <span className="font-semibold">Your note:</span>{" "}
+                      <p
+                        className="mt-1.5 text-xs text-muted-foreground line-clamp-1"
+                        title={reviewed}
+                      >
+                        <span className="font-semibold text-foreground/80">
+                          Your note:
+                        </span>{" "}
                         {reviewed}
                       </p>
                     )}
@@ -148,6 +175,15 @@ export function ResearcherQueueTable({
         record={pending?.record ?? null}
         decision={pending?.decision ?? null}
         onClose={() => setPending(null)}
+      />
+
+      <MotivationPreviewDialog
+        record={previewRecord}
+        onClose={() => setPreviewRecord(null)}
+        onDecision={(record, decision) => {
+          setPreviewRecord(null);
+          setPending({ record, decision });
+        }}
       />
     </>
   );
