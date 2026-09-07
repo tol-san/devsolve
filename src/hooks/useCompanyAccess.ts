@@ -20,8 +20,8 @@ export type CompanyAccess = {
   hasCompanyAccess: boolean;
   isOwner: boolean;
   permissions: OrganizationInvitationPermission[];
-  can: (permission: OrganizationInvitationPermission) => boolean;
-  canAny: (permissions: OrganizationInvitationPermission[]) => boolean;
+  can: (permission: OrganizationInvitationPermission | string) => boolean;
+  canAny: (permissions: (OrganizationInvitationPermission | string)[]) => boolean;
   isActive: boolean;
   hasMultiple: boolean;
   switchOrganization: (organizationId: string) => void;
@@ -52,8 +52,11 @@ export function useCompanyAccess(): CompanyAccess {
 
   const permissions = membership?.permissions ?? [];
 
-  const can = (permission: OrganizationInvitationPermission) =>
-    permissions.includes(permission);
+  const can = (permission: OrganizationInvitationPermission | string) =>
+    (permissions as string[]).includes(permission);
+
+  const canAny = (permissionsToCheck: (OrganizationInvitationPermission | string)[]) =>
+    permissionsToCheck.some((p) => (permissions as string[]).includes(p));
 
   const switchOrganization = (organizationId: string) => {
     rememberActiveOrganization(organizationId);

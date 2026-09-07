@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { motion } from "motion/react";
 
 import { TeamsMembersSection } from "@/components/teams/TeamsMembersSection";
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/page-enter-motion";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
 
-export default function TeamsPage() {
+function TeamsPageContent() {
   const {
     counts,
     filteredMembers,
@@ -59,3 +60,24 @@ export default function TeamsPage() {
     </motion.section>
   );
 }
+
+export default function TeamsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full space-y-7 pb-12 animate-pulse">
+          <div className="h-10 w-48 rounded-xl bg-muted/60" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-24 rounded-2xl bg-muted/50" />
+            ))}
+          </div>
+          <div className="h-64 rounded-2xl bg-muted/40" />
+        </div>
+      }
+    >
+      <TeamsPageContent />
+    </Suspense>
+  );
+}
+

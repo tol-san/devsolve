@@ -8,6 +8,7 @@ import {
   Check,
   Copy,
   CheckCircle2,
+  ExternalLink,
   Eye,
   Loader2,
   Mail,
@@ -18,6 +19,7 @@ import {
   UserCog,
   UserRound,
   X,
+  XCircle,
   type LucideIcon,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -67,6 +69,7 @@ import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { absoluteUrl } from "@/lib/seo/site";
 import {
   useInviteOrganizationMemberMutation,
+  useRemoveMemberMutation,
   useSearchMemberCandidatesQuery,
   type MemberCandidate,
 } from "@/lib/redux/services/organizationsApi";
@@ -77,13 +80,10 @@ const permissionValues = [
   "CREATE_PROGRAM",
   "EDIT_PROGRAM",
   "MANAGE_PROGRAM_STATE",
-  "DELETE_PROGRAM",
   "VIEW_REPORTS",
   "TRIAGE_REPORTS",
   "MANAGE_DISCLOSURE",
   "AWARD_REWARDS",
-  "MANAGE_RESEARCHERS",
-  "MANAGE_MEMBERS",
 ] as const;
 
 const inviteMemberSchema = z.object({
@@ -100,7 +100,7 @@ const inviteMemberSchema = z.object({
   permissions: z
     .array(z.enum(permissionValues))
     .min(1, "Select at least one permission.")
-    .max(11, "You can select up to 11 permissions."),
+    .max(8, "You can select up to 8 permissions."),
 });
 
 type InviteMemberFormValues = z.infer<
@@ -197,10 +197,16 @@ export function InviteMemberForm() {
     { isLoading },
   ] = useInviteOrganizationMemberMutation();
 
+  const [
+    removeMember,
+    { isLoading: isCancellingInvitation },
+  ] = useRemoveMemberMutation();
+
   const [sent, setSent] = useState<{
     email: string;
     token?: string;
     expiresAt?: string;
+    userId?: string;
   } | null>(null);
 
   const [selectedCandidate, setSelectedCandidate] =
@@ -340,6 +346,8 @@ export function InviteMemberForm() {
           : `${values.email} can now join the team.`,
       });
 
+      const userId = response.member?.userId ?? selectedCandidate?.id;
+
       setSent({
         email: values.email,
         token:
@@ -347,6 +355,7 @@ export function InviteMemberForm() {
             ? response.invitationToken
             : undefined,
         expiresAt,
+        userId,
       });
     } catch (error) {
       const message = getErrorMessage(error);
@@ -423,10 +432,42 @@ export function InviteMemberForm() {
     router.push(lp("/dashboard/team-management"));
   }
 
+  async function handleCancelSentInvitation() {
+    if (!sent?.userId) {
+      router.push(lp("/dashboard/team-management?status=Invited"));
+      return;
+    }
+
+    try {
+      await removeMember({ userId: sent.userId }).unwrap();
+      toast.success({
+        title: "Invitation cancelled",
+        description: `The invitation to ${sent.email} has been cancelled.`,
+      });
+      setSent(null);
+      setSelectedCandidate(null);
+      setSearchQuery("");
+      reset({
+        email: "",
+        role: "MEMBER",
+        permissions: [...DEFAULT_PERMISSIONS_BY_ROLE.MEMBER],
+      });
+    } catch (error) {
+      toast.destructive({
+        title: "Failed to cancel invitation",
+        description:
+          getErrorMessage(error) ||
+          "Could not cancel invitation. Please try from Team Management.",
+      });
+    }
+  }
+
   if (sent) {
     return (
       <InvitationSent
         sent={sent}
+        isCancelling={isCancellingInvitation}
+        onCancelInvitation={handleCancelSentInvitation}
         onInviteAnother={() => {
           setSent(null);
           setSelectedCandidate(null);
@@ -686,12 +727,22 @@ export function InviteMemberForm() {
                                           : "Already a member"}
                                       </Badge>
                                     ) : candidate.isPendingInvite ? (
-                                      <Badge
-                                        variant="outline"
-                                        className="border-amber-500/30 bg-amber-500/10 text-xs font-medium text-amber-600 dark:text-amber-400"
-                                      >
-                                        Pending invite
-                                      </Badge>
+                                      <div className="flex items-center gap-1.5">
+                                        <Badge
+                                          variant="outline"
+                                          className="border-amber-500/30 bg-amber-500/10 text-xs font-medium text-amber-600 dark:text-amber-400"
+                                        >
+                                          Pending invite
+                                        </Badge>
+                                        <Link
+                                          href={lp("/dashboard/team-management?status=Invited")}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="hidden items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
+                                          title="Cancel or manage in Team Management"
+                                        >
+                                          Cancel &rarr;
+                                        </Link>
+                                      </div>
                                     ) : (
                                       <span className="hidden items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 group-hover:inline-flex">
                                         Select <ArrowRight className="size-3" />
@@ -743,6 +794,28 @@ export function InviteMemberForm() {
                   </FieldDescription>
 
                   <FieldError errors={[errors.email]} />
+
+                  {errors.email?.message &&
+                  (errors.email.message.toLowerCase().includes("already") ||
+                    errors.email.message.toLowerCase().includes("invitation")) ? (
+                    <div className="mt-2 flex items-start gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-300">
+                      <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                      <div className="space-y-1">
+                        <p className="font-medium">
+                          Active invitation or membership already exists
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          To cancel a pending invitation or manage existing team members:
+                        </p>
+                        <Link
+                          href={lp("/dashboard/team-management?status=Invited")}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline underline-offset-4 hover:opacity-80"
+                        >
+                          Go to Team Management to cancel invitation &rarr;
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
                 </FieldContent>
               </Field>
             </FieldGroup>
@@ -1377,29 +1450,34 @@ function Step({
 function InvitationSent({
   sent,
   onInviteAnother,
+  onCancelInvitation,
+  isCancelling,
 }: {
-  sent: { email: string; token?: string; expiresAt?: string };
+  sent: {
+    email: string;
+    token?: string;
+    expiresAt?: string;
+    userId?: string;
+  };
   onInviteAnother: () => void;
+  onCancelInvitation?: () => void;
+  isCancelling?: boolean;
 }) {
   const lp = useLocalePath();
   const [copied, setCopied] = useState(false);
 
   const link = sent.token
-    ? absoluteUrl(lp(`/invitations/${sent.token}`))
-    : null;
+    ? absoluteUrl(`/invitation?token=${sent.token}`)
+    : "";
 
   async function copyLink() {
     if (!link) return;
-
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.destructive({
-        title: "Could not copy the link",
-        description: "Select it in the field and copy it by hand.",
-      });
+      // ignore
     }
   }
 
@@ -1472,7 +1550,7 @@ function InvitationSent({
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-2.5 sm:flex-row">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
             <Link
               href={lp("/dashboard/team-management")}
               className={cn(
@@ -1493,6 +1571,23 @@ function InvitationSent({
               <Mail className="size-4" />
               Invite someone else
             </Button>
+
+            {onCancelInvitation ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isCancelling}
+                onClick={onCancelInvitation}
+                className="h-11 cursor-pointer rounded-xl border-red-200/80 px-5 text-base font-semibold text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-900/40 sm:ml-auto"
+              >
+                {isCancelling ? (
+                  <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+                ) : (
+                  <XCircle className="size-4" />
+                )}
+                {isCancelling ? "Cancelling…" : "Cancel invitation"}
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>

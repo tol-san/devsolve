@@ -629,6 +629,9 @@ export interface DbUserProfile {
   avatarUrl: string | null;
   email: string | null;
   reputation: number | null;
+  biography?: string | null;
+  country?: string | null;
+  coverImageUrl?: string | null;
 }
 
 export async function getUserProfilesByIds(
@@ -641,7 +644,7 @@ export async function getUserProfilesByIds(
   if (validIds.length === 0) return map;
   try {
     const res = await dbPool.query(
-      `SELECT id, full_name, username, avatar_url, email, reputation FROM user_profiles WHERE id = ANY($1::uuid[])`,
+      `SELECT id, full_name, username, avatar_url, email, reputation, biography, country, cover_image_url FROM user_profiles WHERE id = ANY($1::uuid[])`,
       [validIds]
     );
     for (const row of res.rows) {
@@ -652,6 +655,9 @@ export async function getUserProfilesByIds(
         avatarUrl: row.avatar_url ?? null,
         email: row.email ?? null,
         reputation: row.reputation != null ? Number(row.reputation) : null,
+        biography: row.biography ?? null,
+        country: row.country ?? null,
+        coverImageUrl: row.cover_image_url ?? null,
       });
     }
   } catch (err) {

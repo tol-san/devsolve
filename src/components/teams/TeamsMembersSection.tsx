@@ -17,6 +17,7 @@ import {
   UserPlus,
   UserRound,
   Users,
+  XCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -166,12 +167,13 @@ function getMemberPermissions(member: TeamMember, actor: TeamActor) {
 
   const canManageTarget =
     !member.isOwner &&
-    (actor.isOwner || (actor.role === "MANAGER" && member.role !== "Manager"));
+    (actor.isOwner ||
+      (actor.role === "MANAGER" && (member.isPending || member.role !== "Manager")));
 
   return {
     canViewProfile: true,
-    canEditRole: !isCurrentUser && canManageTarget,
-    canEditPermissions: !isCurrentUser && canManageTarget,
+    canEditRole: !isCurrentUser && canManageTarget && !member.isPending,
+    canEditPermissions: !isCurrentUser && canManageTarget && !member.isPending,
     canRemove: !isCurrentUser && canManageTarget,
     disableSelfRemoval: isCurrentUser,
   };
@@ -343,15 +345,19 @@ export function TeamsMembersSection({
       await removeMember({ userId: memberToRemove.id }).unwrap();
 
       toast.success({
-        title: "Member removed",
-        description: `${memberToRemove.name} no longer has access to this workspace.`,
+        title: memberToRemove.isPending ? "Invitation cancelled" : "Member removed",
+        description: memberToRemove.isPending
+          ? `The invitation to ${memberToRemove.name} has been cancelled.`
+          : `${memberToRemove.name} no longer has access to this workspace.`,
       });
       setMemberToRemove(null);
     } catch (error) {
       setRemovalError(
         memberActionMessage(
           error,
-          "The member could not be removed. Trying again is usually enough.",
+          memberToRemove.isPending
+            ? "The invitation could not be cancelled. Trying again is usually enough."
+            : "The member could not be removed. Trying again is usually enough.",
         ),
       );
     }
@@ -575,22 +581,38 @@ export function TeamsMembersSection({
                       </TableCell>
 
                       <TableCell className="px-4 py-4 text-center sm:px-6">
-                        <MemberActions
-                          member={member}
-                          permissions={getMemberPermissions(member, actor)}
-                          open={openMenuKey === memberMenuKey("row", member.id)}
-                          onOpenChange={(open) =>
-                            setOpenMenuKey(
-                              open ? memberMenuKey("row", member.id) : null,
-                            )
-                          }
-                          onViewProfile={() => openProfile(member)}
-                          onRoleChange={(role) =>
-                            void handleRoleChange(member, role)
-                          }
-                          onEditPermissions={() => askToTunePermissions(member)}
-                          onRemove={() => askToRemove(member)}
-                        />
+                        <div className="flex items-center justify-center gap-2">
+                          {member.isPending && getMemberPermissions(member, actor).canRemove ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => askToRemove(member)}
+                              className="h-8 cursor-pointer rounded-lg border-red-200/80 bg-red-50/50 px-2.5 text-xs font-semibold text-red-600 hover:border-red-300 hover:bg-red-100 hover:text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-900/40"
+                              title="Cancel invitation"
+                            >
+                              <XCircle className="size-3.5 mr-1" />
+                              Cancel invite
+                            </Button>
+                          ) : null}
+
+                          <MemberActions
+                            member={member}
+                            permissions={getMemberPermissions(member, actor)}
+                            open={openMenuKey === memberMenuKey("row", member.id)}
+                            onOpenChange={(open) =>
+                              setOpenMenuKey(
+                                open ? memberMenuKey("row", member.id) : null,
+                              )
+                            }
+                            onViewProfile={() => openProfile(member)}
+                            onRoleChange={(role) =>
+                              void handleRoleChange(member, role)
+                            }
+                            onEditPermissions={() => askToTunePermissions(member)}
+                            onRemove={() => askToRemove(member)}
+                          />
+                        </div>
                       </TableCell>
                     </MotionTableRow>
                   ))}
@@ -934,6 +956,19 @@ function MemberCard({
           {member.joined}
         </span>
       </div>
+
+      {member.isPending && permissions.canRemove ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onRemove}
+          className="w-full cursor-pointer justify-center rounded-xl border-red-200/80 bg-red-50/50 text-sm font-semibold text-red-600 hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-900/40"
+        >
+          <XCircle className="size-4 mr-1.5" />
+          Cancel invitation
+        </Button>
+      ) : null}
 
       <AccessSummary permissions={member.permissions} />
     </motion.li>

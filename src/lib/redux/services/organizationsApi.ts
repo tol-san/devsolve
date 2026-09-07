@@ -160,6 +160,23 @@ export type OrganizationInvitationMember = {
   self?: boolean;
   owner?: boolean;
   joinedAt: string;
+  avatarUrl?: string | null;
+  avatar?: string | null;
+  reputation?: number | null;
+  biography?: string | null;
+  country?: string | null;
+  coverImageUrl?: string | null;
+  profile?: {
+    id: string;
+    fullName?: string | null;
+    username?: string | null;
+    avatarUrl?: string | null;
+    email?: string | null;
+    reputation?: number | null;
+    biography?: string | null;
+    country?: string | null;
+    coverImageUrl?: string | null;
+  } | null;
 };
 
 export type InviteOrganizationMemberResponse = {

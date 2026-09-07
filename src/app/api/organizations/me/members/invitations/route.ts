@@ -43,6 +43,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const VALID_PERMISSIONS = new Set([
+    "VIEW_PROGRAMS",
+    "CREATE_PROGRAM",
+    "EDIT_PROGRAM",
+    "MANAGE_PROGRAM_STATE",
+    "VIEW_REPORTS",
+    "TRIAGE_REPORTS",
+    "MANAGE_DISCLOSURE",
+    "AWARD_REWARDS",
+  ]);
+
+  if (
+    payload &&
+    typeof payload === "object" &&
+    Array.isArray((payload as Record<string, unknown>).permissions)
+  ) {
+    (payload as Record<string, unknown>).permissions = (
+      (payload as Record<string, unknown>).permissions as unknown[]
+    ).filter(
+      (p): p is string => typeof p === "string" && VALID_PERMISSIONS.has(p)
+    );
+  }
+
   try {
     const upstream = await fetch(
       withOrganizationScope(
