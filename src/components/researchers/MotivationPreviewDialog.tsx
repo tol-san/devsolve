@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { FileText, User } from "lucide-react";
+import Link from "next/link";
+import { ExternalLink, FileText, User } from "lucide-react";
 
 import {
   Dialog,
@@ -11,7 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ResearcherAccessBadge } from "@/components/researchers/ResearcherAccessBadge";
 import { formatDateTime } from "@/lib/format/datetime";
 import { allowedDecisions, DECISION_LABEL } from "@/lib/researchers/access";
@@ -40,6 +42,13 @@ export function MotivationPreviewDialog({
     record.researcherName?.trim() ||
     record.researcherEmail?.trim() ||
     "Researcher";
+  const profileIdentifier =
+    record.researcherUsername ||
+    record.username ||
+    record.researcherId;
+  const profileHref = profileIdentifier
+    ? `/profile/${encodeURIComponent(profileIdentifier)}`
+    : null;
 
   return (
     <Dialog open={Boolean(record)} onOpenChange={(open) => !open && onClose()}>
@@ -65,20 +74,51 @@ export function MotivationPreviewDialog({
 
         <div className="space-y-4">
           {/* Researcher details card */}
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 shadow-2xs">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm shrink-0">
-              <User className="size-5" />
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 shadow-2xs">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm shrink-0">
+                <User className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                {profileHref ? (
+                  <Link
+                    href={profileHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-1.5 text-sm font-bold text-foreground hover:text-primary transition-colors max-w-full"
+                    title={`View ${who}'s public profile`}
+                  >
+                    <span className="truncate group-hover:underline">{who}</span>
+                    <ExternalLink className="size-3 text-muted-foreground group-hover:text-primary transition-colors opacity-70 group-hover:opacity-100 shrink-0" />
+                  </Link>
+                ) : (
+                  <p className="text-sm font-bold text-foreground truncate">
+                    {who}
+                  </p>
+                )}
+                {record.researcherEmail && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    {record.researcherEmail}
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-foreground truncate">
-                {who}
-              </p>
-              {record.researcherEmail && (
-                <p className="text-xs text-muted-foreground truncate">
-                  {record.researcherEmail}
-                </p>
-              )}
-            </div>
+
+            {profileHref && (
+              <Link
+                href={profileHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "h-8 gap-1.5 rounded-lg text-xs font-semibold shrink-0 cursor-pointer hover:text-primary",
+                )}
+                title="Open researcher profile in a new tab"
+              >
+                <span>View profile</span>
+                <ExternalLink className="size-3" />
+              </Link>
+            )}
           </div>
 
           {/* Full motivation statement */}

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, Users } from "lucide-react";
+import Link from "next/link";
+import { ExternalLink, Eye, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -78,13 +79,35 @@ export function ResearcherQueueTable({
               const decisions = allowedDecisions(record.status);
               const reviewed =
                 record.status !== "PENDING" ? record.reviewNote?.trim() : "";
+              const profileIdentifier =
+                record.researcherUsername ||
+                record.username ||
+                record.researcherId;
+              const profileHref = profileIdentifier
+                ? `/profile/${encodeURIComponent(profileIdentifier)}`
+                : null;
 
               return (
                 <TableRow key={record.id} className="align-top">
                   <TableCell className="px-4 py-4 whitespace-normal sm:px-6">
-                    <p className="text-sm font-bold text-foreground">
-                      {record.researcherName?.trim() || "Unnamed researcher"}
-                    </p>
+                    {profileHref ? (
+                      <Link
+                        href={profileHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex items-center gap-1.5 text-sm font-bold text-foreground hover:text-primary transition-colors max-w-full"
+                        title={`View ${record.researcherName || "researcher"}'s profile`}
+                      >
+                        <span className="group-hover:underline">
+                          {record.researcherName?.trim() || "Unnamed researcher"}
+                        </span>
+                        <ExternalLink className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors opacity-70 group-hover:opacity-100 shrink-0" />
+                      </Link>
+                    ) : (
+                      <p className="text-sm font-bold text-foreground">
+                        {record.researcherName?.trim() || "Unnamed researcher"}
+                      </p>
+                    )}
                     {record.researcherEmail && (
                       <p className="mt-0.5 text-sm text-muted-foreground">
                         {record.researcherEmail}

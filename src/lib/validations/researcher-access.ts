@@ -19,6 +19,8 @@ export interface ResearcherAccessRecord {
   researcherId: string;
   researcherName?: string | null;
   researcherEmail?: string | null;
+  researcherUsername?: string | null;
+  username?: string | null;
   status: ResearcherAccessStatus;
   canSubmitReports: boolean;
   motivation?: string | null;
