@@ -8,12 +8,14 @@ import {
   Calendar,
   Check,
   CheckCircle2,
+  Clock,
   Copy,
   ExternalLink,
   Globe,
   Lock,
   Mail,
   MapPin,
+  MessageSquareWarning,
   RotateCcw,
   Shield,
   ShieldAlert,
@@ -355,6 +357,61 @@ export function ReportDetailSidebar({ detail, onRefresh }: ReportDetailSidebarPr
                     >
                       <Sliders className="size-3.5" />
                       <span>Adjust / Re-evaluate Severity</span>
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ) : isNeedsMoreInfo ? (
+              <div className="relative overflow-hidden rounded-xl border border-amber-500/30 bg-card p-3.5 space-y-3 min-w-0">
+                <div className="pointer-events-none absolute -right-4 -top-4 size-24 rounded-full bg-amber-500/10 blur-xl" />
+
+                <div className="relative flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 font-bold text-sm">
+                    <span className="flex size-7 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-2xs shrink-0">
+                      <MessageSquareWarning className="size-3.5" />
+                    </span>
+                    <span>Awaiting Researcher Response</span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-300">
+                    <Clock className="size-2.5" />
+                    Pending
+                  </span>
+                </div>
+
+                <p className="relative text-xs text-muted-foreground leading-relaxed break-words">
+                  You asked for more information. The researcher was notified via the report thread and the report is on hold until they respond.
+                </p>
+
+                <div className="relative rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5 flex items-start gap-2">
+                  <AlertCircle className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700/90 dark:text-amber-300/90 leading-relaxed">
+                    There is nothing to act on here — the thread is where the conversation happens.
+                  </p>
+                </div>
+
+                <div className="relative space-y-2 pt-1">
+                  <Link
+                    href={`/dashboard/report-management/${detail.id}/severity-review`}
+                    className="block"
+                  >
+                    <Button
+                      className="w-full h-9 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs gap-2 cursor-pointer shadow-xs"
+                    >
+                      <MessageSquareWarning className="size-4" />
+                      <span>Ask another question</span>
+                    </Button>
+                  </Link>
+
+                  <Link
+                    href={`/dashboard/report-management/${detail.id}/severity-review?action=reject`}
+                    className="block"
+                  >
+                    <Button
+                      variant="outline"
+                      className="w-full h-9 rounded-xl border-red-500/20 bg-red-500/5 hover:bg-red-500/15 font-semibold text-red-600 dark:text-red-400 text-xs gap-2 cursor-pointer shadow-2xs"
+                    >
+                      <XCircle className="size-4" />
+                      <span>Reject without more info</span>
                     </Button>
                   </Link>
                 </div>
