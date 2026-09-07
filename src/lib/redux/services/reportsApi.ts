@@ -352,22 +352,37 @@ function toReportItem(
 ): ReportItem {
   const status = toStatus(report.state);
   const effectiveOrgName =
-    report.program?.organizationName ||
-    organizationName ||
     (report as any).organizationName ||
+    (report as any).organization_name ||
+    (report as any).organization?.name ||
+    report.program?.organizationName ||
+    (report.program as any)?.organization_name ||
+    (report.program as any)?.organization?.name ||
+    organizationName ||
     (report as any).org_name ||
     undefined;
   const effectiveOrgLogo =
-    report.program?.organizationLogoUrl ||
-    organizationLogoUrl ||
     (report as any).organizationLogoUrl ||
+    (report as any).organization_logo_url ||
+    (report as any).organization?.logoUrl ||
+    (report as any).organization?.logo_url ||
+    report.program?.organizationLogoUrl ||
+    (report.program as any)?.organization_logo_url ||
+    (report.program as any)?.organization?.logoUrl ||
+    organizationLogoUrl ||
     (report as any).org_logo ||
     undefined;
   const effectiveOrgId =
+    (report as any).organizationId ||
+    (report as any).organization_id ||
+    (report as any).organization?.id ||
     report.program?.organizationId ||
-    organizationId ||
-    (report as any).organizationId;
+    (report.program as any)?.organization_id ||
+    (report.program as any)?.organization?.id ||
+    organizationId;
   const effectiveProgName =
+    (report as any).programName ||
+    (report as any).program_name ||
     report.program?.name ||
     programName;
 
@@ -426,16 +441,17 @@ function toReportItem(
       String(report.triageSeverity || (report as any).triage_severity).toUpperCase() !==
         String(report.reportedSeverity || (report as any).reported_severity).toUpperCase(),
     dispute: report.dispute ?? (report as any).dispute ?? null,
-    isDisputed:
-      report.isDisputed ??
-      Boolean(report.dispute) ??
-      Boolean((report as any).is_disputed) ??
-      Boolean(
-        !report.severity &&
-        report.triageSeverity &&
-        report.reportedSeverity &&
-        String(report.triageSeverity).toUpperCase() !== String(report.reportedSeverity).toUpperCase()
-      ),
+    isDisputed: Boolean(
+      report.isDisputed ||
+      (report as any).is_disputed ||
+      report.dispute ||
+      (report as any).dispute ||
+      (!report.severity &&
+        (report.triageSeverity || (report as any).triage_severity) &&
+        (report.reportedSeverity || (report as any).reported_severity) &&
+        String(report.triageSeverity || (report as any).triage_severity).toUpperCase() !==
+          String(report.reportedSeverity || (report as any).reported_severity).toUpperCase())
+    ),
     weaknessObj: report.weakness ?? null,
     suggestedWeakness: report.suggestedWeakness ?? (report as any).suggested_weakness ?? null,
     status,
