@@ -711,21 +711,21 @@ function PermissionTableRow({
     getPermissionCategory(option.value);
 
   return (
-      <ToggleGroupItem
-        value={option.value}
-        disabled={disabled}
-        aria-label={`${
-          selected ? "Remove" : "Add"
-        } ${option.title} permission`}
+    <ToggleGroupItem
+      value={option.value}
+      disabled={disabled}
+      aria-label={`${
+        selected ? "Remove" : "Add"
+      } ${option.title} permission`}
       className={cn(
-        "group block h-auto min-h-0 w-full whitespace-normal rounded-none border-0 bg-transparent px-0 py-0 text-left font-normal shadow-none",
-        "focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#2563EB]/25",
+        "group block h-auto min-h-0 w-full whitespace-normal rounded-none border-0 bg-transparent px-0 py-0 text-left font-normal shadow-none cursor-pointer",
+        "focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600/25",
         "hover:bg-transparent aria-pressed:bg-transparent data-[state=on]:bg-transparent dark:hover:bg-transparent dark:aria-pressed:bg-transparent dark:data-[state=on]:bg-transparent",
-        "text-slate-900 dark:text-slate-100",
+        "text-foreground",
         disabled && "opacity-50 cursor-not-allowed",
       )}
-      >
-        <motion.div
+    >
+      <motion.div
         initial={false}
         animate={{
           opacity: 1,
@@ -735,12 +735,12 @@ function PermissionTableRow({
           ease: "easeOut",
         }}
         className={cn(
-          "flex items-center justify-between gap-4 rounded-lg border border-transparent px-3 py-3.5 transition-all duration-200",
+          "flex items-center justify-between gap-4 rounded-xl border border-transparent px-3.5 py-3 transition-all duration-200",
           selected
-            ? "bg-slate-50/90 shadow-none dark:bg-slate-900/80"
+            ? "border-blue-500/20 bg-blue-50/70 dark:bg-blue-950/20 shadow-none"
             : disabled
               ? "bg-muted/40 text-muted-foreground"
-              : "bg-white hover:bg-slate-50 dark:bg-slate-950 dark:hover:bg-slate-900/70",
+              : "bg-card hover:bg-muted/60",
         )}
       >
         <div className="flex min-w-0 items-center gap-3">
@@ -748,10 +748,10 @@ function PermissionTableRow({
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <p
                 className={cn(
-                  "truncate text-sm font-medium transition-colors duration-200 sm:text-base",
+                  "truncate text-sm font-semibold transition-colors duration-200 sm:text-base",
                   selected
-                    ? "text-[#2563EB] dark:text-blue-300"
-                    : "text-slate-900 group-hover:text-[#2563EB] dark:text-slate-100 dark:group-hover:text-blue-300",
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400",
                 )}
               >
                 {option.title}
@@ -764,10 +764,10 @@ function PermissionTableRow({
 
             <p
               title={option.description}
-              className="mt-0.5 line-clamp-1 text-sm text-slate-500 dark:text-slate-400"
+              className="mt-0.5 line-clamp-1 text-sm text-muted-foreground"
             >
               {disabled ? (
-                <span className="font-medium text-amber-700 dark:text-amber-400">
+                <span className="font-medium text-amber-600 dark:text-amber-400">
                   Not available for this role &mdash; promote to grant.
                 </span>
               ) : (
@@ -792,30 +792,27 @@ function PermissionTableRow({
             }}
             aria-hidden="true"
             className={cn(
-              "flex size-8 shrink-0 items-center justify-center rounded-full border transition-all duration-200",
+              "flex size-7 shrink-0 items-center justify-center rounded-full border transition-all duration-200",
               selected
                 ? [
-                    "border-[#2563EB]",
-                    "bg-[#2563EB]",
+                    "border-blue-600",
+                    "bg-blue-600",
                     "text-white",
-                    "ring-2 ring-blue-100",
-                    "dark:border-blue-400",
+                    "ring-2 ring-blue-500/20",
+                    "dark:border-blue-500",
                     "dark:bg-blue-500",
-                    "dark:ring-blue-900/40",
                   ]
                 : [
-                    "border-slate-300",
-                    "bg-white",
+                    "border-border",
+                    "bg-card",
                     "text-transparent",
                     "group-hover:border-blue-300",
-                    "group-hover:bg-blue-50/80",
-                    "group-hover:text-[#2563EB]",
-                    "dark:border-slate-700",
-                    "dark:bg-slate-950",
+                    "group-hover:bg-blue-50/50",
+                    "group-hover:text-blue-600",
                     "dark:group-hover:border-blue-700",
                     "dark:group-hover:bg-blue-950/30",
-                    "dark:group-hover:text-blue-300",
-                ],
+                    "dark:group-hover:text-blue-400",
+                  ],
             )}
           >
             <Check className="size-3.5 stroke-[2.5]" />
@@ -842,7 +839,7 @@ function RoleToggleButton({
   return (
     <motion.div
       whileHover={{
-        y: -2,
+        y: -1,
       }}
       transition={{
         duration: 0.18,
@@ -853,57 +850,57 @@ function RoleToggleButton({
         value={option.role}
         aria-label={`Select ${option.title} role`}
         className={cn(
-          "flex h-auto min-h-0 w-full flex-col items-stretch whitespace-normal rounded-xl border px-4 py-4 text-left transition-all duration-200 aria-pressed:bg-white aria-pressed:text-slate-700 dark:aria-pressed:bg-slate-950 dark:aria-pressed:text-slate-200",
+          "flex h-auto min-h-0 w-full flex-col items-stretch whitespace-normal rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs",
           selected
-            ? "border-blue-300 bg-white text-slate-700 shadow-none hover:bg-white dark:border-blue-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-950"
-            : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900",
+            ? "border-blue-500/40 bg-blue-50/30 text-foreground ring-1 ring-blue-500/20 dark:border-blue-500/40 dark:bg-blue-950/20"
+            : "border-border bg-card text-card-foreground hover:border-blue-500/30 hover:bg-muted/40",
         )}
       >
         <div className="flex w-full items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <span
               className={cn(
-                "flex size-9 shrink-0 items-center justify-center rounded-lg border",
+                "flex size-9 shrink-0 items-center justify-center rounded-xl border transition-colors",
                 selected
-                  ? "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
-                  : "border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400",
+                  ? "border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                  : "border-border bg-muted/60 text-muted-foreground",
               )}
             >
               <Icon className="size-4" />
             </span>
 
             <div className="min-w-0">
-              <p className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              <p className="text-base font-semibold text-foreground">
                 {option.title}
               </p>
 
-              <p className="mt-1 whitespace-normal text-sm leading-5 text-slate-500 dark:text-slate-400">
+              <p className="mt-1 whitespace-normal text-sm leading-relaxed text-muted-foreground">
                 {getRoleSummary(option.role)}
               </p>
             </div>
           </div>
 
-            <span
-              className={cn(
-                "flex size-6 shrink-0 items-center justify-center rounded-full border",
-                selected
-                  ? "border-[#2563EB] bg-[#2563EB] text-white"
-                : "border-slate-300 bg-white text-transparent dark:border-slate-700 dark:bg-slate-950",
+          <span
+            className={cn(
+              "flex size-6 shrink-0 items-center justify-center rounded-full border transition-all duration-200",
+              selected
+                ? "border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500"
+                : "border-border bg-card text-transparent",
             )}
           >
-            <Check className="size-4" />
+            <Check className="size-3.5 stroke-[2.5]" />
           </span>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3.5 flex flex-wrap gap-1.5 pl-12">
           {capabilities.map((capability) => (
             <span
               key={capability}
               className={cn(
-                "rounded-lg border px-2.5 py-1 text-sm font-medium",
+                "rounded-md border px-2 py-0.5 text-xs font-medium transition-colors",
                 selected
-                  ? "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                  : "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
+                  ? "border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                  : "border-border bg-muted/50 text-muted-foreground",
               )}
             >
               {capability}
@@ -925,32 +922,32 @@ function PermissionCategoryBadge({
     string
   > = {
     Programs:
-      "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300",
+      "border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400",
 
     Reports:
-      "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-300",
+      "border-violet-500/20 bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400",
 
     Disclosure:
-      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
+      "border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400",
 
     Rewards:
-      "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
+      "border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
 
     Researchers:
-      "border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-900 dark:bg-teal-950/40 dark:text-teal-300",
+      "border-teal-500/20 bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400",
 
     Members:
-      "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300",
+      "border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
 
     General:
-      "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
+      "border-border bg-muted text-muted-foreground",
   };
 
   return (
     <Badge
       variant="outline"
       className={cn(
-        "w-fit min-w-[88px] justify-center rounded-full px-2.5 py-1 text-xs font-medium",
+        "w-fit min-w-[76px] justify-center rounded-full px-2.5 py-0.5 text-xs font-medium",
         styles[category],
       )}
     >
@@ -973,14 +970,14 @@ function SummaryField({
   muted = false,
 }: SummaryFieldProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+    <div className="rounded-xl border border-border bg-muted/40 p-4">
       <div className="flex min-w-0 items-start gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 ring-1 ring-slate-200 dark:bg-slate-950 dark:text-slate-400 dark:ring-slate-700">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-2xs">
           <Icon className="size-4" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          <p className="text-sm font-medium text-muted-foreground">
             {label}
           </p>
 
@@ -989,8 +986,8 @@ function SummaryField({
             className={cn(
               "mt-1 max-w-full text-sm font-semibold leading-5 [overflow-wrap:anywhere]",
               muted
-                ? "text-slate-400"
-                : "text-slate-900 dark:text-slate-100",
+                ? "text-muted-foreground/60"
+                : "text-foreground",
             )}
           >
             {value}
@@ -1010,11 +1007,11 @@ function Step({
 }) {
   return (
     <li className="flex items-start gap-3">
-      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-sm font-semibold text-[#2563EB] ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-700">
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-card text-sm font-semibold text-blue-600 dark:text-blue-400 shadow-2xs">
         {number}
       </span>
 
-      <p className="pt-0.5 text-sm leading-6 text-slate-600 dark:text-slate-400">
+      <p className="pt-0.5 text-sm leading-6 text-muted-foreground">
         {text}
       </p>
     </li>

@@ -28,6 +28,8 @@ import { ReportSummaryTab } from "@/components/reports/ReportSummaryTab";
 import { ReportEarnings } from "@/components/reports/ReportEarnings";
 import { ReportResponseTime } from "@/components/reports/ReportResponseTime";
 import { SeverityDisputePanel } from "@/components/reports/SeverityDisputePanel";
+import SeverityBadge from "@/components/reports/SeverityBadge";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { ReportTimeline } from "@/components/reports/ReportTimeline";
 import { RetestHistoryTimeline } from "@/components/report-management/RetestHistoryTimeline";
 import { SubmitRetestModal } from "@/components/report-management/SubmitRetestModal";
@@ -283,17 +285,50 @@ export default function ReportDetailPage() {
       ) : (
         <div className="space-y-6">
           <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-4 sm:p-6 space-y-4 shadow-xs">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-              {report.title}
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+                {report.title || "Vulnerability Report"}
+              </h2>
+              <div className="flex items-center gap-2 shrink-0">
+                {report.severity ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Final Severity:</span>
+                    <SeverityBadge severity={report.severity} />
+                  </div>
+                ) : (Boolean(report.isDisputed) ||
+                    Boolean(report.dispute) ||
+                    (Boolean(report.triageSeverity) &&
+                      Boolean(report.reportedSeverity) &&
+                      report.triageSeverity !== report.reportedSeverity)) ? (
+                  <DisputedSeverityPair
+                    reportedSeverity={report.reportedSeverity || report.claimedSeverity}
+                    triageSeverity={report.triageSeverity || report.confirmedSeverity}
+                    size="sm"
+                  />
+                ) : report.triageSeverity ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Org Severity:</span>
+                    <SeverityBadge severity={report.triageSeverity} />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground">Reported:</span>
+                    <SeverityBadge
+                      severity={report.reportedSeverity || report.claimedSeverity}
+                      fallbackText="Pending Triage"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
             <ReportStatusTracker status={report.status} />
           </div>
 
           <SeverityDisputePanel
             reportId={reportId}
             dispute={report.dispute}
-            reportedSeverity={report.reportedSeverity}
-            triageSeverity={report.triageSeverity}
+            reportedSeverity={report.reportedSeverity || report.claimedSeverity}
+            triageSeverity={report.triageSeverity || report.confirmedSeverity}
             isReporter={isReporter}
           />
 

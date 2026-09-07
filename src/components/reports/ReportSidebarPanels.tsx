@@ -141,19 +141,29 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
                 </div>
               </div>
             </div>
+          ) : report.triageSeverity ? (
+            <div className="flex items-center gap-2">
+              <SeverityBadge severity={report.triageSeverity} />
+              <span className="text-xs text-muted-foreground font-semibold">Org assessed</span>
+            </div>
           ) : (
-            <SeverityBadge severity={report.reportedSeverity || report.claimedSeverity || "LOW"} />
+            <div className="flex items-center gap-2">
+              <SeverityBadge severity={report.reportedSeverity || report.claimedSeverity} fallbackText="Pending Triage" />
+              <span className="text-xs text-muted-foreground">Claimed</span>
+            </div>
           )}
         </div>
 
-        {report.dispute && report.dispute.status === "OPEN" && (
+        {report.dispute && (String(report.dispute.status).toUpperCase() === "OPEN" || String(report.dispute.status).toUpperCase() === "AWAITING_REPORTER" || String(report.dispute.status).toUpperCase() === "UNDER_REVIEW") && (
           <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-800 dark:text-rose-200 space-y-1">
             <div className="flex items-center gap-1.5 font-bold">
               <ShieldAlert className="size-3.5 text-rose-500 shrink-0" />
-              <span>Under Dispute Review</span>
+              <span>{String(report.dispute.status).toUpperCase() === "AWAITING_REPORTER" ? "Awaiting Your Confirmation" : "Under Dispute Review"}</span>
             </div>
             <p className="text-muted-foreground leading-relaxed">
-              The assigned severity is contested. An admin review is in progress.
+              {String(report.dispute.status).toUpperCase() === "AWAITING_REPORTER"
+                ? "The organization triaged this lower than reported. Review and confirm in the banner above."
+                : "The assigned severity is contested. An admin review is in progress."}
             </p>
           </div>
         )}

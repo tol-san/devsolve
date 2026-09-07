@@ -5,33 +5,38 @@ export function isDisputeBlocking(
   dispute: DisputeDetail | null | undefined,
 ): boolean {
   if (!dispute) return false;
+  const s = dispute.status ? String(dispute.status).toUpperCase() : "";
   return (
-    dispute.status === "AWAITING_REPORTER" ||
-    dispute.status === "OPEN" ||
-    dispute.status === "UNDER_REVIEW"
+    s === "AWAITING_REPORTER" ||
+    s === "OPEN" ||
+    s === "UNDER_REVIEW"
   );
 }
 
 export function isAwaitingReporter(
   dispute: DisputeDetail | null | undefined,
 ): boolean {
-  return dispute?.status === "AWAITING_REPORTER";
+  const s = dispute?.status ? String(dispute.status).toUpperCase() : "";
+  return s === "AWAITING_REPORTER";
 }
 
 export function isWithAdministrator(
   dispute: DisputeDetail | null | undefined,
 ): boolean {
-  return dispute?.status === "OPEN" || dispute?.status === "UNDER_REVIEW";
+  const s = dispute?.status ? String(dispute.status).toUpperCase() : "";
+  return s === "OPEN" || s === "UNDER_REVIEW";
 }
 
 export function isDisputeSettled(
   dispute: DisputeDetail | null | undefined,
 ): boolean {
-  return dispute?.status === "RESOLVED" || dispute?.status === "DISMISSED";
+  const s = dispute?.status ? String(dispute.status).toUpperCase() : "";
+  return s === "RESOLVED" || s === "DISMISSED";
 }
 
 export function disputeStatusLabel(dispute: DisputeDetail): string {
-  switch (dispute.status) {
+  const s = dispute.status ? String(dispute.status).toUpperCase() : "";
+  switch (s) {
     case "AWAITING_REPORTER":
       return "Awaiting the researcher";
     case "OPEN":
@@ -42,5 +47,7 @@ export function disputeStatusLabel(dispute: DisputeDetail): string {
       return "Resolved";
     case "DISMISSED":
       return "Dismissed";
+    default:
+      return dispute.status;
   }
 }

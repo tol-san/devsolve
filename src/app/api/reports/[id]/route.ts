@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { getReportWeakness, getUserProfilesByIds } from "@/lib/server/db";
+import {
+  getReportWeakness,
+  getUserProfilesByIds,
+  enrichSingleReportWithDisputeAndSeverity,
+} from "@/lib/server/db";
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const PROVIDER_ID = "keycloak";
@@ -189,6 +193,8 @@ export async function GET(
     reportData.rewards = Array.isArray(reportData.rewards) ? reportData.rewards : [];
     reportData.retestHistory = Array.isArray(reportData.retestHistory) ? reportData.retestHistory : [];
     reportData.referenceLinks = Array.isArray(reportData.referenceLinks) ? reportData.referenceLinks : [];
+
+    await enrichSingleReportWithDisputeAndSeverity(reportData, id);
 
     return NextResponse.json(reportData, { status: 200 });
   } catch {

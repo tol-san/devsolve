@@ -147,8 +147,12 @@ interface DbReportRow {
   organization_name: string | null;
   organization_logo_url: string | null;
   organization_slug: string | null;
-  organization_domain: string | null;
+  organization_website_url: string | null;
   organization_industry: string | null;
+  triage_severity: string | null;
+  reported_severity: string | null;
+  severity: string | null;
+  report_title: string | null;
 }
 
 export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
@@ -160,59 +164,120 @@ export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
   if (reportIds.length === 0) return reports;
 
   try {
-    const res = await dbPool.query<DbReportRow>(
-      `SELECT 
-         r.id as report_id,
-         p.id as program_id,
-         p.name as program_name,
-         p.handle as program_handle,
-         p.visibility as program_visibility,
-         o.id as organization_id,
-         o.name as organization_name,
-         o.logo_url as organization_logo_url,
-         o.slug as organization_slug,
-         o.domain as organization_domain,
-         o.industry as organization_industry
-       FROM reports r
-       LEFT JOIN programs p ON p.id = r.program_id
-       LEFT JOIN organizations o ON o.id = p.organization_id
-       WHERE r.id = ANY($1::uuid[])`,
-      [reportIds]
-    );
+    const [reportsRes, disputesRes] = await Promise.all([
+      dbPool.query<DbReportRow>(
+        `SELECT 
+           r.id as report_id,
+           r.triage_severity,
+           r.reported_severity,
+           r.severity,
+           r.title as report_title,
+           p.id as program_id,
+           p.name as program_name,
+           p.handle as program_handle,
+           p.visibility as program_visibility,
+           o.id as organization_id,
+           o.name as organization_name,
+           o.logo_url as organization_logo_url,
+           o.slug as organization_slug,
+           o.website_url as organization_website_url,
+           o.industry as organization_industry
+         FROM reports r
+         LEFT JOIN programs p ON p.id = r.program_id
+         LEFT JOIN organizations o ON o.id = p.organization_id
+         WHERE r.id = ANY($1::uuid[])`,
+        [reportIds]
+      ),
+      dbPool.query<{
+        report_id: string;
+        id: string;
+        status: string;
+        reason: string | null;
+        resolved_severity: string | null;
+      }>(
+        `SELECT report_id, id, status, reason, resolved_severity FROM disputes WHERE report_id = ANY($1::uuid[])`,
+        [reportIds]
+      ).catch(() => ({ rows: [] }))
+    ]);
 
     const map = new Map<string, DbReportRow>();
-    for (const row of res.rows) {
+    for (const row of reportsRes.rows) {
       map.set(row.report_id, row);
+    }
+
+    const disputeMap = new Map<string, { id: string; status: string; reason: string | null; resolved_severity: string | null }>();
+    for (const d of disputesRes.rows) {
+      disputeMap.set(d.report_id, d);
     }
 
     for (const r of reports) {
       const dbRow = map.get(r.id);
+      const item = r as Record<string, unknown>;
+
       if (dbRow) {
-        const item = r as Record<string, unknown>;
         if (dbRow.program_name && !item.programName) {
           item.programName = dbRow.program_name;
         }
         if (dbRow.program_handle && !item.programHandle) {
           item.programHandle = dbRow.program_handle;
         }
-        if (dbRow.organization_id) {
+        if (dbRow.organization_id && !item.organizationId) {
           item.organizationId = dbRow.organization_id;
         }
-        if (dbRow.organization_name) {
+        if (dbRow.organization_name && !item.organizationName) {
           item.organizationName = dbRow.organization_name;
         }
-        if (dbRow.organization_logo_url) {
+        if (dbRow.organization_logo_url && !item.organizationLogoUrl) {
           item.organizationLogoUrl = dbRow.organization_logo_url;
         }
-        if (dbRow.organization_slug) {
+        if (dbRow.organization_slug && !item.organizationSlug) {
           item.organizationSlug = dbRow.organization_slug;
         }
-        if (dbRow.organization_domain) {
-          item.organizationDomain = dbRow.organization_domain;
+        if (dbRow.organization_website_url && !item.organizationWebsiteUrl) {
+          item.organizationWebsiteUrl = dbRow.organization_website_url;
         }
-        if (dbRow.organization_industry) {
+        if (dbRow.organization_industry && !item.organizationIndustry) {
           item.organizationIndustry = dbRow.organization_industry;
         }
+
+        // Enrich severity from DB if missing or lowercased from backend
+        if (dbRow.triage_severity) {
+          const sev = String(dbRow.triage_severity).toUpperCase();
+          if (!item.triageSeverity) item.triageSeverity = sev;
+          if (!item.triage_severity) item.triage_severity = sev;
+        }
+        if (dbRow.reported_severity) {
+          const sev = String(dbRow.reported_severity).toUpperCase();
+          if (!item.reportedSeverity) item.reportedSeverity = sev;
+          if (!item.reported_severity) item.reported_severity = sev;
+        }
+        if (dbRow.severity) {
+          const sev = String(dbRow.severity).toUpperCase();
+          if (!item.severity) item.severity = sev;
+        }
+      }
+
+      // Attach dispute information
+      const dispute = disputeMap.get(r.id);
+      if (dispute) {
+        const normStatus = (dispute.status || "OPEN").toUpperCase();
+        if (!item.dispute) {
+          item.dispute = {
+            id: dispute.id,
+            status: normStatus,
+            reason: dispute.reason,
+            resolvedSeverity: dispute.resolved_severity ? String(dispute.resolved_severity).toUpperCase() : null,
+          };
+        }
+        item.isDisputed = normStatus !== "DISMISSED" && normStatus !== "RESOLVED";
+      } else if (
+        !item.isDisputed &&
+        dbRow?.triage_severity &&
+        dbRow?.reported_severity &&
+        String(dbRow.triage_severity).toUpperCase() !== String(dbRow.reported_severity).toUpperCase() &&
+        !dbRow.severity
+      ) {
+        item.isDisputed = true;
       }
     }
   } catch (err) {
@@ -220,6 +285,98 @@ export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
   }
 
   return reports;
+}
+
+export async function enrichSingleReportWithDisputeAndSeverity(
+  reportData: Record<string, any>,
+  reportId: string
+): Promise<void> {
+  if (!reportId || !reportData) return;
+
+  try {
+    const [reportRes, disputesRes] = await Promise.all([
+      dbPool.query<{
+        triage_severity: string | null;
+        reported_severity: string | null;
+        severity: string | null;
+        program_name: string | null;
+        organization_name: string | null;
+        organization_logo_url: string | null;
+      }>(
+        `SELECT 
+           r.triage_severity,
+           r.reported_severity,
+           r.severity,
+           p.name as program_name,
+           o.name as organization_name,
+           o.logo_url as organization_logo_url
+         FROM reports r
+         LEFT JOIN programs p ON p.id = r.program_id
+         LEFT JOIN organizations o ON o.id = p.organization_id
+         WHERE r.id = $1::uuid`,
+        [reportId]
+      ),
+      dbPool.query<{
+        id: string;
+        status: string;
+        reason: string | null;
+        resolved_severity: string | null;
+      }>(
+        `SELECT id, status, reason, resolved_severity FROM disputes WHERE report_id = $1::uuid ORDER BY created_at DESC LIMIT 1`,
+        [reportId]
+      ).catch(() => ({ rows: [] }))
+    ]);
+
+    const dbRow = reportRes.rows[0];
+    if (dbRow) {
+      if (dbRow.triage_severity) {
+        const sev = String(dbRow.triage_severity).toUpperCase();
+        if (!reportData.triageSeverity) reportData.triageSeverity = sev;
+        if (!reportData.triage_severity) reportData.triage_severity = sev;
+      }
+      if (dbRow.reported_severity) {
+        const sev = String(dbRow.reported_severity).toUpperCase();
+        if (!reportData.reportedSeverity) reportData.reportedSeverity = sev;
+        if (!reportData.reported_severity) reportData.reported_severity = sev;
+      }
+      if (dbRow.severity && !reportData.severity) {
+        reportData.severity = String(dbRow.severity).toUpperCase();
+      }
+      if (dbRow.program_name && !reportData.programName) {
+        reportData.programName = dbRow.program_name;
+      }
+      if (dbRow.organization_name && !reportData.organizationName) {
+        reportData.organizationName = dbRow.organization_name;
+      }
+      if (dbRow.organization_logo_url && !reportData.organizationLogoUrl) {
+        reportData.organizationLogoUrl = dbRow.organization_logo_url;
+      }
+    }
+
+    const dispute = disputesRes.rows[0];
+    if (dispute) {
+      const normStatus = (dispute.status || "OPEN").toUpperCase();
+      if (!reportData.dispute) {
+        reportData.dispute = {
+          id: dispute.id,
+          status: normStatus,
+          reason: dispute.reason,
+          resolvedSeverity: dispute.resolved_severity ? String(dispute.resolved_severity).toUpperCase() : null,
+        };
+      }
+      reportData.isDisputed = normStatus !== "DISMISSED" && normStatus !== "RESOLVED";
+    } else if (
+      !reportData.isDisputed &&
+      dbRow?.triage_severity &&
+      dbRow?.reported_severity &&
+      String(dbRow.triage_severity).toUpperCase() !== String(dbRow.reported_severity).toUpperCase() &&
+      !dbRow.severity
+    ) {
+      reportData.isDisputed = true;
+    }
+  } catch (err) {
+    console.error(`[db] Failed to enrich single report ${reportId}:`, err);
+  }
 }
 
 export async function enrichDraftsWithWeakness<T extends { id: string; suggestedWeakness?: any }>(

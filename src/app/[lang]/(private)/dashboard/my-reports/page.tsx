@@ -48,11 +48,32 @@ import {
 } from "@/components/ui/filter-bar";
 import StatusBadge from "@/components/reports/StatusBadge";
 import SeverityBadge from "@/components/reports/SeverityBadge";
+import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { ResearcherReportMetrics } from "@/components/reports/ResearcherReportMetrics";
 import { ResearcherReportCard } from "@/components/reports/ResearcherReportCard";
 import { ReportQuickViewModal } from "@/components/reports/ReportQuickViewModal";
 import { ResearcherReportPagination } from "@/components/reports/ResearcherReportPagination";
 import { cn } from "@/lib/utils";
+
+function formatReportDisplayTitle(title?: string | null, weaknessName?: string | null): string {
+  if (!title || !title.trim() || title.trim().toLowerCase() === "untitled" || title.trim().toLowerCase() === "untitled report") {
+    return weaknessName ? `${weaknessName} Finding` : "Vulnerability Report";
+  }
+  const trimmed = title.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    try {
+      const url = new URL(trimmed);
+      if (url.pathname && url.pathname !== "/" && url.pathname.length > 1) {
+        const seg = url.pathname.split("/").filter(Boolean).pop();
+        return seg ? `Security Finding: ${seg}` : `Security Finding at ${url.pathname}`;
+      }
+      return `Target Finding: ${url.hostname}`;
+    } catch {
+      return weaknessName ? `${weaknessName} Finding` : "Vulnerability Report";
+    }
+  }
+  return trimmed;
+}
 
 const SEVERITY_LABELS: Record<string, string> = {
   All: "Any severity",
@@ -570,7 +591,7 @@ function MyReportsContent() {
                           <div className="flex flex-col min-w-0">
                             <Link href={`/dashboard/my-reports/${report.id}`}>
                               <strong className="text-sm sm:text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors block">
-                                {report.title}
+                                {formatReportDisplayTitle(report.title, report.suggestedWeakness || report.weaknessObj?.name)}
                               </strong>
                             </Link>
                             <span className="text-xs text-muted-foreground truncate">
@@ -587,7 +608,29 @@ function MyReportsContent() {
                       </TableCell>
 
                       <TableCell className="py-4 px-4 sm:px-6">
-                        <SeverityBadge severity={report.severity} />
+                        {report.severity ? (
+                          <SeverityBadge severity={report.severity} />
+                        ) : (Boolean(report.isDisputed) ||
+                            Boolean(report.dispute) ||
+                            (Boolean(report.triageSeverity) &&
+                              Boolean(report.reportedSeverity) &&
+                              report.triageSeverity !== report.reportedSeverity)) ? (
+                          <DisputedSeverityPair
+                            reportedSeverity={report.reportedSeverity}
+                            triageSeverity={report.triageSeverity}
+                            size="table"
+                          />
+                        ) : report.triageSeverity ? (
+                          <div className="flex flex-col items-start sm:items-center gap-0.5">
+                            <SeverityBadge severity={report.triageSeverity} />
+                            <span className="text-[10px] font-semibold text-muted-foreground">Org assessed</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-start sm:items-center gap-0.5">
+                            <SeverityBadge severity={report.reportedSeverity} fallbackText="Pending Triage" />
+                            <span className="text-[10px] text-muted-foreground">Awaiting Org Triage</span>
+                          </div>
+                        )}
                       </TableCell>
 
                       <TableCell className="py-4 px-4 sm:px-6">

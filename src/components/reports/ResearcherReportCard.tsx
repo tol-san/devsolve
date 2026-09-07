@@ -24,6 +24,26 @@ import SeverityBadge from "@/components/reports/SeverityBadge";
 import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { cn } from "@/lib/utils";
 
+function formatReportDisplayTitle(title?: string | null, weaknessName?: string | null): string {
+  if (!title || !title.trim() || title.trim().toLowerCase() === "untitled" || title.trim().toLowerCase() === "untitled report") {
+    return weaknessName ? `${weaknessName} Finding` : "Vulnerability Report";
+  }
+  const trimmed = title.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    try {
+      const url = new URL(trimmed);
+      if (url.pathname && url.pathname !== "/" && url.pathname.length > 1) {
+        const seg = url.pathname.split("/").filter(Boolean).pop();
+        return seg ? `Security Finding: ${seg}` : `Security Finding at ${url.pathname}`;
+      }
+      return `Target Finding: ${url.hostname}`;
+    } catch {
+      return weaknessName ? `${weaknessName} Finding` : "Vulnerability Report";
+    }
+  }
+  return trimmed;
+}
+
 interface ResearcherReportCardProps {
   report: ReportItem;
   index: number;
@@ -179,7 +199,7 @@ export function ResearcherReportCard({
         {/* Report Title */}
         <Link href={`/dashboard/my-reports/${report.id}`} className="block group/title">
           <h3 className="text-[15px] sm:text-base font-bold text-foreground line-clamp-2 group-hover/title:text-primary transition-colors leading-snug">
-            {report.title}
+            {formatReportDisplayTitle(report.title, report.suggestedWeakness || report.weaknessObj?.name)}
           </h3>
         </Link>
 
@@ -187,12 +207,26 @@ export function ResearcherReportCard({
         <div className="flex flex-wrap items-center gap-2 pt-0.5">
           {report.severity ? (
             <SeverityBadge severity={report.severity} />
-          ) : (
+          ) : (Boolean(report.isDisputed) ||
+              Boolean(report.dispute) ||
+              (Boolean(report.triageSeverity) &&
+                Boolean(report.reportedSeverity) &&
+                report.triageSeverity !== report.reportedSeverity)) ? (
             <DisputedSeverityPair
               reportedSeverity={report.reportedSeverity}
               triageSeverity={report.triageSeverity}
               size="sm"
             />
+          ) : report.triageSeverity ? (
+            <div className="flex items-center gap-1.5">
+              <SeverityBadge severity={report.triageSeverity} />
+              <span className="text-[11px] font-semibold text-muted-foreground">Org assessed</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <SeverityBadge severity={report.reportedSeverity} fallbackText="Pending Triage" />
+              <span className="text-[11px] text-muted-foreground">Claimed</span>
+            </div>
           )}
           <StatusBadge status={report.status} />
           {report.type && (

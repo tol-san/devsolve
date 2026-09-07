@@ -62,26 +62,31 @@ export function DisputedSeverityPair({
     return (
       <div
         className={cn(
-          "inline-flex flex-col items-center justify-center gap-0.5 text-center min-w-0 max-w-[125px] select-none",
+          "inline-flex flex-col items-center justify-center gap-1 text-center min-w-[115px] select-none py-0.5",
           className,
         )}
-        title={`Disputed: Reported ${reportedLabel} vs Organization ${triageLabel}`}
+        title={`Disputed: Organization triaged ${triageLabel} vs Researcher reported ${reportedLabel}`}
       >
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-extrabold uppercase tracking-wider leading-tight shadow-2xs">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-bold uppercase tracking-wider leading-tight shadow-2xs">
           <Scale className="size-2.5 text-amber-500 shrink-0" />
           <span>Disputed</span>
         </span>
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-muted-foreground whitespace-nowrap">
-          <span className="inline-flex items-center gap-0.5 text-foreground">
-            <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(reportedSeverity))} />
-            <span>{reportedLabel}</span>
-          </span>
-          <span className="text-muted-foreground/40 font-semibold select-none">/</span>
-          <span className="inline-flex items-center gap-0.5 text-foreground">
-            <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(triageSeverity))} />
-            <span>{triageLabel}</span>
-          </span>
-        </span>
+        <div className="flex flex-col items-center gap-0.5">
+          <div className="inline-flex items-center gap-1 text-xs font-bold text-foreground">
+            <span className="text-[10px] font-medium text-muted-foreground uppercase">Org:</span>
+            <span className="inline-flex items-center gap-1">
+              <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(triageSeverity))} />
+              <span>{triageLabel}</span>
+            </span>
+          </div>
+          <div className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+            <span className="text-[9px] uppercase">Rep:</span>
+            <span className="inline-flex items-center gap-0.5 text-foreground/80 font-semibold">
+              <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(reportedSeverity))} />
+              <span>{reportedLabel}</span>
+            </span>
+          </div>
+        </div>
       </div>
     );
   }

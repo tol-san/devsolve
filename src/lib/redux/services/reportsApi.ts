@@ -196,9 +196,16 @@ interface ReportsEnvelope<T> {
   data?: T[];
 }
 
-function toSeverity(value: ApiSeverity | null | undefined): ReportItem["severity"] {
+function toSeverity(value: string | ApiSeverity | null | undefined): ReportItem["severity"] {
   if (!value) return null;
-  return value === "CRITICAL" || value === "HIGH" || value === "MEDIUM" || value === "LOW" ? value : null;
+  const upper = String(value).toUpperCase();
+  return upper === "CRITICAL" || upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" ? (upper as any) : null;
+}
+
+function toExtendedSeverity(value: string | ApiSeverity | null | undefined): "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "NONE" | null {
+  if (!value) return null;
+  const upper = String(value).toUpperCase();
+  return upper === "CRITICAL" || upper === "HIGH" || upper === "MEDIUM" || upper === "LOW" || upper === "NONE" ? (upper as any) : null;
 }
 
 function toStatus(state: ApiState): ReportItem["status"] {
@@ -407,18 +414,28 @@ function toReportItem(
       undefined,
     avatarLetter: (effectiveOrgName || effectiveProgName || "O").slice(0, 1).toUpperCase(),
     type: "Bounty",
-    severity: toSeverity(report.severity),
-    reportedSeverity: report.reportedSeverity ?? null,
-    triageSeverity: report.triageSeverity ?? null,
-    agreedSeverity: report.severity ?? null,
-    settledSeverity: toSeverity(report.severity),
+    severity: toSeverity(report.severity ?? (report as any).severity),
+    reportedSeverity: toExtendedSeverity(report.reportedSeverity ?? (report as any).reported_severity),
+    triageSeverity: toExtendedSeverity(report.triageSeverity ?? (report as any).triage_severity),
+    agreedSeverity: toExtendedSeverity(report.severity ?? (report as any).severity ?? (report as any).agreedSeverity),
+    settledSeverity: toSeverity(report.severity ?? (report as any).severity ?? (report as any).settledSeverity),
     hasSeverityDisagreement:
-      report.severity === null &&
-      report.triageSeverity != null &&
-      report.reportedSeverity != null &&
-      report.triageSeverity !== report.reportedSeverity,
-    dispute: report.dispute ?? null,
-    isDisputed: report.isDisputed ?? Boolean(report.dispute),
+      !report.severity &&
+      Boolean(report.triageSeverity || (report as any).triage_severity) &&
+      Boolean(report.reportedSeverity || (report as any).reported_severity) &&
+      String(report.triageSeverity || (report as any).triage_severity).toUpperCase() !==
+        String(report.reportedSeverity || (report as any).reported_severity).toUpperCase(),
+    dispute: report.dispute ?? (report as any).dispute ?? null,
+    isDisputed:
+      report.isDisputed ??
+      Boolean(report.dispute) ??
+      Boolean((report as any).is_disputed) ??
+      Boolean(
+        !report.severity &&
+        report.triageSeverity &&
+        report.reportedSeverity &&
+        String(report.triageSeverity).toUpperCase() !== String(report.reportedSeverity).toUpperCase()
+      ),
     weaknessObj: report.weakness ?? null,
     suggestedWeakness: report.suggestedWeakness ?? (report as any).suggested_weakness ?? null,
     status,
@@ -515,8 +532,11 @@ function toReportDetail(
   return {
     ...item,
     submittedAgo,
-    claimedSeverity: report.reportedSeverity ?? "Not specified",
-    confirmedSeverity: report.triageSeverity ?? "Pending triage",
+    claimedSeverity: item.reportedSeverity ?? report.reportedSeverity ?? (report as any).reported_severity ?? "Not specified",
+    confirmedSeverity: item.triageSeverity ?? report.triageSeverity ?? (report as any).triage_severity ?? "Pending triage",
+    triageSeverity: item.triageSeverity,
+    reportedSeverity: item.reportedSeverity,
+    severity: item.severity,
     cvssScore: typeof report.cvssScore === "number" ? report.cvssScore.toFixed(1) : null,
     cvssVector: report.cvssVector || null,
     rewardStatus: item.bountyOrRep,
@@ -538,8 +558,8 @@ function toReportDetail(
     weakness: weakness || null,
     weaknessObj: report.weakness ?? null,
     suggestedWeakness: report.suggestedWeakness ?? (report as any).suggested_weakness ?? null,
-    dispute: report.dispute ?? null,
-    isDisputed: report.isDisputed ?? Boolean(report.dispute),
+    dispute: report.dispute ?? (report as any).dispute ?? item.dispute ?? null,
+    isDisputed: Boolean(item.isDisputed || report.isDisputed || report.dispute || (report as any).dispute),
     reporterId: report.researcher?.id || report.reporterId || report.reporter?.id,
     reporterName:
       report.researcher?.fullName ||

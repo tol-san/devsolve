@@ -1,11 +1,13 @@
-
 import Link from "next/link";
 import { ArrowLeft, UserPlus } from "lucide-react";
 
 import { buttonVariants } from "@/components/ui/button";
+import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 
 export function InviteMemberHeader() {
+  const lp = useLocalePath();
+
   return (
     <header className="flex flex-col justify-between gap-5 border-b border-border pb-6 sm:flex-row sm:items-end">
       <div className="space-y-4">
@@ -14,7 +16,7 @@ export function InviteMemberHeader() {
           className="flex flex-wrap items-center gap-2 text-sm font-medium text-muted-foreground"
         >
           <Link
-            href="/dashboard"
+            href={lp("/dashboard")}
             className="transition-colors hover:text-foreground"
           >
             Dashboard
@@ -23,7 +25,7 @@ export function InviteMemberHeader() {
           <span className="text-muted-foreground/60">/</span>
 
           <Link
-            href="/dashboard/team-management"
+            href={lp("/dashboard/team-management")}
             className="transition-colors hover:text-foreground"
           >
             Team Management
@@ -55,7 +57,7 @@ export function InviteMemberHeader() {
       </div>
 
       <Link
-        href="/dashboard/team-management"
+        href={lp("/dashboard/team-management")}
         className={cn(
           buttonVariants({
             variant: "outline",
@@ -69,4 +71,4 @@ export function InviteMemberHeader() {
       </Link>
     </header>
   );
-}
+}

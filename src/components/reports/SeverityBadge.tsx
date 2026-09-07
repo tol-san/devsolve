@@ -3,19 +3,29 @@ import { Badge } from "@/components/ui/badge";
 import { Scale } from "lucide-react";
 import type { ReportItem } from "@/lib/types/reports/types";
 
+import { cn } from "@/lib/utils";
+
 interface SeverityBadgeProps {
   severity: ReportItem["severity"] | string | null | undefined;
+  fallbackText?: string;
+  className?: string;
 }
 
-export default function SeverityBadge({ severity }: SeverityBadgeProps) {
+export default function SeverityBadge({
+  severity,
+  fallbackText,
+  className,
+}: SeverityBadgeProps) {
   if (!severity) {
     return (
       <Badge
         variant="outline"
-        className="border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200 font-semibold text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1.5 w-fit shadow-2xs"
+        className={cn(
+          "border-border bg-muted/60 text-muted-foreground font-semibold text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1.5 w-fit shadow-2xs",
+          className
+        )}
       >
-        <Scale className="size-3 text-amber-500" />
-        DISPUTED / UNSETTLED
+        {fallbackText || "PENDING"}
       </Badge>
     );
   }
