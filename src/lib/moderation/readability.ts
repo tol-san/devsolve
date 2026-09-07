@@ -85,16 +85,21 @@ function checkWordReadability(rawWord: string): ReadabilityIssue | null {
   const word = rawWord.trim();
   if (!word || word.length < 4) return null;
 
-  const lower = word.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, "");
+  // Strip leading/trailing brackets, quotes, and punctuation
+  const trimmedWord = word.replace(/^[\s"'`“”({\[<]+|[\s"'`”)}\]>.,:;?!]+$/g, "");
+  if (!trimmedWord || trimmedWord.length < 4) return null;
+
+  const lower = trimmedWord.toLowerCase().replace(/^[^a-z0-9\u1780-\u17FF]+|[^a-z0-9\u1780-\u17FF]+$/g, "");
   if (!lower) return null;
 
   if (ALLOWED_TECH_TOKENS.has(lower)) {
     return null;
   }
 
-  const symbolMatches = word.match(/[^a-zA-Z0-9\-_'.,]/g);
-  if (symbolMatches && word.length >= 6) {
-    const symbolRatio = symbolMatches.length / word.length;
+  // Allow standard punctuation, currency, math, slashes, brackets, and Khmer Unicode range \u1780-\u17FF
+  const symbolMatches = trimmedWord.match(/[^a-zA-Z0-9\-_'.,()/\\\[\]{}%+=:;?!$€£#@~^&*|\u1780-\u17FF]/g);
+  if (symbolMatches && trimmedWord.length >= 6) {
+    const symbolRatio = symbolMatches.length / trimmedWord.length;
     if (symbolRatio >= 0.2) {
       return {
         type: "excessive_symbols",
@@ -104,12 +109,17 @@ function checkWordReadability(rawWord: string): ReadabilityIssue | null {
     }
   }
 
+  // If word contains Khmer script characters, skip English-specific consonant/vowel checks
+  if (/[\u1780-\u17FF]/.test(trimmedWord)) {
+    return null;
+  }
+
   const lettersOnly = lower.replace(/[^a-z]/g, "");
   if (lettersOnly.length < 5) return null;
 
   const consecutiveConsonantsMatch = lettersOnly.match(/[^aeiouy]{5,}/g);
   if (consecutiveConsonantsMatch) {
-    const isUpperAcronym = /^[A-Z0-9_-]{1,6}$/.test(word);
+    const isUpperAcronym = /^[A-Z0-9_-]{1,6}$/.test(trimmedWord);
     if (!isUpperAcronym) {
       return {
         type: "consonant_cluster",
@@ -123,7 +133,7 @@ function checkWordReadability(rawWord: string): ReadabilityIssue | null {
     const vowelCount = (lettersOnly.match(/[aeiouy]/g) || []).length;
     const vowelRatio = vowelCount / lettersOnly.length;
     if (vowelRatio < 0.15) {
-      const isUpperAcronym = /^[A-Z0-9_-]{1,7}$/.test(word);
+      const isUpperAcronym = /^[A-Z0-9_-]{1,7}$/.test(trimmedWord);
       if (!isUpperAcronym) {
         return {
           type: "low_vowel_ratio",

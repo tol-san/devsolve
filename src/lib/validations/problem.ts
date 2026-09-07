@@ -144,8 +144,7 @@ export const problemCreateObjectSchema = z.object({
     .string()
     .min(30, "Description must be at least 30 characters")
     .max(20_000, "Description must not exceed 20,000 characters")
-    .refine(isCleanText, profanityMessage("Description"))
-    .refine(isReadableText, readabilityMessage("Description")),
+    .refine(isCleanText, profanityMessage("Description")),
   severity: z
     .enum(PROBLEM_SEVERITIES, {
       message: "Please select a valid severity",
@@ -261,8 +260,7 @@ export const createProblemFormSchema = problemCreateObjectSchema
       .trim()
       .min(30, "Description must be at least 30 characters")
       .max(20_000, "Description must not exceed 20000 characters")
-      .refine(isCleanText, profanityMessage("Description"))
-      .refine(isReadableText, readabilityMessage("Description")),
+      .refine(isCleanText, profanityMessage("Description")),
     technologies: z
       .array(problemTechnologyFormSchema)
       .max(20, "Up to 20 technologies are allowed")
