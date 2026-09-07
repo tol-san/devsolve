@@ -11,7 +11,7 @@ interface DisputedSeverityPairProps {
   cvssScore?: string | number | null;
   cvssVector?: string | null;
   className?: string;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "table";
 }
 
 function getTierStyle(tier?: string | null) {
@@ -53,32 +53,64 @@ export function DisputedSeverityPair({
   className,
   size = "md",
 }: DisputedSeverityPairProps) {
+  const isTable = size === "table";
   const isSm = size === "sm";
   const reportedLabel = reportedSeverity ? reportedSeverity.toUpperCase() : "UNSET";
   const triageLabel = triageSeverity ? triageSeverity.toUpperCase() : "PENDING";
+
+  if (isTable) {
+    return (
+      <div
+        className={cn(
+          "inline-flex flex-col items-center justify-center gap-0.5 text-center min-w-0 max-w-[125px] select-none",
+          className,
+        )}
+        title={`Disputed: Reported ${reportedLabel} vs Organization ${triageLabel}`}
+      >
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-extrabold uppercase tracking-wider leading-tight shadow-2xs">
+          <Scale className="size-2.5 text-amber-500 shrink-0" />
+          <span>Disputed</span>
+        </span>
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-muted-foreground whitespace-nowrap">
+          <span className="inline-flex items-center gap-0.5 text-foreground">
+            <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(reportedSeverity))} />
+            <span>{reportedLabel}</span>
+          </span>
+          <span className="text-muted-foreground/40 font-semibold select-none">/</span>
+          <span className="inline-flex items-center gap-0.5 text-foreground">
+            <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(triageSeverity))} />
+            <span>{triageLabel}</span>
+          </span>
+        </span>
+      </div>
+    );
+  }
 
   if (isSm) {
     return (
       <div
         className={cn(
-          "inline-flex flex-col items-center justify-center gap-0.5 px-2 py-0.5 rounded-lg bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 dark:border-amber-500/20 text-xs shadow-2xs max-w-full text-center shrink-0",
-          className
+          "inline-flex flex-wrap items-center justify-center sm:justify-start gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-xs shadow-2xs shrink-0 max-w-full",
+          className,
         )}
       >
-        <div className="flex items-center justify-center gap-1 text-[9.5px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 shrink-0 leading-none">
-          <Scale className="size-2.5 text-amber-500 shrink-0" />
+        <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+          <Scale className="size-3.5 text-amber-500 shrink-0" />
           <span>Disputed</span>
         </div>
-        <div className="inline-flex items-center justify-center gap-1 text-[10.5px] font-semibold whitespace-nowrap leading-tight">
-          <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(reportedSeverity))} />
-          <span className="text-muted-foreground text-[9.5px] font-normal">Rep:</span>
-          <span className="font-bold text-foreground">{reportedLabel}</span>
-          <span className="text-[8.5px] font-bold uppercase text-muted-foreground/60 select-none px-0.5">
-            /
+        <div className="hidden sm:block h-3.5 w-px bg-amber-500/30" />
+        <div className="flex items-center gap-2 text-xs">
+          <span className="flex items-center gap-1 text-muted-foreground font-medium">
+            <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(reportedSeverity))} />
+            <span>Rep:</span>
+            <strong className="text-foreground font-bold">{reportedLabel}</strong>
           </span>
-          <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(triageSeverity))} />
-          <span className="text-muted-foreground text-[9.5px] font-normal">Org:</span>
-          <span className="font-bold text-foreground">{triageLabel}</span>
+          <span className="text-muted-foreground/40 font-bold select-none">&bull;</span>
+          <span className="flex items-center gap-1 text-muted-foreground font-medium">
+            <span className={cn("size-1.5 rounded-full shrink-0", getDotStyle(triageSeverity))} />
+            <span>Org:</span>
+            <strong className="text-foreground font-bold">{triageLabel}</strong>
+          </span>
         </div>
       </div>
     );

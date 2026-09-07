@@ -61,6 +61,7 @@ import {
   useRequestMoreInfoMutation,
   useMarkDuplicateMutation,
 } from "@/lib/redux/services/reportsApi";
+import { DuplicateReportPickerModal } from "./DuplicateReportPickerModal";
 import { cn } from "@/lib/utils";
 
 const SEVERITY_OPTIONS = ["Critical", "High", "Medium", "Low", "Info"] as const;
@@ -169,8 +170,6 @@ export function ReportSeverityAdjustmentForm({
   const [showMoreInfoModal, setShowMoreInfoModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [moreInfoQuestion, setMoreInfoQuestion] = useState("");
-  const [duplicateOfId, setDuplicateOfId] = useState("");
-  const [duplicateNote, setDuplicateNote] = useState("");
   const [reclassifiedWeaknessId, setReclassifiedWeaknessId] = useState("");
   const [approvalSuccess, setApprovalSuccess] = useState<boolean | null>(null);
   const [rejectionSuccess, setRejectionSuccess] = useState<boolean | null>(null);
@@ -206,13 +205,13 @@ export function ReportSeverityAdjustmentForm({
     }
   };
 
-  const handleMarkDuplicate = async () => {
-    if (isBlockedByDispute) return;
+  const handleMarkDuplicate = async (targetReportId: string, note?: string) => {
+    if (isBlockedByDispute || !targetReportId) return;
     try {
       await markDuplicate({
         id: String(detail.id),
-        duplicateOfId: duplicateOfId.trim(),
-        note: duplicateNote,
+        duplicateOfId: targetReportId.trim(),
+        note: note || undefined,
       }).unwrap();
       setShowDuplicateModal(false);
       onOutcomeChange?.("rejected");
@@ -1105,84 +1104,13 @@ export function ReportSeverityAdjustmentForm({
           </div>
         )}
 
-        {showDuplicateModal && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"
-            onClick={() => setShowDuplicateModal(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className="relative w-full max-w-lg bg-card rounded-2xl border border-border shadow-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-2.5 border-b border-border bg-muted px-5 py-4">
-                <div className="flex size-9 items-center justify-center rounded-xl bg-background text-muted-foreground">
-                  <Copy className="size-5" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-base font-bold text-foreground">
-                    Close as a duplicate
-                  </h3>
-                  <p className="truncate font-mono text-xs text-muted-foreground">
-                    Report {cleanReportId}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3 p-5">
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="duplicateOfId"
-                    className="text-sm font-semibold text-foreground"
-                  >
-                    Original report id
-                  </label>
-                  <Input
-                    id="duplicateOfId"
-                    autoFocus
-                    value={duplicateOfId}
-                    onChange={(event) => setDuplicateOfId(event.target.value)}
-                    placeholder="f08fe404-173e-4cd2-b2c2-810d40842780"
-                    className="h-11 border-border bg-background font-mono text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    The id from that report&apos;s address bar. Naming it is
-                    what separates a duplicate from a rejection — the reporter
-                    can read the finding that got there first.
-                  </p>
-                </div>
-
-                <Textarea
-                  rows={3}
-                  value={duplicateNote}
-                  onChange={(event) => setDuplicateNote(event.target.value)}
-                  placeholder="Anything to add for the reporter (optional)"
-                  className="resize-none border-border bg-background text-sm leading-relaxed"
-                />
-              </div>
-
-              <div className="flex flex-col-reverse gap-2 border-t border-border p-4 sm:flex-row sm:justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDuplicateModal(false)}
-                  disabled={isMarkingDuplicate}
-                  className="rounded-xl font-semibold"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleMarkDuplicate}
-                  disabled={isMarkingDuplicate || !duplicateOfId.trim()}
-                  className="rounded-xl bg-slate-800 font-semibold text-white hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600"
-                >
-                  {isMarkingDuplicate ? "Closing…" : "Close as duplicate"}
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        )}
+        <DuplicateReportPickerModal
+          isOpen={showDuplicateModal}
+          onClose={() => setShowDuplicateModal(false)}
+          currentReport={detail}
+          onConfirmDuplicate={handleMarkDuplicate}
+          isSubmitting={isMarkingDuplicate}
+        />
 
         {showRejectModal && (
           <div

@@ -8,6 +8,9 @@ import {
   Compass,
   ChevronRight,
   AlertTriangle,
+  Calendar,
+  Globe,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -74,25 +77,118 @@ export function RejectedReportView({
     report.impact !==
       "Impact information has not been explicitly provided for this report.";
 
+  const [copiedTitle, setCopiedTitle] = React.useState(false);
+  const handleCopyTitle = async () => {
+    try {
+      await navigator.clipboard.writeText(report.title);
+      setCopiedTitle(true);
+      setTimeout(() => setCopiedTitle(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const isUrlTitle = /^https?:\/\//i.test((report.title || "").trim());
+
   return (
     <div className="space-y-6">
-      <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-4 sm:p-6 space-y-4 shadow-xs">
-        <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
-          {report.title}
-        </h2>
+      <div className="relative overflow-hidden rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border bg-card p-5 sm:p-6 space-y-5 shadow-xs">
+        <div className="pointer-events-none absolute -right-10 -top-10 size-44 rounded-full bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent opacity-60 blur-2xl" />
 
-        <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border">
-          <StatusBadge status="REJECTED" />
-          {report.severity ? (
-            <SeverityBadge severity={report.severity} />
+        <div className="relative z-10 space-y-4 sm:space-y-5">
+          {/* Top Row: Status badge on left, Severity / Disputed pill on right */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status="REJECTED" />
+            </div>
+
+            <div className="shrink-0 flex items-center justify-start sm:justify-end">
+              {report.severity ? (
+                <SeverityBadge severity={report.severity} />
+              ) : (
+                <DisputedSeverityPair
+                  reportedSeverity={report.reportedSeverity || report.claimedSeverity}
+                  triageSeverity={report.triageSeverity || report.confirmedSeverity}
+                  cvssScore={report.cvssScore}
+                  size="sm"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Finding Title or Target Endpoint */}
+          {isUrlTitle ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary px-2.5 py-0.5 rounded-md bg-primary/10 border border-primary/20">
+                  <Globe className="size-3.5 shrink-0" />
+                  Target Vulnerability Endpoint
+                </span>
+                <span className="text-xs text-muted-foreground font-medium hidden sm:inline">
+                  Reported target URI
+                </span>
+              </div>
+              <div className="group relative flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl bg-muted/40 hover:bg-muted/60 border border-border/80 transition-colors shadow-2xs">
+                <div className="font-mono text-sm sm:text-base font-semibold text-foreground break-all select-all leading-relaxed">
+                  {report.title}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyTitle}
+                    className="h-8 px-2.5 gap-1.5 text-xs rounded-lg cursor-pointer bg-card hover:bg-muted shadow-2xs"
+                  >
+                    {copiedTitle ? (
+                      <>
+                        <Check className="size-3.5 text-emerald-500 animate-in fade-in zoom-in-75 duration-200" />
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                          Copied
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="size-3.5 text-muted-foreground" />
+                        <span>Copy URL</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
           ) : (
-            <DisputedSeverityPair
-              reportedSeverity={report.reportedSeverity || report.claimedSeverity}
-              triageSeverity={report.triageSeverity || report.confirmedSeverity}
-              cvssScore={report.cvssScore}
-              size="md"
-            />
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight break-words leading-tight">
+              {report.title}
+            </h2>
           )}
+
+          {/* Tactile Metadata Chips */}
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            {report.program && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/80 text-xs sm:text-sm shadow-2xs">
+                <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <Shield className="size-3" />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground text-xs font-semibold">Program:</span>
+                  <span className="font-bold text-foreground">{report.program}</span>
+                </div>
+              </div>
+            )}
+
+            {report.submittedAt && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/80 text-xs sm:text-sm shadow-2xs">
+                <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-card border border-border text-muted-foreground">
+                  <Calendar className="size-3" />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground text-xs font-semibold">Submitted:</span>
+                  <span className="font-medium text-foreground">{formatDateTime(report.submittedAt)}</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

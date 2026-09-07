@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { AlertCircle, Building2, CircleAlert, ExternalLink, Globe, ShieldAlert, ShieldCheck } from "lucide-react";
+import { AlertCircle, Building2, CircleAlert, ExternalLink, Globe, Scale, ShieldAlert, ShieldCheck } from "lucide-react";
 import SeverityBadge from "@/components/reports/SeverityBadge";
 import DisputedSeverityPair from "@/components/reports/DisputedSeverityPair";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,22 @@ import { useGetOrganizationByIdQuery } from "@/lib/redux/services/organizationsA
 import { formatDateTime } from "@/lib/format/datetime";
 import { WeaknessDisplay } from "@/components/reports/WeaknessDisplay";
 import { cn } from "@/lib/utils";
+
+function getDotStyle(tier?: string | null) {
+  const norm = tier ? tier.toUpperCase() : "";
+  switch (norm) {
+    case "CRITICAL":
+      return "bg-rose-500 animate-pulse";
+    case "HIGH":
+      return "bg-orange-500";
+    case "MEDIUM":
+      return "bg-amber-500";
+    case "LOW":
+      return "bg-blue-500";
+    default:
+      return "bg-muted-foreground";
+  }
+}
 
 interface ReportSidebarPanelsProps {
   report: ReportDetail;
@@ -87,31 +103,48 @@ export function ReportSidebarPanels({ report }: ReportSidebarPanelsProps) {
         <div>
           {report.severity ? (
             <SeverityBadge severity={report.severity} />
+          ) : (Boolean(report.isDisputed) ||
+              Boolean(report.dispute) ||
+              (Boolean(report.triageSeverity) &&
+                Boolean(report.reportedSeverity) &&
+                report.triageSeverity !== report.reportedSeverity)) ? (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2.5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                  <Scale className="size-3.5 text-amber-500" />
+                  Disputed Severity
+                </span>
+                {report.cvssScore && (
+                  <span className="font-mono text-xs font-bold text-muted-foreground">
+                    CVSS {report.cvssScore}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2 rounded-lg bg-card border border-border/80 space-y-0.5 shadow-2xs">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                    Researcher
+                  </span>
+                  <span className="font-extrabold text-foreground flex items-center gap-1.5">
+                    <span className={cn("size-2 rounded-full", getDotStyle(report.reportedSeverity || report.claimedSeverity))} />
+                    {report.reportedSeverity || report.claimedSeverity || "MEDIUM"}
+                  </span>
+                </div>
+                <div className="p-2 rounded-lg bg-card border border-border/80 space-y-0.5 shadow-2xs">
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+                    Organization
+                  </span>
+                  <span className="font-extrabold text-foreground flex items-center gap-1.5">
+                    <span className={cn("size-2 rounded-full", getDotStyle(report.triageSeverity || report.confirmedSeverity))} />
+                    {report.triageSeverity || report.confirmedSeverity || "NONE"}
+                  </span>
+                </div>
+              </div>
+            </div>
           ) : (
-            <DisputedSeverityPair
-              reportedSeverity={report.reportedSeverity || report.claimedSeverity}
-              triageSeverity={report.triageSeverity || report.confirmedSeverity}
-              cvssScore={report.cvssScore}
-              size="md"
-            />
+            <SeverityBadge severity={report.reportedSeverity || report.claimedSeverity || "LOW"} />
           )}
         </div>
-
-        {(report.hasSeverityDisagreement ||
-          (!report.severity &&
-            report.triageSeverity != null &&
-            report.reportedSeverity != null &&
-            report.triageSeverity !== report.reportedSeverity)) && (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200 space-y-1">
-            <div className="flex items-center gap-1.5 font-bold">
-              <CircleAlert className="size-3.5 text-amber-500 shrink-0" />
-              <span>Severity Disagreement</span>
-            </div>
-            <p className="text-muted-foreground leading-relaxed">
-              Reported as <strong>{report.reportedSeverity || report.claimedSeverity}</strong>, but triage assessed as <strong>{report.triageSeverity || report.confirmedSeverity}</strong>.
-            </p>
-          </div>
-        )}
 
         {report.dispute && report.dispute.status === "OPEN" && (
           <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-800 dark:text-rose-200 space-y-1">

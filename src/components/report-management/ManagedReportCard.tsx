@@ -124,7 +124,7 @@ export function getSeverityBadge(report: ManagedReport) {
         reportedSeverity={report.reportedSeverity}
         triageSeverity={report.triageSeverity}
         cvssScore={report.cvssScore ? String(report.cvssScore) : undefined}
-        size="sm"
+        size="table"
       />
     );
   }
@@ -320,7 +320,7 @@ export function ManagedReportCard({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0 overflow-hidden">
             {visibleAssets.map((asset) => (
               <span
                 key={asset}
@@ -331,13 +331,13 @@ export function ManagedReportCard({
               </span>
             ))}
             {hiddenAssetsCount > 0 ? (
-              <span className="inline-flex rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+              <span className="inline-flex rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shrink-0">
                 +{hiddenAssetsCount} more
               </span>
             ) : null}
           </div>
 
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center min-w-0">
             <Badge
               variant="outline"
               className={cn(badgeBaseClass, getTypeBadgeClass(report.type))}
@@ -346,11 +346,11 @@ export function ManagedReportCard({
             </Badge>
           </div>
 
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center min-w-0">
             {getWorkflowStatusBadge(report)}
           </div>
 
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center min-w-0">
             {getSeverityBadge(report)}
           </div>
         </div>

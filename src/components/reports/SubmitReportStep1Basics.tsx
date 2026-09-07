@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from "react-hook-form";
-import { Target, CheckCircle2, Building2, ArrowUpRight } from "lucide-react";
+import { Target, CheckCircle2, Building2, ArrowUpRight, Search } from "lucide-react";
 import {
   SubmitReportFormValues,
   ENVIRONMENTS,
@@ -14,8 +14,10 @@ import {
   type Severity,
 } from "@/components/reports/SeverityCvssField";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
+import { ProgramSearchDialog } from "./ProgramSearchDialog";
 import {
   Select,
   SelectContent,
@@ -44,6 +46,7 @@ export function SubmitReportStep1Basics({
   selectedProgram,
 }: SubmitReportStep1BasicsProps) {
   const lp = useLocalePath();
+  const [showProgramPicker, setShowProgramPicker] = React.useState(false);
   const selectedEnvironment = watch("environment") || "PRODUCTION";
 
   const programTitle =
@@ -102,13 +105,26 @@ export function SubmitReportStep1Basics({
               </div>
             </div>
 
-            <Link
-              href={lp("/dashboard/programs")}
-              className="inline-flex shrink-0 items-center justify-end gap-1 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400 self-end sm:self-auto"
-            >
-              Change
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowProgramPicker(true)}
+                className="h-8 rounded-xl border-border bg-card text-xs font-semibold hover:bg-muted gap-1.5 cursor-pointer shadow-2xs"
+              >
+                <Search className="size-3.5" />
+                <span>Search Programs</span>
+              </Button>
+              <Link
+                href={lp("/dashboard/programs")}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors px-1"
+                title="Browse full marketplace"
+              >
+                <span>Browse</span>
+                <ArrowUpRight className="size-3.5" />
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-start gap-3 rounded-2xl border border-dashed border-border bg-muted/40 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -121,15 +137,36 @@ export function SubmitReportStep1Basics({
                 scope covers what you found.
               </p>
             </div>
-            <Link
-              href={lp("/dashboard/programs")}
-              className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-2xs transition-colors hover:bg-primary/90"
-            >
-              <Building2 className="h-4 w-4" />
-              Browse programs
-            </Link>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+              <Button
+                type="button"
+                onClick={() => setShowProgramPicker(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-2xs hover:bg-primary/90 cursor-pointer"
+              >
+                <Search className="size-4" />
+                <span>Search & Select Program</span>
+              </Button>
+              <Link
+                href={lp("/dashboard/programs")}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Building2 className="size-3.5" />
+                <span>Browse</span>
+              </Link>
+            </div>
           </div>
         )}
+
+        <ProgramSearchDialog
+          isOpen={showProgramPicker}
+          onClose={() => setShowProgramPicker(false)}
+          programs={programs}
+          selectedProgramId={watch("programId")}
+          onSelectProgram={(prog) => {
+            setValue("programId", prog.id, { shouldValidate: true, shouldDirty: true });
+            setValue("assetId", "");
+          }}
+        />
         {errors.programId && (
           <p className="text-xs text-red-500 font-medium">{errors.programId.message}</p>
         )}

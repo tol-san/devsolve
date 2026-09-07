@@ -9,7 +9,6 @@ import {
   ChevronsRight,
   LogOut,
   Menu,
-  Settings,
   X,
 } from "lucide-react";
 
@@ -153,12 +152,6 @@ function SidebarContent({
     ? getOrgStatusLabel(organization?.status)
     : undefined;
   const identityIsLoading = isPending || (isOwner && isOrganizationLoading);
-  const settingsHref = isOwner
-    ? "/dashboard/organizations"
-    : "/dashboard/profile/settings";
-  const settingsLabel = isOwner
-    ? t("sidebar.orgSettings")
-    : t("sidebar.settings");
 
   return (
     <div data-scroll-host className="flex h-full flex-col overflow-hidden">
@@ -345,18 +338,6 @@ function SidebarContent({
       </nav>
 
       <div className="mt-auto shrink-0 space-y-1.5 border-t border-slate-200/60 pt-3 dark:border-neutral-800">
-        <Link
-          href={lp(settingsHref)}
-          onClick={onNavItemClick}
-          title={collapsed ? settingsLabel : undefined}
-          className={cn(
-            "flex h-10 w-full items-center rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-2xs transition-colors hover:bg-blue-700",
-            collapsed ? "justify-center px-0" : "justify-start gap-3 px-3",
-          )}
-        >
-          <Settings className="size-4 shrink-0" />
-          {!collapsed && <span>{settingsLabel}</span>}
-        </Link>
 
         <Button
           variant="ghost"

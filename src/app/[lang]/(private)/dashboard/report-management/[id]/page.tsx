@@ -12,9 +12,14 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  Building2,
   Calendar,
+  Check,
   CheckCircle2,
   Clock,
+  Copy,
+  ExternalLink,
+  Globe,
   RotateCcw,
   Shield,
   ShieldCheck,
@@ -110,6 +115,8 @@ export default function ReportManagementDetailPage() {
         : "";
 
   const [activeTab, setActiveTab] = useState<"summary" | "retest">("summary");
+  const [copiedId, setCopiedId] = useState(false);
+  const [copiedTitle, setCopiedTitle] = useState(false);
 
   const {
     data: apiReport,
@@ -211,6 +218,28 @@ export default function ReportManagementDetailPage() {
 
   const retestHistory = apiReport.retestHistory || [];
 
+  const handleCopyId = async () => {
+    try {
+      await navigator.clipboard.writeText(cleanReportId);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleCopyTitle = async () => {
+    try {
+      await navigator.clipboard.writeText(apiReport.title);
+      setCopiedTitle(true);
+      setTimeout(() => setCopiedTitle(false), 2000);
+    } catch {
+      // ignore
+    }
+  };
+
+  const isUrlTitle = /^https?:\/\//i.test((apiReport.title || "").trim());
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -255,21 +284,32 @@ export default function ReportManagementDetailPage() {
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border p-5 sm:p-6 space-y-6 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-          <div className="space-y-3 flex-1 min-w-0">
+      <div className="relative overflow-hidden rounded-2xl ring-1 ring-foreground/5 dark:ring-foreground/10 border border-border bg-card p-5 sm:p-7 space-y-6 shadow-xs">
+        {/* Subtle ambient gradient highlight in corner */}
+        <div className="pointer-events-none absolute -right-12 -top-12 size-48 rounded-full bg-gradient-to-br from-primary/15 via-primary/5 to-transparent opacity-60 blur-2xl" />
+
+        <div className="relative z-10 space-y-5 sm:space-y-6">
+          {/* Top Row: Report ID, Status badge, Severity */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge
-                variant="outline"
-                className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+              <button
+                type="button"
+                onClick={handleCopyId}
+                title="Click to copy Report ID"
+                className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/25 font-mono text-xs font-bold transition-all cursor-pointer shadow-2xs"
               >
-                {cleanReportId}
-              </Badge>
+                <span>{cleanReportId}</span>
+                {copiedId ? (
+                  <Check className="size-3 text-emerald-500 animate-in fade-in zoom-in-75 duration-200" />
+                ) : (
+                  <Copy className="size-3 opacity-60 group-hover:opacity-100 transition-opacity" />
+                )}
+              </button>
 
               <Badge
                 variant="outline"
                 className={cn(
-                  "text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5",
+                  "text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs",
                   statusCfg.className,
                 )}
               >
@@ -278,105 +318,167 @@ export default function ReportManagementDetailPage() {
               </Badge>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight break-words leading-snug">
+            <div className="shrink-0 flex items-center justify-start sm:justify-end">
+              {apiReport.severity ? (
+                <SeverityBadge severity={apiReport.severity} />
+              ) : (
+                <DisputedSeverityPair
+                  reportedSeverity={apiReport.reportedSeverity || apiReport.claimedSeverity}
+                  triageSeverity={apiReport.triageSeverity || apiReport.confirmedSeverity}
+                  cvssScore={apiReport.cvssScore}
+                  size="sm"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Finding Title or Target Endpoint */}
+          {isUrlTitle ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary px-2.5 py-0.5 rounded-md bg-primary/10 border border-primary/20">
+                  <Globe className="size-3.5 shrink-0" />
+                  Target Vulnerability Endpoint
+                </span>
+                <span className="text-xs text-muted-foreground font-medium hidden sm:inline">
+                  Reported target URI
+                </span>
+              </div>
+              <div className="group relative flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl bg-muted/40 hover:bg-muted/60 border border-border/80 transition-colors shadow-2xs">
+                <div className="font-mono text-sm sm:text-base font-semibold text-foreground break-all select-all leading-relaxed">
+                  {apiReport.title}
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyTitle}
+                    className="h-8 px-2.5 gap-1.5 text-xs rounded-lg cursor-pointer bg-card hover:bg-muted shadow-2xs"
+                  >
+                    {copiedTitle ? (
+                      <>
+                        <Check className="size-3.5 text-emerald-500 animate-in fade-in zoom-in-75 duration-200" />
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                          Copied
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="size-3.5 text-muted-foreground" />
+                        <span>Copy URL</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight break-words leading-tight">
               {apiReport.title}
             </h1>
+          )}
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-muted-foreground font-medium pt-0.5">
-              {(apiReport.organizationLogoUrl || detail.organizationLogoUrl) && (
-                <div className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded bg-muted border border-border">
-                  <Image
-                    src={apiReport.organizationLogoUrl || detail.organizationLogoUrl!}
-                    alt={apiReport.organizationName || detail.organizationName || "Organization"}
-                    width={20}
-                    height={20}
-                    className="size-4 object-contain"
-                    unoptimized
-                  />
+          {/* Tactile Metadata Chips */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-0.5">
+            {/* Organization Chip */}
+            {(apiReport.organizationName || detail.organizationName) && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/80 text-xs sm:text-sm transition-all hover:bg-muted/70 hover:border-border shadow-2xs">
+                {apiReport.organizationLogoUrl || detail.organizationLogoUrl ? (
+                  <div className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md bg-card border border-border">
+                    <Image
+                      src={apiReport.organizationLogoUrl || detail.organizationLogoUrl!}
+                      alt={apiReport.organizationName || detail.organizationName || "Organization"}
+                      width={20}
+                      height={20}
+                      className="size-4 object-contain"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-card border border-border text-muted-foreground">
+                    <Building2 className="size-3" />
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground text-xs font-semibold">Org:</span>
+                  {detail.organizationId ? (
+                    <Link
+                      href={`/company?id=${detail.organizationId}`}
+                      className="font-bold text-foreground hover:text-primary transition-colors hover:underline"
+                    >
+                      {apiReport.organizationName || detail.organizationName}
+                    </Link>
+                  ) : (
+                    <span className="font-bold text-foreground">
+                      {apiReport.organizationName || detail.organizationName}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Program Chip */}
+            {apiReport.program && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/80 text-xs sm:text-sm transition-all hover:bg-muted/70 hover:border-border shadow-2xs">
+                <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <Shield className="size-3" />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground text-xs font-semibold">Program:</span>
+                  <span className="font-bold text-foreground">{apiReport.program}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Researcher Chip */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/80 text-xs sm:text-sm transition-all hover:bg-muted/70 hover:border-border shadow-2xs">
+              {apiReport.reporterAvatarUrl ? (
+                <Image
+                  src={apiReport.reporterAvatarUrl}
+                  alt={apiReport.reporterName || "Researcher"}
+                  width={20}
+                  height={20}
+                  className="size-5 rounded-full object-cover shrink-0 border border-border"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-card border border-border text-muted-foreground">
+                  <User className="size-3" />
                 </div>
               )}
-
-              {(apiReport.organizationName || detail.organizationName) && (
-                <>
-                  <span className="flex items-center gap-1.5">
-                    <span>Org:</span>
-                    {detail.organizationId ? (
-                      <Link
-                        href={`/company?id=${detail.organizationId}`}
-                        className="font-bold text-foreground hover:text-primary transition-colors hover:underline"
-                      >
-                        {apiReport.organizationName || detail.organizationName}
-                      </Link>
-                    ) : (
-                      <strong className="text-foreground">
-                        {apiReport.organizationName || detail.organizationName}
-                      </strong>
-                    )}
-                  </span>
-                  <span className="text-muted-foreground/40">&bull;</span>
-                </>
-              )}
-
-              <span className="flex items-center gap-1.5">
-                <Shield className="size-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-                <span>Program:</span>
-                <strong className="text-foreground">{apiReport.program}</strong>
-              </span>
-
-              <span className="text-muted-foreground/40">&bull;</span>
-
-              <span className="flex items-center gap-1.5">
-                {apiReport.reporterAvatarUrl ? (
-                  <Image
-                    src={apiReport.reporterAvatarUrl}
-                    alt={apiReport.reporterName || "Researcher"}
-                    width={18}
-                    height={18}
-                    className="size-4.5 rounded-full object-cover shrink-0"
-                    unoptimized
-                  />
-                ) : (
-                  <User className="size-3.5 shrink-0" />
-                )}
-                <span>Researcher:</span>
-                <strong className="text-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-xs font-semibold">Researcher:</span>
+                <span className="font-bold text-foreground">
                   {apiReport.reporterName || "Researcher"}
-                </strong>
+                </span>
                 {apiReport.reporterUsername && (
                   <Link
                     href={`/profile/${encodeURIComponent(apiReport.reporterUsername)}`}
-                    className="text-muted-foreground hover:text-primary transition-colors hover:underline"
+                    className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors hover:underline"
                   >
                     (@{apiReport.reporterUsername})
                   </Link>
                 )}
-              </span>
+              </div>
+            </div>
 
-              <span className="text-muted-foreground/40">&bull;</span>
-
-              <span className="flex items-center gap-1.5">
-                <Calendar className="size-3.5 shrink-0" />
-                <span>Submitted {displaySubmitted}</span>
-              </span>
+            {/* Submission Date Chip */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/80 text-xs sm:text-sm shadow-2xs">
+              <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-card border border-border text-muted-foreground">
+                <Calendar className="size-3" />
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-muted-foreground text-xs font-semibold">Submitted:</span>
+                <span className="font-medium text-foreground">{displaySubmitted}</span>
+              </div>
             </div>
           </div>
 
-          <div className="shrink-0 flex items-center md:items-start justify-start md:justify-end">
-            {apiReport.severity ? (
-              <SeverityBadge severity={apiReport.severity} />
-            ) : (
-              <DisputedSeverityPair
-                reportedSeverity={apiReport.reportedSeverity || apiReport.claimedSeverity}
-                triageSeverity={apiReport.triageSeverity || apiReport.confirmedSeverity}
-                cvssScore={apiReport.cvssScore}
-                size="sm"
-              />
-            )}
+          {/* Stepper Progress */}
+          <div className="pt-4 border-t border-border/70">
+            <ReportStatusTracker status={apiReport.status} />
           </div>
-        </div>
-
-        <div className="pt-2 border-t border-border/60">
-          <ReportStatusTracker status={apiReport.status} />
         </div>
       </div>
 
