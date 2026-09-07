@@ -72,9 +72,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (!upstream.ok) {
-      const message =
+      let message =
         (body as { message?: string } | null)?.message ??
         "Failed to invite organization member.";
+
+      if (
+        upstream.status === 409 &&
+        (!message ||
+          message.includes("conflicts with data that already exists") ||
+          message.toLowerCase().includes("conflict"))
+      ) {
+        message =
+          "This person is already a member of your organization, or an active invitation has already been sent to them.";
+      }
+
       return NextResponse.json(
         { message, details: body },
         { status: upstream.status }

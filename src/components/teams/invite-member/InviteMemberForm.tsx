@@ -152,6 +152,13 @@ function getErrorMessage(error: unknown): string {
   }
 
   if (apiError.status === 409) {
+    if (
+      !rawMessage ||
+      rawMessage.includes("conflicts with data that already exists") ||
+      rawMessage.toLowerCase().includes("conflict")
+    ) {
+      return "This person is already a member of your organization, or an active invitation has already been sent to them.";
+    }
     return (
       rawMessage.trim() ||
       "That invitation cannot be sent right now. They may already be on the team, or an invitation may still be outstanding."
@@ -262,10 +269,19 @@ export function InviteMemberForm() {
       });
     } catch (error) {
       const message = getErrorMessage(error);
+      const isEmailRelated =
+        (error as FetchBaseQueryError)?.status === 409 ||
+        (error as FetchBaseQueryError)?.status === 404;
 
-      setError("root", {
-        message,
-      });
+      if (isEmailRelated) {
+        setError("email", {
+          message,
+        });
+      } else {
+        setError("root", {
+          message,
+        });
+      }
 
       toast.destructive({
         title: "Invitation failed",
