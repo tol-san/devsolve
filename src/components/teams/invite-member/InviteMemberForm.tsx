@@ -11,16 +11,19 @@ import {
   Eye,
   Loader2,
   Mail,
+  Search,
   Send,
   ShieldCheck,
+  UserCheck,
   UserCog,
   UserRound,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -34,6 +37,7 @@ import type {
   InvitePermissionOption,
   InviteRoleOption,
 } from "@/components/teams/invite-member/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -57,10 +61,15 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { toast } from "@/hooks/use-toast";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { formatDateTime } from "@/lib/format/datetime";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { absoluteUrl } from "@/lib/seo/site";
-import { useInviteOrganizationMemberMutation } from "@/lib/redux/services/organizationsApi";
+import {
+  useInviteOrganizationMemberMutation,
+  useSearchMemberCandidatesQuery,
+  type MemberCandidate,
+} from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 
 const permissionValues = [
@@ -194,12 +203,20 @@ export function InviteMemberForm() {
     expiresAt?: string;
   } | null>(null);
 
+  const [selectedCandidate, setSelectedCandidate] =
+    useState<MemberCandidate | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const {
     register,
     handleSubmit,
     reset,
     setValue,
     setError,
+    clearErrors,
     control,
     formState: {
       errors,
@@ -216,6 +233,70 @@ export function InviteMemberForm() {
       ],
     },
   });
+
+  const { membership } = useCompanyAccess();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const { data: candidates = [], isFetching: isSearching } =
+    useSearchMemberCandidatesQuery(
+      {
+        query: debouncedQuery,
+        organizationId: membership?.organizationId,
+      },
+      { skip: !isDropdownOpen && debouncedQuery.length === 0 },
+    );
+
+  function handleSelectCandidate(candidate: MemberCandidate) {
+    if (candidate.isExistingMember || candidate.isPendingInvite) return;
+    setSelectedCandidate(candidate);
+    setValue("email", candidate.email, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setSearchQuery(candidate.email);
+    setIsDropdownOpen(false);
+    clearErrors("email");
+  }
+
+  function handleClearCandidate() {
+    setSelectedCandidate(null);
+    setValue("email", "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setSearchQuery("");
+    setIsDropdownOpen(true);
+  }
+
+  function handleUseCustomEmail(emailToUse: string) {
+    setSelectedCandidate(null);
+    setValue("email", emailToUse.trim(), {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setSearchQuery(emailToUse.trim());
+    setIsDropdownOpen(false);
+    clearErrors("email");
+  }
 
   const email =
     useWatch({
@@ -348,6 +429,8 @@ export function InviteMemberForm() {
         sent={sent}
         onInviteAnother={() => {
           setSent(null);
+          setSelectedCandidate(null);
+          setSearchQuery("");
           reset({
             email: "",
             role: "MEMBER",
@@ -368,54 +451,293 @@ export function InviteMemberForm() {
             </CardTitle>
 
             <p className="max-w-2xl text-base sm:text-lg leading-relaxed text-muted-foreground">
-              Enter the member&apos;s email address and
-              configure their organization access.
+              Search and select a platform member, or enter a work email address to configure their organization access.
             </p>
           </CardHeader>
 
           <CardContent className="px-6 py-7 sm:px-7">
             <FieldGroup className="gap-6">
-              <Field
-                data-invalid={Boolean(errors.email)}
-              >
+              <Field data-invalid={Boolean(errors.email)}>
                 <FieldContent className="gap-3">
                   <FieldLabel
                     htmlFor="member-email"
                     className="text-sm font-semibold text-foreground"
                   >
-                    Work email
+                    Select platform member or enter email
                   </FieldLabel>
 
-                  <div className="relative">
-                    <Mail className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                  {selectedCandidate ? (
+                    <div className="relative flex flex-col gap-3 rounded-2xl border border-blue-500/30 bg-blue-50/40 p-4 ring-1 ring-blue-500/20 dark:bg-blue-950/20 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3.5">
+                        <Avatar className="size-12 shrink-0 rounded-xl border border-blue-200 dark:border-blue-900/60">
+                          {selectedCandidate.avatarUrl ? (
+                            <AvatarImage
+                              src={selectedCandidate.avatarUrl}
+                              alt={
+                                selectedCandidate.fullName ||
+                                selectedCandidate.username ||
+                                ""
+                              }
+                            />
+                          ) : null}
+                          <AvatarFallback className="rounded-xl bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+                            {(
+                              selectedCandidate.fullName ||
+                              selectedCandidate.username ||
+                              selectedCandidate.email
+                            )
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
 
-                    <Input
-                      id="member-email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="member@company.com"
-                      aria-invalid={Boolean(
-                        errors.email,
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="truncate text-base font-semibold text-foreground">
+                              {selectedCandidate.fullName ||
+                                selectedCandidate.username ||
+                                selectedCandidate.email}
+                            </span>
+                            {selectedCandidate.username && (
+                              <span className="text-sm text-muted-foreground">
+                                @{selectedCandidate.username}
+                              </span>
+                            )}
+                            <Badge
+                              variant="outline"
+                              className="rounded-md border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400"
+                            >
+                              Platform Member
+                            </Badge>
+                          </div>
+                          <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Mail className="size-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate">{selectedCandidate.email}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearCandidate}
+                        className="h-9 shrink-0 cursor-pointer rounded-xl border-border bg-card font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                      >
+                        <X className="mr-1.5 size-4" />
+                        Choose another
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="relative" ref={dropdownRef}>
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+
+                        <Input
+                          id="member-email"
+                          type="text"
+                          autoComplete="off"
+                          value={searchQuery}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSearchQuery(val);
+                            setValue("email", val, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                            if (!isDropdownOpen) setIsDropdownOpen(true);
+                          }}
+                          onFocus={() => setIsDropdownOpen(true)}
+                          placeholder="Search platform user by name, @username, or email..."
+                          aria-invalid={Boolean(errors.email)}
+                          className={cn(
+                            "h-12 rounded-xl border border-border bg-card pl-12 pr-10 text-base text-foreground shadow-none placeholder:text-muted-foreground",
+                            "focus-visible:border-blue-600 focus-visible:ring-blue-600/15",
+                            errors.email &&
+                              "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/15",
+                          )}
+                        />
+
+                        {isSearching ? (
+                          <Loader2 className="absolute right-4 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                        ) : searchQuery ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSearchQuery("");
+                              setValue("email", "", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            }}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                            title="Clear search"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        ) : null}
+                      </div>
+
+                      {isDropdownOpen && (
+                        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-card p-2 shadow-2xl ring-1 ring-foreground/5 dark:ring-foreground/10">
+                          <div className="flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            <span>
+                              {debouncedQuery
+                                ? `Search Results (${candidates.length})`
+                                : `Platform Users (${candidates.length})`}
+                            </span>
+                            {!debouncedQuery && candidates.length > 0 && (
+                              <span className="text-[11px] font-normal lowercase text-muted-foreground">
+                                Select to invite
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="space-y-1">
+                            {candidates.map((candidate) => {
+                              const isAvailable =
+                                !candidate.isExistingMember &&
+                                !candidate.isPendingInvite;
+                              const initials = (
+                                candidate.fullName ||
+                                candidate.username ||
+                                candidate.email
+                              )
+                                .slice(0, 2)
+                                .toUpperCase();
+
+                              return (
+                                <div
+                                  key={candidate.id}
+                                  role="button"
+                                  tabIndex={isAvailable ? 0 : -1}
+                                  onClick={() =>
+                                    isAvailable &&
+                                    handleSelectCandidate(candidate)
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (
+                                      isAvailable &&
+                                      (e.key === "Enter" || e.key === " ")
+                                    ) {
+                                      e.preventDefault();
+                                      handleSelectCandidate(candidate);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "group flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition-colors text-left",
+                                    isAvailable
+                                      ? "cursor-pointer hover:bg-muted/70 focus-visible:bg-muted/70 focus-visible:outline-none"
+                                      : "cursor-not-allowed bg-muted/20 opacity-60",
+                                  )}
+                                >
+                                  <div className="flex min-w-0 items-center gap-3">
+                                    <Avatar className="size-10 shrink-0 rounded-lg border border-border">
+                                      {candidate.avatarUrl ? (
+                                        <AvatarImage
+                                          src={candidate.avatarUrl}
+                                          alt={
+                                            candidate.fullName ||
+                                            candidate.username ||
+                                            ""
+                                          }
+                                        />
+                                      ) : null}
+                                      <AvatarFallback className="rounded-lg bg-muted text-xs font-semibold text-muted-foreground">
+                                        {initials}
+                                      </AvatarFallback>
+                                    </Avatar>
+
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="truncate text-sm font-semibold text-foreground">
+                                          {candidate.fullName ||
+                                            candidate.username ||
+                                            candidate.email}
+                                        </span>
+                                        {candidate.username && (
+                                          <span className="truncate text-xs text-muted-foreground">
+                                            @{candidate.username}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Mail className="size-3 shrink-0" />
+                                        <span className="truncate">
+                                          {candidate.email}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex shrink-0 items-center gap-2">
+                                    {candidate.isExistingMember ? (
+                                      <Badge
+                                        variant="outline"
+                                        className="border-border bg-muted/60 text-xs font-medium text-muted-foreground"
+                                      >
+                                        {candidate.memberRole
+                                          ? `Member (${candidate.memberRole})`
+                                          : "Already a member"}
+                                      </Badge>
+                                    ) : candidate.isPendingInvite ? (
+                                      <Badge
+                                        variant="outline"
+                                        className="border-amber-500/30 bg-amber-500/10 text-xs font-medium text-amber-600 dark:text-amber-400"
+                                      >
+                                        Pending invite
+                                      </Badge>
+                                    ) : (
+                                      <span className="hidden items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 group-hover:inline-flex">
+                                        Select <ArrowRight className="size-3" />
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {candidates.length === 0 && !isSearching && (
+                            <div className="px-4 py-5 text-center">
+                              <UserRound className="mx-auto mb-2 size-7 text-muted-foreground/40" />
+                              <p className="text-sm font-medium text-foreground">
+                                No registered platform users found
+                              </p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                {searchQuery.trim()
+                                  ? `No platform account matches "${searchQuery.trim()}".`
+                                  : "No users currently available on the platform."}
+                              </p>
+                            </div>
+                          )}
+
+                          {searchQuery.trim().length > 0 && (
+                            <div className="mt-1 border-t border-border pt-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleUseCustomEmail(searchQuery.trim())
+                                }
+                                className="flex w-full cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40 transition-colors"
+                              >
+                                <Mail className="size-4 shrink-0" />
+                                <span className="truncate">
+                                  Use &quot;{searchQuery.trim()}&quot; as invite email
+                                </span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
-                      {...register("email")}
-                      className={cn(
-                        "h-12 rounded-xl border border-border bg-card pl-12 text-base text-foreground shadow-none placeholder:text-muted-foreground",
-                        "focus-visible:border-blue-600 focus-visible:ring-blue-600/15",
-                        errors.email &&
-                          "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/15",
-                      )}
-                    />
-                  </div>
+                    </div>
+                  )}
 
                   <FieldDescription className="text-sm leading-relaxed text-muted-foreground">
-                    The invitation goes to this address, and it has to belong to
-                    an existing DevSolve account — invitations link a person who
-                    has already registered rather than creating one for them.
+                    Select any registered DevSolve user from the directory above, or enter an email address directly.
                   </FieldDescription>
 
-                  <FieldError
-                    errors={[errors.email]}
-                  />
+                  <FieldError errors={[errors.email]} />
                 </FieldContent>
               </Field>
             </FieldGroup>
@@ -488,6 +810,19 @@ export function InviteMemberForm() {
 
             <CardContent className="space-y-5 px-5 py-5">
               <div className="space-y-3">
+                {selectedCandidate ? (
+                  <SummaryField
+                    icon={UserRound}
+                    label="Platform user"
+                    value={
+                      selectedCandidate.fullName ||
+                      (selectedCandidate.username
+                        ? `@${selectedCandidate.username}`
+                        : selectedCandidate.email)
+                    }
+                  />
+                ) : null}
+
                 <SummaryField
                   icon={Mail}
                   label="Email address"
@@ -499,7 +834,7 @@ export function InviteMemberForm() {
                 />
 
                 <SummaryField
-                  icon={UserRound}
+                  icon={ShieldCheck}
                   label="Organization role"
                   value={selectedRoleTitle}
                 />
