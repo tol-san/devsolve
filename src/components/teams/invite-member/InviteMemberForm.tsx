@@ -8,19 +8,24 @@ import {
   Check,
   Copy,
   CheckCircle2,
+  ExternalLink,
   Eye,
   Loader2,
   Mail,
+  Search,
   Send,
   ShieldCheck,
+  UserCheck,
   UserCog,
   UserRound,
+  X,
+  XCircle,
   type LucideIcon,
 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -34,6 +39,7 @@ import type {
   InvitePermissionOption,
   InviteRoleOption,
 } from "@/components/teams/invite-member/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -57,10 +63,19 @@ import {
   ToggleGroupItem,
 } from "@/components/ui/toggle-group";
 import { toast } from "@/hooks/use-toast";
+import { useCompanyAccess } from "@/hooks/useCompanyAccess";
 import { formatDateTime } from "@/lib/format/datetime";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import { absoluteUrl } from "@/lib/seo/site";
-import { useInviteOrganizationMemberMutation } from "@/lib/redux/services/organizationsApi";
+import { formatApiErrorMessage, parseApiError } from "@/lib/api/error-response";
+import {
+  useGetOrganizationRolesQuery,
+  useInviteOrganizationMemberMutation,
+  useRemoveMemberMutation,
+  useSearchMemberCandidatesQuery,
+  type MemberCandidate,
+  type OrganizationInvitationPermission,
+} from "@/lib/redux/services/organizationsApi";
 import { cn } from "@/lib/utils";
 
 const permissionValues = [
@@ -124,54 +139,6 @@ const roleCapabilities = {
   VIEWER: ["Programs", "Reports", "Read only"],
 } as const;
 
-function getErrorMessage(error: unknown): string {
-  if (
-    !error ||
-    typeof error !== "object" ||
-    !("status" in error)
-  ) {
-    return "Unable to send the invitation. Please try again.";
-  }
-
-  const apiError = error as FetchBaseQueryError & {
-    data?: {
-      message?: string;
-      error?: string;
-      details?: string;
-    };
-  };
-
-  const rawMessage =
-    apiError.data?.message ??
-    apiError.data?.error ??
-    apiError.data?.details ??
-    "";
-
-  if (apiError.status === 404) {
-    return "No DevSolve account uses that email address. They need to register first, then you can invite them.";
-  }
-
-  if (apiError.status === 409) {
-    return (
-      rawMessage.trim() ||
-      "That invitation cannot be sent right now. They may already be on the team, or an invitation may still be outstanding."
-    );
-  }
-
-  if (
-    apiError.status === 401 ||
-    apiError.status === 403
-  ) {
-    return "You do not have permission to invite organization members.";
-  }
-
-  if (rawMessage.trim()) {
-    return rawMessage;
-  }
-
-  return "Unable to send the invitation. Please try again.";
-}
-
 export function InviteMemberForm() {
   const router = useRouter();
   const lp = useLocalePath();
@@ -181,11 +148,24 @@ export function InviteMemberForm() {
     { isLoading },
   ] = useInviteOrganizationMemberMutation();
 
+  const [
+    removeMember,
+    { isLoading: isCancellingInvitation },
+  ] = useRemoveMemberMutation();
+
   const [sent, setSent] = useState<{
     email: string;
     token?: string;
     expiresAt?: string;
+    userId?: string;
   } | null>(null);
+
+  const [selectedCandidate, setSelectedCandidate] =
+    useState<MemberCandidate | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -193,6 +173,7 @@ export function InviteMemberForm() {
     reset,
     setValue,
     setError,
+    clearErrors,
     control,
     formState: {
       errors,
@@ -206,9 +187,93 @@ export function InviteMemberForm() {
       role: "MEMBER",
       permissions: [
         ...DEFAULT_PERMISSIONS_BY_ROLE.MEMBER,
-      ],
+      ] as InviteMemberFormValues["permissions"],
     },
   });
+
+  const { membership } = useCompanyAccess();
+  const { data: organizationRoles } = useGetOrganizationRolesQuery();
+  const [offendingPermissions, setOffendingPermissions] = useState<string[]>([]);
+
+  function getRoleCeiling(role: InviteRoleOption["role"]): OrganizationInvitationPermission[] {
+    const info = organizationRoles?.find((r) => r.role === role);
+    return (
+      info?.allowedPermissions ??
+      (MAX_PERMISSIONS_BY_ROLE[role] as OrganizationInvitationPermission[]) ??
+      []
+    );
+  }
+
+  function getRoleDefaults(role: InviteRoleOption["role"]): OrganizationInvitationPermission[] {
+    const info = organizationRoles?.find((r) => r.role === role);
+    return (
+      info?.defaultPermissions ??
+      (DEFAULT_PERMISSIONS_BY_ROLE[role] as OrganizationInvitationPermission[]) ??
+      []
+    );
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const { data: candidates = [], isFetching: isSearching } =
+    useSearchMemberCandidatesQuery(
+      {
+        query: debouncedQuery,
+        organizationId: membership?.organizationId,
+      },
+      { skip: !isDropdownOpen && debouncedQuery.length === 0 },
+    );
+
+  function handleSelectCandidate(candidate: MemberCandidate) {
+    if (candidate.isExistingMember || candidate.isPendingInvite) return;
+    setSelectedCandidate(candidate);
+    setValue("email", candidate.email, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setSearchQuery(candidate.email);
+    setIsDropdownOpen(false);
+    clearErrors("email");
+  }
+
+  function handleClearCandidate() {
+    setSelectedCandidate(null);
+    setValue("email", "", {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setSearchQuery("");
+    setIsDropdownOpen(true);
+  }
+
+  function handleUseCustomEmail(emailToUse: string) {
+    setSelectedCandidate(null);
+    setValue("email", emailToUse.trim(), {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setSearchQuery(emailToUse.trim());
+    setIsDropdownOpen(false);
+    clearErrors("email");
+  }
 
   const email =
     useWatch({
@@ -236,6 +301,7 @@ export function InviteMemberForm() {
   async function onSubmit(
     values: InviteMemberFormValues,
   ) {
+    setOffendingPermissions([]);
     try {
       const response =
         await inviteOrganizationMember(values).unwrap();
@@ -252,6 +318,8 @@ export function InviteMemberForm() {
           : `${values.email} can now join the team.`,
       });
 
+      const userId = response.member?.userId ?? selectedCandidate?.id;
+
       setSent({
         email: values.email,
         token:
@@ -259,17 +327,42 @@ export function InviteMemberForm() {
             ? response.invitationToken
             : undefined,
         expiresAt,
+        userId,
       });
     } catch (error) {
-      const message = getErrorMessage(error);
+      const parsed = parseApiError(error);
 
-      setError("root", {
-        message,
-      });
+      // Handle 400 violations
+      if (parsed.status === 400 && Object.keys(parsed.violations).length > 0) {
+        for (const [field, msg] of Object.entries(parsed.violations)) {
+          if (field === "email" || field === "role" || field === "permissions") {
+            setError(field, { message: msg });
+          } else {
+            setError("root", { message: msg });
+          }
+        }
+      } else if (parsed.status === 422) {
+        setOffendingPermissions(parsed.offendingPermissions ?? []);
+        setError("permissions", {
+          message: parsed.message,
+        });
+      } else if (parsed.status === 409) {
+        setError("email", {
+          message: parsed.message,
+        });
+      } else if (parsed.status === 404) {
+        setError("email", {
+          message: "No DevSolve account uses that email address. They need to register first, then you can invite them.",
+        });
+      } else {
+        setError("root", {
+          message: parsed.message,
+        });
+      }
 
       toast.destructive({
         title: "Invitation failed",
-        description: message,
+        description: parsed.message,
       });
     }
   }
@@ -292,23 +385,21 @@ export function InviteMemberForm() {
     setValue(
       "permissions",
       [
-        ...(
-          DEFAULT_PERMISSIONS_BY_ROLE[nextRole] ??
-          []
-        ),
-      ],
+        ...getRoleDefaults(nextRole),
+      ] as InviteMemberFormValues["permissions"],
       {
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,
       },
     );
+    setOffendingPermissions([]);
   }
 
   function handlePermissionChange(values: string[]) {
-    const roleCeiling = MAX_PERMISSIONS_BY_ROLE[selectedRole] ?? [];
+    const roleCeiling = getRoleCeiling(selectedRole);
     const validValues = values.filter((v) =>
-      roleCeiling.includes(v as (typeof roleCeiling)[number]),
+      roleCeiling.includes(v as OrganizationInvitationPermission),
     );
 
     setValue(
@@ -326,16 +417,51 @@ export function InviteMemberForm() {
     router.push(lp("/dashboard/team-management"));
   }
 
+  async function handleCancelSentInvitation() {
+    if (!sent?.userId) {
+      router.push(lp("/dashboard/team-management?status=Invited"));
+      return;
+    }
+
+    try {
+      await removeMember({ userId: sent.userId }).unwrap();
+      toast.success({
+        title: "Invitation cancelled",
+        description: `The invitation to ${sent.email} has been cancelled.`,
+      });
+      setSent(null);
+      setSelectedCandidate(null);
+      setSearchQuery("");
+      reset({
+        email: "",
+        role: "MEMBER",
+        permissions: [...getRoleDefaults("MEMBER")] as InviteMemberFormValues["permissions"],
+      });
+    } catch (error) {
+      toast.destructive({
+        title: "Failed to cancel invitation",
+        description: formatApiErrorMessage(
+          error,
+          "Could not cancel invitation. Please try from Team Management.",
+        ),
+      });
+    }
+  }
+
   if (sent) {
     return (
       <InvitationSent
         sent={sent}
+        isCancelling={isCancellingInvitation}
+        onCancelInvitation={handleCancelSentInvitation}
         onInviteAnother={() => {
           setSent(null);
+          setSelectedCandidate(null);
+          setSearchQuery("");
           reset({
             email: "",
             role: "MEMBER",
-            permissions: [...DEFAULT_PERMISSIONS_BY_ROLE.MEMBER],
+            permissions: [...getRoleDefaults("MEMBER")] as InviteMemberFormValues["permissions"],
           });
         }}
       />
@@ -345,61 +471,337 @@ export function InviteMemberForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Card className="order-1 overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 xl:col-start-1">
+        <Card className="order-1 overflow-visible rounded-2xl border border-border bg-card text-card-foreground shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10 xl:col-start-1">
           <CardHeader className="border-b border-border px-6 py-5 sm:px-7">
             <CardTitle className="text-xl font-semibold tracking-tight text-foreground">
               Member information
             </CardTitle>
 
             <p className="max-w-2xl text-base sm:text-lg leading-relaxed text-muted-foreground">
-              Enter the member&apos;s email address and
-              configure their organization access.
+              Search and select a platform member, or enter a work email address to configure their organization access.
             </p>
           </CardHeader>
 
           <CardContent className="px-6 py-7 sm:px-7">
             <FieldGroup className="gap-6">
-              <Field
-                data-invalid={Boolean(errors.email)}
-              >
+              <Field data-invalid={Boolean(errors.email)}>
                 <FieldContent className="gap-3">
                   <FieldLabel
                     htmlFor="member-email"
                     className="text-sm font-semibold text-foreground"
                   >
-                    Work email
+                    Select platform member or enter email
                   </FieldLabel>
 
-                  <div className="relative">
-                    <Mail className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                  {selectedCandidate ? (
+                    <div className="relative flex flex-col gap-3 rounded-2xl border border-blue-500/30 bg-blue-50/40 p-4 ring-1 ring-blue-500/20 dark:bg-blue-950/20 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3.5">
+                        <Avatar className="size-12 shrink-0 rounded-xl border border-blue-200 dark:border-blue-900/60">
+                          {selectedCandidate.avatarUrl ? (
+                            <AvatarImage
+                              src={selectedCandidate.avatarUrl}
+                              alt={
+                                selectedCandidate.fullName ||
+                                selectedCandidate.username ||
+                                ""
+                              }
+                            />
+                          ) : null}
+                          <AvatarFallback className="rounded-xl bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+                            {(
+                              selectedCandidate.fullName ||
+                              selectedCandidate.username ||
+                              selectedCandidate.email
+                            )
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
 
-                    <Input
-                      id="member-email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="member@company.com"
-                      aria-invalid={Boolean(
-                        errors.email,
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="truncate text-base font-semibold text-foreground">
+                              {selectedCandidate.fullName ||
+                                selectedCandidate.username ||
+                                selectedCandidate.email}
+                            </span>
+                            {selectedCandidate.username && (
+                              <span className="text-sm text-muted-foreground">
+                                @{selectedCandidate.username}
+                              </span>
+                            )}
+                            <Badge
+                              variant="outline"
+                              className="rounded-md border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400"
+                            >
+                              Platform Member
+                            </Badge>
+                          </div>
+                          <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Mail className="size-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate">{selectedCandidate.email}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClearCandidate}
+                        className="h-9 shrink-0 cursor-pointer rounded-xl border-border bg-card font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                      >
+                        <X className="mr-1.5 size-4" />
+                        Choose another
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="relative" ref={dropdownRef}>
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+
+                        <Input
+                          id="member-email"
+                          type="text"
+                          autoComplete="off"
+                          value={searchQuery}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setSearchQuery(val);
+                            setValue("email", val, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            });
+                            if (!isDropdownOpen) setIsDropdownOpen(true);
+                          }}
+                          onFocus={() => setIsDropdownOpen(true)}
+                          placeholder="Search platform user by name, @username, or email..."
+                          aria-invalid={Boolean(errors.email)}
+                          className={cn(
+                            "h-12 rounded-xl border border-border bg-card pl-12 pr-10 text-base text-foreground shadow-none placeholder:text-muted-foreground",
+                            "focus-visible:border-blue-600 focus-visible:ring-blue-600/15",
+                            errors.email &&
+                              "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/15",
+                          )}
+                        />
+
+                        {isSearching ? (
+                          <Loader2 className="absolute right-4 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                        ) : searchQuery ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSearchQuery("");
+                              setValue("email", "", {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            }}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                            title="Clear search"
+                          >
+                            <X className="size-4" />
+                          </button>
+                        ) : null}
+                      </div>
+
+                      {isDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.15, ease: "easeOut" }}
+                          className="mt-3 max-h-80 overflow-y-auto rounded-2xl border border-border bg-muted/30 p-2 shadow-xs ring-1 ring-foreground/5 dark:ring-foreground/10"
+                        >
+                          <div className="flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            <span>
+                              {debouncedQuery
+                                ? `Search Results (${candidates.length})`
+                                : `Platform Users (${candidates.length})`}
+                            </span>
+                            {!debouncedQuery && candidates.length > 0 && (
+                              <span className="text-[11px] font-normal lowercase text-muted-foreground">
+                                Select to invite
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="space-y-1">
+                            {candidates.map((candidate) => {
+                              const isAvailable =
+                                !candidate.isExistingMember &&
+                                !candidate.isPendingInvite;
+                              const initials = (
+                                candidate.fullName ||
+                                candidate.username ||
+                                candidate.email
+                              )
+                                .slice(0, 2)
+                                .toUpperCase();
+
+                              return (
+                                <div
+                                  key={candidate.id}
+                                  role="button"
+                                  tabIndex={isAvailable ? 0 : -1}
+                                  onClick={() =>
+                                    isAvailable &&
+                                    handleSelectCandidate(candidate)
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (
+                                      isAvailable &&
+                                      (e.key === "Enter" || e.key === " ")
+                                    ) {
+                                      e.preventDefault();
+                                      handleSelectCandidate(candidate);
+                                    }
+                                  }}
+                                  className={cn(
+                                    "group flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition-colors text-left",
+                                    isAvailable
+                                      ? "cursor-pointer hover:bg-muted/70 focus-visible:bg-muted/70 focus-visible:outline-none"
+                                      : "cursor-not-allowed bg-muted/20 opacity-60",
+                                  )}
+                                >
+                                  <div className="flex min-w-0 items-center gap-3">
+                                    <Avatar className="size-10 shrink-0 rounded-lg border border-border">
+                                      {candidate.avatarUrl ? (
+                                        <AvatarImage
+                                          src={candidate.avatarUrl}
+                                          alt={
+                                            candidate.fullName ||
+                                            candidate.username ||
+                                            ""
+                                          }
+                                        />
+                                      ) : null}
+                                      <AvatarFallback className="rounded-lg bg-muted text-xs font-semibold text-muted-foreground">
+                                        {initials}
+                                      </AvatarFallback>
+                                    </Avatar>
+
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="truncate text-sm font-semibold text-foreground">
+                                          {candidate.fullName ||
+                                            candidate.username ||
+                                            candidate.email}
+                                        </span>
+                                        {candidate.username && (
+                                          <span className="truncate text-xs text-muted-foreground">
+                                            @{candidate.username}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                                        <Mail className="size-3 shrink-0" />
+                                        <span className="truncate">
+                                          {candidate.email}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex shrink-0 items-center gap-2">
+                                    {candidate.isExistingMember ? (
+                                      <Badge
+                                        variant="outline"
+                                        className="border-border bg-muted/60 text-xs font-medium text-muted-foreground"
+                                      >
+                                        {candidate.memberRole
+                                          ? `Member (${candidate.memberRole})`
+                                          : "Already a member"}
+                                      </Badge>
+                                    ) : candidate.isPendingInvite ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <Badge
+                                          variant="outline"
+                                          className="border-amber-500/30 bg-amber-500/10 text-xs font-medium text-amber-600 dark:text-amber-400"
+                                        >
+                                          Pending invite
+                                        </Badge>
+                                        <Link
+                                          href={lp("/dashboard/team-management?status=Invited")}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="hidden items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground sm:inline-flex"
+                                          title="Cancel or manage in Team Management"
+                                        >
+                                          Cancel &rarr;
+                                        </Link>
+                                      </div>
+                                    ) : (
+                                      <span className="hidden items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 group-hover:inline-flex">
+                                        Select <ArrowRight className="size-3" />
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {candidates.length === 0 && !isSearching && (
+                            <div className="px-4 py-5 text-center">
+                              <UserRound className="mx-auto mb-2 size-7 text-muted-foreground/40" />
+                              <p className="text-sm font-medium text-foreground">
+                                No registered platform users found
+                              </p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                {searchQuery.trim()
+                                  ? `No platform account matches "${searchQuery.trim()}".`
+                                  : "No users currently available on the platform."}
+                              </p>
+                            </div>
+                          )}
+
+                          {searchQuery.trim().length > 0 && (
+                            <div className="mt-1 border-t border-border pt-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleUseCustomEmail(searchQuery.trim())
+                                }
+                                className="flex w-full cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40 transition-colors"
+                              >
+                                <Mail className="size-4 shrink-0" />
+                                <span className="truncate">
+                                  Use &quot;{searchQuery.trim()}&quot; as invite email
+                                </span>
+                              </button>
+                            </div>
+                          )}
+                        </motion.div>
                       )}
-                      {...register("email")}
-                      className={cn(
-                        "h-12 rounded-xl border border-border bg-card pl-12 text-base text-foreground shadow-none placeholder:text-muted-foreground",
-                        "focus-visible:border-blue-600 focus-visible:ring-blue-600/15",
-                        errors.email &&
-                          "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500/15",
-                      )}
-                    />
-                  </div>
+                    </div>
+                  )}
 
                   <FieldDescription className="text-sm leading-relaxed text-muted-foreground">
-                    The invitation goes to this address, and it has to belong to
-                    an existing DevSolve account — invitations link a person who
-                    has already registered rather than creating one for them.
+                    Select any registered DevSolve user from the directory above, or enter an email address directly.
                   </FieldDescription>
 
-                  <FieldError
-                    errors={[errors.email]}
-                  />
+                  <FieldError errors={[errors.email]} />
+
+                  {errors.email?.message &&
+                  (errors.email.message.toLowerCase().includes("already") ||
+                    errors.email.message.toLowerCase().includes("invitation")) ? (
+                    <div className="mt-2 flex items-start gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-300">
+                      <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                      <div className="space-y-1">
+                        <p className="font-medium">
+                          Active invitation or membership already exists
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          To cancel a pending invitation or manage existing team members:
+                        </p>
+                        <Link
+                          href={lp("/dashboard/team-management?status=Invited")}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline underline-offset-4 hover:opacity-80"
+                        >
+                          Go to Team Management to cancel invitation &rarr;
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
                 </FieldContent>
               </Field>
             </FieldGroup>
@@ -472,6 +874,19 @@ export function InviteMemberForm() {
 
             <CardContent className="space-y-5 px-5 py-5">
               <div className="space-y-3">
+                {selectedCandidate ? (
+                  <SummaryField
+                    icon={UserRound}
+                    label="Platform user"
+                    value={
+                      selectedCandidate.fullName ||
+                      (selectedCandidate.username
+                        ? `@${selectedCandidate.username}`
+                        : selectedCandidate.email)
+                    }
+                  />
+                ) : null}
+
                 <SummaryField
                   icon={Mail}
                   label="Email address"
@@ -483,7 +898,7 @@ export function InviteMemberForm() {
                 />
 
                 <SummaryField
-                  icon={UserRound}
+                  icon={ShieldCheck}
                   label="Organization role"
                   value={selectedRoleTitle}
                 />
@@ -592,17 +1007,18 @@ export function InviteMemberForm() {
                       >
                         {INVITE_PERMISSION_OPTIONS.map(
                           (option) => {
-                            const isAllowed = (
-                              MAX_PERMISSIONS_BY_ROLE[selectedRole] ?? []
-                            ).includes(option.value);
+                            const isAllowed = getRoleCeiling(selectedRole).includes(option.value);
+                            const isOffending = offendingPermissions.includes(option.value);
                             return (
                               <PermissionTableRow
                                 key={option.value}
                                 option={option}
+                                role={selectedRole}
                                 selected={selectedPermissions.includes(
                                   option.value,
                                 )}
                                 disabled={!isAllowed}
+                                isOffending={isOffending}
                               />
                             );
                           },
@@ -698,17 +1114,23 @@ export function InviteMemberForm() {
 
 type PermissionTableRowProps = {
   option: InvitePermissionOption;
+  role?: string;
   selected: boolean;
   disabled?: boolean;
+  isOffending?: boolean;
 };
 
 function PermissionTableRow({
   option,
+  role,
   selected,
   disabled = false,
+  isOffending = false,
 }: PermissionTableRowProps) {
   const category =
     getPermissionCategory(option.value);
+  const roleDisplay =
+    role === "VIEWER" ? "Viewer" : role === "MEMBER" ? "Member" : "Manager";
 
   return (
     <ToggleGroupItem
@@ -736,6 +1158,7 @@ function PermissionTableRow({
         }}
         className={cn(
           "flex items-center justify-between gap-4 rounded-xl border border-transparent px-3.5 py-3 transition-all duration-200",
+          isOffending && "border-red-500/40 bg-red-500/10 dark:bg-red-950/20",
           selected
             ? "border-blue-500/20 bg-blue-50/70 dark:bg-blue-950/20 shadow-none"
             : disabled
@@ -749,9 +1172,11 @@ function PermissionTableRow({
               <p
                 className={cn(
                   "truncate text-sm font-semibold transition-colors duration-200 sm:text-base",
-                  selected
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400",
+                  isOffending
+                    ? "text-red-600 dark:text-red-400 font-bold"
+                    : selected
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400",
                 )}
               >
                 {option.title}
@@ -760,15 +1185,25 @@ function PermissionTableRow({
               <PermissionCategoryBadge
                 category={category}
               />
+
+              {isOffending ? (
+                <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                  Disallowed
+                </Badge>
+              ) : null}
             </div>
 
             <p
               title={option.description}
               className="mt-0.5 line-clamp-1 text-sm text-muted-foreground"
             >
-              {disabled ? (
+              {isOffending ? (
+                <span className="font-medium text-red-600 dark:text-red-400">
+                  Disallowed by server for {roleDisplay} role.
+                </span>
+              ) : disabled ? (
                 <span className="font-medium text-amber-600 dark:text-amber-400">
-                  Not available for this role &mdash; promote to grant.
+                  Not available for {roleDisplay} role &mdash; promote to grant.
                 </span>
               ) : (
                 option.description
@@ -1021,29 +1456,34 @@ function Step({
 function InvitationSent({
   sent,
   onInviteAnother,
+  onCancelInvitation,
+  isCancelling,
 }: {
-  sent: { email: string; token?: string; expiresAt?: string };
+  sent: {
+    email: string;
+    token?: string;
+    expiresAt?: string;
+    userId?: string;
+  };
   onInviteAnother: () => void;
+  onCancelInvitation?: () => void;
+  isCancelling?: boolean;
 }) {
   const lp = useLocalePath();
   const [copied, setCopied] = useState(false);
 
   const link = sent.token
-    ? absoluteUrl(lp(`/invitations/${sent.token}`))
-    : null;
+    ? absoluteUrl(`/invitation?token=${sent.token}`)
+    : "";
 
   async function copyLink() {
     if (!link) return;
-
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.destructive({
-        title: "Could not copy the link",
-        description: "Select it in the field and copy it by hand.",
-      });
+      // ignore
     }
   }
 
@@ -1116,7 +1556,7 @@ function InvitationSent({
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-2.5 sm:flex-row">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
             <Link
               href={lp("/dashboard/team-management")}
               className={cn(
@@ -1137,6 +1577,23 @@ function InvitationSent({
               <Mail className="size-4" />
               Invite someone else
             </Button>
+
+            {onCancelInvitation ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isCancelling}
+                onClick={onCancelInvitation}
+                className="h-11 cursor-pointer rounded-xl border-red-200/80 px-5 text-base font-semibold text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-900/40 sm:ml-auto"
+              >
+                {isCancelling ? (
+                  <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+                ) : (
+                  <XCircle className="size-4" />
+                )}
+                {isCancelling ? "Cancelling…" : "Cancel invitation"}
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>

@@ -8,57 +8,12 @@ import {
   XCircle,
   DollarSign,
   Users,
-  TrendingUp,
-  TrendingDown,
-  Minus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type {
-  KpiSummary,
-  TrendDirection,
-} from "@/lib/types/analytics/types";
+import type { KpiSummary } from "@/lib/types/analytics/types";
 
 interface DashboardKpiRowProps {
   kpi: KpiSummary;
-}
-
-function TrendBadge({
-  trend,
-  changePercentage,
-  invertGood = false,
-}: {
-  trend: TrendDirection;
-  changePercentage: number | null;
-  invertGood?: boolean; 
-}) {
-  const isUp = trend === "up";
-  const isDown = trend === "down";
-  const isPositive = invertGood ? isDown : isUp;
-  const isNegative = invertGood ? isUp : isDown;
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] sm:text-xs font-semibold tabular-nums shrink-0",
-        isPositive && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-        isNegative && "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-        !isPositive && !isNegative && "bg-muted text-muted-foreground",
-      )}
-    >
-      {isUp ? (
-        <TrendingUp className="size-3 stroke-[2.5]" />
-      ) : isDown ? (
-        <TrendingDown className="size-3 stroke-[2.5]" />
-      ) : (
-        <Minus className="size-3 stroke-[2.5]" />
-      )}
-      <span>
-        {changePercentage !== null
-          ? `${changePercentage > 0 ? "+" : ""}${changePercentage.toFixed(1)}%`
-          : "—"}
-      </span>
-    </span>
-  );
 }
 
 function formatBountyAmount(amount: number): string {
@@ -75,41 +30,30 @@ export function DashboardKpiRow({ kpi }: DashboardKpiRowProps) {
       title: "Total Reports",
       value: kpi.totalReports.value.toLocaleString(),
       subtext: "All vulnerability submissions",
-      trend: kpi.totalReports.trend,
-      changePercentage: kpi.totalReports.changePercentage,
       icon: FileText,
     },
     {
       title: "Accepted Reports",
       value: kpi.acceptedReports.value.toLocaleString(),
       subtext: `${kpi.acceptedReports.acceptanceRate.toFixed(1)}% acceptance rate`,
-      trend: kpi.acceptedReports.trend,
-      changePercentage: kpi.acceptedReports.changePercentage,
       icon: CheckCircle2,
     },
     {
       title: "Rejected Reports",
       value: kpi.rejectedReports.value.toLocaleString(),
       subtext: `${kpi.rejectedReports.rejectionRate.toFixed(1)}% rejection rate`,
-      trend: kpi.rejectedReports.trend,
-      changePercentage: kpi.rejectedReports.changePercentage,
-      invertGood: true,
       icon: XCircle,
     },
     {
       title: "Bounties Paid",
       value: formatBountyAmount(kpi.totalBountiesPaid.amount),
       subtext: `${kpi.reputationPointsAwarded.toLocaleString()} rep points awarded`,
-      trend: kpi.totalBountiesPaid.trend,
-      changePercentage: kpi.totalBountiesPaid.changePercentage,
       icon: DollarSign,
     },
     {
       title: "Active Researchers",
       value: kpi.activeResearchers.value.toLocaleString(),
       subtext: "Contributing researchers",
-      trend: kpi.activeResearchers.trend,
-      changePercentage: kpi.activeResearchers.changePercentage,
       icon: Users,
     },
   ];
@@ -152,20 +96,13 @@ export function DashboardKpiRow({ kpi }: DashboardKpiRowProps) {
               <div className="text-2xl sm:text-3xl font-extrabold tracking-tight font-sans leading-none text-foreground tabular-nums truncate transition-colors group-hover:text-primary">
                 {card.value}
               </div>
-              <div className="flex items-center justify-between gap-1.5 min-w-0 pt-2 border-t border-border/50">
+              <div className="pt-2 border-t border-border/50">
                 <span
-                  className="text-xs text-muted-foreground truncate min-w-0"
+                  className="text-xs text-muted-foreground truncate block min-w-0"
                   title={card.subtext}
                 >
                   {card.subtext}
                 </span>
-                {card.trend && (
-                  <TrendBadge
-                    trend={card.trend}
-                    changePercentage={card.changePercentage}
-                    invertGood={card.invertGood}
-                  />
-                )}
               </div>
             </div>
           </motion.div>

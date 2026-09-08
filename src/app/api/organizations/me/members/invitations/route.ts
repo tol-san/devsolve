@@ -43,6 +43,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const VALID_PERMISSIONS = new Set([
+    "VIEW_PROGRAMS",
+    "CREATE_PROGRAM",
+    "EDIT_PROGRAM",
+    "MANAGE_PROGRAM_STATE",
+    "VIEW_REPORTS",
+    "TRIAGE_REPORTS",
+    "MANAGE_DISCLOSURE",
+    "AWARD_REWARDS",
+  ]);
+
+  if (
+    payload &&
+    typeof payload === "object" &&
+    Array.isArray((payload as Record<string, unknown>).permissions)
+  ) {
+    (payload as Record<string, unknown>).permissions = (
+      (payload as Record<string, unknown>).permissions as unknown[]
+    ).filter(
+      (p): p is string => typeof p === "string" && VALID_PERMISSIONS.has(p)
+    );
+  }
+
   try {
     const upstream = await fetch(
       withOrganizationScope(
@@ -72,9 +95,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (!upstream.ok) {
-      const message =
+      let message =
         (body as { message?: string } | null)?.message ??
         "Failed to invite organization member.";
+
+      if (
+        upstream.status === 409 &&
+        (!message ||
+          message.includes("conflicts with data that already exists") ||
+          message.toLowerCase().includes("conflict"))
+      ) {
+        message =
+          "This person is already a member of your organization, or an active invitation has already been sent to them.";
+      }
+
       return NextResponse.json(
         { message, details: body },
         { status: upstream.status }

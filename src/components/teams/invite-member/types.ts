@@ -3,6 +3,8 @@ import type {
   OrganizationInvitationRole,
 } from "@/lib/redux/services/organizationsApi";
 
+export type SupportedInvitationPermission = OrganizationInvitationPermission;
+
 export type InviteRoleOption = {
   role: OrganizationInvitationRole;
   title: string;
@@ -13,7 +15,7 @@ export type InviteRoleOption = {
 };
 
 export type InvitePermissionOption = {
-  value: OrganizationInvitationPermission;
+  value: SupportedInvitationPermission;
   title: string;
   description: string;
 };

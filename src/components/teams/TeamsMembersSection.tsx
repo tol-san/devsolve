@@ -17,6 +17,7 @@ import {
   UserPlus,
   UserRound,
   Users,
+  XCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -63,7 +64,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import { useCompanyAccess } from "@/hooks/useCompanyAccess";
-import { apiErrorMessage, apiErrorStatus } from "@/lib/api/error-message";
+import { formatApiErrorMessage, parseApiError } from "@/lib/api/error-response";
 import { useLocalePath } from "@/lib/i18n/I18nProvider";
 import {
   useRemoveMemberMutation,
@@ -79,6 +80,7 @@ import { cn } from "@/lib/utils";
 type TeamActor = {
   role?: OrganizationInvitationRole;
   isOwner: boolean;
+  canManage?: boolean;
 };
 
 const ROLE_FILTER_LABELS: Record<string, string> = {
@@ -105,29 +107,6 @@ const ROLE_CHOICES: { value: OrganizationInvitationRole; label: string }[] = [
   { value: "MEMBER", label: "Member" },
   { value: "VIEWER", label: "Viewer" },
 ];
-
-function memberActionMessage(error: unknown, fallback: string): string {
-  const status = apiErrorStatus(error);
-
-  if (status === 401) {
-    return "Your session ended. Sign in again and try once more.";
-  }
-  if (status === 403) {
-    return "Your role does not allow this. An owner or manager can do it.";
-  }
-  if (status === 404) {
-    return "That person is no longer on this team — the list is already out of date.";
-  }
-  if (status === 422) {
-    const backendMessage = apiErrorMessage(error, "");
-    return (
-      backendMessage ||
-      "One or more permissions are not allowed for this role. Adjust them to match the role ceiling."
-    );
-  }
-
-  return apiErrorMessage(error, fallback);
-}
 
 function getMemberInitials(name: string) {
   return name
@@ -162,18 +141,29 @@ function getRoleBadgeClass(role: MemberRole | null) {
 }
 
 function getMemberPermissions(member: TeamMember, actor: TeamActor) {
-  const isCurrentUser = member.isSelf;
+  // Owner is fully protected: role, permissions, and removal are completely locked
+  if (member.isOwner) {
+    return {
+      canViewProfile: true,
+      canEditRole: false,
+      canEditPermissions: false,
+      canRemove: false,
+      disableSelfRemoval: true,
+    };
+  }
 
-  const canManageTarget =
-    !member.isOwner &&
-    (actor.isOwner || (actor.role === "MANAGER" && member.role !== "Manager"));
+  const actorCanManage =
+    actor.isOwner || actor.role === "MANAGER" || actor.canManage;
 
   return {
     canViewProfile: true,
-    canEditRole: !isCurrentUser && canManageTarget,
-    canEditPermissions: !isCurrentUser && canManageTarget,
-    canRemove: !isCurrentUser && canManageTarget,
-    disableSelfRemoval: isCurrentUser,
+    // Allowed to edit role if actor can manage and member is not pending
+    canEditRole: Boolean(actorCanManage && !member.isPending),
+    // Allowed to tune permissions if actor can manage and member is not pending
+    canEditPermissions: Boolean(actorCanManage && !member.isPending),
+    // Allowed to remove or cancel invitation
+    canRemove: Boolean(actorCanManage),
+    disableSelfRemoval: false,
   };
 }
 
@@ -217,31 +207,44 @@ export function TeamsMembersSection({
   const [removalError, setRemovalError] = useState<string | null>(null);
   const [memberToTune, setMemberToTune] = useState<TeamMember | null>(null);
   const [permissionsError, setPermissionsError] = useState<string | null>(null);
+  const [offendingPermissions, setOffendingPermissions] = useState<string[]>([]);
+  const [pendingRoleChange, setPendingRoleChange] = useState<{
+    member: TeamMember;
+    nextRole: OrganizationInvitationRole;
+  } | null>(null);
+  const [roleChangeError, setRoleChangeError] = useState<string | null>(null);
 
-  const { membership, isOwner } = useCompanyAccess();
+  const { membership, isOwner, can } = useCompanyAccess();
   const [removeMember, { isLoading: isRemoving }] = useRemoveMemberMutation();
-  const [updateMemberRole] = useUpdateMemberRoleMutation();
+  const [updateMemberRole, { isLoading: isUpdatingRole }] =
+    useUpdateMemberRoleMutation();
   const [updateMemberPermissions, { isLoading: isSavingPermissions }] =
     useUpdateMemberPermissionsMutation();
 
   const actor: TeamActor = {
     role: membership?.role ?? undefined,
     isOwner,
+    canManage: isOwner || membership?.role === "MANAGER" || can("MANAGE_MEMBERS"),
   };
 
   useEffect(() => {
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !isRemoving) {
-        setMemberToRemove(null);
+      if (event.key === "Escape") {
+        if (!isRemoving && memberToRemove) {
+          setMemberToRemove(null);
+        }
+        if (!isUpdatingRole && pendingRoleChange) {
+          setPendingRoleChange(null);
+        }
+        if (!isSavingPermissions && memberToTune) {
+          setMemberToTune(null);
+        }
       }
     }
 
-    if (memberToRemove) {
-      window.addEventListener("keydown", handleEscape);
-    }
-
+    window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [memberToRemove, isRemoving]);
+  }, [memberToRemove, isRemoving, pendingRoleChange, isUpdatingRole, memberToTune, isSavingPermissions]);
 
   function getAvatarTone(memberId: string) {
     const tones = [
@@ -266,38 +269,47 @@ export function TeamsMembersSection({
     router.push(lp(`/dashboard/profile/${member.id}`));
   }
 
-  async function handleRoleChange(
+  function askToChangeRole(
     member: TeamMember,
     nextRole: OrganizationInvitationRole,
   ) {
     setOpenMenuKey(null);
     if (!member.role || nextRole === API_ROLE[member.role]) return;
+    setRoleChangeError(null);
+    setPendingRoleChange({ member, nextRole });
+  }
+
+  async function handleConfirmRoleChange() {
+    if (!pendingRoleChange) return;
+    const { member, nextRole } = pendingRoleChange;
+    setRoleChangeError(null);
 
     const label =
       ROLE_CHOICES.find((choice) => choice.value === nextRole)?.label ??
-      "member";
+      nextRole;
 
     try {
       await updateMemberRole({ userId: member.id, role: nextRole }).unwrap();
 
       toast.success({
         title: "Role updated",
-        description: `${member.name} is now a ${label.toLowerCase()} on this team.`,
+        description: `${member.name} is now a ${label.toLowerCase()} on this team. Custom permissions have been reset to defaults.`,
       });
+      setPendingRoleChange(null);
     } catch (error) {
-      toast.destructive({
-        title: "Role not updated",
-        description: memberActionMessage(
+      setRoleChangeError(
+        formatApiErrorMessage(
           error,
           "The role could not be changed. Trying again is usually enough.",
         ),
-      });
+      );
     }
   }
 
   function askToTunePermissions(member: TeamMember) {
     setOpenMenuKey(null);
     setPermissionsError(null);
+    setOffendingPermissions([]);
     setMemberToTune(member);
   }
 
@@ -307,6 +319,7 @@ export function TeamsMembersSection({
     if (!memberToTune) return;
 
     setPermissionsError(null);
+    setOffendingPermissions([]);
     try {
       await updateMemberPermissions({
         userId: memberToTune.id,
@@ -319,11 +332,11 @@ export function TeamsMembersSection({
       });
       setMemberToTune(null);
     } catch (error) {
+      const parsed = parseApiError(error);
+      setOffendingPermissions(parsed.offendingPermissions ?? []);
       setPermissionsError(
-        memberActionMessage(
-          error,
+        parsed.message ||
           "The permissions could not be saved. Trying again is usually enough.",
-        ),
       );
     }
   }
@@ -343,15 +356,19 @@ export function TeamsMembersSection({
       await removeMember({ userId: memberToRemove.id }).unwrap();
 
       toast.success({
-        title: "Member removed",
-        description: `${memberToRemove.name} no longer has access to this workspace.`,
+        title: memberToRemove.isPending ? "Invitation cancelled" : "Member removed",
+        description: memberToRemove.isPending
+          ? `The invitation to ${memberToRemove.name} has been cancelled.`
+          : `${memberToRemove.name} no longer has access to this workspace.`,
       });
       setMemberToRemove(null);
     } catch (error) {
       setRemovalError(
-        memberActionMessage(
+        formatApiErrorMessage(
           error,
-          "The member could not be removed. Trying again is usually enough.",
+          memberToRemove.isPending
+            ? "The invitation could not be cancelled. Trying again is usually enough."
+            : "The member could not be removed. Trying again is usually enough.",
         ),
       );
     }
@@ -472,7 +489,7 @@ export function TeamsMembersSection({
                     )
                   }
                   onViewProfile={() => openProfile(member)}
-                  onRoleChange={(role) => void handleRoleChange(member, role)}
+                  onRoleChange={(role) => askToChangeRole(member, role)}
                   onEditPermissions={() => askToTunePermissions(member)}
                   onRemove={() => askToRemove(member)}
                 />
@@ -560,7 +577,10 @@ export function TeamsMembersSection({
                       </TableCell>
 
                       <TableCell className="px-4 py-4 whitespace-normal sm:px-6">
-                        <AccessSummary permissions={member.permissions} />
+                        <AccessSummary
+                          permissions={member.permissions}
+                          isOwner={member.isOwner}
+                        />
                       </TableCell>
 
                       <TableCell className="px-4 py-4 sm:px-6">
@@ -575,22 +595,36 @@ export function TeamsMembersSection({
                       </TableCell>
 
                       <TableCell className="px-4 py-4 text-center sm:px-6">
-                        <MemberActions
-                          member={member}
-                          permissions={getMemberPermissions(member, actor)}
-                          open={openMenuKey === memberMenuKey("row", member.id)}
-                          onOpenChange={(open) =>
-                            setOpenMenuKey(
-                              open ? memberMenuKey("row", member.id) : null,
-                            )
-                          }
-                          onViewProfile={() => openProfile(member)}
-                          onRoleChange={(role) =>
-                            void handleRoleChange(member, role)
-                          }
-                          onEditPermissions={() => askToTunePermissions(member)}
-                          onRemove={() => askToRemove(member)}
-                        />
+                        <div className="flex items-center justify-center gap-2">
+                          {member.isPending && getMemberPermissions(member, actor).canRemove ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => askToRemove(member)}
+                              className="h-8 cursor-pointer rounded-lg border-red-200/80 bg-red-50/50 px-2.5 text-xs font-semibold text-red-600 hover:border-red-300 hover:bg-red-100 hover:text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-900/40"
+                              title="Cancel invitation"
+                            >
+                              <XCircle className="size-3.5 mr-1" />
+                              Cancel invite
+                            </Button>
+                          ) : null}
+
+                          <MemberActions
+                            member={member}
+                            permissions={getMemberPermissions(member, actor)}
+                            open={openMenuKey === memberMenuKey("row", member.id)}
+                            onOpenChange={(open) =>
+                              setOpenMenuKey(
+                                open ? memberMenuKey("row", member.id) : null,
+                              )
+                            }
+                            onViewProfile={() => openProfile(member)}
+                            onRoleChange={(role) => askToChangeRole(member, role)}
+                            onEditPermissions={() => askToTunePermissions(member)}
+                            onRemove={() => askToRemove(member)}
+                          />
+                        </div>
                       </TableCell>
                     </MotionTableRow>
                   ))}
@@ -602,16 +636,35 @@ export function TeamsMembersSection({
       </div>
 
       <AnimatePresence>
+        {pendingRoleChange ? (
+          <ConfirmRoleChangeDialog
+            member={pendingRoleChange.member}
+            nextRole={pendingRoleChange.nextRole}
+            isUpdating={isUpdatingRole}
+            error={roleChangeError}
+            onCancel={() => {
+              if (isUpdatingRole) return;
+              setPendingRoleChange(null);
+              setRoleChangeError(null);
+            }}
+            onConfirm={() => void handleConfirmRoleChange()}
+          />
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {memberToTune && memberToTune.role ? (
           <EditPermissionsDialog
             member={memberToTune}
             role={memberToTune.role}
+            offendingPermissions={offendingPermissions}
             isSaving={isSavingPermissions}
             error={permissionsError}
             onCancel={() => {
               if (isSavingPermissions) return;
               setMemberToTune(null);
               setPermissionsError(null);
+              setOffendingPermissions([]);
             }}
             onSave={(next) => void handlePermissionsSave(next)}
           />
@@ -714,9 +767,22 @@ function StatusBadge({ status }: { status: TeamMember["status"] }) {
 
 function AccessSummary({
   permissions,
+  isOwner,
 }: {
   permissions: OrganizationInvitationPermission[];
+  isOwner?: boolean;
 }) {
+  if (isOwner) {
+    return (
+      <Badge
+        variant="secondary"
+        className="rounded-full border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300"
+      >
+        All permissions
+      </Badge>
+    );
+  }
+
   if (permissions.length === 0) {
     return (
       <span className="text-sm text-muted-foreground">No permissions</span>
@@ -736,15 +802,19 @@ function AccessSummary({
         <Badge
           key={title}
           variant="secondary"
-          className="rounded-lg text-xs font-medium"
+          className="rounded-md border-border bg-muted/60 px-2 py-0.5 text-xs font-medium text-foreground"
         >
           {title}
         </Badge>
       ))}
+
       {rest > 0 ? (
-        <span className="text-xs font-semibold text-muted-foreground">
-          +{rest} more
-        </span>
+        <Badge
+          variant="outline"
+          className="rounded-md border-dashed border-border px-1.5 py-0.5 text-xs font-medium text-muted-foreground"
+        >
+          +{rest}
+        </Badge>
       ) : null}
     </div>
   );
@@ -834,12 +904,11 @@ function MemberActions({
           </>
         ) : null}
 
-        {permissions.canRemove || permissions.disableSelfRemoval ? (
+        {permissions.canRemove ? (
           <>
             <DropdownMenuSeparator className="my-1 bg-border" />
             <DropdownMenuItem
               variant="destructive"
-              disabled={permissions.disableSelfRemoval}
               onClick={onRemove}
               className="cursor-pointer rounded-[10px] px-3 py-2.5 text-red-600 focus:bg-red-500/10 focus:text-red-600 dark:text-red-400"
             >
@@ -935,7 +1004,20 @@ function MemberCard({
         </span>
       </div>
 
-      <AccessSummary permissions={member.permissions} />
+      {member.isPending && permissions.canRemove ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onRemove}
+          className="w-full cursor-pointer justify-center rounded-xl border-red-200/80 bg-red-50/50 text-sm font-semibold text-red-600 hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-900/40"
+        >
+          <XCircle className="size-4 mr-1.5" />
+          Cancel invitation
+        </Button>
+      ) : null}
+
+      <AccessSummary permissions={member.permissions} isOwner={member.isOwner} />
     </motion.li>
   );
 }
@@ -968,19 +1050,18 @@ function RosterMessage({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
-      className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card p-12 text-center"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
+      className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/60 px-6 py-14 text-center text-card-foreground shadow-xs"
     >
-      <span
-        aria-hidden
-        className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground"
-      >
-        <Users className="size-6" />
-      </span>
-      <p className="text-base font-semibold text-foreground">{title}</p>
-      <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+        <Users className="size-7" />
+      </div>
+      <h3 className="mt-4 text-lg font-semibold tracking-tight text-foreground">
+        {title}
+      </h3>
+      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
         {body}
       </p>
       {action ? <div className="mt-1">{action}</div> : null}
@@ -988,9 +1069,117 @@ function RosterMessage({
   );
 }
 
+function ConfirmRoleChangeDialog({
+  member,
+  nextRole,
+  isUpdating,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  member: TeamMember;
+  nextRole: OrganizationInvitationRole;
+  isUpdating: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const roleLabel =
+    ROLE_CHOICES.find((choice) => choice.value === nextRole)?.label ?? nextRole;
+  const isDemotingSelf =
+    member.isSelf &&
+    ((member.role === "Manager" && nextRole !== "MANAGER") ||
+      (member.role === "Member" && nextRole === "VIEWER"));
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-[2px]"
+      onClick={onCancel}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-role-change-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="size-5" />
+          </div>
+
+          <div className="space-y-2">
+            <h3
+              id="confirm-role-change-title"
+              className="text-lg font-semibold text-foreground"
+            >
+              Change {member.name}&rsquo;s role to {roleLabel}?
+            </h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Changing the role will reset custom permissions to the{" "}
+              <strong className="font-semibold text-foreground">
+                {roleLabel}
+              </strong>{" "}
+              defaults.
+            </p>
+
+            {member.isSelf ? (
+              <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm font-medium text-amber-800 dark:text-amber-300">
+                {isDemotingSelf
+                  ? "You are about to demote yourself. You may lose access to this organization or its administrative settings."
+                  : "You are about to change your own role. You may lose access to certain features in this organization."}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {error ? (
+          <p
+            role="alert"
+            className="mt-4 rounded-xl bg-red-500/10 p-3 text-sm font-medium leading-relaxed text-red-700 dark:text-red-300"
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isUpdating}
+            onClick={onCancel}
+            className="h-10 cursor-pointer rounded-full border-border bg-card px-4 text-foreground hover:bg-muted"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={isUpdating}
+            onClick={onConfirm}
+            className="h-10 cursor-pointer rounded-full px-4"
+          >
+            {isUpdating ? (
+              <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+            ) : null}
+            {isUpdating ? "Updating…" : "Confirm role change"}
+          </Button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function EditPermissionsDialog({
   member,
   role,
+  offendingPermissions = [],
   isSaving,
   error,
   onCancel,
@@ -998,6 +1187,7 @@ function EditPermissionsDialog({
 }: {
   member: TeamMember;
   role: MemberRole;
+  offendingPermissions?: string[];
   isSaving: boolean;
   error: string | null;
   onCancel: () => void;
@@ -1081,41 +1271,44 @@ function EditPermissionsDialog({
             {INVITE_PERMISSION_OPTIONS.map((option) => {
               const isOn = selected.includes(option.value);
               const withinRole = roleCeiling.includes(option.value);
-
-              const isLocked = !withinRole && !isOn;
+              const isLocked = !withinRole;
+              const isOffending = offendingPermissions.includes(option.value);
 
               return (
                 <li
                   key={option.value}
-                  className="flex items-start justify-between gap-4 px-5 py-3.5"
+                  className={cn(
+                    "flex items-start justify-between gap-4 px-5 py-3.5 transition-colors",
+                    isOffending && "bg-red-500/10 border-l-2 border-red-500",
+                  )}
                 >
                   <div className="min-w-0">
-                    <p
-                      className={cn(
-                        "text-sm font-semibold",
-                        isLocked ? "text-muted-foreground" : "text-foreground",
-                      )}
-                    >
-                      {option.title}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p
+                        className={cn(
+                          "text-sm font-semibold",
+                          isLocked ? "text-muted-foreground" : "text-foreground",
+                          isOffending && "text-red-600 dark:text-red-400 font-bold",
+                        )}
+                      >
+                        {option.title}
+                      </p>
+                      {isOffending ? (
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                          Disallowed
+                        </Badge>
+                      ) : null}
+                    </div>
                     <p
                       id={`permission-note-${option.value}`}
                       className="mt-0.5 text-sm leading-relaxed text-muted-foreground"
                     >
                       {withinRole ? (
                         option.description
-                      ) : isOn ? (
-                        <span className="font-medium text-amber-700 dark:text-amber-400">
-                          Above a {role.toLowerCase()}&rsquo;s rank. Turn
-                          it off, or promote them to keep it.
-                        </span>
                       ) : (
-                        <>
-                          {option.description}{" "}
-                          <span className="font-medium text-foreground">
-                            Needs a higher role.
-                          </span>
-                        </>
+                        <span className="font-medium text-amber-700 dark:text-amber-400">
+                          Not available for {role} role &mdash; promote to grant.
+                        </span>
                       )}
                     </p>
                   </div>
@@ -1263,6 +1456,12 @@ function RemoveMemberDialog({
                 ? "They have not accepted yet, so nothing of theirs is affected. The link in their email stops working, and you can invite them again whenever you like."
                 : "They lose access to this organization's workspace right away. Their reports and activity stay where they are. Getting them back on the team means sending a new invitation."}
             </p>
+
+            {member.isSelf ? (
+              <div className="mt-3 rounded-xl border border-red-500/30 bg-red-50/70 p-3 text-sm font-medium text-red-700 dark:bg-red-950/30 dark:text-red-300">
+                Caution: You are about to remove yourself. You will immediately lose access to this organization.
+              </div>
+            ) : null}
           </div>
         </div>
 

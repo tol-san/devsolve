@@ -59,9 +59,11 @@ export function ResearcherReportCard({
   const isRetesting =
     report.status === "RETESTING" || report.rawStatus === "RETESTING";
 
-  // If program is "Unknown Program" or missing, attempt to fetch program info
+  // Only attempt a fallback fetch if the program name is completely missing
   const needsProgramFetch =
-    !report.program || report.program === "Unknown Program" || !report.organizationId;
+    (!report.program || report.program === "Unknown Program") &&
+    !report.organizationName &&
+    Boolean(report.programId);
   const { data: programData } = useGetProgramByIdQuery(report.programId ?? "", {
     skip: !report.programId || !needsProgramFetch,
   });
@@ -71,9 +73,10 @@ export function ResearcherReportCard({
     programData?.organizationId ||
     programData?.organization?.id;
 
-  // If org logo or name is missing, attempt to fetch organization info
+  // Only fallback fetch if organization name is completely missing
   const needsOrgFetch =
-    !report.organizationLogoUrl || !report.organizationName;
+    !report.organizationName &&
+    Boolean(effectiveOrgId);
   const { data: orgData } = useGetOrganizationByIdQuery(effectiveOrgId ?? "", {
     skip: !effectiveOrgId || !needsOrgFetch,
   });

@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth/auth-client";
 import { useCompanyAccess } from "./useCompanyAccess";
 
@@ -92,11 +93,23 @@ function formatMemberName(
 }
 
 export function useTeamMembers() {
+  const searchParams = useSearchParams();
+  const statusParam = searchParams?.get("status");
+  const initialStatus: StatusFilter =
+    statusParam === "Invited" || statusParam === "Active"
+      ? statusParam
+      : "All";
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] =
-    useState<RoleFilter>("All");
-  const [statusFilter, setStatusFilter] =
-    useState<StatusFilter>("All");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("All");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus);
+
+  useEffect(() => {
+    const param = searchParams?.get("status");
+    if (param === "Invited" || param === "Active") {
+      setStatusFilter(param);
+    }
+  }, [searchParams]);
 
   const { data: session } = authClient.useSession();
   const { isOwner } = useCompanyAccess();
@@ -127,6 +140,11 @@ export function useTeamMembers() {
           username: member.username ?? undefined,
           name: formatMemberName(member.name, member.email),
           email: member.email,
+          avatar:
+            member.avatarUrl ??
+            member.avatar ??
+            member.profile?.avatarUrl ??
+            undefined,
           role: formatRole(member.role),
           status: formatStatus(member.status, member.invitationPending),
           joined: formatJoinedDate(member.joinedAt),

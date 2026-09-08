@@ -1,10 +1,10 @@
 import type {
-  OrganizationInvitationPermission,
   OrganizationInvitationRole,
 } from "@/lib/redux/services/organizationsApi";
 import type {
   InvitePermissionOption,
   InviteRoleOption,
+  SupportedInvitationPermission,
 } from "@/components/teams/invite-member/types";
 
 export const INVITE_MEMBER_ENDPOINT =
@@ -62,12 +62,6 @@ export const INVITE_PERMISSION_OPTIONS: InvitePermissionOption[] = [
       "Allows opening, pausing, or closing programs when program status needs to change.",
   },
   {
-    value: "DELETE_PROGRAM",
-    title: "Delete programs",
-    description:
-      "Allows the member to take a program down. Destructive, and not part of any role's defaults — grant it deliberately.",
-  },
-  {
     value: "VIEW_REPORTS",
     title: "View reports",
     description:
@@ -92,35 +86,38 @@ export const INVITE_PERMISSION_OPTIONS: InvitePermissionOption[] = [
       "Allows the member to assign bounty payouts or other rewards to valid submissions.",
   },
   {
+    value: "DELETE_PROGRAM",
+    title: "Delete programs",
+    description:
+      "Allows permanent removal of draft or inactive organization programs.",
+  },
+  {
     value: "MANAGE_RESEARCHERS",
     title: "Manage researchers",
     description:
-      "Allows the member to decide which researchers may report to the organization — approving, rejecting, and revoking access.",
+      "Allows inviting, coordinating, and managing external security researchers.",
   },
   {
     value: "MANAGE_MEMBERS",
     title: "Manage members",
     description:
-      "Allows inviting new members, changing roles, and adjusting member permissions.",
+      "Allows inviting and configuring team members within this organization.",
   },
 ];
 
 export const MAX_PERMISSIONS_BY_ROLE: Record<
   OrganizationInvitationRole,
-  OrganizationInvitationPermission[]
+  SupportedInvitationPermission[]
 > = {
   MANAGER: [
     "VIEW_PROGRAMS",
     "CREATE_PROGRAM",
     "EDIT_PROGRAM",
     "MANAGE_PROGRAM_STATE",
-    "DELETE_PROGRAM",
     "VIEW_REPORTS",
     "TRIAGE_REPORTS",
     "MANAGE_DISCLOSURE",
     "AWARD_REWARDS",
-    "MANAGE_RESEARCHERS",
-    "MANAGE_MEMBERS",
   ],
   MEMBER: [
     "VIEW_PROGRAMS",
@@ -136,20 +133,17 @@ export const MAX_PERMISSIONS_BY_ROLE: Record<
 
 export const DEFAULT_PERMISSIONS_BY_ROLE: Record<
   OrganizationInvitationRole,
-  OrganizationInvitationPermission[]
+  SupportedInvitationPermission[]
 > = {
   MANAGER: [
     "VIEW_PROGRAMS",
     "CREATE_PROGRAM",
     "EDIT_PROGRAM",
     "MANAGE_PROGRAM_STATE",
-    "DELETE_PROGRAM",
     "VIEW_REPORTS",
     "TRIAGE_REPORTS",
     "MANAGE_DISCLOSURE",
     "AWARD_REWARDS",
-    "MANAGE_RESEARCHERS",
-    "MANAGE_MEMBERS",
   ],
   MEMBER: [
     "VIEW_PROGRAMS",

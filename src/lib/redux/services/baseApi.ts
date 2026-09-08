@@ -18,8 +18,10 @@ const rawBaseQuery = fetchBaseQuery({
 });
 
 const ORGANIZATION_SCOPED = [
+  "/organizations/roles",
   "/organizations/me",
   "/organizations/me/members",
+  "/organizations/me/members/candidates",
   "/organizations/me/members/invitations",
   "/organizations/me/programs",
   "/organizations/me/programs/deleted",
@@ -66,6 +68,32 @@ export const baseQueryWithReauth: BaseQueryFn<
   if (result.error?.status === 401) {
     clearAccessToken();
     return rawBaseQuery(scopedArgs, api, extraOptions);
+  }
+
+  // Handle 409 WITH errorDetails.organizationIds:
+  // User belongs to multiple organizations and named none.
+  // Retry with currently selected in UI or first candidate.
+  if (result.error?.status === 409) {
+    const errorData = result.error.data as
+      | {
+          errorDetails?: { organizationIds?: string[] };
+          details?: { errorDetails?: { organizationIds?: string[] } };
+        }
+      | undefined;
+    const orgIds =
+      errorData?.errorDetails?.organizationIds ??
+      errorData?.details?.errorDetails?.organizationIds;
+
+    if (Array.isArray(orgIds) && orgIds.length > 0) {
+      const targetOrg = organizationId || orgIds[0];
+      if (targetOrg) {
+        const retryArgs =
+          typeof args === "string"
+            ? withOrganization(args, targetOrg)
+            : { ...args, url: withOrganization(args.url, targetOrg) };
+        return rawBaseQuery(retryArgs, api, extraOptions);
+      }
+    }
   }
 
   return result;

@@ -53,9 +53,8 @@ function CompanyDashboardSkeleton() {
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className={`h-28 rounded-2xl border border-border/60 bg-card/60 p-4 space-y-3 ${
-              i === 5 ? "sm:col-span-2 md:col-span-1" : ""
-            }`}
+            className={`h-28 rounded-2xl border border-border/60 bg-card/60 p-4 space-y-3 ${i === 5 ? "sm:col-span-2 md:col-span-1" : ""
+              }`}
           >
             <div className="flex justify-between">
               <div className="h-3.5 w-20 rounded bg-muted/60" />
@@ -324,13 +323,12 @@ export function CompanyDashboardView() {
       />
 
       <div
-        className={`space-y-6 transition-opacity duration-200 ${
-          isFetching ? "opacity-60 pointer-events-none" : "opacity-100"
-        }`}
+        className={`space-y-6 transition-opacity duration-200 ${isFetching ? "opacity-60 pointer-events-none" : "opacity-100"
+          }`}
       >
         <DashboardKpiRow kpi={analytics.kpiSummary} />
 
-        <DashboardSlaStrip sla={analytics.kpiSummary.slaMetrics} />
+        {/* <DashboardSlaStrip sla={analytics.kpiSummary.slaMetrics} /> */}
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           <div className="xl:col-span-7">

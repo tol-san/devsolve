@@ -83,7 +83,6 @@ export async function GET(request: NextRequest) {
     ).filter((item): item is Record<string, unknown> & { id: string } => typeof item === "object" && item !== null && typeof (item as { id?: unknown }).id === "string");
 
     if (items.length > 0) {
-      await enrichReportsWithWeakness(items);
       await enrichReportsWithProgramAndOrg(items);
     }
 

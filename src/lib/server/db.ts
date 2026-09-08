@@ -153,6 +153,7 @@ interface DbReportRow {
   reported_severity: string | null;
   severity: string | null;
   report_title: string | null;
+  suggested_weakness: string | null;
 }
 
 export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
@@ -172,6 +173,7 @@ export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
            r.reported_severity,
            r.severity,
            r.title as report_title,
+           r.suggested_weakness,
            p.id as program_id,
            p.name as program_name,
            p.handle as program_handle,
@@ -254,6 +256,10 @@ export async function enrichReportsWithProgramAndOrg<T extends { id: string }>(
         if (dbRow.severity) {
           const sev = String(dbRow.severity).toUpperCase();
           if (!item.severity) item.severity = sev;
+        }
+        if (dbRow.suggested_weakness && !item.suggestedWeakness) {
+          item.suggestedWeakness = dbRow.suggested_weakness;
+          item.suggested_weakness = dbRow.suggested_weakness;
         }
       }
 
@@ -623,6 +629,9 @@ export interface DbUserProfile {
   avatarUrl: string | null;
   email: string | null;
   reputation: number | null;
+  biography?: string | null;
+  country?: string | null;
+  coverImageUrl?: string | null;
 }
 
 export async function getUserProfilesByIds(
@@ -635,7 +644,7 @@ export async function getUserProfilesByIds(
   if (validIds.length === 0) return map;
   try {
     const res = await dbPool.query(
-      `SELECT id, full_name, username, avatar_url, email, reputation FROM user_profiles WHERE id = ANY($1::uuid[])`,
+      `SELECT id, full_name, username, avatar_url, email, reputation, biography, country, cover_image_url FROM user_profiles WHERE id = ANY($1::uuid[])`,
       [validIds]
     );
     for (const row of res.rows) {
@@ -646,6 +655,9 @@ export async function getUserProfilesByIds(
         avatarUrl: row.avatar_url ?? null,
         email: row.email ?? null,
         reputation: row.reputation != null ? Number(row.reputation) : null,
+        biography: row.biography ?? null,
+        country: row.country ?? null,
+        coverImageUrl: row.cover_image_url ?? null,
       });
     }
   } catch (err) {
@@ -654,4 +666,114 @@ export async function getUserProfilesByIds(
   return map;
 }
 
+export interface PlatformUserCandidate {
+  id: string;
+  fullName: string | null;
+  username: string | null;
+  email: string;
+  avatarUrl: string | null;
+  isExistingMember: boolean;
+  isPendingInvite: boolean;
+  memberRole: string | null;
+}
 
+export async function searchPlatformUsersForInvitation(
+  query?: string | null,
+  organizationId?: string | null
+): Promise<PlatformUserCandidate[]> {
+  const clean = query?.trim() ?? "";
+  const hasFilter = clean.length > 0;
+  const pattern = `%${clean}%`;
+
+  try {
+    if (organizationId) {
+      const sql = `
+        SELECT 
+           up.id,
+           up.full_name,
+           up.username,
+           up.email,
+           up.avatar_url,
+           om.status as member_status,
+           om.role as member_role,
+           om.joined_at
+         FROM user_profiles up
+         LEFT JOIN LATERAL (
+           SELECT status, role, joined_at
+           FROM organization_members om
+           WHERE (om.user_id = up.id OR om.invitation_email = up.email)
+             AND om.organization_id = $1
+           ORDER BY 
+             CASE 
+               WHEN om.status = 'active' THEN 1
+               WHEN om.status = 'suspended' THEN 2
+               ELSE 3
+             END
+           LIMIT 1
+         ) om ON TRUE
+         WHERE up.email IS NOT NULL 
+           ${hasFilter ? "AND (up.email ILIKE $2 OR up.username ILIKE $2 OR up.full_name ILIKE $2)" : ""}
+         ORDER BY 
+           CASE 
+             WHEN om.status = 'active' THEN 2
+             WHEN om.status = 'suspended' THEN 1
+             ELSE 0 
+           END,
+           up.full_name ASC NULLS LAST
+         LIMIT 50
+      `;
+
+      const params = hasFilter ? [organizationId, pattern] : [organizationId];
+      const res = await dbPool.query(sql, params);
+
+      return res.rows.map((row) => {
+        const isMember = row.member_status === "active";
+        const isPending =
+          row.member_status === "suspended" ||
+          (row.member_status != null && row.joined_at == null && row.member_status !== "removed");
+
+        return {
+          id: row.id,
+          fullName: row.full_name ?? null,
+          username: row.username ?? null,
+          email: row.email,
+          avatarUrl: row.avatar_url ?? null,
+          isExistingMember: isMember,
+          isPendingInvite: isPending,
+          memberRole: row.member_role ?? null,
+        };
+      });
+    } else {
+      const sql = `
+        SELECT 
+           up.id,
+           up.full_name,
+           up.username,
+           up.email,
+           up.avatar_url
+         FROM user_profiles up
+         WHERE up.email IS NOT NULL 
+           ${hasFilter ? "AND (up.email ILIKE $1 OR up.username ILIKE $1 OR up.full_name ILIKE $1)" : ""}
+         ORDER BY up.full_name ASC NULLS LAST
+         LIMIT 50
+      `;
+
+      const params = hasFilter ? [pattern] : [];
+      const res = await dbPool.query(sql, params);
+
+      return res.rows.map((row) => ({
+        id: row.id,
+        fullName: row.full_name ?? null,
+        username: row.username ?? null,
+        email: row.email,
+        avatarUrl: row.avatar_url ?? null,
+        isExistingMember: false,
+        isPendingInvite: false,
+        memberRole: null,
+      }));
+    }
+  } catch (err) {
+    console.error("[db] Failed to search platform users for invitation:", err);
+    return [];
+  }
+}
