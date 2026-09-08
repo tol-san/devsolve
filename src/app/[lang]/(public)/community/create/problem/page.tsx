@@ -78,10 +78,6 @@ export default function PublicCreateProblemPage() {
                 Describe what went wrong
                 <span className="text-primary">.</span>
               </h1>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                Give clear context, reproduction steps, and error logs. The more specific
-                your details are, the faster the community can replicate and solve it.
-              </p>
             </motion.div>
 
             {/* Quick-Nav Stepper Bar: Evenly distributed 6-step nav */}

@@ -112,11 +112,6 @@ export function ProblemDiagnosisSection({
                     Diagnosis & Reproduction
                   </h2>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  {isBug
-                    ? "Required for Bug reports: expected & actual behaviour and reproduction steps are mandatory."
-                    : "Recommended: problems with clear steps and context get answered up to 3x faster."}
-                </p>
               </div>
             </div>
 

@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
 } from "@/components/ui/card";
 import {
@@ -74,19 +73,18 @@ export function ProblemTechnologiesSection({
                     Technologies & Stack
                   </h2>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  The stack this problem is about. Helps people filtering by technology find and resolve it.
-                </p>
+                
               </div>
             </div>
             <div className="flex items-center gap-2 self-start sm:self-auto">
-              <Badge variant="outline" className="text-muted-foreground text-xs font-normal">
-                Optional
-              </Badge>
-              {technologyFields.length > 0 && (
+              {technologyFields.length > 0 ? (
                 <Badge variant="secondary" className="font-mono text-xs tabular-nums">
                   {technologyFields.length}/{MAX_TECHNOLOGIES}
                 </Badge>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  Up to {MAX_TECHNOLOGIES} items
+                </span>
               )}
             </div>
           </div>
@@ -112,6 +110,18 @@ export function ProblemTechnologiesSection({
                 {tech}
               </button>
             ))}
+
+            <button
+              type="button"
+              disabled={
+                submitting || technologyFields.length >= MAX_TECHNOLOGIES
+              }
+              onClick={() => onAppendTechnology({ name: "", version: "" })}
+              className="inline-flex items-center gap-1 rounded-lg border border-dashed border-primary/50 bg-primary/5 hover:bg-primary/15 hover:border-primary px-2 py-1 text-xs font-medium text-primary transition-all cursor-pointer disabled:opacity-40"
+            >
+              <Plus className="size-2.5 text-primary" />
+              Add custom technology
+            </button>
           </div>
 
           <FieldSet>
@@ -242,25 +252,6 @@ export function ProblemTechnologiesSection({
             )}
           </FieldSet>
         </CardContent>
-
-        <CardFooter className="border-t border-border/70 pt-4 flex items-center justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={
-              submitting || technologyFields.length >= MAX_TECHNOLOGIES
-            }
-            onClick={() => onAppendTechnology({ name: "", version: "" })}
-            className="rounded-xl cursor-pointer text-xs font-medium"
-          >
-            <Plus className="size-3.5 mr-1" aria-hidden="true" />
-            Add custom technology
-          </Button>
-
-          <span className="text-xs text-muted-foreground">
-            Up to {MAX_TECHNOLOGIES} items
-          </span>
-        </CardFooter>
       </Card>
     </motion.div>
   );

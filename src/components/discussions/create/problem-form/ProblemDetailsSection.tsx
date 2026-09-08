@@ -3,8 +3,7 @@
 import React from "react";
 import { motion } from "motion/react";
 import { Control, Controller, FieldErrors, UseFormRegister } from "react-hook-form";
-import { Columns2, FileText, ListOrdered, Terminal } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { FileText } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -36,7 +35,6 @@ interface ProblemDetailsSectionProps {
   description: string;
   errorMessage: string;
   problemId?: string;
-  onInsertTemplate: (template: "expected" | "steps" | "logs") => void;
 }
 
 export function ProblemDetailsSection({
@@ -48,7 +46,6 @@ export function ProblemDetailsSection({
   description,
   errorMessage,
   problemId,
-  onInsertTemplate,
 }: ProblemDetailsSectionProps) {
   const isTitleValid = title.trim().length >= 10 && title.trim().length <= 180;
   const isDescValid = description.trim().length >= 30;
@@ -80,17 +77,9 @@ export function ProblemDetailsSection({
                     Problem Details
                   </h2>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                  Give the community enough context to understand, diagnose, and reproduce what is going wrong.
-                </p>
+            
               </div>
             </div>
-            <Badge
-              variant="outline"
-              className="self-start sm:self-auto shrink-0 border-primary/25 bg-primary/10 text-primary text-xs font-semibold"
-            >
-              Required
-            </Badge>
           </div>
         </CardHeader>
 
@@ -140,11 +129,6 @@ export function ProblemDetailsSection({
                 className={CONTROL_CLASS}
                 {...register("title")}
               />
-
-              <FieldDescription id="problem-title-help">
-                Use 10–180 characters. Name the specific behavior and conditions rather than only the symptom.
-              </FieldDescription>
-
               {errors.title?.message && (
                 <FieldError id="problem-title-error">
                   {errors.title.message}
@@ -191,40 +175,6 @@ export function ProblemDetailsSection({
                 </span>
               </div>
 
-              {/* Template Insertion Chips */}
-              <div className="flex flex-wrap items-center gap-2 py-1">
-                <span className="text-xs font-medium text-muted-foreground mr-1">
-                  Insert template:
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onInsertTemplate("expected")}
-                  disabled={submitting}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 hover:bg-muted px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-border cursor-pointer disabled:opacity-50"
-                >
-                  <Columns2 className="size-3 text-primary" />
-                  Expected vs Actual
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onInsertTemplate("steps")}
-                  disabled={submitting}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 hover:bg-muted px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-border cursor-pointer disabled:opacity-50"
-                >
-                  <ListOrdered className="size-3 text-primary" />
-                  Steps to Reproduce
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onInsertTemplate("logs")}
-                  disabled={submitting}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-muted/40 hover:bg-muted px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-border cursor-pointer disabled:opacity-50"
-                >
-                  <Terminal className="size-3 text-primary" />
-                  Error / Stack Trace
-                </button>
-              </div>
-
               <Controller
                 control={control}
                 name="description"
@@ -250,10 +200,6 @@ export function ProblemDetailsSection({
                   />
                 )}
               />
-
-              <FieldDescription id="problem-description-help">
-                Markdown and syntax highlighting are supported (minimum 30 characters). Include error output, environment details, and reproduction steps.
-              </FieldDescription>
 
               {errors.description?.message && (
                 <FieldError id="problem-description-error">

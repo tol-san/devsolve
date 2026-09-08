@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { ShowcaseDetail } from "@/components/showcases/detail/ShowcaseDetail";
 import { getShowcase } from "@/lib/seo/content";
-import { isoDateTime } from "@/lib/seo/dates";
 import { JsonLd, breadcrumbSchema, showcaseSchema } from "@/lib/seo/jsonld";
-import { pageMetadata } from "@/lib/seo/metadata";
-import { SITE_NAME } from "@/lib/seo/site";
-import { describe } from "@/lib/seo/text";
+import { showcaseAuthor, showcaseCoverUrl, showcaseMetadata } from "@/lib/seo/showcase";
+import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
+import { absoluteUrl } from "@/lib/seo/site";
 
 
 interface PageProps {
@@ -16,51 +15,35 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { lang, id } = await params;
-  const path = `/showcases/${id}`;
   const showcase = await getShowcase(id);
-
-  if (!showcase?.title) {
-    return pageMetadata({
-      title: "Showcase",
-      description: `This showcase is not available on ${SITE_NAME}.`,
-      path,
-      locale: lang,
-      noIndex: true,
-    });
-  }
-
-  return pageMetadata({
-    title: showcase.title,
-    description: describe(
-      showcase.overview,
-      `A project built by ${showcase.authorName} and written up on ${SITE_NAME}.`,
-    ),
-    path,
-    locale: lang,
-    type: "article",
-    publishedTime: isoDateTime(showcase.createdAt),
-    modifiedTime: isoDateTime(showcase.updatedAt),
-    authors: showcase.authorName ? [showcase.authorName] : undefined,
-    tags: (showcase.tags ?? [])
-      .map((tag) => tag.name)
-      .filter((name): name is string => Boolean(name)),
-  });
+  return showcaseMetadata(showcase, id, lang);
 }
 
 export default async function PublicShowcaseDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id, lang } = await params;
   const showcase = await getShowcase(id);
-  const path = `/showcases/${id}`;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const path = localise(`/showcases/${encodeURIComponent(id)}`, locale);
+  const author = showcaseAuthor(showcase);
 
   return (
     <>
       {showcase?.title ? (
         <JsonLd
           data={[
-            showcaseSchema(showcase, path),
+            {
+              ...showcaseSchema(showcase, path),
+              inLanguage: locale,
+              image: showcaseCoverUrl(showcase.coverImageUrl),
+              author: author.name ? {
+                "@type": "Person",
+                name: author.name,
+                ...(author.username ? { url: absoluteUrl(localise(`/profile/${encodeURIComponent(author.username)}`, locale)) } : {}),
+              } : undefined,
+            },
             breadcrumbSchema([
-              { name: "Home", path: "/" },
-              { name: "Showcases", path: "/showcases" },
+              { name: "Home", path: localise("/", locale) },
+              { name: "Showcases", path: localise("/showcases", locale) },
               { name: showcase.title, path },
             ]),
           ]}

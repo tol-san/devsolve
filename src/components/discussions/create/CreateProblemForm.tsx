@@ -326,23 +326,6 @@ export function CreateProblemForm({
     }
   }, [activeProblem]);
 
-  const handleInsertTemplate = (template: "expected" | "steps" | "logs") => {
-    let snippet = "";
-    if (template === "expected") {
-      snippet = `\n\n### Expected Behavior\nDescribe what you expected to happen...\n\n### Actual Behavior\nDescribe what actually happened instead...\n`;
-    } else if (template === "steps") {
-      snippet = `\n\n### Steps to Reproduce\n1. Go to '...'\n2. Click on '...'\n3. Scroll down to '...'\n4. See error\n`;
-    } else if (template === "logs") {
-      snippet = `\n\n### Error / Stack Trace\n\`\`\`text\n[Paste error log or console output here]\n\`\`\`\n`;
-    }
-    const current = description ?? "";
-    setValue(
-      "description",
-      current ? `${current.trimEnd()}${snippet}` : snippet.trimStart(),
-      { shouldValidate: true, shouldDirty: true },
-    );
-  };
-
   const submitting = isSubmitting || mutationLoading;
   const submittingRef = useRef(submitting);
   useEffect(() => {
@@ -1069,7 +1052,6 @@ export function CreateProblemForm({
             description={description}
             errorMessage={errorMessage}
             problemId={problem?.id}
-            onInsertTemplate={handleInsertTemplate}
           />
 
           <ProblemTechnologiesSection
