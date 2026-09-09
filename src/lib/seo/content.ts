@@ -98,6 +98,14 @@ export const getProblem = cache(async (id: string) =>
   isUuid(id) ? backendJson<ProblemResponse>(`/problems/${id}`) : null,
 );
 
+export const getProblemSolution = cache(async (problemId: string, solutionId: string) => {
+  if (!isUuid(problemId) || !isUuid(solutionId)) return null;
+  const solution = await backendJson<SolutionResponse>(`/solutions/${solutionId}`);
+  return solution?.problemId === problemId &&
+    (!solution.moderation?.status || solution.moderation.status === "APPROVED")
+    ? solution : null;
+});
+
 export const getProblemSolutions = cache(async (id: string) => {
   if (!isUuid(id)) return [];
   const envelope = await backendJson<PageEnvelope<SolutionResponse>>(

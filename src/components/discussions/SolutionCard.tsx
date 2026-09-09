@@ -225,6 +225,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
     if (typeof window === "undefined") return;
     try {
       const url = new URL(window.location.href);
+      url.searchParams.set("solution", solution.id);
       url.hash = `solution-${solution.id}`;
       await navigator.clipboard.writeText(url.toString());
       setCopied(true);

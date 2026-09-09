@@ -1,76 +1,54 @@
 import type { Metadata } from "next";
 import ProblemDetailPage from "@/components/discussions/ProblemDetailPage";
-import { authorNameOf } from "@/lib/discussions/format";
-import { getProblem, getProblemSolutions } from "@/lib/seo/content";
-import { isoDateTime } from "@/lib/seo/dates";
+import { getProblemSolutions } from "@/lib/seo/content";
+import { communityMetadata, getCommunityContent } from "@/lib/seo/community";
+import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { JsonLd, breadcrumbSchema, problemSchema } from "@/lib/seo/jsonld";
-import { pageMetadata } from "@/lib/seo/metadata";
-import { SITE_NAME } from "@/lib/seo/site";
-import { describe, humanizeEnum } from "@/lib/seo/text";
 
-type PageProps = { params: Promise<{ lang: string; id: string }> };
+type PageProps = {
+  params: Promise<{ lang: string; id: string }>;
+  searchParams: Promise<{ solution?: string | string[] }>;
+};
+
+function selectedSolution(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 export async function generateMetadata({
-  params,
+  params, searchParams,
 }: PageProps): Promise<Metadata> {
   const { lang, id } = await params;
-  const path = `/community/${id}`;
-  const problem = await getProblem(id);
-
-  if (!problem?.title) {
-    return pageMetadata({
-      title: "Problem",
-      description: `This problem is not available on ${SITE_NAME}.`,
-      path,
-      locale: lang,
-      noIndex: true,
-    });
-  }
-
-  const kind = humanizeEnum(problem.problemType) || "Engineering";
-
-  return pageMetadata({
-    title: problem.title,
-    description: describe(
-      problem.description,
-      `A ${kind.toLowerCase()} problem posted on ${SITE_NAME}, with solutions from the community.`,
-    ),
-    path,
-    locale: lang,
-    type: "article",
-    publishedTime: isoDateTime(problem.publishedAt ?? problem.createdAt),
-    modifiedTime: isoDateTime(problem.updatedAt),
-    authors: [authorNameOf(problem.author, SITE_NAME)],
-    tags: (problem.tags ?? [])
-      .map((tag) => tag.name)
-      .filter((name): name is string => Boolean(name)),
-  });
+  const solutionId = selectedSolution((await searchParams).solution);
+  return communityMetadata(await getCommunityContent(id, solutionId), id, lang);
 }
 
 export default async function PublicDiscussionDetailPage({
-  params,
+  params, searchParams,
 }: PageProps) {
-  const { id } = await params;
-  const problem = await getProblem(id);
-  const solutions = problem ? await getProblemSolutions(id) : [];
-  const path = `/community/${id}`;
+  const { id, lang } = await params;
+  const solutionId = selectedSolution((await searchParams).solution);
+  const { problem, solution } = await getCommunityContent(id, solutionId);
+  const solutions = problem ? [...await getProblemSolutions(id)] : [];
+  if (solution && !solutions.some(item => item.id === solution.id)) solutions.push(solution);
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const path = localise(`/community/${encodeURIComponent(id)}`, locale);
 
   return (
     <>
       {problem?.title ? (
         <JsonLd
           data={[
-            problemSchema(problem, solutions, path),
+            { ...problemSchema(problem, solutions, path), inLanguage: locale },
             breadcrumbSchema([
-              { name: "Home", path: "/" },
-              { name: "Community", path: "/community" },
+              { name: "Home", path: localise("/", locale) },
+              { name: "Community", path: localise("/community", locale) },
               { name: problem.title, path },
             ]),
           ]}
         />
       ) : null}
 
-      <ProblemDetailPage />
+      <ProblemDetailPage sharedSolution={solution ?? undefined} />
     </>
   );
 }

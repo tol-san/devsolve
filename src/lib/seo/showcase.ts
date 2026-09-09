@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { unstable_cache } from "next/cache";
-import { fetchExternalImage, getImageSize } from "next/dist/server/image-optimizer";
 import type { ShowcaseResponse } from "@/lib/redux/services/showcasesApi";
 import { DEFAULT_LOCALE, isLocale, localise } from "@/lib/i18n/config";
 import { isoDateTime } from "./dates";
 import { pageMetadata } from "./metadata";
-import { absoluteUrl, SITE_NAME, SITE_URL } from "./site";
+import { absoluteUrl, SITE_NAME } from "./site";
+import { publicImageUrl as showcaseCoverUrl, publicImageDimensions as coverDimensions } from "./social-image";
+export { publicImageUrl as showcaseCoverUrl } from "./social-image";
 import { describe } from "./text";
 
 export function showcaseAuthor(showcase: ShowcaseResponse | null) {
@@ -14,31 +14,6 @@ export function showcaseAuthor(showcase: ShowcaseResponse | null) {
     || showcase?.author?.displayName?.trim() || username;
   return { name, username };
 }
-
-export function showcaseCoverUrl(value: string | null | undefined): string | undefined {
-  const source = value?.trim();
-  if (!source || /[\\\u0000-\u001f]/.test(source)) return undefined;
-  try {
-    const url = new URL(source, `${SITE_URL}/`);
-    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return undefined;
-    return url.href;
-  } catch {
-    return undefined;
-  }
-}
-
-// Next's image fetcher checks DNS/redirect targets for private IPs, sets a timeout,
-// and bounds the response body. Reuse that protection for user-supplied covers.
-// Keep this version-specific import covered by the Showcase verification script.
-const coverDimensions = unstable_cache(async (url: string) => {
-  try {
-    const image = await fetchExternalImage(url, false, 5 * 1024 * 1024);
-    const size = await getImageSize(image.buffer);
-    return size.width && size.height ? size : null;
-  } catch {
-    return null;
-  }
-}, ["showcase-social-cover-v1"], { revalidate: 300 });
 
 export async function showcaseMetadata(
   showcase: ShowcaseResponse | null, id: string, lang: string,

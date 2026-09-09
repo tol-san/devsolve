@@ -66,6 +66,7 @@ import {
 import {
   useGetMyProfileQuery,
   useGetSolutionsByProblemQuery,
+  type SolutionResponse,
 } from "@/lib/redux/services/solutionsApi";
 import {
   useGetVoteSummaryQuery,
@@ -129,7 +130,7 @@ const SEVERITY_META: Record<
   },
 };
 
-export default function ProblemDetailPage() {
+export default function ProblemDetailPage({ sharedSolution }: { sharedSolution?: SolutionResponse } = {}) {
   const params = useParams();
   const problemId = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const id = problemId ?? "";
@@ -171,6 +172,7 @@ export default function ProblemDetailPage() {
       problem={problem}
       sortOrder={sortOrder}
       onSortChange={setSortOrder}
+      sharedSolution={sharedSolution}
     />
   );
 }
@@ -180,11 +182,13 @@ function Loaded({
   problem,
   sortOrder,
   onSortChange,
+  sharedSolution,
 }: {
   id: string;
   problem: ProblemResponse;
   sortOrder: "votes" | "newest";
   onSortChange: (order: "votes" | "newest") => void;
+  sharedSolution?: SolutionResponse;
 }) {
   const [incrementViews] = useIncrementProblemViewsMutation();
   const countedProblemId = useRef<string | null>(null);
@@ -257,6 +261,10 @@ function Loaded({
 
   const solutions = useMemo(() => {
     const list = [...(solutionPage?.content ?? [])];
+    // A shared answer may be outside the first page of solutions.
+    if (sharedSolution?.problemId === id && !list.some(item => item.id === sharedSolution.id)) {
+      list.push(sharedSolution);
+    }
     const newest = (a: (typeof list)[number], b: (typeof list)[number]) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 
@@ -275,12 +283,12 @@ function Loaded({
         (b.voteScore ?? 0) - (a.voteScore ?? 0) ||
         newest(a, b),
     );
-  }, [solutionPage, sortOrder, acceptedIds]);
+  }, [solutionPage, sortOrder, acceptedIds, sharedSolution, id]);
 
   useEffect(() => {
     if (isLoadingSolutions || solutions.length === 0) return;
 
-    const targetId = decodeURIComponent(window.location.hash.slice(1));
+    const targetId = sharedSolution ? `solution-${sharedSolution.id}` : window.location.hash.slice(1);
     if (!targetId.startsWith("solution-")) return;
 
     const target = document.getElementById(targetId);
@@ -289,7 +297,7 @@ function Loaded({
     window.requestAnimationFrame(() => {
       target.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-  }, [isLoadingSolutions, solutions]);
+  }, [isLoadingSolutions, solutions, sharedSolution]);
 
   const attachments = problem.attachments ?? [];
   const { imageAttachments, documentAttachments } = useMemo(() => {
@@ -397,7 +405,10 @@ function Loaded({
   const onShare = async () => {
     if (typeof window === "undefined") return;
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("solution");
+      url.hash = "";
+      await navigator.clipboard.writeText(url.toString());
       toast.success("Link copied", {
         description: "Share it wherever the answer might be.",
       });
